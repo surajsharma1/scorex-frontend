@@ -59,7 +59,7 @@ export default function BracketView() {
     }
   };
 
-  const handleGenerateBracket = async (bracketId: string) => {
+ const handleGenerateBracket = async (bracketId: string) => {
     if (teams.length === 0) {
       setError('No teams found for this tournament. Please add teams first.');
       return;
@@ -69,15 +69,13 @@ export default function BracketView() {
       setError(`Not enough teams. Need ${formData.numberOfTeams} teams, but only ${teams.length} available.`);
       return;
     }
-
     setLoading(true);
     setError('');
     try {
-      // Generate bracket with available teams
       const teamsForBracket = teams.slice(0, formData.numberOfTeams);
       await bracketAPI.generateBracket(bracketId, { teams: teamsForBracket });
       fetchData();
-      setSelectedBracket(brackets.find((bracket: any) => bracket._id === bracketId));
+      setSelectedBracket(brackets.find((bracket: any) => bracket._id === bracketId));  // Fixed: Type assertion
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to generate bracket');
     } finally {

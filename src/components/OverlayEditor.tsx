@@ -62,43 +62,43 @@ export default function OverlayEditor() {
   };
 
   const handleSelectOverlay = async (overlayTemplate: any) => {
-    if (!selectedTournament) {
-      setError('Please select a tournament first');
-      return;
-    }
+  if (!selectedTournament) {
+    setError('Please select a tournament first');
+    return;
+  }
 
-    // Check membership access
-    if (overlayTemplate.membership !== 'free' && userMembership === 'free') {
-      setError(`This overlay requires a ${overlayTemplate.membership} membership`);
-      return;
-    }
+  // Check membership
+  if (overlayTemplate.membership !== 'free' && userMembership === 'free') {
+    setError(`This overlay requires a ${overlayTemplate.membership} membership`);
+    return;
+  }
 
     setLoading(true);
-    try {
-      const overlayData = {
-        name: `${selectedTournament.name} - ${overlayTemplate.name}`,
-        tournament: selectedTournament._id,
-        template: overlayTemplate.id,
-        config: {
-          backgroundColor: '#16a34a',
-          opacity: 90,
-          fontFamily: 'Inter',
-          position: 'top',
-          showAnimations: true,
-          autoUpdate: true,
-        },
-        elements: [],
-      };
+  try {
+    const overlayData = {
+      name: `${selectedTournament.name} - ${overlayTemplate.name}`,
+      tournament: selectedTournament._id,
+      template: overlayTemplate.id,
+      config: {
+        backgroundColor: '#16a34a',
+        opacity: 90,
+        fontFamily: 'Inter',
+        position: 'top',
+        showAnimations: true,
+        autoUpdate: true,
+      },
+      elements: [],
+    };
 
-      const response = await overlayAPI.createOverlay(overlayData);
-      setSelectedOverlay(response.data);
-      fetchData();
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to create overlay');
-    } finally {
-      setLoading(false);
-    }
-  };
+ const response = await overlayAPI.createOverlay(overlayData);
+    setSelectedOverlay(response.data);
+    fetchData();
+  } catch (error: any) {
+    setError(error.response?.data?.message || 'Failed to create overlay');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleEditOverlay = (overlay: any) => {
     setEditingOverlay(overlay);
