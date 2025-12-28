@@ -7,6 +7,14 @@ import BracketView from './components/BracketView';
 import OverlayEditor from './components/OverlayEditor';
 import Login from './components/Login';
 
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+}
+const [user, setUser] = useState<User | null>(null);
+
 function App() {
   const [activeView, setActiveView] = useState('dashboard');
   const [isAuthenticated, setIsAuthenticated] = useState(false);

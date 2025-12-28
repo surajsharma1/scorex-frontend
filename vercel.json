@@ -15,7 +15,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://scorex-backend-git-main-suraj-sharmas-projects-3413126b.vercel.app wss://*.vercel.live; worker-src 'self' blob:"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://scorex-backend.vercel.app wss://*.vercel.live; worker-src 'self' blob:"
         }
       ]
     }
@@ -25,5 +25,8 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "VITE_API_URL": "https://scorex-backend.vercel.app/api"  
+  }
 }
