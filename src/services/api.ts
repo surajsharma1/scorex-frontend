@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-backend-project.vercel.app/api'  // Replace with your actual backend URL
+  ? 'https://scorex-backend-live.vercel.app/api'  // Replace with your actual backend URL
   : 'http://localhost:5000/api';
 
 const api = axios.create({
