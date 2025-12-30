@@ -11,16 +11,13 @@
   ],
   "routes": [
     {
-      "source": "/robots.txt",
       "destination": "/robots.txt"
     },
     {
-      "source": "/sitemap.xml",
       "destination": "/sitemap.xml"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+    "destination": "/index.html"
     }
   ],
   "headers": [
