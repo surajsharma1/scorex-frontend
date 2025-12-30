@@ -9,13 +9,13 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
       "source": "/robots.txt",
       "destination": "/robots.txt"
     },
     {
-      "source": "/sitemap.xml",
+      "source": "/sitemap.xml", 
       "destination": "/sitemap.xml"
     },
     {
