@@ -2,8 +2,9 @@ import axios from 'axios';
 // Fixed: Corrected base URL and added error handling
 import axios from 'axios';
 
-const API_BASE_URL = 'https://scorex-backend-live.vercel.app/';  // Fixed: Use your actual backend URL
-
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://scorex-backend-live.vercel.app/api'  // Updated URL
+  : 'http://localhost:5000/api';
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
