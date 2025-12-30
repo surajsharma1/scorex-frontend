@@ -1,42 +1,38 @@
 import axios from 'axios';
-// Fixed: Corrected base URL and added error handling
-import axios from 'axios';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://scorex-backend-live.vercel.app/api'  // Updated URL
+  ? 'https://scorex-backend-live.vercel.app/api'
   : 'http://localhost:5000/api';
+
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 10000,
 });
 
-// Request interceptor
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// Add token to requests if available
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-// Response interceptor
+// Add response interceptor for retries
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.reload();  // Fixed: Reload instead of href
+  async (error) => {
+    const { config, response } = error;
+    
+    if (response?.status === 429 && !config._retry) {
+      config._retry = true;
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return api(config);
     }
+    
     return Promise.reject(error);
   }
 );
-
-// ... (rest of your existing API functions)
 
 export const authAPI = {
   register: (data: { username: string; email: string; password: string }) =>

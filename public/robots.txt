@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Block access to sensitive areas
+Disallow: /admin/
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://scorex-frontend-p26uq51uk-suraj-sharmas-projects-3413126b.vercel.app/sitemap.xml
