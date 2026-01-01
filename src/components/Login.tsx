@@ -1,61 +1,48 @@
-// src/components/Login.tsx
-function Login() {
-  // ... existing code ...
+import { useState } from 'react';
+import { authAPI } from '../services/api';
+
+export default function Login({ onLogin }: { onLogin: (user: any) => void }) {  // Added default export
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const response = await authAPI.login(formData);
+      localStorage.setItem('token', response.data.token);
+      onLogin(response.data.user);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="login-container" style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h2>Login to Cricket Tournament Platform</h2>
-      
-      <form onSubmit={handleSubmit} noValidate>
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="login-email" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Email Address
-          </label>
-          <input
-            type="email"
-            id="login-email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            autoComplete="email"
-            aria-describedby={error ? "login-error" : undefined}
-            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '16px' }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <label htmlFor="login-password" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Password
-          </label>
-          <input
-            type="password"
-            id="login-password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            autoComplete="current-password"
-            aria-describedby={error ? "login-error" : undefined}
-            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '16px' }}
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          aria-describedby={loading ? "login-loading" : undefined}
-          style={{
-            width: '100%',
-            padding: '12px',
-            backgroundColor: loading ? '#ccc' : '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            fontSize: '16px',
-            cursor: loading ? 'not-allowed' : 'pointer'
-          }}
-        >
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-96">
+        <h2 className="text-2xl mb-4">Login</h2>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <input
+          type="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          className="w-full p-2 mb-4 border rounded"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={formData.password}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          className="w-full p-2 mb-4 border rounded"
+          required
+        />
+        <button type="submit" disabled={loading} className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
           {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>

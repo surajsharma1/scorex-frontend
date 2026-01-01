@@ -1,5 +1,4 @@
-// src/App.tsx
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';  // Removed BrowserRouter import since it's in main.tsx
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
@@ -13,52 +12,54 @@ import OverlayForm from './components/OverlayForm';
 
 function App() {
   return (
-    <Router>
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <header style={{ padding: '10px', background: '#f0f0f0', borderBottom: '1px solid #ddd' }}>
-          <h1 style={{ margin: 0, color: '#333' }}>🏏 Cricket Tournament Platform</h1>
-        </header>
-        
-        <main style={{ flex: 1, padding: '20px', backgroundColor: '#f9f9f9' }}>
-          <Routes>
-            <Route path="/" element={
-              <div style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
-                <h2>Welcome to Cricket Tournament Platform</h2>
-                <p>Manage your cricket tournaments, teams, and live streaming overlays all in one place.</p>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
-                  <button onClick={() => window.location.href = '/login'} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-                    Login
-                  </button>
-                  <button onClick={() => window.location.href = '/register'} style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-                    Register
-                  </button>
-                </div>
+    <div className="min-h-screen flex flex-col bg-gray-50">  {/* Replaced inline styles with Tailwind */}
+      <header className="p-4 bg-gray-100 border-b border-gray-300">
+        <h1 className="m-0 text-2xl text-gray-800">🏏 Cricket Tournament Platform</h1>
+      </header>
+      
+      <main className="flex-1 p-5 bg-gray-50">
+        <Routes>
+          <Route path="/" element={
+            <div className="text-center max-w-4xl mx-auto">
+              <h2 className="text-3xl mb-4">Welcome to Cricket Tournament Platform</h2>
+              <p className="text-lg mb-6">Manage your cricket tournaments, teams, and live streaming overlays all in one place.</p>
+              <div className="flex gap-4 justify-center mt-6">
+                <button 
+                  onClick={() => window.location.href = '/login'} 
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  Login
+                </button>
+                <button 
+                  onClick={() => window.location.href = '/register'} 
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                >
+                  Register
+                </button>
               </div>
-            } />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/tournaments" element={<TournamentList />} />
-            <Route path="/tournaments/new" element={<TournamentForm />} />
-            <Route path="/tournaments/:id/edit" element={<TournamentForm />} />
-            <Route path="/teams" element={<TeamList />} />
-            <Route path="/teams/new" element={<TeamForm />} />
-            <Route path="/teams/:id/edit" element={<TeamForm />} />
-            <Route path="/brackets" element={<BracketView />} />
-            <Route path="/overlays" element={<OverlayList />} />
-            <Route path="/overlays/new" element={<OverlayForm />} />
-            <Route path="/overlays/:id/edit" element={<OverlayForm />} />
-          </Routes>
-        </main>
+            </div>
+          } />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/tournaments" element={<TournamentList />} />
+          <Route path="/tournaments/new" element={<TournamentForm />} />
+          <Route path="/tournaments/:id/edit" element={<TournamentForm />} />
+          <Route path="/teams" element={<TeamList />} />
+          <Route path="/teams/new" element={<TeamForm />} />
+          <Route path="/teams/:id/edit" element={<TeamForm />} />
+          <Route path="/brackets" element={<BracketView />} />
+          <Route path="/overlays" element={<OverlayList />} />
+          <Route path="/overlays/new" element={<OverlayForm />} />
+          <Route path="/overlays/:id/edit" element={<OverlayForm />} />
+        </Routes>
+      </main>
 
-        <footer style={{ padding: '15px', background: '#f0f0f0', borderTop: '1px solid #ddd', textAlign: 'center', color: '#666' }}>
-          <p style={{ margin: 0 }}>&copy; 2024 Cricket Tournament Platform. All rights reserved.</p>
-          <p style={{ margin: '5px 0 0 0', fontSize: '14px' }}>
-            Built for cricket enthusiasts and tournament organizers.
-          </p>
-        </footer>
-      </div>
-    </Router>
+      <footer className="p-4 bg-gray-100 border-t border-gray-300 text-center text-gray-600">
+        <p className="m-0">&copy; 2024 Cricket Tournament Platform. All rights reserved.</p>
+        <p className="mt-1 text-sm">Built for cricket enthusiasts and tournament organizers.</p>
+      </footer>
+    </div>
   );
 }
 
