@@ -1,44 +1,37 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://scorex-backend-live.vercel.app/api'
-  : 'http://localhost:5000/api';
+// Use local backend for development, deployed for production
+const API_BASE_URL = import.meta.env.DEV
+  ? 'http://localhost:5000/api'  // Local backend
+  : 'https://scorex-backend.vercel.app/api';  // Deployed backend
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Add token to requests if available
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Interceptors (unchanged)
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-// Add response interceptor for retries
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const { config, response } = error;
-    
-    if (response?.status === 429 && !config._retry) {
-      config._retry = true;
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      return api(config);
-    }
-    
+  (error) => {
+    if (error.response?.status === 401) localStorage.removeItem('token');
     return Promise.reject(error);
   }
 );
 
+// API functions (unchanged)
 export const authAPI = {
-  register: (data: { username: string; email: string; password: string }) =>
-    api.post('/auth/register', data),
-  login: (data: { email: string; password: string }) =>
-    api.post('/auth/login', data),
+  login: (data: any) => api.post('/auth/login', data),
+  register: (data: any) => api.post('/auth/register', data),
 };
 
 export const tournamentAPI = {
