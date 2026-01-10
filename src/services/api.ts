@@ -1,10 +1,9 @@
 import axios from 'axios';
 
-// Use local backend for development, deployed for production
 const API_BASE_URL = import.meta.env.DEV
-  ? 'http://localhost:3000/api'  // Local backend
-  : 'https://scorex-backend-live.vercel.app/api';  // Deployed backend
-
+  ? 'http://localhost:5000/api'
+  : 'https://scorex-backend-eq9iuv2oi-suraj-sharmas-projects-3413126b.vercel.app/api';
+  
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
