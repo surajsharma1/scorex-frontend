@@ -3,13 +3,13 @@ import axios from 'axios';
 const API_BASE_URL = import.meta.env.DEV
   ? 'http://localhost:5000/api'
   : 'https://scorex-backend-eq9iuv2oi-suraj-sharmas-projects-3413126b.vercel.app/api';
-  
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Interceptors (unchanged)
+// Request interceptor for auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -19,63 +19,49 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor for errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) localStorage.removeItem('token');
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login'; // Redirect to login
+    }
     return Promise.reject(error);
   }
 );
 
-// API functions (unchanged)
 export const authAPI = {
-  login: (data: any) => api.post('/auth/login', data),
-  register: (data: any) => api.post('/auth/register', data),
+  login: (data: { email: string; password: string }) => api.post('/auth/login', data),
+  register: (data: { username: string; email: string; password: string }) => api.post('/auth/register', data),
 };
 
 export const tournamentAPI = {
-  getTournaments: () => api.get('/tournaments'),
-  createTournament: (data: any) => api.post('/tournaments', data),
-  getTournament: (id: string) => api.get(`/tournaments/${id}`),
-  updateTournament: (id: string, data: any) => api.put(`/tournaments/${id}`, data),
-  deleteTournament: (id: string) => api.delete(`/tournaments/${id}`),
-  goLive: (id: string) => api.post(`/tournaments/${id}/live`),
-  updateLiveScores: (id: string, data: any) => api.put(`/tournaments/${id}/scores`, data),
+  getAll: () => api.get('/tournaments').then(res => res.data),
+  getById: (id: string) => api.get(`/tournaments/${id}`).then(res => res.data),
+  create: (data: any) => api.post('/tournaments', data).then(res => res.data),
+  update: (id: string, data: any) => api.put(`/tournaments/${id}`, data).then(res => res.data),
+  delete: (id: string) => api.delete(`/tournaments/${id}`),
 };
 
 export const teamAPI = {
-  getTeams: (tournamentId?: string) =>
-    api.get('/teams', { params: { tournament: tournamentId } }),
-  createTeam: (data: FormData) => api.post('/teams', data, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  }),
-  updateTeam: (id: string, data: FormData) => api.put(`/teams/${id}`, data, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  }),
-  deleteTeam: (id: string) => api.delete(`/teams/${id}`),
-  addPlayer: (teamId: string, data: FormData) => api.post(`/teams/${teamId}/players`, data, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  }),
+  getAll: () => api.get('/teams').then(res => res.data),
+  getByTournament: (tournamentId: string) => api.get(`/teams?tournament=${tournamentId}`).then(res => res.data),
+  create: (data: any) => api.post('/teams', data).then(res => res.data),
+  update: (id: string, data: any) => api.put(`/teams/${id}`, data).then(res => res.data),
+  delete: (id: string) => api.delete(`/teams/${id}`),
 };
 
 export const bracketAPI = {
-  getBrackets: () => api.get('/brackets'),
-  createBracket: (data: any) => api.post('/brackets', data),
-  updateBracket: (id: string, data: any) => api.put(`/brackets/${id}`, data),
-  generateBracket: (id: string, data: any) => api.post(`/brackets/${id}/generate`, data),
+  getAll: () => api.get('/brackets').then(res => res.data),
+  create: (data: any) => api.post('/brackets', data).then(res => res.data),
 };
 
 export const overlayAPI = {
-  getOverlays: () => api.get('/overlays'),
-  createOverlay: (data: any) => api.post('/overlays', data),
-  updateOverlay: (id: string, data: any) => api.put(`/overlays/${id}`, data),
-  deleteOverlay: (id: string) => api.delete(`/overlays/${id}`),
+  getAll: () => api.get('/overlays').then(res => res.data),
+  getByTournament: (tournamentId: string) => api.get(`/overlays?tournament=${tournamentId}`).then(res => res.data),
+  create: (data: any) => api.post('/overlays', data).then(res => res.data),
+  update: (id: string, data: any) => api.put(`/overlays/${id}`, data).then(res => res.data),
+  delete: (id: string) => api.delete(`/overlays/${id}`),
+  generateYouTubeLink: (id: string) => api.post(`/overlays/${id}/youtube-link`).then(res => res.data),
 };
-
-export default api;
