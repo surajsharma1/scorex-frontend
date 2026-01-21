@@ -1,51 +1,59 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 
-export default function Login({ onLogin }: { onLogin: (user: any) => void }) {  // Added default export
-  const [formData, setFormData] = useState({ email: '', password: '' });
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
     try {
-      const response = await authAPI.login(formData);
+      const response = await authAPI.login({ email, password });
       localStorage.setItem('token', response.data.token);
-      onLogin(response.data.user);
+      navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md w-96">
-        <h2 className="text-2xl mb-4">Login</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <input
-          type="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="w-full p-2 mb-4 border rounded"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className="w-full p-2 mb-4 border rounded"
-          required
-        />
-        <button type="submit" disabled={loading} className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+    <div className="container flex justify-center items-center min-h-screen">
+      <form onSubmit={handleSubmit} className="card p-8 w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Login to ScoreX</h2>
+        {error && <div className="alert alert-error mb-4">{error}</div>}
+        <div className="form-group">
+          <label className="form-label">Email</label>
+          <input
+            type="email"
+            className="form-input"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Password</label>
+          <input
+            type="password"
+            className="form-input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit" className="btn btn-primary w-full" disabled={loading}>
           {loading ? 'Logging in...' : 'Login'}
         </button>
+        <p className="text-center mt-4">
+          Don't have an account? <button onClick={() => navigate('/register')} className="text-blue-600">Register</button>
+        </p>
       </form>
     </div>
   );

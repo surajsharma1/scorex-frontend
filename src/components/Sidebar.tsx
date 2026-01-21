@@ -1,17 +1,19 @@
+import { useNavigate } from 'react-router-dom';
 import { Trophy, Users, LayoutGrid as Layout, Layers, GitBranch, Home } from 'lucide-react';
 
 interface SidebarProps {
-  activeView: string;
-  setActiveView: (view: string) => void;
+  // No need for activeView/setActiveView anymore
 }
 
-export default function Sidebar({ activeView, setActiveView }: SidebarProps) {
+export default function Sidebar({}: SidebarProps) {
+  const navigate = useNavigate();
+
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'tournaments', label: 'Tournaments', icon: Trophy },
-    { id: 'teams', label: 'Teams & Players', icon: Users },
-    { id: 'brackets', label: 'Brackets', icon: GitBranch },
-    { id: 'overlay', label: 'Overlay Editor', icon: Layers },
+    { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/' },
+    { id: 'tournaments', label: 'Tournaments', icon: Trophy, path: '/tournaments' },
+    { id: 'teams', label: 'Teams & Players', icon: Users, path: '/teams' },
+    { id: 'brackets', label: 'Brackets', icon: GitBranch, path: '/brackets' },
+    { id: 'overlay', label: 'Overlay Editor', icon: Layers, path: '/overlay' },
   ];
 
   return (
@@ -34,12 +36,8 @@ export default function Sidebar({ activeView, setActiveView }: SidebarProps) {
           return (
             <button
               key={item.id}
-              onClick={() => setActiveView(item.id)}
-              className={`nav-item ${
-                activeView === item.id
-                  ? 'active'
-                  : 'inactive'
-              }`}
+              onClick={() => navigate(item.path)}
+              className="nav-item"
             >
               <Icon className="w-5 h-5" />
               <span>{item.label}</span>

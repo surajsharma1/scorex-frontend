@@ -9,7 +9,6 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Request interceptor for auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -19,13 +18,12 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login'; // Redirect to login
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
@@ -38,30 +36,19 @@ export const authAPI = {
 
 export const tournamentAPI = {
   getAll: () => api.get('/tournaments').then(res => res.data),
-  getById: (id: string) => api.get(`/tournaments/${id}`).then(res => res.data),
   create: (data: any) => api.post('/tournaments', data).then(res => res.data),
-  update: (id: string, data: any) => api.put(`/tournaments/${id}`, data).then(res => res.data),
-  delete: (id: string) => api.delete(`/tournaments/${id}`),
 };
 
 export const teamAPI = {
   getAll: () => api.get('/teams').then(res => res.data),
-  getByTournament: (tournamentId: string) => api.get(`/teams?tournament=${tournamentId}`).then(res => res.data),
   create: (data: any) => api.post('/teams', data).then(res => res.data),
-  update: (id: string, data: any) => api.put(`/teams/${id}`, data).then(res => res.data),
-  delete: (id: string) => api.delete(`/teams/${id}`),
 };
 
 export const bracketAPI = {
   getAll: () => api.get('/brackets').then(res => res.data),
-  create: (data: any) => api.post('/brackets', data).then(res => res.data),
 };
 
 export const overlayAPI = {
   getAll: () => api.get('/overlays').then(res => res.data),
-  getByTournament: (tournamentId: string) => api.get(`/overlays?tournament=${tournamentId}`).then(res => res.data),
   create: (data: any) => api.post('/overlays', data).then(res => res.data),
-  update: (id: string, data: any) => api.put(`/overlays/${id}`, data).then(res => res.data),
-  delete: (id: string) => api.delete(`/overlays/${id}`),
-  generateYouTubeLink: (id: string) => api.post(`/overlays/${id}/youtube-link`).then(res => res.data),
 };
