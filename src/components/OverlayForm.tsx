@@ -1,17 +1,18 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { overlayAPI } from '../services/api';
 
 export default function OverlayForm() {
   const [formData, setFormData] = useState({ name: '', template: '' });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       await overlayAPI.createOverlay(formData);
-      alert('Overlay created!');
-      window.location.href = '/overlays';
+      navigate('/overlays');
     } catch (error) {
       alert('Failed to create overlay');
     } finally {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Eye, Download, Settings, Crown, Edit, Trash2 } from 'lucide-react';
 import { overlayAPI, tournamentAPI } from '../services/api';
+import { Overlay, Tournament } from './types';
 
 const PRE_DESIGNED_OVERLAYS = [
   {
@@ -34,15 +35,15 @@ const PRE_DESIGNED_OVERLAYS = [
 ];
 
 export default function OverlayEditor() {
-  const [overlays, setOverlays] = useState([]);
-  const [tournaments, setTournaments] = useState([]);
-  const [selectedOverlay, setSelectedOverlay] = useState<any>(null);
-  const [selectedTournament, setSelectedTournament] = useState<any>(null);
+  const [overlays, setOverlays] = useState<Overlay[]>([]);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [selectedOverlay, setSelectedOverlay] = useState<Overlay | null>(null);
+  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingOverlay, setEditingOverlay] = useState<any>(null);
+  const [editingOverlay, setEditingOverlay] = useState<Overlay | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [userMembership, setUserMembership] = useState('free'); // This should come from user data
+  const [userMembership, setUserMembership] = useState('free');
 
   useEffect(() => {
     fetchData();
@@ -62,45 +63,44 @@ export default function OverlayEditor() {
   };
 
   const handleSelectOverlay = async (overlayTemplate: any) => {
-  if (!selectedTournament) {
-    setError('Please select a tournament first');
-    return;
-  }
+    if (!selectedTournament) {
+      setError('Please select a tournament first');
+      return;
+    }
 
-  // Check membership
-  if (overlayTemplate.membership !== 'free' && userMembership === 'free') {
-    setError(`This overlay requires a ${overlayTemplate.membership} membership`);
-    return;
-  }
+    if (overlayTemplate.membership !== 'free' && userMembership === 'free') {
+      setError(`This overlay requires a ${overlayTemplate.membership} membership`);
+      return;
+    }
 
     setLoading(true);
-  try {
-    const overlayData = {
-      name: `${selectedTournament.name} - ${overlayTemplate.name}`,
-      tournament: selectedTournament._id,
-      template: overlayTemplate.id,
-      config: {
-        backgroundColor: '#16a34a',
-        opacity: 90,
-        fontFamily: 'Inter',
-        position: 'top',
-        showAnimations: true,
-        autoUpdate: true,
-      },
-      elements: [],
-    };
+    try {
+      const overlayData = {
+        name: `${selectedTournament.name} - ${overlayTemplate.name}`,
+        tournament: selectedTournament._id,
+        template: overlayTemplate.id,
+        config: {
+          backgroundColor: '#16a34a',
+          opacity: 90,
+          fontFamily: 'Inter',
+          position: 'top',
+          showAnimations: true,
+          autoUpdate: true,
+        },
+        elements: [],
+      };
 
- const response = await overlayAPI.createOverlay(overlayData);
-    setSelectedOverlay(response.data);
-    fetchData();
-  } catch (error: any) {
-    setError(error.response?.data?.message || 'Failed to create overlay');
-  } finally {
-    setLoading(false);
-  }
-};
+      const response = await overlayAPI.createOverlay(overlayData);
+      setSelectedOverlay(response.data);
+      fetchData();
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Failed to create overlay');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleEditOverlay = (overlay: any) => {
+  const handleEditOverlay = (overlay: Overlay) => {
     setEditingOverlay(overlay);
     setShowCreateForm(true);
   };
@@ -119,16 +119,18 @@ export default function OverlayEditor() {
     }
   };
 
-  const handlePreview = (overlay: any) => {
-    window.open(`http://localhost:5000/overlay/${overlay.publicId}`, '_blank');
+  const handlePreview = (overlay: Overlay) => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    window.open(`${backendUrl}/overlay/${overlay.publicId}`, '_blank');
   };
 
-  const handleDownload = (overlay: any) => {
-    navigator.clipboard.writeText(`http://localhost:5000/overlay/${overlay.publicId}`);
+  const handleDownload = (overlay: Overlay) => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    navigator.clipboard.writeText(`${backendUrl}/overlay/${overlay.publicId}`);
     alert('Overlay URL copied to clipboard!');
   };
 
-  const renderOverlayPreview = (overlay: any) => {
+  const renderOverlayPreview = (overlay: Overlay) => {
     return (
       <div className="aspect-video bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg relative overflow-hidden shadow-lg">
         <div className="absolute top-6 left-6 right-6">
@@ -210,19 +212,20 @@ export default function OverlayEditor() {
         </div>
       )}
 
-      {/* Tournament Selection */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Select Tournament</h2>
         <select
           value={selectedTournament?._id || ''}
           onChange={(e) => {
-            const tournament = tournaments.find((t: any) => t._id === e.target.value);
-            setSelectedTournament(tournament);
+            const tournament = tournaments.find((t) => t._id === e.target.value);
+            setSelectedTournament(tournament || null);
           }}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
         >
           <option value="">Choose a tournament</option>
-          {tournaments.map((tournament: any) => (
+         // ... (previous code up to the tournament selection)
+
+          {tournaments.map((tournament) => (
             <option key={tournament._id} value={tournament._id}>
               {tournament.name}
             </option>
@@ -230,7 +233,6 @@ export default function OverlayEditor() {
         </select>
       </div>
 
-      {/* Pre-designed Overlay Templates */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {PRE_DESIGNED_OVERLAYS.map((overlayTemplate) => (
           <div
@@ -283,12 +285,11 @@ export default function OverlayEditor() {
         ))}
       </div>
 
-      {/* User's Created Overlays */}
       {overlays.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Your Overlays</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {overlays.map((overlay: any) => (
+            {overlays.map((overlay) => (
               <div
                 key={overlay._id}
                 className={`border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${
@@ -348,7 +349,6 @@ export default function OverlayEditor() {
         </div>
       )}
 
-      {/* Selected Overlay Preview */}
       {selectedOverlay && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex justify-between items-center mb-4">
@@ -370,12 +370,12 @@ export default function OverlayEditor() {
             <div className="mt-2 flex space-x-2">
               <input
                 type="text"
-                value={`http://localhost:5000/overlay/${selectedOverlay.publicId}`}
+                value={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/overlay/${selectedOverlay.publicId}`}
                 readOnly
                 className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
               />
               <button
-                onClick={() => navigator.clipboard.writeText(`http://localhost:5000/overlay/${selectedOverlay.publicId}`)}
+                onClick={() => navigator.clipboard.writeText(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/overlay/${selectedOverlay.publicId}`)}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors text-sm"
               >
                 Copy
@@ -385,7 +385,6 @@ export default function OverlayEditor() {
         </div>
       )}
 
-      {/* Membership Info */}
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
         <h3 className="font-bold text-gray-900 mb-3">Membership Benefits</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

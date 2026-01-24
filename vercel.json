@@ -15,7 +15,7 @@
       "destination": "/robots.txt"
     },
     {
-      "source": "/sitemap.xml", 
+      "source": "/sitemap.xml",
       "destination": "/sitemap.xml"
     },
     {

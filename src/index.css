@@ -15,18 +15,16 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
-/* In src/index.css */
+
 button {
   background-color: #007bff;
   color: white;
-  /* Ensure contrast ratio is at least 4.5:1 */
 }
 
 button:hover {
   background-color: #0056b3;
 }
 
-/* For secondary buttons */
 .secondary-btn {
   background-color: #6c757d;
   color: white;

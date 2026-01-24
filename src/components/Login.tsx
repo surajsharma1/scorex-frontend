@@ -12,11 +12,19 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
       const response = await authAPI.login({ email, password });
-      localStorage.setItem('token', response.data.token);
-      navigate('/');
+      console.log('Login response:', response.data);  // Debug log
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        console.log('Token set, navigating to /');  // Debug log
+        navigate('/');
+      } else {
+        setError('Login failed: No token received');
+      }
     } catch (err: any) {
+      console.error('Login error:', err);  // Debug log
       setError(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);

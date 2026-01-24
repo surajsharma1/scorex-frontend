@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Plus, Upload, User, Edit, Trash2 } from 'lucide-react';
 import { teamAPI, tournamentAPI } from '../services/api';
+import { Team, Tournament, Player } from './types';
 
 export default function TeamManagement() {
-  const [teams, setTeams] = useState([]);
-  const [tournaments, setTournaments] = useState([]);
-  const [selectedTeam, setSelectedTeam] = useState<any>(null);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingTeam, setEditingTeam] = useState<any>(null);
-  const [editingPlayer, setEditingPlayer] = useState<any>(null);
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -71,7 +72,7 @@ export default function TeamManagement() {
     }
   };
 
-  const handleEditTeam = (team: any) => {
+  const handleEditTeam = (team: Team) => {
     setEditingTeam(team);
     setFormData({
       name: team.name,
@@ -113,7 +114,7 @@ export default function TeamManagement() {
       setPlayerForm({ name: '', role: 'Batsman', jerseyNumber: '' });
       setPlayerImageFile(null);
       fetchData();
-      setSelectedTeam(teams.find((team: any) => team._id === selectedTeam._id));
+      setSelectedTeam(teams.find((team) => team._id === selectedTeam._id) || null);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to add player');
     } finally {
@@ -183,7 +184,7 @@ export default function TeamManagement() {
                   required
                 >
                   <option value="">Select Tournament</option>
-                  {tournaments.map((tournament: any) => (
+                  {tournaments.map((tournament) => (
                     <option key={tournament._id} value={tournament._id}>
                       {tournament.name}
                     </option>
@@ -246,6 +247,8 @@ export default function TeamManagement() {
                 <button
                   type="button"
                   onClick={() => {
+                   // ... (previous code up to the form section)
+
                     setShowCreateForm(false);
                     setEditingTeam(null);
                     resetForm();
@@ -265,7 +268,7 @@ export default function TeamManagement() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Teams</h2>
             <div className="space-y-2">
-              {teams.map((team: any) => (
+              {teams.map((team) => (
                 <div
                   key={team._id}
                   className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
@@ -327,7 +330,7 @@ export default function TeamManagement() {
                 </div>
 
                 <div className="space-y-4 mb-6">
-                  {selectedTeam.players?.map((player: any) => (
+                  {selectedTeam.players?.map((player) => (
                     <div
                       key={player._id}
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -336,7 +339,7 @@ export default function TeamManagement() {
                         <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
                           {player.image ? (
                             <img
-                              src={`http://localhost:5000${player.image}`}
+                              src={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}${player.image}`}
                               alt={player.name}
                               className="w-16 h-16 rounded-lg object-cover"
                             />

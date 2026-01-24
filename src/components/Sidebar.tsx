@@ -1,11 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Trophy, Users, LayoutGrid as Layout, Layers, GitBranch, Home } from 'lucide-react';
 
-interface SidebarProps {
-  // No need for activeView/setActiveView anymore
-}
-
-export default function Sidebar({}: SidebarProps) {
+export default function Sidebar() {
   const navigate = useNavigate();
 
   const menuItems = [

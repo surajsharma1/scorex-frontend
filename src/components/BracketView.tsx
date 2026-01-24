@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trophy, Users } from 'lucide-react';
 import { bracketAPI, tournamentAPI, teamAPI } from '../services/api';
+import { Bracket, Tournament, Team } from './types';
 
 export default function BracketView() {
-  const [brackets, setBrackets] = useState([]);
-  const [tournaments, setTournaments] = useState([]);
-  const [teams, setTeams] = useState([]);
-  const [selectedBracket, setSelectedBracket] = useState<any>(null);
+  const [brackets, setBrackets] = useState<Bracket[]>([]);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [selectedBracket, setSelectedBracket] = useState<Bracket | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -59,7 +60,7 @@ export default function BracketView() {
     }
   };
 
- const handleGenerateBracket = async (bracketId: string) => {
+  const handleGenerateBracket = async (bracketId: string) => {
     if (teams.length === 0) {
       setError('No teams found for this tournament. Please add teams first.');
       return;
@@ -75,7 +76,7 @@ export default function BracketView() {
       const teamsForBracket = teams.slice(0, formData.numberOfTeams);
       await bracketAPI.generateBracket(bracketId, { teams: teamsForBracket });
       fetchData();
-      setSelectedBracket(brackets.find((bracket: any) => bracket._id === bracketId));  // Fixed: Type assertion
+      setSelectedBracket(brackets.find((bracket) => bracket._id === bracketId) || null);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to generate bracket');
     } finally {
@@ -88,7 +89,7 @@ export default function BracketView() {
     fetchTeamsForTournament(tournamentId);
   };
 
-  const renderBracket = (bracket: any) => {
+  const renderBracket = (bracket: Bracket) => {
     if (!bracket.rounds || bracket.rounds.length === 0) {
       return (
         <div className="text-center py-8">
@@ -109,17 +110,19 @@ export default function BracketView() {
 
     return (
       <div className="flex justify-between items-center min-w-max space-x-8 overflow-x-auto">
-        {bracket.rounds.map((round: any, roundIndex: number) => (
+        {bracket.rounds.map((round, roundIndex) => (
           <div key={roundIndex} className="space-y-16">
             <h3 className="text-center font-bold text-gray-600 mb-4">
               {roundIndex === 0 ? 'Quarter Finals' : roundIndex === 1 ? 'Semi Finals' : 'Final'}
             </h3>
-            {round.matches.map((match: any, matchIndex: number) => (
+            {round.matches.map((match, matchIndex) => (
               <div key={matchIndex} className="space-y-2">
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-600 px-6 py-3 rounded-r-lg min-w-[200px] hover:shadow-md transition-shadow">
                   <p className="font-semibold text-gray-900">{match.team1?.name || 'TBD'}</p>
                   <p className="text-xs text-gray-600">Score: {match.score1 || 0}/0</p>
                 </div>
+                // ... (previous code up to renderBracket)
+
                 <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-l-4 border-gray-400 px-6 py-3 rounded-r-lg min-w-[200px] hover:shadow-md transition-shadow">
                   <p className="font-semibold text-gray-900">{match.team2?.name || 'TBD'}</p>
                   <p className="text-xs text-gray-600">Score: {match.score2 || 0}/0</p>
@@ -181,7 +184,7 @@ export default function BracketView() {
                   required
                 >
                   <option value="">Select Tournament</option>
-                  {tournaments.map((tournament: any) => (
+                  {tournaments.map((tournament) => (
                     <option key={tournament._id} value={tournament._id}>
                       {tournament.name}
                     </option>
@@ -250,7 +253,7 @@ export default function BracketView() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Available Brackets</h2>
           <div className="space-y-2">
-            {brackets.map((bracket: any) => (
+            {brackets.map((bracket) => (
               <button
                 key={bracket._id}
                 onClick={() => setSelectedBracket(bracket)}

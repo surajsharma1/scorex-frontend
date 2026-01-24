@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Plus, Calendar, Users, Trophy, Edit, Trash2, Play, Square, TrendingUp } from 'lucide-react';
 import { tournamentAPI } from '../services/api';
+import { Tournament } from './types';
 
 export default function TournamentView() {
-  const [tournaments, setTournaments] = useState([]);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingTournament, setEditingTournament] = useState<any>(null);
-  const [selectedLiveTournament, setSelectedLiveTournament] = useState<any>(null);
+  const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
+  const [selectedLiveTournament, setSelectedLiveTournament] = useState<Tournament | null>(null);
   const [showLiveScoreForm, setShowLiveScoreForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,7 +61,7 @@ export default function TournamentView() {
     }
   };
 
-  const handleEditTournament = (tournament: any) => {
+  const handleEditTournament = (tournament: Tournament) => {
     setEditingTournament(tournament);
     setFormData({
       name: tournament.name,
@@ -83,7 +84,7 @@ export default function TournamentView() {
     }
   };
 
-  const handleGoLive = async (tournament: any) => {
+  const handleGoLive = async (tournament: Tournament) => {
     try {
       await tournamentAPI.goLive(tournament._id);
       fetchTournaments();
@@ -124,7 +125,7 @@ export default function TournamentView() {
     resetForm();
   };
 
-  const openLiveScoreForm = (tournament: any) => {
+  const openLiveScoreForm = (tournament: Tournament) => {
     setSelectedLiveTournament(tournament);
     setLiveScoreData(tournament.liveScores || {
       team1: { name: '', score: 0, wickets: 0, overs: 0 },
@@ -273,6 +274,8 @@ export default function TournamentView() {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Team 1</h3>
                 <div className="space-y-4">
+                  // ... (previous code up to the live score form)
+
                   <input
                     type="text"
                     placeholder="Team Name"
@@ -434,7 +437,7 @@ export default function TournamentView() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tournaments.map((tournament: any) => ( 
+        {tournaments.map((tournament) => (
           <div
             key={tournament._id}
             className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
@@ -458,101 +461,100 @@ export default function TournamentView() {
                       tournament.status === 'active'
                         ? 'bg-green-100 text-green-800'
                         : tournament.status === 'completed'
-                        ? 'bg-gray-100 text-gray-800' 
-                        :'bg-yellow-100 text-yellow-800' 
-                        }`}> 
-                        {tournament.status.toUpperCase()} 
-                        </span>
-                         </div>
-                          </div> 
-                          <div className="space-y-2 text-sm text-gray-600"> 
-                            <div className="flex items-center space-x-2">
-                               <Trophy className="w-4 h-4" /> 
-                               <span>
-                                {tournament.format} Format
-                                </span>
-                                 </div> 
-                                 <div className="flex items-center space-x-2"> <Users className="w-4 h-4" /> 
-                                 <span>
-                                  {tournament.numberOfTeams} Teams
-                                  </span> 
-                                  </div>
-                                   <div className="flex items-center space-x-2"> <Calendar className="w-4 h-4" /> <span>
-                                    Starting {new Date(tournament.startDate).toLocaleDateString()}</span>
-                                   </div> </div>
-                        {tournament.isLive && tournament.liveScores && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <h4 className="font-semibold text-red-800 mb-2">Live Scores</h4>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <p className="font-medium">{tournament.liveScores.team1.name || 'Team 1'}</p>
-                    <p>{tournament.liveScores.team1.score}/{tournament.liveScores.team1.wickets} ({tournament.liveScores.team1.overs} ov)</p>
+                        ? 'bg-gray-100 text-gray-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {tournament.status.toUpperCase()}
+                    </span>
                   </div>
-                  <div>
-                    <p className="font-medium">{tournament.liveScores.team2.name || 'Team 2'}</p>
-                    <p>{tournament.liveScores.team2.score}/{tournament.liveScores.team2.wickets} ({tournament.liveScores.team2.overs} ov)</p>
-                  </div>
-                </div>
-                <div className="mt-2 text-xs text-gray-600">
-                  <p>Target: {tournament.liveScores.target}</p>
-                  <p>CRR: {tournament.liveScores.currentRunRate} | RRR: {tournament.liveScores.requiredRunRate}</p>
                 </div>
               </div>
-            )}
-          </div>
-
-          <div className="flex flex-wrap gap-2 mt-4">
-            <button
-              onClick={() => handleGoLive(tournament)}
-              className={`px-3 py-2 rounded-lg font-semibold text-sm transition-colors ${
-                tournament.isLive
-                  ? 'bg-red-600 text-white hover:bg-red-700'
-                  : 'bg-green-600 text-white hover:bg-green-700'
-              }`}
-            >
-              {tournament.isLive ? (
-                <>
-                  <Square className="w-4 h-4 inline mr-1" />
-                  End Live
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 inline mr-1" />
-                  Go Live
-                </>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div className="flex items-center space-x-2">
+                  <Trophy className="w-4 h-4" />
+                  <span>{tournament.format} Format</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4" />
+                  <span>{tournament.numberOfTeams} Teams</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4" />
+                  <span>Starting {new Date(tournament.startDate).toLocaleDateString()}</span>
+                </div>
+              </div>
+              {tournament.isLive && tournament.liveScores && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <h4 className="font-semibold text-red-800 mb-2">Live Scores</h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <p className="font-medium">{tournament.liveScores.team1.name || 'Team 1'}</p>
+                      <p>{tournament.liveScores.team1.score}/{tournament.liveScores.team1.wickets} ({tournament.liveScores.team1.overs} ov)</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">{tournament.liveScores.team2.name || 'Team 2'}</p>
+                      <p>{tournament.liveScores.team2.score}/{tournament.liveScores.team2.wickets} ({tournament.liveScores.team2.overs} ov)</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs text-gray-600">
+                    <p>Target: {tournament.liveScores.target}</p>
+                    <p>CRR: {tournament.liveScores.currentRunRate} | RRR: {tournament.liveScores.requiredRunRate}</p>
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
-            {tournament.isLive && (
+            <div className="flex flex-wrap gap-2 mt-4 p-6 pt-0">
               <button
-                onClick={() => openLiveScoreForm(tournament)}
-                className="px-3 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
+                onClick={() => handleGoLive(tournament)}
+                className={`px-3 py-2 rounded-lg font-semibold text-sm transition-colors ${
+                  tournament.isLive
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
               >
-                <TrendingUp className="w-4 h-4 inline mr-1" />
-                Update Scores
+                {tournament.isLive ? (
+                  <>
+                    <Square className="w-4 h-4 inline mr-1" />
+                    End Live
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4 inline mr-1" />
+                    Go Live
+                  </>
+                )}
               </button>
-            )}
 
-            <button
-              onClick={() => handleEditTournament(tournament)}
-              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-200 transition-colors"
-            >
-              <Edit className="w-4 h-4 inline mr-1" />
-              Edit
-            </button>
+              {tournament.isLive && (
+                <button
+                  onClick={() => openLiveScoreForm(tournament)}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
+                >
+                  <TrendingUp className="w-4 h-4 inline mr-1" />
+                  Update Scores
+                </button>
+              )}
 
-            <button
-              onClick={() => handleDeleteTournament(tournament._id)}
-              className="px-3 py-2 bg-red-100 text-red-700 rounded-lg font-semibold text-sm hover:bg-red-200 transition-colors"
-            >
-              <Trash2 className="w-4 h-4 inline mr-1" />
-              Delete
-            </button>
+              <button
+                onClick={() => handleEditTournament(tournament)}
+                className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-200 transition-colors"
+              >
+                <Edit className="w-4 h-4 inline mr-1" />
+                Edit
+              </button>
+
+              <button
+                onClick={() => handleDeleteTournament(tournament._id)}
+                className="px-3 py-2 bg-red-100 text-red-700 rounded-lg font-semibold text-sm hover:bg-red-200 transition-colors"
+              >
+                <Trash2 className="w-4 h-4 inline mr-1" />
+                Delete
+              </button>
+            </div>
           </div>
-        </div>
+        ))}
       </div>
-    ))}
-  </div>
-</div>
-);
+    </div>
+  );
 }

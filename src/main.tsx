@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import App from './App';
+import App from './components/App';
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
@@ -11,35 +11,27 @@ import BracketView from './components/BracketView';
 import OverlayEditor from './components/OverlayEditor';
 import './index.css';
 
-// Define routes with authentication check
-const router = createBrowserRouter(
-  [
-    {
-      path: '/login',
-      element: <Login />,
-    },
-    {
-      path: '/register',
-      element: <Register />,
-    },
-    {
-      path: '/',
-      element: <App />,  // Protected routes inside App
-      children: [
-        { index: true, element: <Dashboard /> },
-        { path: 'tournaments', element: <TournamentView /> },
-        { path: 'teams', element: <TeamManagement /> },
-        { path: 'brackets', element: <BracketView /> },
-        { path: 'overlay', element: <OverlayEditor /> },
-      ],
-    },
-  ],
+const router = createBrowserRouter([
   {
-    future: {
-      v7_relativeSplatPath: true,  // Enable future flag to fix warning
-    },
-  }
-);
+    path: '/login',
+    element: <Login />,
+  },
+  {
+    path: '/register',
+    element: <Register />,
+  },
+  {
+    path: '/',
+    element: <App />,
+    children: [
+      { index: true, element: <Dashboard /> },
+      { path: 'tournaments', element: <TournamentView /> },
+      { path: 'teams', element: <TeamManagement /> },
+      { path: 'brackets', element: <BracketView /> },
+      { path: 'overlay', element: <OverlayEditor /> },
+    ],
+  },
+]);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
