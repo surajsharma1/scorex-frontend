@@ -61,6 +61,7 @@ export default function Login() {
         </button>
         <p className="text-center mt-4">
           Don't have an account? <button onClick={() => navigate('/register')} className="text-blue-600">Register</button>
+          <button onClick={() => navigate('/forgot-password')} className="text-blue-600">Forgot Password?</button>
         </p>
       </form>
     </div>

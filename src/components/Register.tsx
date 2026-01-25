@@ -3,20 +3,36 @@ import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 
 export default function Register() {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
     setLoading(true);
+    setError('');
     try {
-      const response = await authAPI.register({ username, email, password });
-      localStorage.setItem('token', response.data.token);
-      navigate('/');
+      const response = await authAPI.register({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        navigate('/');
+      } else {
+        setError('Registration failed: No token received');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -34,8 +50,8 @@ export default function Register() {
           <input
             type="text"
             className="form-input"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={formData.username}
+            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             required
           />
         </div>
@@ -44,8 +60,8 @@ export default function Register() {
           <input
             type="email"
             className="form-input"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             required
           />
         </div>
@@ -54,8 +70,18 @@ export default function Register() {
           <input
             type="password"
             className="form-input"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Confirm Password</label>
+          <input
+            type="password"
+            className="form-input"
+            value={formData.confirmPassword}
+            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
             required
           />
         </div>

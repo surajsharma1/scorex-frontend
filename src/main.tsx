@@ -10,6 +10,9 @@ import TeamManagement from './components/TeamManagement';
 import BracketView from './components/BracketView';
 import OverlayEditor from './components/OverlayEditor';
 import './index.css';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
+import TestPage from './components/TestPage';
 
 const router = createBrowserRouter([
   {
@@ -30,6 +33,19 @@ const router = createBrowserRouter([
       { path: 'brackets', element: <BracketView /> },
       { path: 'overlay', element: <OverlayEditor /> },
     ],
+  },
+
+  {
+    path: '/forgot-password',
+    element: <ForgotPassword />,
+  },
+  {
+    path: '/reset-password/:token',
+    element: <ResetPassword />,
+  },
+  {
+    path: '/test',
+    element: <TestPage />,
   },
 ]);
 

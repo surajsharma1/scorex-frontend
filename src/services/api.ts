@@ -33,6 +33,8 @@ api.interceptors.response.use(
 export const authAPI = {
   register: (data: { username: string; email: string; password: string }) => api.post('/auth/register', data),
   login: (data: { email: string; password: string }) => api.post('/auth/login', data),
+  forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (token: string, password: string) => api.post(`/auth/reset-password/${token}`, { password }),
 };
 
 export const tournamentAPI = {
@@ -44,7 +46,13 @@ export const tournamentAPI = {
   goLive: (id: string) => api.post(`/tournaments/${id}/live`),
   updateLiveScores: (id: string, scores: any) => api.put(`/tournaments/${id}/scores`, { scores }),
 };
-
+export const matchAPI = {
+  getMatches: (tournamentId?: string) => api.get('/matches', { params: { tournament: tournamentId } }),
+  createMatch: (data: any) => api.post('/matches', data),
+  updateMatch: (id: string, data: any) => api.put(`/matches/${id}`, data),
+  updateMatchScore: (id: string, data: any) => api.put(`/matches/${id}/score`, data),
+  deleteMatch: (id: string) => api.delete(`/matches/${id}`),
+};
 export const teamAPI = {
   getTeams: (tournamentId?: string) => api.get('/teams', { params: { tournament: tournamentId } }),
   createTeam: (data: FormData) => api.post('/teams', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
@@ -66,6 +74,14 @@ export const overlayAPI = {
   createOverlay: (data: any) => api.post('/overlays', data),
   updateOverlay: (id: string, data: any) => api.put(`/overlays/${id}`, data),
   deleteOverlay: (id: string) => api.delete(`/overlays/${id}`),
+};
+export const userAPI = {
+  getUsers: () => api.get('/users'),
+  updateUserRole: (id: string, role: string) => api.put(`/users/${id}`, { role }),
+};
+export const notificationAPI = {
+  getNotifications: () => api.get('/notifications'),
+  markAsRead: (id: string) => api.put(`/notifications/${id}/read`),
 };
 
 export default api;

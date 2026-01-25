@@ -61,3 +61,26 @@ export interface Overlay {
   publicId: string;
   createdBy: string;
 }
+export interface Match {
+  _id: string;
+  tournament: string;
+  team1: Team;
+  team2: Team;
+  date: string;
+  venue?: string;
+  status: string;
+  score1?: number;
+  score2?: number;
+  wickets1?: number;
+  wickets2?: number;
+  overs1?: number;
+  overs2?: number;
+  winner?: Team;
+}
+export interface Notification {
+  _id: string;
+  message: string;
+  type: 'info' | 'warning' | 'success';
+  read: boolean;
+  createdAt: string;
+}

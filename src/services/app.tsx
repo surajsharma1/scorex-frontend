@@ -29,12 +29,15 @@ function App() {
   }
 
   return (
+    
     <div className="app-container">
       <Sidebar />
       <main className="main-content">
         <Outlet />
       </main>
     </div>
+
+    
   );
 }
 
