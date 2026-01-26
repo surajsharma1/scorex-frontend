@@ -7,14 +7,13 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 api.interceptors.response.use(
   (response) => response,
@@ -83,5 +82,8 @@ export const notificationAPI = {
   getNotifications: () => api.get('/notifications'),
   markAsRead: (id: string) => api.put(`/notifications/${id}/read`),
 };
-
+export const statsAPI = {
+  getTournamentStats: () => api.get('/tournaments/stats'),
+  getUserStats: () => api.get('/users/stats'),
+};
 export default api;

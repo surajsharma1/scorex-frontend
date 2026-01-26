@@ -10,6 +10,7 @@ export default function TournamentView() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [showMatchForm, setShowMatchForm] = useState(false);
+  const [showTournamentForm, setShowTournamentForm] = useState(false); // New state for tournament form
   const [socket, setSocket] = useState<Socket | null>(null);
   const [matchForm, setMatchForm] = useState({
     tournament: '',
@@ -17,6 +18,14 @@ export default function TournamentView() {
     team2: '',
     date: '',
     venue: '',
+  });
+  const [tournamentForm, setTournamentForm] = useState({ // New state for tournament form
+    name: '',
+    description: '',
+    format: 'T20',
+    numberOfTeams: 8,
+    startDate: '',
+    status: 'upcoming',
   });
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [scoreForm, setScoreForm] = useState({
@@ -88,6 +97,28 @@ export default function TournamentView() {
     }
   };
 
+  const handleCreateTournament = async (e: React.FormEvent) => { // New function
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await tournamentAPI.createTournament(tournamentForm);
+      setShowTournamentForm(false);
+      setTournamentForm({
+        name: '',
+        description: '',
+        format: 'T20',
+        numberOfTeams: 8,
+        startDate: '',
+        status: 'upcoming',
+      });
+      fetchTournaments();
+    } catch (error) {
+      setError('Failed to create tournament');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCreateMatch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTournament) return;
@@ -131,6 +162,12 @@ export default function TournamentView() {
             Manage and view cricket tournaments
           </p>
         </div>
+        <button
+          onClick={() => setShowTournamentForm(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+        >
+          Create Tournament
+        </button>
       </div>
 
       {error && (
@@ -138,6 +175,73 @@ export default function TournamentView() {
           {error}
         </div>
       )}
+       {showTournamentForm && ( // New tournament creation form
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4">Create New Tournament</h3>
+            <form onSubmit={handleCreateTournament}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input
+                  type="text"
+                  value={tournamentForm.name}
+                  onChange={(e) => setTournamentForm({ ...tournamentForm, name: e.target.value })}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <textarea
+                  value={tournamentForm.description}
+                  onChange={(e) => setTournamentForm({ ...tournamentForm, description: e.target.value })}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Format</label>
+                <select
+                  value={tournamentForm.format}
+                  onChange={(e) => setTournamentForm({ ...tournamentForm, format: e.target.value })}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="T20">T20</option>
+                  <option value="ODI">ODI</option>
+                  <option value="Test">Test</option>
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Number of Teams</label>
+                <input
+                  type="number"
+                  value={tournamentForm.numberOfTeams}
+                  onChange={(e) => setTournamentForm({ ...tournamentForm, numberOfTeams: Number(e.target.value) })}
+                  className="w-full p-2 border rounded"
+                  min="2"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Start Date</label>
+                <input
+                  type="date"
+                  value={tournamentForm.startDate}
+                  onChange={(e) => setTournamentForm({ ...tournamentForm, startDate: e.target.value })}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              <div className="flex space-x-4">
+                <button type="submit" disabled={loading} className="bg-blue-600 text-white px-4 py-2 rounded">
+                  {loading ? 'Creating...' : 'Create'}
+                </button>
+                <button type="button" onClick={() => setShowTournamentForm(false)} className="bg-gray-600 text-white px-4 py-2 rounded">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
@@ -407,6 +511,6 @@ export default function TournamentView() {
           </div>
         </div>
       )}
-    </div>
+    </div>  
   );
 }
