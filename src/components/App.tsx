@@ -43,6 +43,12 @@ function App() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Clear the JWT token
+    setIsAuthenticated(false); // Update state
+    navigate('/login'); // Redirect to login
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -62,7 +68,13 @@ function App() {
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
       <main className="flex-1 md:ml-64 p-6 overflow-auto">
-        {/* Notification bell for mobile */}
+        {/* Header with Logout */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
+        </div>
+
+        {/* Mobile notification bell */}
         <div className="flex justify-end mb-4 md:hidden">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
