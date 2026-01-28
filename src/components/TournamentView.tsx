@@ -10,7 +10,7 @@ export default function TournamentView() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [showMatchForm, setShowMatchForm] = useState(false);
-  const [showTournamentForm, setShowTournamentForm] = useState(false); // New state for tournament form
+  const [showTournamentForm, setShowTournamentForm] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [matchForm, setMatchForm] = useState({
     tournament: '',
@@ -19,7 +19,7 @@ export default function TournamentView() {
     date: '',
     venue: '',
   });
-  const [tournamentForm, setTournamentForm] = useState({ // New state for tournament form
+  const [tournamentForm, setTournamentForm] = useState({
     name: '',
     description: '',
     format: 'T20',
@@ -97,11 +97,26 @@ export default function TournamentView() {
     }
   };
 
-  const handleCreateTournament = async (e: React.FormEvent) => { // New function
+  const handleCreateTournament = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+
+    // Client-side validation
+    if (!tournamentForm.name || !tournamentForm.startDate) {
+      setError('Name and Start Date are required');
+      setLoading(false);
+      return;
+    }
+
     try {
-      await tournamentAPI.createTournament(tournamentForm);
+      // Convert startDate to ISO string for backend
+      const dataToSend = {
+        ...tournamentForm,
+        startDate: new Date(tournamentForm.startDate).toISOString(),
+      };
+      console.log('Sending tournament data:', dataToSend); // Debug log
+      await tournamentAPI.createTournament(dataToSend);
       setShowTournamentForm(false);
       setTournamentForm({
         name: '',
@@ -112,8 +127,9 @@ export default function TournamentView() {
         status: 'upcoming',
       });
       fetchTournaments();
-    } catch (error) {
-      setError('Failed to create tournament');
+    } catch (error: any) {
+      console.error('Create tournament error:', error); // Debug log
+      setError(error.response?.data?.message || 'Failed to create tournament');
     } finally {
       setLoading(false);
     }
@@ -175,7 +191,8 @@ export default function TournamentView() {
           {error}
         </div>
       )}
-       {showTournamentForm && ( // New tournament creation form
+
+      {showTournamentForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg w-full max-w-md">
             <h3 className="text-lg font-bold mb-4">Create New Tournament</h3>
@@ -241,7 +258,6 @@ export default function TournamentView() {
           </div>
         </div>
       )}
-
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
@@ -432,7 +448,7 @@ export default function TournamentView() {
                                   {match.score1}/{match.wickets1 || 0} ({match.overs1 || 0} overs) - {match.score2}/{match.wickets2 || 0} ({match.overs2 || 0} overs)
                                 </p>
                               )}
-                              <button
+                                                            <button
                                 onClick={() => {
                                   setSelectedMatch(match);
                                   setScoreForm({
