@@ -68,15 +68,14 @@ export default function TournamentView() {
     };
   }, []);
 
- const fetchTournaments = async () => {
-  try {
-    const response = await tournamentAPI.getTournaments();
-    setTournaments(response.data);
-  } catch (error: any) {
-    console.error('Failed to fetch tournaments:', error);
-    setError('Failed to fetch tournaments');
-  }
-};
+  const fetchTournaments = async () => {
+    try {
+      const response = await tournamentAPI.getTournaments();
+      setTournaments(response.data);
+    } catch (error) {
+      setError('Failed to fetch tournaments');
+    }
+  };
 
   const fetchMatches = async () => {
     if (!selectedTournament) return;
@@ -103,7 +102,7 @@ export default function TournamentView() {
     setLoading(true);
     setError('');
 
-    // Client-side validation
+
     if (!tournamentForm.name || !tournamentForm.startDate) {
       setError('Name and Start Date are required');
       setLoading(false);
@@ -111,12 +110,12 @@ export default function TournamentView() {
     }
 
     try {
-      // Convert startDate to ISO string for backend
+
       const dataToSend = {
         ...tournamentForm,
         startDate: new Date(tournamentForm.startDate).toISOString(),
       };
-      console.log('Sending tournament data:', dataToSend); // Debug log
+      console.log('Sending tournament data:', dataToSend);
       await tournamentAPI.createTournament(dataToSend);
       setShowTournamentForm(false);
       setTournamentForm({
@@ -129,7 +128,7 @@ export default function TournamentView() {
       });
       fetchTournaments();
     } catch (error: any) {
-      console.error('Create tournament error:', error); // Debug log
+      console.error('Create tournament error:', error);
       setError(error.response?.data?.message || 'Failed to create tournament');
     } finally {
       setLoading(false);
@@ -431,103 +430,103 @@ export default function TournamentView() {
                               <h4 className="font-semibold text-gray-900">
                                 {match.team1?.name} vs {match.team2?.name}
                               </h4>
-                              <p className="text-sm text-gray-600">
-                                {new Date(match.date).toLocaleString()}
-                              </p>
-                              <p className="text-sm text-gray-600">Venue: {match.venue || 'TBD'}</p>
-                            </div>
-                            <div className="text-right">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                match.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                                match.status === 'ongoing' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-green-100 text-green-800'
-                              }`}>
-                                {match.status}
-                              </span>
-                              {match.score1 !== undefined && match.score2 !== undefined && (
-                                <p className="text-sm text-gray-600 mt-1">
-                                  {match.score1}/{match.wickets1 || 0} ({match.overs1 || 0} overs) - {match.score2}/{match.wickets2 || 0} ({match.overs2 || 0} overs)
-                                </p>
-                              )}
-                                                            <button
-                                onClick={() => {
-                                  setSelectedMatch(match);
-                                  setScoreForm({
-                                    score1: match.score1 || 0,
-                                    score2: match.score2 || 0,
-                                    wickets1: match.wickets1 || 0,
-                                    wickets2: match.wickets2 || 0,
-                                    overs1: match.overs1 || 0,
-                                    overs2: match.overs2 || 0,
-                                    status: match.status,
-                                  });
-                                }}
-                                className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-                              >
-                                Update Score
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+                                                              <p className="text-sm text-gray-600">
+                                   {new Date(match.date).toLocaleString()}
+                                 </p>
+                                 <p className="text-sm text-gray-600">Venue: {match.venue || 'TBD'}</p>
+                               </div>
+                               <div className="text-right">
+                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                   match.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                                   match.status === 'ongoing' ? 'bg-yellow-100 text-yellow-800' :
+                                   'bg-green-100 text-green-800'
+                                 }`}>
+                                   {match.status}
+                                 </span>
+                                 {match.score1 !== undefined && match.score2 !== undefined && (
+                                   <p className="text-sm text-gray-600 mt-1">
+                                     {match.score1}/{match.wickets1 || 0} ({match.overs1 || 0} overs) - {match.score2}/{match.wickets2 || 0} ({match.overs2 || 0} overs)
+                                   </p>
+                                 )}
+                                 <button
+                                   onClick={() => {
+                                     setSelectedMatch(match);
+                                     setScoreForm({
+                                       score1: match.score1 || 0,
+                                       score2: match.score2 || 0,
+                                       wickets1: match.wickets1 || 0,
+                                       wickets2: match.wickets2 || 0,
+                                       overs1: match.overs1 || 0,
+                                       overs2: match.overs2 || 0,
+                                       status: match.status,
+                                     });
+                                   }}
+                                   className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                                 >
+                                   Update Score
+                                 </button>
+                               </div>
+                             </div>
+                           </div>
+                         ))
+                       )}
+                     </div>
+                   </div>
+                 )}
+               </div>
+             </div>
+           )}
+         </div>
 
-      {selectedMatch && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
-            <h3 className="text-lg font-bold mb-4">Update Score: {selectedMatch.team1?.name} vs {selectedMatch.team2?.name}</h3>
-            <form onSubmit={handleUpdateScore}>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium">Team 1 Score</label>
-                  <input type="number" value={scoreForm.score1} onChange={(e) => setScoreForm({ ...scoreForm, score1: Number(e.target.value) })} className="w-full p-2 border rounded" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Team 1 Wickets</label>
-                  <input type="number" value={scoreForm.wickets1} onChange={(e) => setScoreForm({ ...scoreForm, wickets1: Number(e.target.value) })} className="w-full p-2 border rounded" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Team 1 Overs</label>
-                  <input type="number" step="0.1" value={scoreForm.overs1} onChange={(e) => setScoreForm({ ...scoreForm, overs1: Number(e.target.value) })} className="w-full p-2 border rounded" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Team 2 Score</label>
-                  <input type="number" value={scoreForm.score2} onChange={(e) => setScoreForm({ ...scoreForm, score2: Number(e.target.value) })} className="w-full p-2 border rounded" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Team 2 Wickets</label>
-                  <input type="number" value={scoreForm.wickets2} onChange={(e) => setScoreForm({ ...scoreForm, wickets2: Number(e.target.value) })} className="w-full p-2 border rounded" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">Team 2 Overs</label>
-                  <input type="number" step="0.1" value={scoreForm.overs2} onChange={(e) => setScoreForm({ ...scoreForm, overs2: Number(e.target.value) })} className="w-full p-2 border rounded" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <label className="block text-sm font-medium">Status</label>
-                <select value={scoreForm.status} onChange={(e) => setScoreForm({ ...scoreForm, status: e.target.value })} className="w-full p-2 border rounded">
-                  <option value="scheduled">Scheduled</option>
-                  <option value="ongoing">Ongoing</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-              <div className="flex space-x-4 mt-4">
-                <button type="submit" disabled={loading} className="bg-green-600 text-white px-4 py-2 rounded">
-                  {loading ? 'Updating...' : 'Update'}
-                </button>
-                <button type="button" onClick={() => setSelectedMatch(null)} className="bg-gray-600 text-white px-4 py-2 rounded">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>  
-  );
-}
+         {selectedMatch && (
+           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+             <div className="bg-white p-6 rounded-lg w-full max-w-md">
+               <h3 className="text-lg font-bold mb-4">Update Score: {selectedMatch.team1?.name} vs {selectedMatch.team2?.name}</h3>
+               <form onSubmit={handleUpdateScore}>
+                 <div className="grid grid-cols-2 gap-4">
+                   <div>
+                     <label className="block text-sm font-medium">Team 1 Score</label>
+                     <input type="number" value={scoreForm.score1} onChange={(e) => setScoreForm({ ...scoreForm, score1: Number(e.target.value) })} className="w-full p-2 border rounded" />
+                   </div>
+                   <div>
+                     <label className="block text-sm font-medium">Team 1 Wickets</label>
+                     <input type="number" value={scoreForm.wickets1} onChange={(e) => setScoreForm({ ...scoreForm, wickets1: Number(e.target.value) })} className="w-full p-2 border rounded" />
+                   </div>
+                   <div>
+                     <label className="block text-sm font-medium">Team 1 Overs</label>
+                     <input type="number" step="0.1" value={scoreForm.overs1} onChange={(e) => setScoreForm({ ...scoreForm, overs1: Number(e.target.value) })} className="w-full p-2 border rounded" />
+                   </div>
+                   <div>
+                     <label className="block text-sm font-medium">Team 2 Score</label>
+                     <input type="number" value={scoreForm.score2} onChange={(e) => setScoreForm({ ...scoreForm, score2: Number(e.target.value) })} className="w-full p-2 border rounded" />
+                   </div>
+                   <div>
+                     <label className="block text-sm font-medium">Team 2 Wickets</label>
+                     <input type="number" value={scoreForm.wickets2} onChange={(e) => setScoreForm({ ...scoreForm, wickets2: Number(e.target.value) })} className="w-full p-2 border rounded" />
+                   </div>
+                   <div>
+                     <label className="block text-sm font-medium">Team 2 Overs</label>
+                     <input type="number" step="0.1" value={scoreForm.overs2} onChange={(e) => setScoreForm({ ...scoreForm, overs2: Number(e.target.value) })} className="w-full p-2 border rounded" />
+                   </div>
+                 </div>
+                 <div className="mt-4">
+                   <label className="block text-sm font-medium">Status</label>
+                   <select value={scoreForm.status} onChange={(e) => setScoreForm({ ...scoreForm, status: e.target.value })} className="w-full p-2 border rounded">
+                     <option value="scheduled">Scheduled</option>
+                     <option value="ongoing">Ongoing</option>
+                     <option value="completed">Completed</option>
+                   </select>
+                 </div>
+                 <div className="flex space-x-4 mt-4">
+                   <button type="submit" disabled={loading} className="bg-green-600 text-white px-4 py-2 rounded">
+                     {loading ? 'Updating...' : 'Update'}
+                   </button>
+                   <button type="button" onClick={() => setSelectedMatch(null)} className="bg-gray-600 text-white px-4 py-2 rounded">Cancel</button>
+                 </div>
+               </form>
+             </div>
+           </div>
+         )}
+       </div>
+     );
+   }
