@@ -68,14 +68,15 @@ export default function TournamentView() {
     };
   }, []);
 
-  const fetchTournaments = async () => {
-    try {
-      const response = await tournamentAPI.getTournaments();
-      setTournaments(response.data);
-    } catch (error) {
-      setError('Failed to fetch tournaments');
-    }
-  };
+ const fetchTournaments = async () => {
+  try {
+    const response = await tournamentAPI.getTournaments();
+    setTournaments(response.data);
+  } catch (error: any) {
+    console.error('Failed to fetch tournaments:', error);
+    setError('Failed to fetch tournaments');
+  }
+};
 
   const fetchMatches = async () => {
     if (!selectedTournament) return;

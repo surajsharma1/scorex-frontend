@@ -31,6 +31,12 @@ function App() {
     checkAuth();
   }, [navigate]);
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    navigate('/login');
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -50,6 +56,11 @@ function App() {
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
       <main className="flex-1 md:ml-64 p-6 overflow-auto">
+        {/* Header with Logout */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
+        </div>
         <Outlet />
       </main>
     </div>
