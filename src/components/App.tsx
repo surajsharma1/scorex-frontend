@@ -1,31 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate, Outlet } from 'react-router-dom'; // Ensure Outlet is imported
 import Sidebar from './Sidebar';
-import axios from 'axios';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-
-  useEffect(() => {
-  setIsAuthenticated(true);
-  setIsLoading(false);
-}, []);
-  
-  useEffect(() => {
-  const autoLogin = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/auth/auto-login`);
-      localStorage.setItem('token', response.data.token);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Auto-login failed');
-    }
-    setIsLoading(false);
-  };
-  autoLogin();
-}, []);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -39,20 +19,20 @@ function App() {
           localStorage.setItem('token', tokenFromUrl);
           setIsAuthenticated(true);
           window.history.replaceState({}, document.title, window.location.pathname);
-          navigate('/');
-        } else {
-          navigate('/login');
         }
       }
       setIsLoading(false);
     };
     checkAuth();
-  }, [navigate]);
+  }, []);
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
-    navigate('/login');
   };
 
   if (isLoading) {
@@ -65,7 +45,17 @@ function App() {
   }
 
   if (!isAuthenticated) {
-    return null;
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-8">ScoreX Cricket Tournament</h1>
+          <p className="text-gray-600 mb-8">Manage and view cricket tournaments with live overlays for YouTube and streaming.</p>
+          <button onClick={handleGoogleLogin} className="btn btn-primary text-lg px-8 py-4">
+            Login with Google
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
