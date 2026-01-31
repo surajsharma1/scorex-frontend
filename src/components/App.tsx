@@ -1,11 +1,31 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import axios from 'axios';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+  setIsAuthenticated(true);
+  setIsLoading(false);
+}, []);
+  
+  useEffect(() => {
+  const autoLogin = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/auth/auto-login`);
+      localStorage.setItem('token', response.data.token);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Auto-login failed');
+    }
+    setIsLoading(false);
+  };
+  autoLogin();
+}, []);
 
   useEffect(() => {
     const checkAuth = () => {
