@@ -1,6 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+const handleGoogleLogin = () => {
+  window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
+};
+
+<Link to="/tournaments" className="hover:text-blue-400">Tournaments</Link>
+
 const Frontpage = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -85,6 +91,10 @@ const Frontpage = () => {
           </div>
         </div>
       </section>
+     
+      <button onClick={handleGoogleLogin} className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg text-lg font-semibold">
+      Login with Google
+      </button>
 
       {/* Footer */}
       <footer className="py-8 px-6 bg-gray-800 text-center">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import Frontpage from './Frontpage'; // Add this import
+import Frontpage from './Frontpage';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
