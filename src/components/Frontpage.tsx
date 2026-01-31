@@ -1,13 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const handleGoogleLogin = () => {
-  window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
-};
-
-<Link to="/tournaments" className="hover:text-blue-400">Tournaments</Link>
-
 const Frontpage = () => {
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
@@ -21,16 +19,27 @@ const Frontpage = () => {
         </nav>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section (No Image, Gradient Background) */}
       <section className="relative bg-gradient-to-r from-blue-900 to-purple-900 h-96 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center px-6">
           <h2 className="text-5xl font-bold mb-4">Manage Cricket Tournaments Like a Pro</h2>
-          <p className="text-xl mb-8">Create live overlays for YouTube and streaming with real-time scores.</p>
-          <button className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg text-lg font-semibold">
+          <p className="text-xl mb-4">
+            ScoreX is your ultimate platform for creating and managing cricket tournaments. 
+            Generate live overlays for YouTube and streaming platforms, track real-time scores, 
+            and organize teams and brackets effortlessly. Whether you're a tournament organizer 
+            or a streamer, ScoreX makes cricket management simple and professional.
+          </p>
+          <p className="text-lg mb-8">
+            Sign in with Google to start creating tournaments, managing teams, and building 
+            custom overlays for your live streams.
+          </p>
+          <button 
+            onClick={handleGoogleLogin} 
+            className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
+          >
             Login with Google
           </button>
         </div>
-        <img src="/cricket-hero.jpg" alt="Cricket" className="absolute inset-0 w-full h-full object-cover opacity-20" />
       </section>
 
       {/* Live Scores Section */}
@@ -91,10 +100,6 @@ const Frontpage = () => {
           </div>
         </div>
       </section>
-     
-      <button onClick={handleGoogleLogin} className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg text-lg font-semibold">
-      Login with Google
-      </button>
 
       {/* Footer */}
       <footer className="py-8 px-6 bg-gray-800 text-center">
