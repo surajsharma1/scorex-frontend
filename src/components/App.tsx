@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Outlet } from 'react-router-dom'; // Ensure Outlet is imported
+import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import Frontpage from './Frontpage'; // Add this import
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -45,17 +46,7 @@ function App() {
   }
 
   if (!isAuthenticated) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-8">ScoreX Cricket Tournament</h1>
-          <p className="text-gray-600 mb-8">Manage and view cricket tournaments with live overlays for YouTube and streaming.</p>
-          <button onClick={handleGoogleLogin} className="btn btn-primary text-lg px-8 py-4">
-            Login with Google
-          </button>
-        </div>
-      </div>
-    );
+    return <Frontpage />; // Show frontpage instead of simple landing
   }
 
   return (
@@ -66,7 +57,7 @@ function App() {
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
         </div>
-        <Outlet />
+        {/* Your dashboard content here */}
       </main>
     </div>
   );
