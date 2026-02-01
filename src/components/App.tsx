@@ -97,7 +97,7 @@ function App() {
             <div className="bg-gray-800 p-6 rounded-lg shadow">
               <h4 className="text-lg font-semibold mb-2">Local League</h4>
               <p className="text-gray-300 mb-4">Community matches in progress.</p>
-              <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Live</span>
+              <span className="px-2 py-1 rounded-full text-xs font-medium bg-white text-red-800">Live</span>
             </div>
           </div>
         </section>
