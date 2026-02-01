@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Frontpage from './Frontpage';
 import { useTheme } from './ThemeProvider';
@@ -8,7 +8,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const { isDark } = useTheme(); // Keep for dark mode, but no toggle
+  const { isDark } = useTheme();
 
   useEffect(() => {
     const checkAuth = () => {
@@ -65,24 +65,87 @@ function App() {
             Logout
           </button>
         </div>
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {/* Dashboard Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           <div className="bg-gray-800 p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-blue-400">Tournaments</h3>
-            <p className="text-gray-300">View and manage tournaments.</p>
+            <h3 className="text-lg font-semibold text-black">Tournaments</h3>
+            <p className="text-black">View and manage tournaments.</p>
             <button onClick={() => navigate('/tournaments')} className="text-blue-400 hover:underline mt-2">Go to Tournaments</button>
           </div>
           <div className="bg-gray-800 p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-blue-400">Teams</h3>
-            <p className="text-gray-300">Manage teams and players.</p>
-            <button onClick={() => navigate('/teams')} className="text-black hover:underline mt-2">Go to Teams</button>
+            <h3 className="text-lg font-semibold text-black">Teams</h3>
+            <p className="text-black">Manage teams and players.</p>
+            <button onClick={() => navigate('/teams')} className="text-blue-400 hover:underline mt-2">Go to Teams</button>
           </div>
           <div className="bg-gray-800 p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-blue-400">Brackets</h3>
-            <p className="text-gray-300">Create and view tournament brackets.</p>
-            <button onClick={() => navigate('/brackets')} className="text-black hover:underline mt-2">Go to Brackets</button>
+            <h3 className="text-lg font-semibold text-black">Overlays</h3>
+            <p className="text-black">Create live streaming overlays.</p>
+            <button onClick={() => navigate('/overlay')} className="text-blue-400 hover:underline mt-2">Go to Overlays</button>
           </div>
         </div>
-        <Outlet />
+
+        {/* Active Tournaments Section */}
+        <section className="mb-12">
+          <h3 className="text-2xl font-bold mb-6">Active Tournaments</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-gray-800 p-6 rounded-lg shadow">
+              <h4 className="text-lg font-semibold mb-2">T20 World Cup</h4>
+              <p className="text-gray-300 mb-4">Ongoing global tournament.</p>
+              <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Ongoing</span>
+            </div>
+            <div className="bg-gray-800 p-6 rounded-lg shadow">
+              <h4 className="text-lg font-semibold mb-2">Local League</h4>
+              <p className="text-gray-300 mb-4">Community matches in progress.</p>
+              <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Live</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Live Scores Section */}
+        <section className="mb-12">
+          <h3 className="text-2xl font-bold mb-6">Live Scores</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-gray-700 p-6 rounded-lg text-center shadow">
+              <h4 className="text-xl font-semibold mb-2">Match 1</h4>
+              <p className="text-lg">Team A vs Team B: 150/5 (20 overs)</p>
+              <p className="text-sm text-gray-400 mt-2">Live</p>
+            </div>
+            <div className="bg-gray-700 p-6 rounded-lg text-center shadow">
+              <h4 className="text-xl font-semibold mb-2">Match 2</h4>
+              <p className="text-lg">Team C vs Team D: 120/3 (18 overs)</p>
+              <p className="text-sm text-gray-400 mt-2">Completed</p>
+            </div>
+            <div className="bg-gray-700 p-6 rounded-lg text-center shadow">
+              <h4 className="text-xl font-semibold mb-2">Match 3</h4>
+              <p className="text-lg">Team E vs Team F: 180/7 (20 overs)</p>
+              <p className="text-sm text-gray-400 mt-2">Upcoming</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Team Stats Section */}
+        <section className="mb-12">
+          <h3 className="text-2xl font-bold mb-6">Team Stats</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+            <div>
+              <h4 className="text-5xl font-bold text-blue-400 mb-2">150</h4>
+              <p className="text-lg">Total Runs</p>
+            </div>
+            <div>
+              <h4 className="text-5xl font-bold text-green-400 mb-2">10</h4>
+              <p className="text-lg">Wickets Taken</p>
+            </div>
+            <div>
+              <h4 className="text-5xl font-bold text-yellow-400 mb-2">5</h4>
+              <p className="text-lg">Matches Won</p>
+            </div>
+            <div>
+              <h4 className="text-5xl font-bold text-red-400 mb-2">95%</h4>
+              <p className="text-lg">Win Rate</p>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );
