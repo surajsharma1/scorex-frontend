@@ -7,11 +7,11 @@ export default function Sidebar() {
   const location = useLocation();
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/' },
-    { id: 'tournaments', label: 'Tournaments', icon: Trophy, path: '/tournaments' },
-    { id: 'teams', label: 'Teams & Players', icon: Users, path: '/teams' },
-    { id: 'brackets', label: 'Brackets', icon: GitBranch, path: '/brackets' },
-    { id: 'overlay', label: 'Overlay Editor', icon: Layers, path: '/overlay' },
+    { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/', color: 'text-white' }, // Default white
+    { id: 'tournaments', label: 'Tournaments', icon: Trophy, path: '/tournaments', color: 'text-white' }, // Default white
+    { id: 'teams', label: 'Teams & Players', icon: Users, path: '/teams', color: 'text-blue-400' }, // Blue like dashboard
+    { id: 'brackets', label: 'Brackets', icon: GitBranch, path: '/brackets', color: 'text-blue-400' }, // Blue like dashboard
+    { id: 'overlay', label: 'Overlay Editor', icon: Layers, path: '/overlay', color: 'text-blue-400' }, // Blue like dashboard
   ];
 
   return (
@@ -26,18 +26,18 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-800 dark:bg-gray-800 text-white dark:text-white transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-800 text-white transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0 md:static md:inset-0`}
       >
-        <div className="p-4 border-b border-gray-700 dark:border-gray-700">
+        <div className="p-4 border-b border-gray-700">
           <div className="flex items-center gap-3">
             <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
               <Layout className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white dark:text-white">CricOverlay</h1>
-              <p className="text-sm text-gray-400 dark:text-gray-400">YouTube Overlay Studio</p>
+              <h1 className="text-lg font-bold">CricOverlay</h1>
+              <p className="text-sm text-gray-400">YouTube Overlay Studio</p>
             </div>
           </div>
         </div>
@@ -52,21 +52,21 @@ export default function Sidebar() {
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${
                   location.pathname === item.path
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 dark:text-gray-300 hover:bg-gray-700 dark:hover:bg-gray-700'
+                    : `text-gray-300 hover:bg-gray-700 ${item.color}` // Apply custom color
                 }`}
                 onClick={() => setIsOpen(false)}
               >
                 <Icon className="w-5 h-5" />
-                <span>{item.label}</span>
+                <span className={item.color}>{item.label}</span> {/* Apply color to label */}
               </Link>
             );
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700 dark:border-gray-700">
-          <div className="bg-gray-700 dark:bg-gray-700 p-3 rounded-lg">
-            <p className="text-sm font-semibold text-white dark:text-white">Pro Tip</p>
-            <p className="text-xs text-gray-400 dark:text-gray-400 mt-1">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
+          <div className="bg-gray-700 p-3 rounded-lg">
+            <p className="text-sm font-semibold text-white">Pro Tip</p>
+            <p className="text-xs text-gray-400 mt-1">
               Use prebuilt overlays to get started quickly!
             </p>
           </div>

@@ -131,8 +131,8 @@ export default function TeamManagement() {
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900">Teams & Players</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-4xl font-bold text-blue">Teams & Players</h1>
+          <p className="text-white mt-2">
             Manage teams and add players with images
           </p>
         </div>
