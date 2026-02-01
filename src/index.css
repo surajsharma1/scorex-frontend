@@ -431,3 +431,7 @@ button:hover {
 .card {
   @apply bg-white overflow-hidden shadow rounded-lg;
 }
+
+* {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

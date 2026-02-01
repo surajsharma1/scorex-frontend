@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { Tournament, Match, Team } from './types';
 import io, { Socket } from 'socket.io-client';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 export default function TournamentView() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -39,6 +41,9 @@ export default function TournamentView() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [formatFilter, setFormatFilter] = useState('');
 
   useEffect(() => {
     fetchTournaments();
@@ -69,11 +74,14 @@ export default function TournamentView() {
   }, []);
 
   const fetchTournaments = async () => {
+    setLoading(true);
     try {
       const response = await tournamentAPI.getTournaments();
       setTournaments(response.data);
     } catch (error) {
       setError('Failed to fetch tournaments');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -167,6 +175,13 @@ export default function TournamentView() {
     }
   };
 
+  const filteredTournaments = tournaments.filter((tournament) => {
+    const matchesSearch = tournament.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = !statusFilter || tournament.status === statusFilter;
+    const matchesFormat = !formatFilter || tournament.format === formatFilter;
+    return matchesSearch && matchesStatus && matchesFormat;
+  });
+
   return (
     <div className="space-y-8 p-6 bg-gray-900 text-white min-h-screen">
       <div className="flex justify-between items-center">
@@ -257,30 +272,67 @@ export default function TournamentView() {
         </div>
       )}
 
+      <div className="mb-6 flex flex-col md:flex-row gap-4">
+        <input
+          type="text"
+          placeholder="Search tournaments..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="flex-1 p-2 border rounded bg-gray-700 text-white"
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="p-2 border rounded bg-gray-700 text-white"
+        >
+          <option value="">All Statuses</option>
+          <option value="upcoming">Upcoming</option>
+          <option value="ongoing">Ongoing</option>
+          <option value="completed">Completed</option>
+        </select>
+        <select
+          value={formatFilter}
+          onChange={(e) => setFormatFilter(e.target.value)}
+          className="p-2 border rounded bg-gray-700 text-white"
+        >
+          <option value="">All Formats</option>
+          <option value="T20">T20</option>
+          <option value="ODI">ODI</option>
+          <option value="Test">Test</option>
+        </select>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
           <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
             <h2 className="text-xl font-bold text-gray-100 mb-4">All Tournaments</h2>
             <div className="space-y-2">
-              {tournaments.map((tournament) => (
-                <button
-                  key={tournament._id}
-                  onClick={() => setSelectedTournament(tournament)}
-                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                    selectedTournament && selectedTournament._id === tournament._id
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-gray-700 text-gray-300'
-                  }`}
-                >
-                  <p className="font-semibold">{tournament.name}</p>
-                  <p className="text-sm text-gray-400">{tournament.status} - {tournament.format}</p>
-                </button>
-              ))}
+              {loading ? (
+                <div className="space-y-2">
+                  {Array(5).fill(0).map((_, i) => (
+                    <Skeleton key={i} height={60} className="rounded-lg" />
+                  ))}
+                </div>
+              ) : (
+                filteredTournaments.map((tournament) => (
+                  <button
+                    key={tournament._id}
+                    onClick={() => setSelectedTournament(tournament)}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                      selectedTournament && selectedTournament._id === tournament._id
+                        ? 'bg-blue-600 text-white'
+                        : 'hover:bg-gray-700 text-gray-300'
+                    }`}
+                  >
+                    <p className="font-semibold">{tournament.name}</p>
+                    <p className="text-sm text-gray-400">{tournament.status} - {tournament.format}</p>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         </div>
-
-        {selectedTournament && (
+                {selectedTournament && (
           <div className="lg:col-span-2">
             <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
               <div className="flex justify-between items-center mb-6">
@@ -389,7 +441,7 @@ export default function TournamentView() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-300 mb-1">Venue</label>
-                          <input
+                            <input
                             type="text"
                             placeholder="Venue (optional)"
                             value={matchForm.venue}
@@ -441,7 +493,7 @@ export default function TournamentView() {
                               }`}>
                                 {match.status}
                               </span>
-                                                           {match.score1 !== undefined && match.score2 !== undefined && (
+                              {match.score1 !== undefined && match.score2 !== undefined && (
                                 <p className="text-sm text-gray-400 mt-1">
                                   {match.score1}/{match.wickets1 || 0} ({match.overs1 || 0} overs) - {match.score2}/{match.wickets2 || 0} ({match.overs2 || 0} overs)
                                 </p>

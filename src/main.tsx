@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { ThemeProvider } from './components/ThemeProvider'; // Add this
 import App from './components/App';
 import Dashboard from './components/Dashboard';
 import TournamentView from './components/TournamentView';
@@ -25,6 +26,8 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <ThemeProvider> {/* Wrap here */}
+      <RouterProvider router={router} />
+    </ThemeProvider>
   </React.StrictMode>
 );
