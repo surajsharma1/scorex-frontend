@@ -52,7 +52,7 @@ function App() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
-      <main className="flex-1 md:ml-64 p-6 overflow-auto">
+      <main className="flex-1 md:ml-64 p-4 md:p-6 overflow-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
