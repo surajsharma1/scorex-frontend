@@ -134,7 +134,7 @@ export default function OverlayEditor() {
     return (
       <div className="aspect-video bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg relative overflow-hidden shadow-lg">
         <div className="absolute top-6 left-6 right-6">
-          <div
+                  <div
             className="rounded-lg p-4 shadow-xl"
             style={{
               backgroundColor: overlay.config.backgroundColor,
@@ -196,35 +196,33 @@ export default function OverlayEditor() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 bg-gray-900 text-white min-h-screen p-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900">Overlay Editor</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-4xl font-bold text-blue-400">Overlay Editor</h1>
+          <p className="text-gray-300 mt-2">
             Select and customize overlays for YouTube videos
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Select Tournament</h2>
+      <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+        <h2 className="text-xl font-bold text-white mb-4">Select Tournament</h2>
         <select
           value={selectedTournament?._id || ''}
           onChange={(e) => {
             const tournament = tournaments.find((t) => t._id === e.target.value);
             setSelectedTournament(tournament || null);
           }}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
         >
           <option value="">Choose a tournament</option>
-         // ... (previous code up to the tournament selection)
-
           {tournaments.map((tournament) => (
             <option key={tournament._id} value={tournament._id}>
               {tournament.name}
@@ -237,7 +235,7 @@ export default function OverlayEditor() {
         {PRE_DESIGNED_OVERLAYS.map((overlayTemplate) => (
           <div
             key={overlayTemplate.id}
-            className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow ${
+            className={`bg-gray-800 rounded-xl shadow-sm border border-gray-700 overflow-hidden hover:shadow-md transition-shadow ${
               overlayTemplate.membership !== 'free' && userMembership === 'free'
                 ? 'opacity-60'
                 : ''
@@ -254,10 +252,10 @@ export default function OverlayEditor() {
               )}
             </div>
             <div className="p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">
+              <h3 className="text-lg font-bold text-white mb-2">
                 {overlayTemplate.name}
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-gray-300 mb-4">
                 {overlayTemplate.description}
               </p>
               <div className="flex items-center justify-between">
@@ -286,21 +284,21 @@ export default function OverlayEditor() {
       </div>
 
       {overlays.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Your Overlays</h2>
+        <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+          <h2 className="text-xl font-bold text-white mb-4">Your Overlays</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {overlays.map((overlay) => (
               <div
                 key={overlay._id}
-                className={`border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${
+                className={`border border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${
                   selectedOverlay && selectedOverlay._id === overlay._id
-                    ? 'border-green-500 bg-green-50'
-                    : ''
+                    ? 'border-green-500 bg-gray-700'
+                    : 'bg-gray-800'
                 }`}
                 onClick={() => setSelectedOverlay(overlay)}
               >
-                <h3 className="font-bold text-gray-900 mb-2">{overlay.name}</h3>
-                <p className="text-sm text-gray-600 mb-3">
+                <h3 className="font-bold text-white mb-2">{overlay.name}</h3>
+                <p className="text-sm text-gray-300 mb-3">
                   {overlay.tournament?.name} - {overlay.template}
                 </p>
                 <div className="flex space-x-2">
@@ -350,12 +348,12 @@ export default function OverlayEditor() {
       )}
 
       {selectedOverlay && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-gray-900">{selectedOverlay.name}</h2>
+            <h2 className="text-lg font-bold text-white">{selectedOverlay.name}</h2>
             <button
               onClick={() => setSelectedOverlay(null)}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
             >
               Close
             </button>
@@ -363,8 +361,8 @@ export default function OverlayEditor() {
 
           {renderOverlayPreview(selectedOverlay)}
 
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-gray-700">
+          <div className="mt-4 p-4 bg-gray-700 border border-gray-600 rounded-lg">
+            <p className="text-sm text-gray-300">
               <strong>YouTube Overlay Link:</strong> This overlay can be used as a browser source in OBS or directly embedded in YouTube streams.
             </p>
             <div className="mt-2 flex space-x-2">
@@ -372,7 +370,7 @@ export default function OverlayEditor() {
                 type="text"
                 value={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/overlay/${selectedOverlay.publicId}`}
                 readOnly
-                className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
+                className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-sm text-white"
               />
               <button
                 onClick={() => navigator.clipboard.writeText(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/overlay/${selectedOverlay.publicId}`)}
@@ -385,20 +383,20 @@ export default function OverlayEditor() {
         </div>
       )}
 
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
-        <h3 className="font-bold text-gray-900 mb-3">Membership Benefits</h3>
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <h3 className="font-bold text-white mb-3">Membership Benefits</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <h4 className="font-semibold text-green-700 mb-2">Free</h4>
-            <ul className="text-sm text-gray-700 space-y-1">
+            <h4 className="font-semibold text-green-400 mb-2">Free</h4>
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• Classic Score overlay</li>
               <li>• Basic customization</li>
               <li>• Up to 2 tournaments</li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-blue-700 mb-2">Premium</h4>
-            <ul className="text-sm text-gray-700 space-y-1">
+            <h4 className="font-semibold text-blue-400 mb-2">Premium</h4>
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• Modern Minimal overlay</li>
               <li>• Advanced customization</li>
               <li>• Up to 10 tournaments</li>
@@ -406,8 +404,8 @@ export default function OverlayEditor() {
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-purple-700 mb-2">Pro</h4>
-            <ul className="text-sm text-gray-700 space-y-1">
+            <h4 className="font-semibold text-purple-400 mb-2">Pro</h4>
+            <ul className="text-sm text-gray-300 space-y-1">
               <li>• All overlay templates</li>
               <li>• Full customization</li>
               <li>• Unlimited tournaments</li>

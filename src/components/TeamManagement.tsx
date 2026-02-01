@@ -128,11 +128,11 @@ export default function TeamManagement() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 bg-gray-900 text-white min-h-screen p-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-bold text-blue">Teams & Players</h1>
-          <p className="text-white mt-2">
+          <h1 className="text-4xl font-bold text-blue-400">Teams & Players</h1>
+          <p className="text-gray-300 mt-2">
             Manage teams and add players with images
           </p>
         </div>
@@ -146,21 +146,21 @@ export default function TeamManagement() {
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded">
           {error}
         </div>
       )}
 
       {showCreateForm && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">
+        <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+          <h2 className="text-xl font-bold text-white mb-6">
             {editingTeam ? 'Edit Team' : 'Create New Team'}
           </h2>
 
           <form onSubmit={handleCreateTeam}>
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-300 mb-2">
                   Team Name
                 </label>
                 <input
@@ -168,19 +168,19 @@ export default function TeamManagement() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g., Mumbai Indians"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-300 mb-2">
                   Tournament
                 </label>
                 <select
                   value={formData.tournament}
                   onChange={(e) => setFormData({ ...formData, tournament: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
                   required
                 >
                   <option value="">Select Tournament</option>
@@ -193,10 +193,10 @@ export default function TeamManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-300 mb-2">
                   Team Logo
                 </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 transition-colors cursor-pointer">
+                <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-green-500 transition-colors cursor-pointer">
                   <input
                     type="file"
                     accept="image/*"
@@ -206,10 +206,10 @@ export default function TeamManagement() {
                   />
                   <label htmlFor="logo-upload" className="cursor-pointer">
                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-400">
                       {logoFile ? logoFile.name : 'Click to upload logo'}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-gray-500 mt-1">
                       PNG, JPG up to 5MB
                     </p>
                   </label>
@@ -217,7 +217,7 @@ export default function TeamManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-300 mb-2">
                   Team Color
                 </label>
                 <div className="flex space-x-2">
@@ -225,13 +225,13 @@ export default function TeamManagement() {
                     type="color"
                     value={formData.color}
                     onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="w-16 h-12 rounded-lg border border-gray-300 cursor-pointer"
+                    className="w-16 h-12 rounded-lg border border-gray-600 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={formData.color}
                     onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg"
+                    className="flex-1 px-4 py-3 border border-gray-600 rounded-lg bg-gray-700 text-white"
                   />
                 </div>
               </div>
@@ -247,13 +247,11 @@ export default function TeamManagement() {
                 <button
                   type="button"
                   onClick={() => {
-                   // ... (previous code up to the form section)
-
                     setShowCreateForm(false);
                     setEditingTeam(null);
                     resetForm();
                   }}
-                  className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+                  className="px-6 py-3 bg-gray-600 text-gray-300 rounded-lg font-semibold hover:bg-gray-500 transition-colors"
                 >
                   Cancel
                 </button>
@@ -265,8 +263,8 @@ export default function TeamManagement() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Teams</h2>
+          <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+            <h2 className="text-xl font-bold text-white mb-4">Teams</h2>
             <div className="space-y-2">
               {teams.map((team) => (
                 <div
@@ -274,26 +272,26 @@ export default function TeamManagement() {
                   className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
                     selectedTeam && selectedTeam._id === team._id
                       ? 'bg-green-100 text-green-800'
-                      : 'hover:bg-gray-100'
+                      : 'hover:bg-gray-700'
                   }`}
                 >
                   <button
                     onClick={() => setSelectedTeam(team)}
                     className="flex-1 text-left"
                   >
-                    <p className="font-semibold">{team.name}</p>
-                    <p className="text-sm text-gray-600">{team.players?.length || 0} players</p>
+                    <p className="font-semibold text-white">{team.name}</p>
+                    <p className="text-sm text-gray-400">{team.players?.length || 0} players</p>
                   </button>
                   <div className="flex space-x-1">
                     <button
                       onClick={() => handleEditTeam(team)}
-                      className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                      className="p-1 text-blue-400 hover:bg-blue-50 rounded"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteTeam(team._id)}
-                      className="p-1 text-red-600 hover:bg-red-50 rounded"
+                      className="p-1 text-red-400 hover:bg-red-50 rounded"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -306,8 +304,8 @@ export default function TeamManagement() {
 
         {selectedTeam && (
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+            <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 overflow-hidden">
+              <div className="p-6 border-b border-gray-700 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="text-2xl font-bold">{selectedTeam.name}</h2>
@@ -324,7 +322,7 @@ export default function TeamManagement() {
 
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-bold text-gray-900">
+                  <h3 className="text-lg font-bold text-white">
                     Squad Players ({selectedTeam.players?.length || 0})
                   </h3>
                 </div>
@@ -333,7 +331,7 @@ export default function TeamManagement() {
                   {selectedTeam.players?.map((player) => (
                     <div
                       key={player._id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="flex items-center justify-between p-4 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
                     >
                       <div className="flex items-center space-x-4">
                         <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
@@ -348,10 +346,10 @@ export default function TeamManagement() {
                           )}
                         </div>
                         <div>
-                          <h4 className="font-bold text-gray-900">
+                          <h4 className="font-bold text-white">
                             {player.name}
                           </h4>
-                          <p className="text-sm text-gray-600">{player.role}</p>
+                          <p className="text-sm text-gray-400">{player.role}</p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-4">
@@ -363,8 +361,8 @@ export default function TeamManagement() {
                   ))}
                 </div>
 
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 border border-green-100">
-                  <h4 className="font-bold text-gray-900 mb-2">
+                <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
+                  <h4 className="font-bold text-white mb-2">
                     Add Player with Image
                   </h4>
                   <form onSubmit={handleAddPlayer}>
@@ -374,7 +372,7 @@ export default function TeamManagement() {
                         value={playerForm.name}
                         onChange={(e) => setPlayerForm({ ...playerForm, name: e.target.value })}
                         placeholder="Player Name"
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
                         required
                       />
                       <input
@@ -382,13 +380,13 @@ export default function TeamManagement() {
                         value={playerForm.jerseyNumber}
                         onChange={(e) => setPlayerForm({ ...playerForm, jerseyNumber: e.target.value })}
                         placeholder="Jersey Number"
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
                         required
                       />
                       <select
                         value={playerForm.role}
                         onChange={(e) => setPlayerForm({ ...playerForm, role: e.target.value })}
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                        className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
                       >
                         <option>Batsman</option>
                         <option>Bowler</option>
@@ -405,7 +403,7 @@ export default function TeamManagement() {
                         />
                         <label
                           htmlFor="player-image-upload"
-                          className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors cursor-pointer text-center"
+                          className="flex-1 bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-gray-500 transition-colors cursor-pointer text-center"
                         >
                           {playerImageFile ? playerImageFile.name : 'Upload Photo'}
                         </label>
