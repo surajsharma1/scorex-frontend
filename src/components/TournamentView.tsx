@@ -175,6 +175,17 @@ export default function TournamentView() {
     }
   };
 
+  const handleDeleteTournament = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this tournament?')) {
+      try {
+        await tournamentAPI.deleteTournament(id);
+        fetchTournaments();
+      } catch (error: any) {
+        setError(error.response?.data?.message || 'Failed to delete tournament');
+      }
+    }
+  };
+
   const filteredTournaments = tournaments.filter((tournament) => {
     const matchesSearch = tournament.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = !statusFilter || tournament.status === statusFilter;
@@ -315,18 +326,25 @@ export default function TournamentView() {
                 </div>
               ) : (
                 filteredTournaments.map((tournament) => (
-                  <button
-                    key={tournament._id}
-                    onClick={() => setSelectedTournament(tournament)}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                      selectedTournament && selectedTournament._id === tournament._id
-                        ? 'bg-blue-600 text-white'
-                        : 'hover:bg-gray-700 text-gray-300 dark:text-gray-300'
-                    }`}
-                  >
-                    <p className="font-semibold">{tournament.name}</p>
-                    <p className="text-sm text-gray-400 dark:text-gray-400">{tournament.status} - {tournament.format}</p>
-                  </button>
+                  <div key={tournament._id} className="flex justify-between items-center px-4 py-3 rounded-lg hover:bg-gray-700">
+                    <button
+                      onClick={() => setSelectedTournament(tournament)}
+                      className={`flex-1 text-left ${
+                        selectedTournament && selectedTournament._id === tournament._id
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-300 dark:text-gray-300'
+                      }`}
+                    >
+                      <p className="font-semibold">{tournament.name}</p>
+                      <p className="text-sm text-gray-400 dark:text-gray-400">{tournament.status} - {tournament.format}</p>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTournament(tournament._id)}
+                      className="text-red-400 hover:text-red-300 ml-4"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 ))
               )}
             </div>
@@ -398,132 +416,182 @@ export default function TournamentView() {
                     <form onSubmit={handleCreateMatch} className="mb-6 p-4 border border-gray-600 rounded-lg bg-gray-700 dark:bg-gray-700">
                       <h4 className="text-lg font-semibold mb-4 text-white dark:text-white">Schedule New Match</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">Team 1</label>
-                          <select
-                            value={matchForm.team1}
-                            onChange={(e) => setMatchForm({ ...matchForm, team1: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 dark:bg-gray-600 text-white dark:text-white"
-                            required
-                          >
-                            <option value="">Select Team 1</option>
-                            {teams.map((team) => (
-                              <option key={team._id} value={team._id}>
-                                {team.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">Team 2</label>
-                          <select
-                            value={matchForm.team2}
-                            onChange={(e) => setMatchForm({ ...matchForm, team2: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 dark:bg-gray-600 text-white dark:text-white"
-                            required
-                          >
-                            <option value="">Select Team 2</option>
-                            {teams.map((team) => (
-                              <option key={team._id} value={team._id}>
-                                {team.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">Date & Time</label>
-                          <input
-                            type="datetime-local"
-                            value={matchForm.date}
-                            onChange={(e) => setMatchForm({ ...matchForm, date: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 dark:bg-gray-600 text-white dark:text-white"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">Venue</label>
-                          <input
-                            type="text"
-                            placeholder="Venue (optional)"
-                            value={matchForm.venue}
-                            onChange={(e) => setMatchForm({ ...matchForm, venue: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 dark:bg-gray-600 text-white dark:text-white"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex space-x-4 mt-4">
-                        <button
-                          type="submit"
-                          disabled={loading}
-                          className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
-                        >
-                          {loading ? 'Scheduling...' : 'Schedule Match'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShowMatchForm(false)}
-                          className="bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-semibold hover:bg-gray-500 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
-                  <div className="space-y-4">
-                    {matches.length === 0 ? (
-                      <p className="text-gray-400 dark:text-gray-400 text-center py-8">No matches scheduled yet.</p>
-                    ) : (
-                      matches.map((match) => (
-                        <div key={match._id} className="p-4 border border-gray-600 rounded-lg hover:shadow-md transition-shadow bg-gray-700 dark:bg-gray-700">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <h4 className="font-semibold text-gray-100 dark:text-gray-100">
-                                {match.team1?.name} vs {match.team2?.name}
-                              </h4>
-                              <p className="text-sm text-gray-400 dark:text-gray-400">
-                                {new Date(match.date).toLocaleString()}
-                              </p>
-                              <p className="text-sm text-gray-400 dark:text-gray-400">Venue: {match.venue || 'TBD'}</p>
-                            </div>
-                            <div className="text-right">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                match.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                                match.status === 'ongoing' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-green-100 text-green-800'
-                              }`}>
-                                {match.status}
-                              </span>
-                              {match.score1 !== undefined && match.score2 !== undefined && (
-                                <p className="text-sm text-gray-400 dark:text-gray-400 mt-1">
-                                  {match.score1}/{match.wickets1 || 0} ({match.overs1 || 0} overs) - {match.score2}/{match.wickets2 || 0} ({match.overs2 || 0} overs)
-                                </p>
-                              )}
-                              <button
-                                onClick={() => {
-                                  setSelectedMatch(match);
-                                  setScoreForm({
-                                    score1: match.score1 || 0,
-                                    score2: match.score2 || 0,
-                                    wickets1: match.wickets1 || 0,
-                                    wickets2: match.wickets2 || 0,
-                                    overs1: match.overs1 || 0,
-                                    overs2: match.overs2 || 0,
-                                    status: match.status,
-                                  });
-                                }}
-                                className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-                              >
-                                Update Score
-                              </button>
-                            </div>
+                                                  <div>
+                            <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">Team 1</label>
+                            <select
+                              value={matchForm.team1}
+                              onChange={(e) => setMatchForm({ ...matchForm, team1: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 dark:bg-gray-600 text-white dark:text-white"
+                              required
+                            >
+                              <option value="">Select Team 1</option>
+                              {teams.map((team) => (
+                                <option key={team._id} value={team._id}>
+                                  {team.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">Team 2</label>
+                            <select
+                              value={matchForm.team2}
+                              onChange={(e) => setMatchForm({ ...matchForm, team2: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 dark:bg-gray-600 text-white dark:text-white"
+                              required
+                            >
+                              <option value="">Select Team 2</option>
+                              {teams.map((team) => (
+                                <option key={team._id} value={team._id}>
+                                  {team.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">Date & Time</label>
+                            <input
+                              type="datetime-local"
+                              value={matchForm.date}
+                              onChange={(e) => setMatchForm({ ...matchForm, date: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 dark:bg-gray-600 text-white dark:text-white"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">Venue</label>
+                            <input
+                              type="text"
+                              placeholder="Venue (optional)"
+                              value={matchForm.venue}
+                              onChange={(e) => setMatchForm({ ...matchForm, venue: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 dark:bg-gray-600 text-white dark:text-white"
+                            />
                           </div>
                         </div>
-                      ))
+                        <div className="flex space-x-4 mt-4">
+                          <button
+                            type="submit"
+                            disabled={loading}
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
+                          >
+                            {loading ? 'Scheduling...' : 'Schedule Match'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowMatchForm(false)}
+                            className="bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-semibold hover:bg-gray-500 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
                     )}
+
+                    <div className="space-y-4">
+                      {matches.length === 0 ? (
+                        <p className="text-gray-400 dark:text-gray-400 text-center py-8">No matches scheduled yet.</p>
+                      ) : (
+                        matches.map((match) => (
+                          <div key={match._id} className="p-4 border border-gray-600 rounded-lg hover:shadow-md transition-shadow bg-gray-700 dark:bg-gray-700">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h4 className="font-semibold text-gray-100 dark:text-gray-100">
+                                  {match.team1?.name} vs {match.team2?.name}
+                                </h4>
+                                <p className="text-sm text-gray-400 dark:text-gray-400">
+                                  {new Date(match.date).toLocaleString()}
+                                </p>
+                                <p className="text-sm text-gray-400 dark:text-gray-400">Venue: {match.venue || 'TBD'}</p>
+                              </div>
+                              <div className="text-right">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  match.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                                  match.status === 'ongoing' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-green-100 text-green-800'
+                                }`}>
+                                  {match.status}
+                                </span>
+                                {match.score1 !== undefined && match.score2 !== undefined && (
+                                  <p className="text-sm text-gray-400 dark:text-gray-400 mt-1">
+                                    {match.score1}/{match.wickets1 || 0} ({match.overs1 || 0} overs) - {match.score2}/{match.wickets2 || 0} ({match.overs2 || 0} overs)
+                                  </p>
+                                )}
+                                <button
+                                  onClick={() => {
+                                    setSelectedMatch(match);
+                                    setScoreForm({
+                                      score1: match.score1 || 0,
+                                      score2: match.score2 || 0,
+                                      wickets1: match.wickets1 || 0,
+                                      wickets2: match.wickets2 || 0,
+                                      overs1: match.overs1 || 0,
+                                      overs2: match.overs2 || 0,
+                                      status: match.status,
+                                    });
+                                  }}
+                                  className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                                >
+                                  Update Score
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+        {selectedMatch && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-gray-800 dark:bg-gray-800 p-6 rounded-lg w-full max-w-md">
+              <h3 className="text-lg font-bold text-white dark:text-white mb-4">Update Score: {selectedMatch?.team1?.name} vs {selectedMatch?.team2?.name}</h3>
+              <form onSubmit={handleUpdateScore}>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 1 Score</label>
+                    <input type="number" value={scoreForm.score1} onChange={(e) => setScoreForm({ ...scoreForm, score1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 1 Wickets</label>
+                    <input type="number" value={scoreForm.wickets1} onChange={(e) => setScoreForm({ ...scoreForm, wickets1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 1 Overs</label>
+                    <input type="number" step="0.1" value={scoreForm.overs1} onChange={(e) => setScoreForm({ ...scoreForm, overs1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 2 Score</label>
+                    <input type="number" value={scoreForm.score2} onChange={(e) => setScoreForm({ ...scoreForm, score2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 2 Wickets</label>
+                    <input type="number" value={scoreForm.wickets2} onChange={(e) => setScoreForm({ ...scoreForm, wickets2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 2 Overs</label>
+                    <input type="number" step="0.1" value={scoreForm.overs2} onChange={(e) => setScoreForm({ ...scoreForm, overs2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
                   </div>
                 </div>
-              )}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Status</label>
+                  <select value={scoreForm.status} onChange={(e) => setScoreForm({ ...scoreForm, status: e.target.value })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white">
+                    <option value="scheduled">Scheduled</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+                <div className="flex space-x-4 mt-4">
+                  <button type="submit" disabled={loading} className="bg-green-600 text-white px-4 py-2 rounded">
+                    {loading ? 'Updating...' : 'Update'}
+                  </button>
+                  <button type="button" onClick={() => setSelectedMatch(null)} className="bg-gray-600 text-white px-4 py-2 rounded">Cancel</button>
+                </div>
+              </form>
             </div>
           </div>
         )}
@@ -531,7 +599,7 @@ export default function TournamentView() {
       {selectedMatch && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-gray-800 dark:bg-gray-800 p-6 rounded-lg w-full max-w-md">
-            <h3 className="text-lg font-bold text-white dark:text-white mb-4">Update Score: {selectedMatch.team1?.name} vs {selectedMatch.team2?.name}</h3>
+            <h3 className="text-lg font-bold text-white dark:text-white mb-4">Update Score: {selectedMatch?.team1?.name} vs {selectedMatch?.team2?.name}</h3>
             <form onSubmit={handleUpdateScore}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -580,3 +648,4 @@ export default function TournamentView() {
     </div>
   );
 }
+
