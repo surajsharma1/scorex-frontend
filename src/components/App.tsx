@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Frontpage from './Frontpage';
 import { useTheme } from './ThemeProvider';
@@ -146,6 +146,7 @@ function App() {
             </div>
           </div>
         </section>
+        <Outlet />
       </main>
     </div>
   );
