@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Outlet } from 'react-router-dom'; // Add Outlet
+import { useNavigate, Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Frontpage from './Frontpage';
 import { useTheme } from './ThemeProvider';
@@ -36,7 +36,7 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
-    navigate('/'); // Redirect to frontpage on logout
+    navigate('/');
   };
 
   if (isLoading) {
@@ -57,15 +57,23 @@ function App() {
       <Sidebar />
       <main className="flex-1 md:ml-64 p-6 overflow-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
           <div className="flex items-center space-x-4">
-            <button onClick={toggleTheme} className="p-2 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-              {isDark ? '☀️' : '🌙'}
+            <button
+              onClick={toggleTheme}
+              className="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors border border-gray-300 dark:border-gray-600"
+            >
+              {isDark ? '☀️ Light' : '🌙 Dark'}
             </button>
-            <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
+            <button
+              onClick={handleLogout}
+              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Logout
+            </button>
           </div>
         </div>
-        <Outlet /> {/* This renders the routed components (e.g., TournamentView) */}
+        <Outlet />
       </main>
     </div>
   );
