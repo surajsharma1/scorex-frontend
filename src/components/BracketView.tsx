@@ -108,21 +108,21 @@ export default function BracketView() {
       );
     }
 
+    const roundNames = ['Round 1', 'Quarter Finals', 'Semi Finals', 'Final'];
+
     return (
       <div className="flex justify-between items-center min-w-max space-x-8 overflow-x-auto">
         {bracket.rounds.map((round, roundIndex) => (
           <div key={roundIndex} className="space-y-16">
             <h3 className="text-center font-bold text-gray-600 mb-4">
-              {roundIndex === 0 ? 'Quarter Finals' : roundIndex === 1 ? 'Semi Finals' : 'Final'}
+              {roundNames[roundIndex] || `Round ${roundIndex + 1}`}
             </h3>
-            {round.matches.map((match, matchIndex) => (
+           {round.matches.map((match: any, matchIndex: number) => (
               <div key={matchIndex} className="space-y-2">
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-600 px-6 py-3 rounded-r-lg min-w-[200px] hover:shadow-md transition-shadow">
                   <p className="font-semibold text-gray-900">{match.team1?.name || 'TBD'}</p>
                   <p className="text-xs text-gray-600">Score: {match.score1 || 0}/0</p>
                 </div>
-                // ... (previous code up to renderBracket)
-
                 <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-l-4 border-gray-400 px-6 py-3 rounded-r-lg min-w-[200px] hover:shadow-md transition-shadow">
                   <p className="font-semibold text-gray-900">{match.team2?.name || 'TBD'}</p>
                   <p className="text-xs text-gray-600">Score: {match.score2 || 0}/0</p>
