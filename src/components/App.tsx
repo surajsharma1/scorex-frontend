@@ -109,17 +109,17 @@ function App() {
             <div className="bg-gray-700 p-6 rounded-lg text-center shadow">
               <h4 className="text-xl font-semibold mb-2">Match 1</h4>
               <p className="text-lg">Team A vs Team B: 150/5 (20 overs)</p>
-              <p className="text-sm text-gray-400 mt-2">Live</p>
+              <p className="text-sm text-red-400 mt-2">Live</p>
             </div>
             <div className="bg-gray-700 p-6 rounded-lg text-center shadow">
               <h4 className="text-xl font-semibold mb-2">Match 2</h4>
               <p className="text-lg">Team C vs Team D: 120/3 (18 overs)</p>
-              <p className="text-sm text-gray-400 mt-2">Completed</p>
+              <p className="text-sm text-red-400 mt-2">Completed</p>
             </div>
             <div className="bg-gray-700 p-6 rounded-lg text-center shadow">
               <h4 className="text-xl font-semibold mb-2">Match 3</h4>
               <p className="text-lg">Team E vs Team F: 180/7 (20 overs)</p>
-              <p className="text-sm text-gray-400 mt-2">Upcoming</p>
+              <p className="text-sm text-red-400 mt-2">Upcoming</p>
             </div>
           </div>
         </section>
@@ -133,7 +133,7 @@ function App() {
               <p className="text-lg">Total Runs</p>
             </div>
             <div>
-              <h4 className="text-5xl font-bold text-green-400 mb-2">10</h4>
+              <h4 className="text-5xl font-bold text-red-400 mb-2">10</h4>
               <p className="text-lg">Wickets Taken</p>
             </div>
             <div>
@@ -141,7 +141,7 @@ function App() {
               <p className="text-lg">Matches Won</p>
             </div>
             <div>
-              <h4 className="text-5xl font-bold text-red-400 mb-2">95%</h4>
+              <h4 className="text-5xl font-bold text-green-400 mb-2">95%</h4>
               <p className="text-lg">Win Rate</p>
             </div>
           </div>
