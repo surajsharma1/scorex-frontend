@@ -36,13 +36,7 @@ const Frontpage = () => {
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
       <header className="flex justify-between items-center p-6 bg-gray-800 shadow-lg">
-        <h1 className="text-2xl font-bold">ScoreX</h1>
-        <nav className="hidden md:flex space-x-6">
-          <Link to="/tournaments" className="hover:text-blue-400 transition-colors">Tournaments</Link>
-          <Link to="/teams" className="hover:text-blue-400 transition-colors">Teams</Link>
-          <Link to="/brackets" className="hover:text-blue-400 transition-colors">Brackets</Link>
-          <Link to="/overlay" className="hover:text-blue-400 transition-colors">Overlays</Link>
-        </nav>
+        <h1 className="text-3xl font-bold">ScoreX</h1>
         <button
           onClick={() => setIsModalOpen(true)}
           className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition-colors shadow-md"
@@ -52,39 +46,181 @@ const Frontpage = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-blue-900 to-purple-900 h-96 flex items-center justify-center px-6">
+      <section className="relative bg-gradient-to-r from-blue-900 to-purple-900 py-20 px-6 flex items-center justify-center">
         <div className="text-center max-w-4xl">
-          <h2 className="text-5xl font-bold mb-4 leading-tight">
-            Manage Cricket Tournaments Like a Pro
-          </h2>
+          <h2 className="text-6xl font-bold mb-6 leading-tight">ScoreX</h2>
           <p className="text-xl mb-8 leading-relaxed">
-            ScoreX is your ultimate platform for creating and managing cricket tournaments.
-            Generate live overlays for YouTube and streaming platforms, track real-time scores,
-            and organize teams and brackets effortlessly. Whether you're a tournament organizer
-            or a streamer, ScoreX makes cricket management simple and professional.
+            The ultimate platform for cricket tournament management and live streaming.
+            Create tournaments, manage teams, generate brackets, and produce professional
+            overlays for YouTube and streaming platforms. Perfect for organizers, streamers,
+            and cricket enthusiasts worldwide.
           </p>
           <p className="text-lg mb-8">
-            Sign in to start creating tournaments, managing teams, and building custom
-            overlays for your live streams.
+            Join thousands of users who trust ScoreX for seamless cricket management and
+            stunning live overlays.
           </p>
         </div>
       </section>
 
-      {/* Live Scores Section */}
-      <section className="py-16 px-6">
-        <h3 className="text-3xl font-bold text-center mb-8">Live Scores</h3>
+      {/* Services Section */}
+      <section className="py-20 px-6">
+        <h3 className="text-4xl font-bold text-center mb-12">Our Services</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+            <h4 className="text-2xl font-semibold mb-4">Tournament Management</h4>
+            <p className="text-gray-300 leading-relaxed">
+              Easily create and manage cricket tournaments. Schedule matches, track scores,
+              and organize brackets for leagues, cups, and local events.
+            </p>
+          </div>
+          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+            <h4 className="text-2xl font-semibold mb-4">Team & Player Organization</h4>
+            <p className="text-gray-300 leading-relaxed">
+              Build teams, add players, and manage rosters. Keep track of player stats,
+              performance, and team standings with our intuitive tools.
+            </p>
+          </div>
+          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+            <h4 className="text-2xl font-semibold mb-4">Live Streaming Overlays</h4>
+            <p className="text-gray-300 leading-relaxed">
+              Generate professional overlays for your live streams. Customize designs,
+              display scores, brackets, and team info in real-time.
+            </p>
+          </div>
+          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+            <h4 className="text-2xl font-semibold mb-4">Real-Time Score Updates</h4>
+            <p className="text-gray-300 leading-relaxed">
+              Update match scores live during games. View real-time statistics,
+              wickets, overs, and more for an immersive experience.
+            </p>
+          </div>
+          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+            <h4 className="text-2xl font-semibold mb-4">Bracket Generation</h4>
+            <p className="text-gray-300 leading-relaxed">
+              Automatically generate tournament brackets for single-elimination,
+              round-robin, and custom formats. Visualize progress and winners.
+            </p>
+          </div>
+          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+            <h4 className="text-2xl font-semibold mb-4">Community Features</h4>
+            <p className="text-gray-300 leading-relaxed">
+              Connect with other organizers and streamers. Share tournaments,
+              view public events, and collaborate on cricket projects.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Overlay Previews Section */}
+      <section className="py-20 px-6 bg-gray-800">
+        <h3 className="text-4xl font-bold text-center mb-12">Overlay Previews</h3>
+        <p className="text-center text-lg mb-12 text-gray-300">
+          See examples of our professional overlay designs. Unlock premium templates
+          and customizations with our membership plans.
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-gray-800 p-6 rounded-lg text-center shadow-lg">
+          <div className="bg-gray-700 p-6 rounded-lg shadow-lg text-center">
+            <div className="bg-gray-600 h-48 rounded-lg mb-4 flex items-center justify-center">
+              <span className="text-gray-400">Overlay Preview 1</span>
+            </div>
+            <h4 className="text-xl font-semibold mb-2">Score Overlay</h4>
+            <p className="text-gray-300">Display live scores, wickets, and overs.</p>
+          </div>
+          <div className="bg-gray-700 p-6 rounded-lg shadow-lg text-center">
+            <div className="bg-gray-600 h-48 rounded-lg mb-4 flex items-center justify-center">
+              <span className="text-gray-400">Overlay Preview 2</span>
+            </div>
+            <h4 className="text-xl font-semibold mb-2">Bracket Overlay</h4>
+            <p className="text-gray-300">Show tournament brackets and matchups.</p>
+          </div>
+          <div className="bg-gray-700 p-6 rounded-lg shadow-lg text-center">
+            <div className="bg-gray-600 h-48 rounded-lg mb-4 flex items-center justify-center">
+              <span className="text-gray-400">Overlay Preview 3</span>
+            </div>
+            <h4 className="text-xl font-semibold mb-2">Team Stats Overlay</h4>
+            <p className="text-gray-300">Highlight player and team statistics.</p>
+          </div>
+        </div>
+        <div className="text-center mt-12">
+          <p className="text-lg text-gray-300 mb-4">
+            These premium overlays are available with our membership subscription.
+          </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-green-600 hover:bg-green-700 px-8 py-3 rounded-lg font-semibold transition-colors shadow-md"
+          >
+            Join Now
+          </button>
+        </div>
+      </section>
+
+      {/* Membership Section */}
+      <section className="py-20 px-6">
+        <h3 className="text-4xl font-bold text-center mb-12">Membership & Subscription</h3>
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-xl mb-8 text-gray-300 leading-relaxed">
+            Unlock the full potential of ScoreX with our premium membership. Access
+            exclusive overlay designs, advanced customization tools, and priority
+            support. Our subscription plans are designed for organizers and streamers
+            who want professional-grade cricket management and streaming tools.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-gray-800 p-8 rounded-lg shadow-lg">
+              <h4 className="text-2xl font-semibold mb-4">Basic Plan</h4>
+              <p className="text-gray-300 mb-4">Free - Core tournament management features.</p>
+              <ul className="text-left text-gray-300 space-y-2">
+                <li>✓ Create tournaments</li>
+                <li>✓ Manage teams</li>
+                <li>✓ Basic brackets</li>
+              </ul>
+            </div>
+            <div className="bg-gray-800 p-8 rounded-lg shadow-lg border-2 border-blue-500">
+              <h4 className="text-2xl font-semibold mb-4">Pro Plan</h4>
+              <p className="text-gray-300 mb-4">$9.99/month - Advanced features.</p>
+              <ul className="text-left text-gray-300 space-y-2">
+                <li>✓ All Basic features</li>
+                <li>✓ Premium overlays</li>
+                <li>✓ Real-time updates</li>
+                <li>✓ Custom designs</li>
+              </ul>
+            </div>
+            <div className="bg-gray-800 p-8 rounded-lg shadow-lg">
+              <h4 className="text-2xl font-semibold mb-4">Enterprise Plan</h4>
+              <p className="text-gray-300 mb-4">$29.99/month - For large events.</p>
+              <ul className="text-left text-gray-300 space-y-2">
+                <li>✓ All Pro features</li>
+                <li>✓ Multi-tournament support</li>
+                <li>✓ API access</li>
+                <li>✓ Priority support</li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-12">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition-colors shadow-md"
+            >
+              Start Free Trial
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Live Scores Section */}
+      <section className="py-20 px-6 bg-gray-800">
+        <h3 className="text-4xl font-bold text-center mb-12">Live Scores</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-gray-700 p-6 rounded-lg text-center shadow-lg">
             <h4 className="text-xl font-semibold mb-2">Match 1</h4>
             <p className="text-lg">Team A vs Team B: 150/5 (20 overs)</p>
             <p className="text-sm text-gray-400 mt-2">Live</p>
           </div>
-          <div className="bg-gray-800 p-6 rounded-lg text-center shadow-lg">
+          <div className="bg-gray-700 p-6 rounded-lg text-center shadow-lg">
             <h4 className="text-xl font-semibold mb-2">Match 2</h4>
             <p className="text-lg">Team C vs Team D: 120/3 (18 overs)</p>
             <p className="text-sm text-gray-400 mt-2">Completed</p>
           </div>
-          <div className="bg-gray-800 p-6 rounded-lg text-center shadow-lg">
+          <div className="bg-gray-700 p-6 rounded-lg text-center shadow-lg">
             <h4 className="text-xl font-semibold mb-2">Match 3</h4>
             <p className="text-lg">Team E vs Team F: 180/7 (20 overs)</p>
             <p className="text-sm text-gray-400 mt-2">Upcoming</p>
@@ -93,55 +229,61 @@ const Frontpage = () => {
       </section>
 
       {/* Featured Tournaments Section */}
-      <section className="py-16 px-6 bg-gray-800">
-        <h3 className="text-3xl font-bold text-center mb-8">Featured Tournaments</h3>
+      <section className="py-20 px-6">
+        <h3 className="text-4xl font-bold text-center mb-12">Featured Tournaments</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-gray-700 p-6 rounded-lg shadow-lg">
-            <h4 className="text-xl font-semibold mb-2">T20 World Cup</h4>
-            <p className="text-gray-300 mb-4">
+          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+            <h4 className="text-2xl font-semibold mb-4">T20 World Cup</h4>
+            <p className="text-gray-300 mb-6">
               Global cricket tournament with live updates and overlays.
             </p>
-            <Link to="/tournaments" className="text-blue-400 hover:underline transition-colors">
-              View Details
+            <Link
+              to="/tournaments"
+              className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition-colors inline-block"
+            >
+              View All Tournaments
             </Link>
           </div>
-          <div className="bg-gray-700 p-6 rounded-lg shadow-lg">
-            <h4 className="text-xl font-semibold mb-2">Local League</h4>
-            <p className="text-gray-300 mb-4">
+          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+            <h4 className="text-2xl font-semibold mb-4">Local League</h4>
+            <p className="text-gray-300 mb-6">
               Community cricket matches and brackets for local teams.
             </p>
-            <Link to="/tournaments" className="text-blue-400 hover:underline transition-colors">
-              View Details
+            <Link
+              to="/tournaments"
+              className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition-colors inline-block"
+            >
+              View All Tournaments
             </Link>
           </div>
         </div>
       </section>
 
       {/* Team Stats Section */}
-      <section className="py-16 px-6">
-        <h3 className="text-3xl font-bold text-center mb-8">Team Stats</h3>
+      <section className="py-20 px-6 bg-gray-800">
+        <h3 className="text-4xl font-bold text-center mb-12">Team Stats</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
           <div>
-            <h4 className="text-4xl font-bold text-blue-400 mb-2">150</h4>
+            <h4 className="text-5xl font-bold text-blue-400 mb-2">150</h4>
             <p className="text-lg">Total Runs</p>
           </div>
           <div>
-            <h4 className="text-4xl font-bold text-green-400 mb-2">10</h4>
+            <h4 className="text-5xl font-bold text-green-400 mb-2">10</h4>
             <p className="text-lg">Wickets Taken</p>
           </div>
           <div>
-            <h4 className="text-4xl font-bold text-yellow-400 mb-2">5</h4>
+            <h4 className="text-5xl font-bold text-yellow-400 mb-2">5</h4>
             <p className="text-lg">Matches Won</p>
           </div>
           <div>
-            <h4 className="text-4xl font-bold text-red-400 mb-2">95%</h4>
+            <h4 className="text-5xl font-bold text-red-400 mb-2">95%</h4>
             <p className="text-lg">Win Rate</p>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 bg-gray-800 text-center">
+      <footer className="py-12 px-6 bg-gray-900 text-center">
         <p>&copy; 2023 ScoreX. All rights reserved. Built for cricket enthusiasts.</p>
       </footer>
 
