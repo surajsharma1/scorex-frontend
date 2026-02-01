@@ -67,17 +67,17 @@ function App() {
         </div>
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-gray-800 p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">Tournaments</h3>
+            <h3 className="text-lg font-semibold text-blue-400">Tournaments</h3>
             <p className="text-gray-300">View and manage tournaments.</p>
-            <button onClick={() => navigate('/tournaments')} className="text-black hover:underline mt-2">Go to Tournaments</button>
+            <button onClick={() => navigate('/tournaments')} className="text-blue-400 hover:underline mt-2">Go to Tournaments</button>
           </div>
           <div className="bg-gray-800 p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">Teams</h3>
+            <h3 className="text-lg font-semibold text-blue-400">Teams</h3>
             <p className="text-gray-300">Manage teams and players.</p>
             <button onClick={() => navigate('/teams')} className="text-black hover:underline mt-2">Go to Teams</button>
           </div>
           <div className="bg-gray-800 p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold">Brackets</h3>
+            <h3 className="text-lg font-semibold text-blue-400">Brackets</h3>
             <p className="text-gray-300">Create and view tournament brackets.</p>
             <button onClick={() => navigate('/brackets')} className="text-black hover:underline mt-2">Go to Brackets</button>
           </div>
