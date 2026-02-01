@@ -9,23 +9,23 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem('token');
-      if (token) {
+  const checkAuth = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true);
+    } else {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenFromUrl = urlParams.get('token');
+      if (tokenFromUrl) {
+        localStorage.setItem('token', tokenFromUrl);
         setIsAuthenticated(true);
-      } else {
-        const urlParams = new URLSearchParams(window.location.search);
-        const tokenFromUrl = urlParams.get('token');
-        if (tokenFromUrl) {
-          localStorage.setItem('token', tokenFromUrl);
-          setIsAuthenticated(true);
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
-      setIsLoading(false);
-    };
-    checkAuth();
-  }, []);
+    }
+    setIsLoading(false);
+  };
+  checkAuth();
+}, []);
 
   const handleGoogleLogin = () => {
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
