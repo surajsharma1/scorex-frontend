@@ -183,11 +183,11 @@ export default function TournamentView() {
   });
 
   return (
-    <div className="space-y-8 p-6 bg-gray-900 text-white min-h-screen">
+    <div className="space-y-8 p-6 bg-gray-900 dark:bg-gray-900 text-white dark:text-white min-h-screen">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-bold text-gray-100">All Tournaments</h1>
-          <p className="text-gray-300 mt-2">
+          <h1 className="text-4xl font-bold text-gray-100 dark:text-gray-100">All Tournaments</h1>
+          <p className="text-gray-300 dark:text-gray-300 mt-2">
             View all current and live tournaments created by the community
           </p>
         </div>
@@ -200,40 +200,40 @@ export default function TournamentView() {
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-100 dark:bg-red-900 border border-red-400 text-red-700 dark:text-red-300 px-4 py-3 rounded">
           {error}
         </div>
       )}
 
       {showTournamentForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
-            <h3 className="text-lg font-bold mb-4">Create New Tournament</h3>
+          <div className="bg-gray-800 dark:bg-gray-800 p-6 rounded-lg w-full max-w-md">
+            <h3 className="text-lg font-bold text-white dark:text-white mb-4">Create New Tournament</h3>
             <form onSubmit={handleCreateTournament}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300">Name</label>
+                <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Name</label>
                 <input
                   type="text"
                   value={tournamentForm.name}
                   onChange={(e) => setTournamentForm({ ...tournamentForm, name: e.target.value })}
-                  className="w-full p-2 border rounded bg-gray-700 text-white"
+                  className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white"
                   required
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300">Description</label>
+                <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Description</label>
                 <textarea
                   value={tournamentForm.description}
                   onChange={(e) => setTournamentForm({ ...tournamentForm, description: e.target.value })}
-                  className="w-full p-2 border rounded bg-gray-700 text-white"
+                  className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300">Format</label>
+                <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Format</label>
                 <select
                   value={tournamentForm.format}
                   onChange={(e) => setTournamentForm({ ...tournamentForm, format: e.target.value })}
-                  className="w-full p-2 border rounded bg-gray-700 text-white"
+                  className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white"
                 >
                   <option value="T20">T20</option>
                   <option value="ODI">ODI</option>
@@ -241,23 +241,23 @@ export default function TournamentView() {
                 </select>
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300">Number of Teams</label>
+                <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Number of Teams</label>
                 <input
                   type="number"
                   value={tournamentForm.numberOfTeams}
                   onChange={(e) => setTournamentForm({ ...tournamentForm, numberOfTeams: Number(e.target.value) })}
-                  className="w-full p-2 border rounded bg-gray-700 text-white"
+                  className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white"
                   min="2"
                   required
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300">Start Date</label>
+                <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Start Date</label>
                 <input
                   type="date"
                   value={tournamentForm.startDate}
                   onChange={(e) => setTournamentForm({ ...tournamentForm, startDate: e.target.value })}
-                  className="w-full p-2 border rounded bg-gray-700 text-white"
+                  className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white"
                   required
                 />
               </div>
@@ -278,12 +278,12 @@ export default function TournamentView() {
           placeholder="Search tournaments..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 p-2 border rounded bg-gray-700 text-white"
+          className="flex-1 p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white"
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="p-2 border rounded bg-gray-700 text-white"
+          className="p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white"
         >
           <option value="">All Statuses</option>
           <option value="upcoming">Upcoming</option>
@@ -293,7 +293,7 @@ export default function TournamentView() {
         <select
           value={formatFilter}
           onChange={(e) => setFormatFilter(e.target.value)}
-          className="p-2 border rounded bg-gray-700 text-white"
+          className="p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white"
         >
           <option value="">All Formats</option>
           <option value="T20">T20</option>
@@ -304,8 +304,8 @@ export default function TournamentView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
-          <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-            <h2 className="text-xl font-bold text-gray-100 mb-4">All Tournaments</h2>
+          <div className="bg-gray-800 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+            <h2 className="text-xl font-bold text-gray-100 dark:text-gray-100 mb-4">All Tournaments</h2>
             <div className="space-y-2">
               {loading ? (
                 <div className="space-y-2">
@@ -321,22 +321,23 @@ export default function TournamentView() {
                     className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
                       selectedTournament && selectedTournament._id === tournament._id
                         ? 'bg-blue-600 text-white'
-                        : 'hover:bg-gray-700 text-gray-300'
+                        : 'hover:bg-gray-700 text-gray-300 dark:text-gray-300'
                     }`}
                   >
                     <p className="font-semibold">{tournament.name}</p>
-                    <p className="text-sm text-gray-400">{tournament.status} - {tournament.format}</p>
+                    <p className="text-sm text-gray-400 dark:text-gray-400">{tournament.status} - {tournament.format}</p>
                   </button>
                 ))
               )}
             </div>
           </div>
         </div>
-                {selectedTournament && (
+
+        {selectedTournament && (
           <div className="lg:col-span-2">
-            <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+            <div className="bg-gray-800 dark:bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-100">{selectedTournament.name}</h2>
+                <h2 className="text-2xl font-bold text-gray-100 dark:text-gray-100">{selectedTournament.name}</h2>
               </div>
 
               <div className="tabs mb-6">
@@ -357,26 +358,26 @@ export default function TournamentView() {
               {activeTab === 'overview' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-gray-700 rounded-lg">
-                      <h3 className="font-semibold text-gray-100">Format</h3>
-                      <p className="text-gray-300">{selectedTournament.format}</p>
+                    <div className="p-4 bg-gray-700 dark:bg-gray-700 rounded-lg">
+                      <h3 className="font-semibold text-gray-100 dark:text-gray-100">Format</h3>
+                      <p className="text-gray-300 dark:text-gray-300">{selectedTournament.format}</p>
                     </div>
-                    <div className="p-4 bg-gray-700 rounded-lg">
-                      <h3 className="font-semibold text-gray-100">Status</h3>
-                      <p className="text-gray-300">{selectedTournament.status}</p>
+                    <div className="p-4 bg-gray-700 dark:bg-gray-700 rounded-lg">
+                      <h3 className="font-semibold text-gray-100 dark:text-gray-100">Status</h3>
+                      <p className="text-gray-300 dark:text-gray-300">{selectedTournament.status}</p>
                     </div>
-                    <div className="p-4 bg-gray-700 rounded-lg">
-                      <h3 className="font-semibold text-gray-100">Start Date</h3>
-                      <p className="text-gray-300">{new Date(selectedTournament.startDate).toLocaleDateString()}</p>
+                    <div className="p-4 bg-gray-700 dark:bg-gray-700 rounded-lg">
+                      <h3 className="font-semibold text-gray-100 dark:text-gray-100">Start Date</h3>
+                      <p className="text-gray-300 dark:text-gray-300">{new Date(selectedTournament.startDate).toLocaleDateString()}</p>
                     </div>
-                    <div className="p-4 bg-gray-700 rounded-lg">
-                      <h3 className="font-semibold text-gray-100">Teams</h3>
-                      <p className="text-gray-300">{selectedTournament.numberOfTeams}</p>
+                    <div className="p-4 bg-gray-700 dark:bg-gray-700 rounded-lg">
+                      <h3 className="font-semibold text-gray-100 dark:text-gray-100">Teams</h3>
+                      <p className="text-gray-300 dark:text-gray-300">{selectedTournament.numberOfTeams}</p>
                     </div>
                   </div>
-                  <div className="p-4 bg-gray-700 rounded-lg">
-                    <h3 className="font-semibold text-gray-100">Description</h3>
-                    <p className="text-gray-300">{selectedTournament.description || 'No description available'}</p>
+                  <div className="p-4 bg-gray-700 dark:bg-gray-700 rounded-lg">
+                    <h3 className="font-semibold text-gray-100 dark:text-gray-100">Description</h3>
+                    <p className="text-gray-300 dark:text-gray-300">{selectedTournament.description || 'No description available'}</p>
                   </div>
                 </div>
               )}
@@ -384,7 +385,7 @@ export default function TournamentView() {
               {activeTab === 'matches' && (
                 <div>
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-gray-100">Matches</h3>
+                    <h3 className="text-xl font-bold text-gray-100 dark:text-gray-100">Matches</h3>
                     <button
                       onClick={() => setShowMatchForm(true)}
                       className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors"
@@ -394,15 +395,15 @@ export default function TournamentView() {
                   </div>
 
                   {showMatchForm && (
-                    <form onSubmit={handleCreateMatch} className="mb-6 p-4 border border-gray-600 rounded-lg bg-gray-700">
-                      <h4 className="text-lg font-semibold mb-4">Schedule New Match</h4>
+                    <form onSubmit={handleCreateMatch} className="mb-6 p-4 border border-gray-600 rounded-lg bg-gray-700 dark:bg-gray-700">
+                      <h4 className="text-lg font-semibold mb-4 text-white dark:text-white">Schedule New Match</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Team 1</label>
+                          <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">Team 1</label>
                           <select
                             value={matchForm.team1}
                             onChange={(e) => setMatchForm({ ...matchForm, team1: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
+                            className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 dark:bg-gray-600 text-white dark:text-white"
                             required
                           >
                             <option value="">Select Team 1</option>
@@ -414,11 +415,11 @@ export default function TournamentView() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Team 2</label>
+                          <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">Team 2</label>
                           <select
                             value={matchForm.team2}
                             onChange={(e) => setMatchForm({ ...matchForm, team2: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
+                            className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 dark:bg-gray-600 text-white dark:text-white"
                             required
                           >
                             <option value="">Select Team 2</option>
@@ -430,23 +431,23 @@ export default function TournamentView() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Date & Time</label>
+                          <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">Date & Time</label>
                           <input
                             type="datetime-local"
                             value={matchForm.date}
                             onChange={(e) => setMatchForm({ ...matchForm, date: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
+                            className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 dark:bg-gray-600 text-white dark:text-white"
                             required
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Venue</label>
-                            <input
+                          <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-1">Venue</label>
+                          <input
                             type="text"
                             placeholder="Venue (optional)"
                             value={matchForm.venue}
                             onChange={(e) => setMatchForm({ ...matchForm, venue: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
+                            className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 dark:bg-gray-600 text-white dark:text-white"
                           />
                         </div>
                       </div>
@@ -471,19 +472,19 @@ export default function TournamentView() {
 
                   <div className="space-y-4">
                     {matches.length === 0 ? (
-                      <p className="text-gray-400 text-center py-8">No matches scheduled yet.</p>
+                      <p className="text-gray-400 dark:text-gray-400 text-center py-8">No matches scheduled yet.</p>
                     ) : (
                       matches.map((match) => (
-                        <div key={match._id} className="p-4 border border-gray-600 rounded-lg hover:shadow-md transition-shadow bg-gray-700">
+                        <div key={match._id} className="p-4 border border-gray-600 rounded-lg hover:shadow-md transition-shadow bg-gray-700 dark:bg-gray-700">
                           <div className="flex justify-between items-center">
                             <div>
-                              <h4 className="font-semibold text-gray-100">
+                              <h4 className="font-semibold text-gray-100 dark:text-gray-100">
                                 {match.team1?.name} vs {match.team2?.name}
                               </h4>
-                              <p className="text-sm text-gray-400">
+                              <p className="text-sm text-gray-400 dark:text-gray-400">
                                 {new Date(match.date).toLocaleString()}
                               </p>
-                              <p className="text-sm text-gray-400">Venue: {match.venue || 'TBD'}</p>
+                              <p className="text-sm text-gray-400 dark:text-gray-400">Venue: {match.venue || 'TBD'}</p>
                             </div>
                             <div className="text-right">
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -494,7 +495,7 @@ export default function TournamentView() {
                                 {match.status}
                               </span>
                               {match.score1 !== undefined && match.score2 !== undefined && (
-                                <p className="text-sm text-gray-400 mt-1">
+                                <p className="text-sm text-gray-400 dark:text-gray-400 mt-1">
                                   {match.score1}/{match.wickets1 || 0} ({match.overs1 || 0} overs) - {match.score2}/{match.wickets2 || 0} ({match.overs2 || 0} overs)
                                 </p>
                               )}
@@ -527,41 +528,40 @@ export default function TournamentView() {
           </div>
         )}
       </div>
-
       {selectedMatch && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
-            <h3 className="text-lg font-bold mb-4">Update Score: {selectedMatch.team1?.name} vs {selectedMatch.team2?.name}</h3>
+          <div className="bg-gray-800 dark:bg-gray-800 p-6 rounded-lg w-full max-w-md">
+            <h3 className="text-lg font-bold text-white dark:text-white mb-4">Update Score: {selectedMatch.team1?.name} vs {selectedMatch.team2?.name}</h3>
             <form onSubmit={handleUpdateScore}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">Team 1 Score</label>
-                  <input type="number" value={scoreForm.score1} onChange={(e) => setScoreForm({ ...scoreForm, score1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 text-white" />
+                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 1 Score</label>
+                  <input type="number" value={scoreForm.score1} onChange={(e) => setScoreForm({ ...scoreForm, score1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">Team 1 Wickets</label>
-                  <input type="number" value={scoreForm.wickets1} onChange={(e) => setScoreForm({ ...scoreForm, wickets1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 text-white" />
+                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 1 Wickets</label>
+                  <input type="number" value={scoreForm.wickets1} onChange={(e) => setScoreForm({ ...scoreForm, wickets1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">Team 1 Overs</label>
-                  <input type="number" step="0.1" value={scoreForm.overs1} onChange={(e) => setScoreForm({ ...scoreForm, overs1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 text-white" />
+                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 1 Overs</label>
+                  <input type="number" step="0.1" value={scoreForm.overs1} onChange={(e) => setScoreForm({ ...scoreForm, overs1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">Team 2 Score</label>
-                  <input type="number" value={scoreForm.score2} onChange={(e) => setScoreForm({ ...scoreForm, score2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 text-white" />
+                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 2 Score</label>
+                  <input type="number" value={scoreForm.score2} onChange={(e) => setScoreForm({ ...scoreForm, score2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">Team 2 Wickets</label>
-                  <input type="number" value={scoreForm.wickets2} onChange={(e) => setScoreForm({ ...scoreForm, wickets2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 text-white" />
+                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 2 Wickets</label>
+                  <input type="number" value={scoreForm.wickets2} onChange={(e) => setScoreForm({ ...scoreForm, wickets2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">Team 2 Overs</label>
-                  <input type="number" step="0.1" value={scoreForm.overs2} onChange={(e) => setScoreForm({ ...scoreForm, overs2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 text-white" />
+                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 2 Overs</label>
+                  <input type="number" step="0.1" value={scoreForm.overs2} onChange={(e) => setScoreForm({ ...scoreForm, overs2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
                 </div>
               </div>
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-300">Status</label>
-                <select value={scoreForm.status} onChange={(e) => setScoreForm({ ...scoreForm, status: e.target.value })} className="w-full p-2 border rounded bg-gray-700 text-white">
+                <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Status</label>
+                <select value={scoreForm.status} onChange={(e) => setScoreForm({ ...scoreForm, status: e.target.value })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white">
                   <option value="scheduled">Scheduled</option>
                   <option value="ongoing">Ongoing</option>
                   <option value="completed">Completed</option>
