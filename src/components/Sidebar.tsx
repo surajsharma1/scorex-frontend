@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Trophy, Users, LayoutGrid as Layout, Layers, GitBranch, Home } from 'lucide-react';
+import { Trophy, Users, Layout, Layers, GitBranch, Home } from 'lucide-react';
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);

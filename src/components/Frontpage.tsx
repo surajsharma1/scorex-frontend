@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const Frontpage = () => {
-  const [isLogin, setIsLogin] = useState(true); // Toggle between login and register
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -23,7 +23,7 @@ const Frontpage = () => {
       const data = isLogin ? { email, password } : { username, email, password };
       const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}${endpoint}`, data);
       localStorage.setItem('token', response.data.token);
-      window.location.reload(); // Reload to show dashboard
+      window.location.reload();
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred');
     } finally {
@@ -33,7 +33,6 @@ const Frontpage = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header */}
       <header className="flex justify-between items-center p-6 bg-gray-800">
         <h1 className="text-2xl font-bold">ScoreX</h1>
         <nav className="space-x-6">
@@ -44,7 +43,6 @@ const Frontpage = () => {
         </nav>
       </header>
 
-      {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-blue-900 to-purple-900 h-96 flex items-center justify-center">
         <div className="text-center px-6 max-w-4xl">
           <h2 className="text-5xl font-bold mb-4">Manage Cricket Tournaments Like a Pro</h2>
@@ -58,7 +56,6 @@ const Frontpage = () => {
             Sign in to start creating tournaments, managing teams, and building custom 
             overlays for your live streams.
           </p>
-          {/* Login/Register Button */}
           <div className="mb-6">
             <button 
               onClick={handleGoogleLogin} 
@@ -73,7 +70,6 @@ const Frontpage = () => {
               {isLogin ? 'Switch to Register' : 'Switch to Login'}
             </button>
           </div>
-          {/* Email Form */}
           <form onSubmit={handleEmailSubmit} className="bg-gray-800 p-6 rounded-lg max-w-md mx-auto">
             <h3 className="text-2xl font-bold mb-4">{isLogin ? 'Login' : 'Register'}</h3>
             {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -114,7 +110,6 @@ const Frontpage = () => {
         </div>
       </section>
 
-      {/* Live Scores Section */}
       <section className="py-16 px-6">
         <h3 className="text-3xl font-bold text-center mb-8">Live Scores</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -136,7 +131,6 @@ const Frontpage = () => {
         </div>
       </section>
 
-      {/* Featured Tournaments */}
       <section className="py-16 px-6 bg-gray-800">
         <h3 className="text-3xl font-bold text-center mb-8">Featured Tournaments</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -153,7 +147,6 @@ const Frontpage = () => {
         </div>
       </section>
 
-      {/* Team Stats */}
       <section className="py-16 px-6">
         <h3 className="text-3xl font-bold text-center mb-8">Team Stats</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
@@ -176,7 +169,6 @@ const Frontpage = () => {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-8 px-6 bg-gray-800 text-center">
         <p>&copy; 2023 ScoreX. All rights reserved. Built for cricket enthusiasts.</p>
       </footer>
