@@ -114,12 +114,12 @@ function App() {
             <div className="bg-gray-700 p-6 rounded-lg text-center shadow">
               <h4 className="text-xl font-semibold mb-2">Match 2</h4>
               <p className="text-lg">Team C vs Team D: 120/3 (18 overs)</p>
-              <p className="text-sm text-red-400 mt-2">Completed</p>
+              <p className="text-sm text-green-400 mt-2">Completed</p>
             </div>
             <div className="bg-gray-700 p-6 rounded-lg text-center shadow">
               <h4 className="text-xl font-semibold mb-2">Match 3</h4>
               <p className="text-lg">Team E vs Team F: 180/7 (20 overs)</p>
-              <p className="text-sm text-red-400 mt-2">Upcoming</p>
+              <p className="text-sm text-yellow-400 mt-2">Upcoming</p>
             </div>
           </div>
         </section>
