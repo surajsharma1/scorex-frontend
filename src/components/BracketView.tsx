@@ -112,12 +112,12 @@ export default function BracketView() {
 
     return (
       <div className="flex justify-between items-center min-w-max space-x-8 overflow-x-auto">
-        {bracket.rounds.map((round: any, roundIndex: number) => (
+        {bracket.rounds.map((round, roundIndex) => (
           <div key={roundIndex} className="space-y-16">
             <h3 className="text-center font-bold text-gray-600 mb-4">
               {roundNames[roundIndex] || `Round ${roundIndex + 1}`}
             </h3>
-            {round.matches.map((match: any, matchIndex: number) => (
+          {round.matches.map((match: any, matchIndex: number) => (
               <div key={matchIndex} className="space-y-2">
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-600 px-6 py-3 rounded-r-lg min-w-[200px] hover:shadow-md transition-shadow">
                   <p className="font-semibold text-gray-900">{match.team1?.name || 'TBD'}</p>
