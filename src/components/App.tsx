@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Outlet, useLocation } from 'react-router-dom'; // Add useLocation
+import { useNavigate, Outlet, useLocation } from 'react-router-dom'; // Added useLocation for conditional rendering
 import Sidebar from './Sidebar';
 import Frontpage from './Frontpage';
 import { useTheme } from './ThemeProvider';
@@ -8,7 +8,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation(); // Add this
+  const location = useLocation(); // Added for checking path
   const { isDark } = useTheme();
 
   useEffect(() => {
@@ -53,7 +53,7 @@ function App() {
     return <Frontpage />;
   }
 
-  const isDashboard = location.pathname === '/'; // Check if on root path
+  const isDashboard = location.pathname === '/'; // Only show dashboard on root
 
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
@@ -74,19 +74,19 @@ function App() {
             {/* Dashboard Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               <div className="bg-gray-800 p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold text-black">Tournaments</h3>
-                <p className="text-black">View and manage tournaments.</p>
-                <button onClick={() => navigate('/tournaments')} className="text-blue-400 hover:underline mt-2">Go to Tournaments</button>
+                <h3 className="text-lg font-semibold text-blue-400">Tournaments</h3>
+                <p className="text-white">View and manage tournaments.</p>
+                <button onClick={() => navigate('/tournaments')} className="text-white hover:underline mt-2">Go to Tournaments</button>
               </div>
               <div className="bg-gray-800 p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold text-black">Teams</h3>
-                <p className="text-black">Manage teams and players.</p>
-                <button onClick={() => navigate('/teams')} className="text-blue-400 hover:underline mt-2">Go to Teams</button>
+                <h3 className="text-lg font-semibold text-blue-400">Teams</h3>
+                <p className="text-white">Manage teams and players.</p>
+                <button onClick={() => navigate('/teams')} className="text-white hover:underline mt-2">Go to Teams</button>
               </div>
               <div className="bg-gray-800 p-6 rounded-lg shadow">
-                <h3 className="text-lg font-semibold text-black">Overlays</h3>
-                <p className="text-black">Create live streaming overlays.</p>
-                <button onClick={() => navigate('/overlay')} className="text-blue-400 hover:underline mt-2">Go to Overlays</button>
+                <h3 className="text-lg font-semibold text-blue-400">Overlays</h3>
+                <p className="text-white">Create live streaming overlays.</p>
+                <button onClick={() => navigate('/overlay')} className="text-white hover:underline mt-2">Go to Overlays</button>
               </div>
             </div>
 
@@ -102,7 +102,7 @@ function App() {
                 <div className="bg-gray-800 p-6 rounded-lg shadow">
                   <h4 className="text-lg font-semibold mb-2">Local League</h4>
                   <p className="text-gray-300 mb-4">Community matches in progress.</p>
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Live</span>
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-white">Live</span> {/* Fixed typo */}
                 </div>
               </div>
             </section>
@@ -114,17 +114,17 @@ function App() {
                 <div className="bg-gray-700 p-6 rounded-lg text-center shadow">
                   <h4 className="text-xl font-semibold mb-2">Match 1</h4>
                   <p className="text-lg">Team A vs Team B: 150/5 (20 overs)</p>
-                  <p className="text-sm text-gray-400 mt-2">Live</p>
+                  <p className="text-sm text-red-400 mt-2">Live</p>
                 </div>
                 <div className="bg-gray-700 p-6 rounded-lg text-center shadow">
                   <h4 className="text-xl font-semibold mb-2">Match 2</h4>
                   <p className="text-lg">Team C vs Team D: 120/3 (18 overs)</p>
-                  <p className="text-sm text-gray-400 mt-2">Completed</p>
+                  <p className="text-sm text-green-400 mt-2">Completed</p>
                 </div>
                 <div className="bg-gray-700 p-6 rounded-lg text-center shadow">
                   <h4 className="text-xl font-semibold mb-2">Match 3</h4>
                   <p className="text-lg">Team E vs Team F: 180/7 (20 overs)</p>
-                  <p className="text-sm text-gray-400 mt-2">Upcoming</p>
+                  <p className="text-sm text-yellow-400 mt-2">Upcoming</p>
                 </div>
               </div>
             </section>
@@ -138,7 +138,7 @@ function App() {
                   <p className="text-lg">Total Runs</p>
                 </div>
                 <div>
-                  <h4 className="text-5xl font-bold text-green-400 mb-2">10</h4>
+                  <h4 className="text-5xl font-bold text-red-400 mb-2">10</h4>
                   <p className="text-lg">Wickets Taken</p>
                 </div>
                 <div>
@@ -146,14 +146,14 @@ function App() {
                   <p className="text-lg">Matches Won</p>
                 </div>
                 <div>
-                  <h4 className="text-5xl font-bold text-red-400 mb-2">95%</h4>
+                  <h4 className="text-5xl font-bold text-green-400 mb-2">95%</h4>
                   <p className="text-lg">Win Rate</p>
                 </div>
               </div>
             </section>
           </>
         ) : (
-          <Outlet /> // Render only the routed component for other paths
+          <Outlet /> // Only render routed components on other paths
         )}
       </main>
     </div>
