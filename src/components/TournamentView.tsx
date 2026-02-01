@@ -141,24 +141,26 @@ export default function TournamentView() {
     }
   };
 
-  const handleCreateMatch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTournament) return;
-    setLoading(true);
-    try {
-      await matchAPI.createMatch({
-        ...matchForm,
-        tournament: selectedTournament._id,
-      });
-      setShowMatchForm(false);
-      setMatchForm({ tournament: '', team1: '', team2: '', date: '', venue: '' });
-      fetchMatches();
-    } catch (error) {
-      setError('Failed to create match');
-    } finally {
-      setLoading(false);
-    }
-  };
+const handleCreateMatch = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!selectedTournament) return;
+  setLoading(true);
+  console.log('Creating match with data:', { ...matchForm, tournament: selectedTournament._id });
+  try {
+    await matchAPI.createMatch({
+      ...matchForm,
+      tournament: selectedTournament._id,
+    });
+    setShowMatchForm(false);
+    setMatchForm({ tournament: '', team1: '', team2: '', date: '', venue: '' });
+    fetchMatches();
+  } catch (error: any) {
+    console.error('Create match error:', error.response?.data || error);
+    setError(error.response?.data?.message || 'Failed to create match');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleUpdateScore = async (e: React.FormEvent) => {
     e.preventDefault();
