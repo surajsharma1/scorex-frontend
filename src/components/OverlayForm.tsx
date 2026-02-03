@@ -1,17 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { overlayAPI } from '../services/api';
+import { overlayAPI, tournamentAPI } from '../services/api';
+import { Tournament } from './types';
 
 export default function OverlayForm() {
-  const [formData, setFormData] = useState({ name: '', template: '' });
+  const [formData, setFormData] = useState({ name: '', template: '', tournament: '' });
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchTournaments = async () => {
+      try {
+        const response = await tournamentAPI.getTournaments();
+        setTournaments(response.data);
+      } catch (error) {
+        console.error('Failed to fetch tournaments');
+      }
+    };
+    fetchTournaments();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.tournament) {
+      alert('Please select a tournament');
+      return;
+    }
     setLoading(true);
     try {
-      await overlayAPI.createOverlay(formData);
+      const overlayData = {
+        ...formData,
+        config: {
+          backgroundColor: '#16a34a',
+          opacity: 90,
+          fontFamily: 'Inter',
+          position: 'top',
+          showAnimations: true,
+          autoUpdate: true,
+        },
+        elements: [],
+      };
+      await overlayAPI.createOverlay(overlayData);
       navigate('/overlays');
     } catch (error) {
       alert('Failed to create overlay');
@@ -39,6 +69,19 @@ export default function OverlayForm() {
           onChange={(e) => setFormData({ ...formData, template: e.target.value })}
           className="w-full p-2 mb-4 border rounded"
         />
+        <select
+          value={formData.tournament}
+          onChange={(e) => setFormData({ ...formData, tournament: e.target.value })}
+          className="w-full p-2 mb-4 border rounded"
+          required
+        >
+          <option value="">Select Tournament</option>
+          {tournaments.map((tournament) => (
+            <option key={tournament._id} value={tournament._id}>
+              {tournament.name}
+            </option>
+          ))}
+        </select>
         <button type="submit" disabled={loading} className="bg-blue-500 text-white px-4 py-2 rounded">
           {loading ? 'Creating...' : 'Create'}
         </button>
