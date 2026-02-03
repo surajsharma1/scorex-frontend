@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Eye, Download, Settings, Crown, Edit, Trash2 } from 'lucide-react';
 import { overlayAPI, tournamentAPI } from '../services/api';
 import { Overlay, Tournament } from './types';
+import Payment from './Payment';
 
 const PRE_DESIGNED_OVERLAYS = [
   {
@@ -44,6 +45,7 @@ export default function OverlayEditor() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [userMembership, setUserMembership] = useState('free');
+  const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -120,8 +122,8 @@ export default function OverlayEditor() {
   };
 
   const handlePreview = (overlay: Overlay) => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-    window.open(`${backendUrl}/overlay/${overlay.publicId}`, '_blank');
+    const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    window.open(`${backendUrl.replace('/api', '')}/api/overlays/public/${overlay.publicId}`, '_blank');
   };
 
   const handleDownload = (overlay: Overlay) => {
@@ -271,11 +273,17 @@ export default function OverlayEditor() {
                   {overlayTemplate.membership.toUpperCase()}
                 </span>
                 <button
-                  onClick={() => handleSelectOverlay(overlayTemplate)}
-                  disabled={!selectedTournament || (overlayTemplate.membership !== 'free' && userMembership === 'free')}
+                  onClick={() => {
+                    if (overlayTemplate.membership !== 'free' && userMembership === 'free') {
+                      setShowPayment(true);
+                    } else {
+                      handleSelectOverlay(overlayTemplate);
+                    }
+                  }}
+                  disabled={!selectedTournament}
                   className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Select
+                  {overlayTemplate.membership === 'free' ? 'Select' : 'Upgrade'}
                 </button>
               </div>
             </div>
@@ -415,6 +423,17 @@ export default function OverlayEditor() {
           </div>
         </div>
       </div>
+
+      {showPayment && (
+        <Payment
+          onClose={() => setShowPayment(false)}
+          onSuccess={(plan) => {
+            setUserMembership(plan);
+            setShowPayment(false);
+            setError(`Successfully upgraded to ${plan} plan!`);
+          }}
+        />
+      )}
     </div>
   );
 }
