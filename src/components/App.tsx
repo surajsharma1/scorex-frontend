@@ -5,6 +5,7 @@ import Frontpage from './Frontpage';
 import { useTheme } from './ThemeProvider';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { Tournament, Match, Team } from './types';
+import Profile from './Profile';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
