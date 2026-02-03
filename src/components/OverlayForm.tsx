@@ -51,41 +51,56 @@ export default function OverlayForm() {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl mb-4">Create Overlay</h2>
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md">
-        <input
-          type="text"
-          placeholder="Name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full p-2 mb-4 border rounded"
-          required
-        />
-        <input
-          type="text"
-          placeholder="Template"
-          value={formData.template}
-          onChange={(e) => setFormData({ ...formData, template: e.target.value })}
-          className="w-full p-2 mb-4 border rounded"
-        />
-        <select
-          value={formData.tournament}
-          onChange={(e) => setFormData({ ...formData, tournament: e.target.value })}
-          className="w-full p-2 mb-4 border rounded"
-          required
-        >
-          <option value="">Select Tournament</option>
-          {tournaments.map((tournament) => (
-            <option key={tournament._id} value={tournament._id}>
-              {tournament.name}
-            </option>
-          ))}
-        </select>
-        <button type="submit" disabled={loading} className="bg-blue-500 text-white px-4 py-2 rounded">
-          {loading ? 'Creating...' : 'Create'}
-        </button>
-      </form>
+    <div className="p-6 bg-gray-900 text-white min-h-screen">
+      <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+        <h2 className="text-xl font-bold text-white mb-4">Create Overlay</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
+            <input
+              type="text"
+              placeholder="Overlay Name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white placeholder-gray-400"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Template</label>
+            <input
+              type="text"
+              placeholder="Template Type"
+              value={formData.template}
+              onChange={(e) => setFormData({ ...formData, template: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white placeholder-gray-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Tournament</label>
+            <select
+              value={formData.tournament}
+              onChange={(e) => setFormData({ ...formData, tournament: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
+              required
+            >
+              <option value="">Select Tournament</option>
+              {tournaments.map((tournament) => (
+                <option key={tournament._id} value={tournament._id}>
+                  {tournament.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Creating...' : 'Create Overlay'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
