@@ -36,13 +36,17 @@ export interface Team {
 }
 
 export interface Player {
-  _id?: string;
+  _id: string;
   name: string;
   role: string;
   jerseyNumber: string;
   image?: string;
+  stats?: {
+    runs: number;
+    wickets: number;
+    // Add more stats as needed
+  };
 }
-
 export interface Bracket {
   _id: string;
   tournament: Tournament;
@@ -68,14 +72,15 @@ export interface Match {
   team2: Team;
   date: string;
   venue?: string;
-  status: string;
+  status: 'scheduled' | 'ongoing' | 'completed' | 'upcoming' | 'active'; // Added 'ongoing'
   score1?: number;
   score2?: number;
   wickets1?: number;
   wickets2?: number;
   overs1?: number;
   overs2?: number;
-  winner?: Team;
+  winner?: string;
+  createdBy: string;
 }
 export interface Notification {
   _id: string;

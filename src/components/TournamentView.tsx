@@ -45,6 +45,28 @@ export default function TournamentView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [formatFilter, setFormatFilter] = useState('');
+   interface ScoreForm {
+    score1: number;
+    score2: number;
+    wickets1: number;
+    wickets2: number;
+    overs1: number;
+    overs2: number;
+    status: string;
+  }
+   const [scoreForm, setScoreForm] = useState<ScoreForm>({
+    score1: 0,
+    score2: 0,
+    wickets1: 0,
+    wickets2: 0,
+    overs1: 0,
+    overs2: 0,
+    status: 'ongoing',
+  });
+  const updateScore = (newScoreForm: ScoreForm) => {
+    setScoreHistory([...scoreHistory, scoreForm]);
+    setScoreForm(newScoreForm);
+  };
 
   useEffect(() => {
     fetchTournaments();
@@ -73,10 +95,7 @@ export default function TournamentView() {
       newSocket.close();
     };
   }, []);
-  const updateScore = (newScoreForm) => {
-  setScoreHistory([...scoreHistory, scoreForm]); // Save current state
-  setScoreForm(newScoreForm);
-};
+
 const undoLastAction = () => {
   if (scoreHistory.length > 0) {
     const lastState = scoreHistory[scoreHistory.length - 1];

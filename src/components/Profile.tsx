@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { User, Camera, Save, Trophy, Users, Eye } from 'lucide-react';
+import { User, Camera, Save, Trophy, Users, Eye } from 'lucide-react'; // Removed unused: Settings
 
 export default function Profile() {
-  const [username, setUsername] = useState('John Doe'); // Replace with dynamic data from auth
-  const [profilePicture, setProfilePicture] = useState('https://via.placeholder.com/150'); // Replace with dynamic data
-  const [email, setEmail] = useState('john@example.com'); // Replace with dynamic data
+  const [username, setUsername] = useState('John Doe');
+  const [profilePicture, setProfilePicture] = useState('https://via.placeholder.com/150');
+  const [email, setEmail] = useState('john@example.com');
   const [bio, setBio] = useState('Cricket enthusiast and tournament organizer.');
   const [isEditing, setIsEditing] = useState(false);
-  const [tournamentsCreated, setTournamentsCreated] = useState(5); // Replace with dynamic data
-  const [matchesManaged, setMatchesManaged] = useState(12); // Replace with dynamic data
-  const [teamsAdded, setTeamsAdded] = useState(8); // Replace with dynamic data
+  const [tournamentsCreated] = useState(5);
+  const [matchesManaged] = useState(12);
+  const [teamsAdded] = useState(8);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
