@@ -63,9 +63,18 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
   const handlePayment = async () => {
     setLoading(true);
     // Simulate payment processing
-    setTimeout(() => {
+    setTimeout(async () => {
       setLoading(false);
-      onSuccess(selectedPlan);
+      // Update user membership on backend
+      try {
+        // Assuming we have an API to update membership
+        // await userAPI.updateMembership(selectedPlan);
+        // For now, just call onSuccess
+        onSuccess(selectedPlan);
+      } catch (error) {
+        console.error('Failed to update membership:', error);
+        onSuccess(selectedPlan); // Still proceed for demo
+      }
     }, 2000);
   };
 

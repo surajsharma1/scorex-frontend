@@ -77,6 +77,7 @@ export const overlayAPI = {
 export const userAPI = {
   getUsers: () => api.get('/users'),
   updateUserRole: (id: string, role: string) => api.put(`/users/${id}`, { role }),
+  updateMembership: (membership: string) => api.put('/users/membership', { membership }),
 };
 export const notificationAPI = {
   getNotifications: () => api.get('/notifications'),

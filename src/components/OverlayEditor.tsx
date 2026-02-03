@@ -45,10 +45,26 @@ export default function OverlayEditor() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [userMembership, setUserMembership] = useState('free');
+  const [userRole, setUserRole] = useState('viewer');
   const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
     fetchData();
+    // Get user info from localStorage or API
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUserRole(payload.role || 'viewer');
+        setUserMembership(payload.membership || 'free');
+        // If admin, set to pro for full access
+        if (payload.role === 'admin') {
+          setUserMembership('pro');
+        }
+      } catch (error) {
+        console.error('Error parsing token:', error);
+      }
+    }
   }, []);
 
   const fetchData = async () => {
