@@ -10,7 +10,7 @@ export default function Sidebar() {
     { path: '/', icon: BarChart3, label: 'Dashboard' },
     { path: '/tournaments', icon: Trophy, label: 'Tournaments' },
     { path: '/teams', icon: Users, label: 'Teams' },
-    { path: '/overlay', icon: Eye, label: 'Overlays' },
+    { path: '/overlays', icon: Eye, label: 'Overlays' },
   ];
 
   return (
