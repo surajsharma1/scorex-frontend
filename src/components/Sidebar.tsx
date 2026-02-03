@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Trophy, Users, Settings, Eye, BarChart3, User } from 'lucide-react'; // Added User icon
+import { Trophy, Users, Settings, Eye, BarChart3, User, Crown } from 'lucide-react'; // Added User and Crown icons
 import { useState } from 'react';
 
 export default function Sidebar() {
@@ -11,6 +11,7 @@ export default function Sidebar() {
     { path: '/tournaments', icon: Trophy, label: 'Tournaments' },
     { path: '/teams', icon: Users, label: 'Teams' },
     { path: '/overlays', icon: Eye, label: 'Overlays' },
+    { path: '/membership', icon: Crown, label: 'Membership' },
   ];
 
   return (

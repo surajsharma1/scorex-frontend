@@ -10,6 +10,7 @@ import OverlayList from './components/OverlayList';
 import OverlayForm from './components/OverlayForm';
 import OverlayEditor from './components/OverlayEditor';
 import Profile from './components/Profile';
+import Membership from './components/Membership';
 import Login from './components/Login';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
       { path: 'overlays/new', element: <OverlayForm /> },
       { path: 'overlays/:id/edit', element: <OverlayEditor /> },
       { path: 'profile', element: <Profile /> },
+      { path: 'membership', element: <Membership /> },
     ],
   },
   {

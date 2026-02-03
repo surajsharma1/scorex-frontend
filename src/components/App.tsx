@@ -6,7 +6,8 @@ import { useTheme } from './ThemeProvider';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { Tournament, Match, Team } from './types';
 import Profile from './Profile';
-import { User } from 'lucide-react';
+import Payment from './Payment';
+import { User, Search, Bell, BarChart3, Crown } from 'lucide-react';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
