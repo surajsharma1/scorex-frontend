@@ -160,7 +160,7 @@ function App() {
               <div className="bg-gray-800 p-6 rounded-lg shadow">
                 <h3 className="text-lg font-semibold text-blue-400">Overlays</h3>
                 <p className="text-white">Create live streaming overlays.</p>
-                <button onClick={() => navigate('/overlay')} className="text-white hover:underline mt-2">Go to Overlays</button>
+                <button onClick={() => navigate('/overlays')} className="text-white hover:underline mt-2">Go to Overlays</button>
               </div>
             </div>
 
