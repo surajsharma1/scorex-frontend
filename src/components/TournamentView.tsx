@@ -548,55 +548,84 @@ const handleCreateMatch = async (e: React.FormEvent) => {
             </div>
           )}
 
-        {selectedMatch && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-gray-800 dark:bg-gray-800 p-6 rounded-lg w-full max-w-md">
-              <h3 className="text-lg font-bold text-white dark:text-white mb-4">Update Score: {selectedMatch?.team1?.name} vs {selectedMatch?.team2?.name}</h3>
-              <form onSubmit={handleUpdateScore}>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 1 Score</label>
-                    <input type="number" value={scoreForm.score1} onChange={(e) => setScoreForm({ ...scoreForm, score1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 1 Wickets</label>
-                    <input type="number" value={scoreForm.wickets1} onChange={(e) => setScoreForm({ ...scoreForm, wickets1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 1 Overs</label>
-                    <input type="number" step="0.1" value={scoreForm.overs1} onChange={(e) => setScoreForm({ ...scoreForm, overs1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 2 Score</label>
-                    <input type="number" value={scoreForm.score2} onChange={(e) => setScoreForm({ ...scoreForm, score2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 2 Wickets</label>
-                    <input type="number" value={scoreForm.wickets2} onChange={(e) => setScoreForm({ ...scoreForm, wickets2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 2 Overs</label>
-                    <input type="number" step="0.1" value={scoreForm.overs2} onChange={(e) => setScoreForm({ ...scoreForm, overs2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Status</label>
-                  <select value={scoreForm.status} onChange={(e) => setScoreForm({ ...scoreForm, status: e.target.value })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white">
-                    <option value="scheduled">Scheduled</option>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="completed">Completed</option>
-                  </select>
-                </div>
-                <div className="flex space-x-4 mt-4">
-                  <button type="submit" disabled={loading} className="bg-green-600 text-white px-4 py-2 rounded">
-                    {loading ? 'Updating...' : 'Update'}
-                  </button>
-                  <button type="button" onClick={() => setSelectedMatch(null)} className="bg-gray-600 text-white px-4 py-2 rounded">Cancel</button>
-                </div>
-              </form>
-            </div>
+      {selectedMatch && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-gray-800 p-6 rounded-lg w-full max-w-lg max-h-screen overflow-y-auto">
+      <h3 className="text-lg font-bold text-white mb-4">Update Score: {selectedMatch.team1?.name} vs {selectedMatch.team2?.name}</h3>
+      <div className="space-y-4">
+        <div className="text-center">
+          <p className="text-white">Team 1 Score: {scoreForm.score1}/{scoreForm.wickets1} ({scoreForm.overs1} overs)</p>
+          <p className="text-white">Team 2 Score: {scoreForm.score2}/{scoreForm.wickets2} ({scoreForm.overs2} overs)</p>
+        </div>
+
+        {/* Team 1 Buttons */}
+        <div>
+          <h4 className="text-white font-semibold mb-2">Team 1 Actions</h4>
+          <div className="grid grid-cols-4 gap-2">
+            <button onClick={() => setScoreForm({ ...scoreForm, score1: scoreForm.score1 + 0 })} className="bg-gray-600 text-white py-2 rounded text-sm">0 Run</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score1: scoreForm.score1 + 1 })} className="bg-green-600 text-white py-2 rounded text-sm">+1 Run</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score1: scoreForm.score1 + 2 })} className="bg-green-600 text-white py-2 rounded text-sm">+2 Runs</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score1: scoreForm.score1 + 3 })} className="bg-green-600 text-white py-2 rounded text-sm">+3 Runs</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score1: scoreForm.score1 + 4 })} className="bg-blue-600 text-white py-2 rounded text-sm">+4</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score1: scoreForm.score1 + 6 })} className="bg-purple-600 text-white py-2 rounded text-sm">+6</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, wickets1: scoreForm.wickets1 + 1 })} className="bg-red-600 text-white py-2 rounded text-sm">Wicket</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score1: scoreForm.score1 + 1, overs1: scoreForm.overs1 + 0.1 })} className="bg-yellow-600 text-white py-2 rounded text-sm">No-ball</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score1: scoreForm.score1 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm">Wide</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score1: scoreForm.score1 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm">Bye</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score1: scoreForm.score1 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm">Leg-bye</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, overs1: scoreForm.overs1 + 0.1 })} className="bg-blue-600 text-white py-2 rounded text-sm">+0.1 Over</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, overs1: scoreForm.overs1 + 1 })} className="bg-blue-600 text-white py-2 rounded text-sm">+1 Over</button>
           </div>
-        )}
+        </div>
+
+        {/* Team 2 Buttons */}
+        <div>
+          <h4 className="text-white font-semibold mb-2">Team 2 Actions</h4>
+          <div className="grid grid-cols-4 gap-2">
+            <button onClick={() => setScoreForm({ ...scoreForm, score2: scoreForm.score2 + 0 })} className="bg-gray-600 text-white py-2 rounded text-sm">0 Run</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score2: scoreForm.score2 + 1 })} className="bg-green-600 text-white py-2 rounded text-sm">+1 Run</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score2: scoreForm.score2 + 2 })} className="bg-green-600 text-white py-2 rounded text-sm">+2 Runs</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score2: scoreForm.score2 + 3 })} className="bg-green-600 text-white py-2 rounded text-sm">+3 Runs</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score2: scoreForm.score2 + 4 })} className="bg-blue-600 text-white py-2 rounded text-sm">+4</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score2: scoreForm.score2 + 6 })} className="bg-purple-600 text-white py-2 rounded text-sm">+6</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, wickets2: scoreForm.wickets2 + 1 })} className="bg-red-600 text-white py-2 rounded text-sm">Wicket</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score2: scoreForm.score2 + 1, overs2: scoreForm.overs2 + 0.1 })} className="bg-yellow-600 text-white py-2 rounded text-sm">No-ball</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score2: scoreForm.score2 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm">Wide</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score2: scoreForm.score2 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm">Bye</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, score2: scoreForm.score2 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm">Leg-bye</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, overs2: scoreForm.overs2 + 0.1 })} className="bg-blue-600 text-white py-2 rounded text-sm">+0.1 Over</button>
+            <button onClick={() => setScoreForm({ ...scoreForm, overs2: scoreForm.overs2 + 1 })} className="bg-blue-600 text-white py-2 rounded text-sm">+1 Over</button>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-300">Match Status</label>
+          <select value={scoreForm.status} onChange={(e) => setScoreForm({ ...scoreForm, status: e.target.value })} className="w-full p-2 border rounded bg-gray-700 text-white">
+            <option value="scheduled">Scheduled</option>
+            <option value="ongoing">Ongoing</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div className="flex space-x-4 mt-4">
+          <button
+            onClick={handleUpdateScore}
+            disabled={loading}
+            className="bg-green-600 text-white px-4 py-2 rounded"
+          >
+            {loading ? 'Updating...' : 'Update Score'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedMatch(null)}
+            className="bg-gray-600 text-white px-4 py-2 rounded"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
       </div>
       {selectedMatch && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
