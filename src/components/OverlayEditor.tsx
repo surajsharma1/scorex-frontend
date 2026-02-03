@@ -128,7 +128,7 @@ export default function OverlayEditor() {
 
   const handleDownload = (overlay: Overlay) => {
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-    navigator.clipboard.writeText(`${backendUrl}/overlay/${overlay.publicId}`);
+    navigator.clipboard.writeText(`${backendUrl}/api/overlays/public/${overlay.publicId}`);
     alert('Overlay URL copied to clipboard!');
   };
 
@@ -376,12 +376,12 @@ export default function OverlayEditor() {
             <div className="mt-2 flex space-x-2">
               <input
                 type="text"
-                value={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/overlay/${selectedOverlay.publicId}`}
+                value={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/overlays/public/${selectedOverlay.publicId}`}
                 readOnly
                 className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-sm text-white"
               />
               <button
-                onClick={() => navigator.clipboard.writeText(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/overlay/${selectedOverlay.publicId}`)}
+                onClick={() => navigator.clipboard.writeText(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/overlays/public/${selectedOverlay.publicId}`)}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors text-sm"
               >
                 Copy
