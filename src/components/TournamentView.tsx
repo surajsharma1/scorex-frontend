@@ -31,15 +31,6 @@ export default function TournamentView() {
     status: 'upcoming',
   });
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  const [scoreForm, setScoreForm] = useState({
-    score1: 0,
-    score2: 0,
-    wickets1: 0,
-    wickets2: 0,
-    overs1: 0,
-    overs2: 0,
-    status: 'ongoing',
-  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
