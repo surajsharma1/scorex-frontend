@@ -652,55 +652,7 @@ const handleCreateMatch = async (e: React.FormEvent) => {
   </div>
 )}
       </div>
-      {selectedMatch && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-gray-800 dark:bg-gray-800 p-6 rounded-lg w-full max-w-md">
-            <h3 className="text-lg font-bold text-white dark:text-white mb-4">Update Score: {selectedMatch?.team1?.name} vs {selectedMatch?.team2?.name}</h3>
-            <form onSubmit={handleUpdateScore}>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 1 Score</label>
-                  <input type="number" value={scoreForm.score1} onChange={(e) => setScoreForm({ ...scoreForm, score1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 1 Wickets</label>
-                  <input type="number" value={scoreForm.wickets1} onChange={(e) => setScoreForm({ ...scoreForm, wickets1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 1 Overs</label>
-                  <input type="number" step="0.1" value={scoreForm.overs1} onChange={(e) => setScoreForm({ ...scoreForm, overs1: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 2 Score</label>
-                  <input type="number" value={scoreForm.score2} onChange={(e) => setScoreForm({ ...scoreForm, score2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 2 Wickets</label>
-                  <input type="number" value={scoreForm.wickets2} onChange={(e) => setScoreForm({ ...scoreForm, wickets2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Team 2 Overs</label>
-                  <input type="number" step="0.1" value={scoreForm.overs2} onChange={(e) => setScoreForm({ ...scoreForm, overs2: Number(e.target.value) })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-300 dark:text-gray-300">Status</label>
-                <select value={scoreForm.status} onChange={(e) => setScoreForm({ ...scoreForm, status: e.target.value })} className="w-full p-2 border rounded bg-gray-700 dark:bg-gray-700 text-white dark:text-white">
-                  <option value="scheduled">Scheduled</option>
-                  <option value="ongoing">Ongoing</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-              <div className="flex space-x-4 mt-4">
-                <button type="submit" disabled={loading} className="bg-green-600 text-white px-4 py-2 rounded">
-                  {loading ? 'Updating...' : 'Update'}
-                </button>
-                <button type="button" onClick={() => setSelectedMatch(null)} className="bg-gray-600 text-white px-4 py-2 rounded">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { useTheme } from './ThemeProvider';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { Tournament, Match, Team } from './types';
 import Profile from './Profile';
+import { User } from 'lucide-react';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -18,6 +19,7 @@ function App() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [error, setError] = useState('');
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   useEffect(() => {
     const checkAuth = () => {
