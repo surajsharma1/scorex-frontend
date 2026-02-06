@@ -35,8 +35,8 @@ export default function TeamManagement() {
         teamAPI.getTeams(),
         tournamentAPI.getTournaments(),
       ]);
-      setTeams(teamsRes.data);
-      setTournaments(tournamentsRes.data);
+      setTeams(Array.isArray(teamsRes.data) ? teamsRes.data : []);
+      setTournaments(Array.isArray(tournamentsRes.data) ? tournamentsRes.data : []);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to fetch data');
     }
