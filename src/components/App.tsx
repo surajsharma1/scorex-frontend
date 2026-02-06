@@ -50,9 +50,9 @@ function App() {
         matchAPI.getMatches(),
         teamAPI.getTeams(),
       ]);
-      const tournamentsData = tournamentsRes.data?.tournaments || tournamentsRes.data;
-      const matchesData = matchesRes.data;
-      const teamsData = teamsRes.data?.teams || teamsRes.data;
+      const tournamentsData = tournamentsRes.data?.tournaments || tournamentsRes.data || [];
+      const matchesData = matchesRes.data || [];
+      const teamsData = teamsRes.data?.teams || teamsRes.data || [];
       setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
       setMatches((Array.isArray(matchesData) ? matchesData : []).filter((match: Match) => match.status === 'scheduled' || match.status === 'active'));
       setTeams(Array.isArray(teamsData) ? teamsData : []);
