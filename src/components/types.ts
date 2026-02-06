@@ -51,6 +51,7 @@ export interface Bracket {
   _id: string;
   tournament: Tournament;
   type: string;
+  numberOfTeams: number;
   rounds: any[];
   createdBy: string;
 }
