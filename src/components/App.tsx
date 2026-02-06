@@ -21,6 +21,7 @@ function App() {
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [error, setError] = useState('');
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
 
   useEffect(() => {
     const checkAuth = () => {
@@ -108,13 +109,21 @@ function App() {
           <>
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Dashboard</h1>
-              <div className="relative">
+              <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  onClick={toggleTheme}
                   className="bg-gray-600 text-white p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                  title="Toggle theme"
                 >
-                  <User className="w-5 h-5" />
+                  {isDark ? '☀️' : '🌙'}
                 </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                    className="bg-gray-600 text-white p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    <User className="w-5 h-5" />
+                  </button>
                 {showProfileDropdown && (
                   <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-50">
                     <button
