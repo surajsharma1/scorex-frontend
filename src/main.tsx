@@ -5,7 +5,6 @@ import App from './components/App';
 import Dashboard from './components/Dashboard';
 import TournamentView from './components/TournamentView';
 import TeamManagement from './components/TeamManagement';
-import BracketView from './components/BracketView';
 import OverlayList from './components/OverlayList';
 import OverlayForm from './components/OverlayForm';
 import OverlayEditor from './components/OverlayEditor';
@@ -50,7 +49,11 @@ const router = createBrowserRouter([
       { path: "overlays/:id/edit", element: <OverlayEditor /> },
       { path: "profile", element: <Profile /> },
       { path: "membership", element: <Membership /> },
-      { path: "payment", element: <Payment /> },
+      { path: "payment", element: <Payment onClose={function (): void {
+        throw new Error('Function not implemented.');
+      } } onSuccess={function (): void {
+        throw new Error('Function not implemented.');
+      } } /> },
     ],
   },
   { path: "/login", element: <Login /> },
