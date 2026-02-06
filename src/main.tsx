@@ -40,6 +40,17 @@ const router = createBrowserRouter([
         <App />
       </ThemeProvider>
     ),
+    children: [
+      { index: true, element: <Dashboard /> },
+      { path: "tournaments", element: <TournamentView /> },
+      { path: "teams", element: <TeamManagement /> },
+      { path: "overlays", element: <OverlayList /> },
+      { path: "overlays/new", element: <OverlayForm /> },
+      { path: "overlays/:id/edit", element: <OverlayEditor /> },
+      { path: "profile", element: <Profile /> },
+      { path: "membership", element: <Membership /> },
+      { path: "payment", element: <Payment onClose={() => {}} onSuccess={() => {}} /> },
+    ],
   },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
