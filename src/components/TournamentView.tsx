@@ -99,7 +99,7 @@ const undoLastAction = () => {
     setLoading(true);
     try {
       const response = await tournamentAPI.getTournaments();
-      setTournaments(response.data);
+      setTournaments(Array.isArray(response.data?.tournaments) ? response.data.tournaments : []);
     } catch (error) {
       setError('Failed to fetch tournaments');
     } finally {

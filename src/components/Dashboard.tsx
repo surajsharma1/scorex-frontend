@@ -37,7 +37,7 @@ const useAdminData = (isAdmin: boolean) => {
     setLoading(true);
     try {
       const response = await userAPI.getUsers();
-      setUsers(response.data);
+      setUsers(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch users');
     } finally {

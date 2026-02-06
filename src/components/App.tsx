@@ -50,9 +50,12 @@ function App() {
         matchAPI.getMatches(),
         teamAPI.getTeams(),
       ]);
-      setTournaments(Array.isArray(tournamentsRes.data?.tournaments) ? tournamentsRes.data.tournaments : []);
-      setMatches((Array.isArray(matchesRes.data) ? matchesRes.data : []).filter((match: Match) => match.status === 'scheduled' || match.status === 'active'));
-      setTeams(Array.isArray(teamsRes.data?.teams) ? teamsRes.data.teams : []);
+      const tournamentsData = tournamentsRes.data?.tournaments || tournamentsRes.data;
+      const matchesData = matchesRes.data;
+      const teamsData = teamsRes.data?.teams || teamsRes.data;
+      setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
+      setMatches((Array.isArray(matchesData) ? matchesData : []).filter((match: Match) => match.status === 'scheduled' || match.status === 'active'));
+      setTeams(Array.isArray(teamsData) ? teamsData : []);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to fetch dashboard data');
     }
