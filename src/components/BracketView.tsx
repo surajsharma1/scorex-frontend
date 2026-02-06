@@ -200,8 +200,10 @@ export default function BracketView() {
     try {
       const teamsForBracket = teams.slice(0, formData.numberOfTeams);
       await bracketAPI.generateBracket(bracketId, { teams: teamsForBracket });
-      fetchData();
-      setSelectedBracket(brackets.find((bracket) => bracket._id === bracketId) || null);
+      const updatedBracketsRes = await bracketAPI.getBrackets();
+      const updatedBrackets = Array.isArray(updatedBracketsRes.data) ? updatedBracketsRes.data : [];
+      setBrackets(updatedBrackets);
+      setSelectedBracket(updatedBrackets.find((bracket) => bracket._id === bracketId) || null);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to generate bracket');
     } finally {
@@ -215,7 +217,7 @@ export default function BracketView() {
   };
 
   const renderBracket = (bracket: Bracket) => {
-    if (!bracket.rounds || !Array.isArray(bracket.rounds) || bracket.rounds.length === 0) {
+    if (!Array.isArray(bracket.rounds) || bracket.rounds.length === 0) {
       return (
         <div className="text-center py-8">
           <p className="text-gray-400 mb-4">No bracket generated yet</p>
@@ -238,12 +240,12 @@ export default function BracketView() {
 
     return (
       <div className="flex justify-between items-center min-w-max space-x-8 overflow-x-auto">
-        {bracket.rounds.map((round, roundIndex) => (
+        {(Array.isArray(bracket.rounds) ? bracket.rounds.filter(round => round && typeof round === 'object' && Array.isArray(round.matches)) : []).map((round, roundIndex) => (
           <div key={roundIndex} className="space-y-16">
             <h3 className="text-center font-bold text-gray-400 mb-4">
               {roundNames[roundIndex] || `Round ${roundIndex + 1}`}
             </h3>
-            {Array.isArray(round.matches) && round.matches.map((match: any, matchIndex: number) => (
+            {(Array.isArray(round.matches) ? round.matches : []).map((match: any, matchIndex: number) => (
               <div key={matchIndex} className="space-y-2">
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-600 px-6 py-3 rounded-r-lg min-w-[200px] hover:shadow-md transition-shadow">
                   <p className="font-semibold text-gray-900">{match.team1?.name || 'TBD'}</p>
@@ -321,7 +323,7 @@ export default function BracketView() {
                   aria-describedby="tournament-label"
                 >
                   <option value="">Select Tournament</option>
-                  {tournaments.map((tournament) => (
+                  {(Array.isArray(tournaments) ? tournaments : []).map((tournament) => (
                     <option key={tournament._id} value={tournament._id}>
                       {tournament.name}
                     </option>
