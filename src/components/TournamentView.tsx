@@ -111,7 +111,7 @@ const undoLastAction = () => {
     if (!selectedTournament) return;
     try {
       const response = await matchAPI.getMatches(selectedTournament._id);
-      setMatches(response.data);
+      setMatches(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       setError('Failed to fetch matches');
     }
@@ -121,7 +121,7 @@ const undoLastAction = () => {
     if (!selectedTournament) return;
     try {
       const response = await teamAPI.getTeams(selectedTournament._id);
-      setTeams(response.data);
+      setTeams(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       setError('Failed to fetch teams');
     }
@@ -513,10 +513,10 @@ const handleCreateMatch = async (e: React.FormEvent) => {
                     )}
 
                     <div className="space-y-4">
-                      {matches.length === 0 ? (
+                      {(Array.isArray(matches) ? matches : []).length === 0 ? (
                         <p className="text-gray-400 dark:text-gray-400 text-center py-8">No matches scheduled yet.</p>
                       ) : (
-                        matches.map((match) => (
+                        (Array.isArray(matches) ? matches : []).map((match) => (
                           <div key={match._id} className="p-4 border border-gray-600 rounded-lg hover:shadow-md transition-shadow bg-gray-700 dark:bg-gray-700">
                             <div className="flex justify-between items-center">
                               <div>

@@ -162,7 +162,7 @@ export default function BracketView() {
   const fetchTeamsForTournament = async (tournamentId: string) => {
     try {
       const teamsRes = await teamAPI.getTeams(tournamentId);
-      setTeams(teamsRes.data);
+      setTeams(Array.isArray(teamsRes.data) ? teamsRes.data : []);
     } catch (error: any) {
       console.error('Error fetching teams:', error);
       setError('Failed to fetch teams for tournament');
