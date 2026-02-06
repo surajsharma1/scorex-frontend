@@ -237,10 +237,11 @@ export default function BracketView() {
     }
 
     const roundNames = ['Round 1', 'Quarter Finals', 'Semi Finals', 'Final'];
+    const rounds = Array.isArray(bracket.rounds) ? bracket.rounds.filter(round => round && typeof round === 'object' && Array.isArray(round.matches)) : [];
 
     return (
       <div className="flex justify-between items-center min-w-max space-x-8 overflow-x-auto">
-        {(Array.isArray(bracket.rounds) ? bracket.rounds.filter(round => round && typeof round === 'object' && Array.isArray(round.matches)) : []).map((round, roundIndex) => (
+        {rounds.map((round, roundIndex) => (
           <div key={roundIndex} className="space-y-16">
             <h3 className="text-center font-bold text-gray-400 mb-4">
               {roundNames[roundIndex] || `Round ${roundIndex + 1}`}
