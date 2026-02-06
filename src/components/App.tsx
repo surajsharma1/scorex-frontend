@@ -14,7 +14,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isDark } = useTheme();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -52,7 +51,7 @@ function App() {
         teamAPI.getTeams(),
       ]);
       setTournaments(tournamentsRes.data);
-      setMatches(matchesRes.data.filter((match: Match) => match.status === 'ongoing'));
+      setMatches(matchesRes.data.filter((match: Match) => match.status === 'scheduled' || match.status === 'active'));
       setTeams(teamsRes.data);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to fetch dashboard data');
@@ -99,14 +98,14 @@ function App() {
   }
 
   const isDashboard = location.pathname === '/';
-  const activeTournaments = tournaments.filter((t) => t.status === 'ongoing');
+  const activeTournaments = tournaments.filter((t) => t.status === 'active');
 
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
       <Sidebar />
-      <main className="flex-1 md:ml-64 p-6 overflow-auto">
+      <div className="flex-1 md:ml-64 p-6 overflow-auto">
         {isDashboard ? (
-          <>
+          <div>
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Dashboard</h1>
               <div className="flex items-center space-x-2">
@@ -124,28 +123,29 @@ function App() {
                   >
                     <User className="w-5 h-5" />
                   </button>
-                {showProfileDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-50">
-                    <button
-                      onClick={() => {
-                        navigate('/profile');
-                        setShowProfileDropdown(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-white hover:bg-gray-700 rounded-t-lg"
-                    >
-                      Profile
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setShowProfileDropdown(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-white hover:bg-gray-700 rounded-b-lg"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
+                  {showProfileDropdown && (
+                    <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-50">
+                      <button
+                        onClick={() => {
+                          navigate('/profile');
+                          setShowProfileDropdown(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-white hover:bg-gray-700 rounded-t-lg"
+                      >
+                        Profile
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setShowProfileDropdown(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-white hover:bg-gray-700 rounded-b-lg"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -158,20 +158,35 @@ function App() {
             {/* Dashboard Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               <div className="bg-gray-800 p-6 rounded-lg shadow">
+                <Crown className="w-8 h-8 text-yellow-400 mb-2" />
                 <h3 className="text-lg font-semibold text-blue-400">Tournaments</h3>
                 <p className="text-white">View and manage tournaments.</p>
                 <button onClick={() => navigate('/tournaments')} className="text-white hover:underline mt-2">Go to Tournaments</button>
               </div>
               <div className="bg-gray-800 p-6 rounded-lg shadow">
+                <BarChart3 className="w-8 h-8 text-green-400 mb-2" />
                 <h3 className="text-lg font-semibold text-blue-400">Teams</h3>
                 <p className="text-white">Manage teams and players.</p>
                 <button onClick={() => navigate('/teams')} className="text-white hover:underline mt-2">Go to Teams</button>
               </div>
               <div className="bg-gray-800 p-6 rounded-lg shadow">
+                <Search className="w-8 h-8 text-purple-400 mb-2" />
                 <h3 className="text-lg font-semibold text-blue-400">Overlays</h3>
                 <p className="text-white">Create live streaming overlays.</p>
                 <button onClick={() => navigate('/overlays')} className="text-white hover:underline mt-2">Go to Overlays</button>
               </div>
+            </div>
+
+            {/* Additional Buttons */}
+            <div className="flex space-x-4 mb-6">
+              <button onClick={() => navigate('/profile')} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                <User className="w-5 h-5 inline mr-2" />
+                Profile
+              </button>
+              <button onClick={() => navigate('/payment')} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                <Bell className="w-5 h-5 inline mr-2" />
+                Payment
+              </button>
             </div>
 
             {/* Active Tournaments Section */}
@@ -205,12 +220,12 @@ function App() {
               </div>
             </section>
 
-            {/* Live Scores Section */}
+            {/* Upcoming Matches Section */}
             <section className="mb-12">
-              <h3 className="text-2xl font-bold mb-6">Live Scores</h3>
+              <h3 className="text-2xl font-bold mb-6">Upcoming Matches</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {matches.length === 0 ? (
-                  <p className="text-gray-400">No live matches.</p>
+                  <p className="text-gray-400">No upcoming matches.</p>
                 ) : (
                   matches.map((match) => (
                     <div key={match._id} className="bg-gray-700 p-6 rounded-lg text-center shadow">
@@ -218,7 +233,7 @@ function App() {
                       <p className="text-lg">
                         {match.score1 || 0}/{match.wickets1 || 0} - {match.score2 || 0}/{match.wickets2 || 0}
                       </p>
-                      <p className="text-sm text-green-400 mt-2">Live</p>
+                      <p className="text-sm text-yellow-400 mt-2">{match.status === 'active' ? 'Active' : 'Scheduled'}</p>
                       {match.status !== 'ongoing' && (
                         <button
                           onClick={() => handleGoLive(match._id)}
@@ -270,11 +285,11 @@ function App() {
                 </div>
               </div>
             )}
-          </>
+          </div>
         ) : (
           <Outlet />
         )}
-      </main>
+      </div>
     </div>
   );
 }
