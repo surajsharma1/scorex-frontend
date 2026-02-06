@@ -33,34 +33,43 @@ export default function Login() {
   };
 
   return (
-    <div className="container flex justify-center items-center min-h-screen">
-      <form onSubmit={handleSubmit} className="card p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login to ScoreX</h2>
-                   {error && <p className="text-red-500 mb-4">{error}</p>}
+    <div className="container flex justify-center items-center min-h-screen" role="main" aria-labelledby="login-heading">
+      <form onSubmit={handleSubmit} className="card p-8 w-full max-w-md" role="form" aria-labelledby="login-heading">
+        <h2 id="login-heading" className="text-2xl font-bold mb-6 text-center">Login to ScoreX</h2>
+                   {error && <p className="text-red-500 mb-4" role="alert" aria-live="polite">{error}</p>}
            <div className="mb-4">
-             <label className="block text-sm font-medium mb-1">Email</label>
+             <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
              <input
+               id="email"
                type="email"
                value={email}
                onChange={(e) => setEmail(e.target.value)}
                className="w-full p-2 border rounded"
                required
+               aria-describedby="email-help"
+               aria-required="true"
              />
+             <span id="email-help" className="sr-only">Enter your email address to log in</span>
            </div>
            <div className="mb-6">
-             <label className="block text-sm font-medium mb-1">Password</label>
+             <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
              <input
+               id="password"
                type="password"
                value={password}
                onChange={(e) => setPassword(e.target.value)}
                className="w-full p-2 border rounded"
                required
+               aria-describedby="password-help"
+               aria-required="true"
              />
+             <span id="password-help" className="sr-only">Enter your password to log in</span>
            </div>
-           <button type="submit" disabled={loading} className="btn btn-primary w-full mb-4">
+           <button type="submit" disabled={loading} className="btn btn-primary w-full mb-4" aria-describedby="login-status">
              {loading ? 'Logging in...' : 'Login'}
            </button>
-           <button type="button" onClick={handleGoogleLogin} className="btn btn-secondary w-full">
+           <span id="login-status" className="sr-only">{loading ? 'Logging in, please wait' : 'Click to log in'}</span>
+           <button type="button" onClick={handleGoogleLogin} className="btn btn-secondary w-full" aria-label="Login using Google account">
              Login with Google
            </button>
          </form>

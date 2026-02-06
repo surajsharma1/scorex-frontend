@@ -1,20 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { userAPI, statsAPI } from '../services/api';
-import { User } from './types';
+import { userAPI, statsAPI, tournamentAPI } from '../services/api';
+import { User, Tournament } from './types';
 import { Bar, Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
-export default function Dashboard() {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
-  const [users, setUsers] = useState<User[]>([]);
+// Custom hook for user authentication
+const useAuth = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [tournamentStats, setTournamentStats] = useState<any>({});
-  const [userStats, setUserStats] = useState<any>({});
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -22,17 +17,23 @@ export default function Dashboard() {
       try {
         const decoded = JSON.parse(atob(token.split('.')[1]));
         setCurrentUser(decoded);
-        if (decoded.role === 'admin') {
-          fetchUsers();
-          fetchStats();
-        }
       } catch (error) {
         console.error('Error decoding token:', error);
       }
     }
   }, []);
 
-  const fetchUsers = async () => {
+  return currentUser;
+};
+
+// Custom hook for admin data
+const useAdminData = (isAdmin: boolean) => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [tournamentStats, setTournamentStats] = useState<any>({});
+  const [userStats, setUserStats] = useState<any>({});
+
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const response = await userAPI.getUsers();
@@ -42,27 +43,82 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
-      const tournamentResponse = await statsAPI.getTournamentStats();
+      const [tournamentResponse, userResponse] = await Promise.all([
+        statsAPI.getTournamentStats(),
+        statsAPI.getUserStats()
+      ]);
       setTournamentStats(tournamentResponse.data);
-      const userResponse = await statsAPI.getUserStats();
       setUserStats(userResponse.data);
     } catch (error) {
       console.error('Failed to fetch stats');
     }
-  };
+  }, []);
 
-  const updateUserRole = async (id: string, role: string) => {
+  const updateUserRole = useCallback(async (id: string, role: string) => {
     try {
       await userAPI.updateUserRole(id, role);
       fetchUsers();
     } catch (error) {
       console.error('Failed to update role');
     }
-  };
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchUsers();
+      fetchStats();
+    }
+  }, [isAdmin, fetchUsers, fetchStats]);
+
+  return { users, loading, tournamentStats, userStats, updateUserRole };
+};
+
+// Custom hook for tournament data
+const useTournamentData = (isAdmin: boolean) => {
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [loadingTournaments, setLoadingTournaments] = useState(false);
+
+  const fetchTournaments = useCallback(async () => {
+    setLoadingTournaments(true);
+    try {
+      const response = await tournamentAPI.getTournaments(1, 50); // Fetch more for admin
+      setTournaments(response.data.tournaments || []);
+    } catch (error) {
+      console.error('Failed to fetch tournaments');
+    } finally {
+      setLoadingTournaments(false);
+    }
+  }, []);
+
+  const deleteTournament = useCallback(async (id: string) => {
+    try {
+      await tournamentAPI.deleteTournament(id);
+      setTournaments(prev => prev.filter(t => t._id !== id));
+    } catch (error) {
+      console.error('Failed to delete tournament');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchTournaments();
+    }
+  }, [isAdmin, fetchTournaments]);
+
+  return { tournaments, loadingTournaments, deleteTournament };
+};
+
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
+  const currentUser = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
+  const { users, loading, tournamentStats, userStats, updateUserRole } = useAdminData(isAdmin);
+  const { tournaments, loadingTournaments, deleteTournament } = useTournamentData(isAdmin);
 
   const tournamentChartData = {
     labels: ['Total', 'Active', 'Completed'],
@@ -94,12 +150,20 @@ export default function Dashboard() {
           Overview
         </button>
         {currentUser?.role === 'admin' && (
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`tab ${activeTab === 'users' ? 'tab-active' : ''}`}
-          >
-            Users
-          </button>
+          <>
+            <button
+              onClick={() => setActiveTab('tournaments')}
+              className={`tab ${activeTab === 'tournaments' ? 'tab-active' : ''}`}
+            >
+              Tournaments
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`tab ${activeTab === 'users' ? 'tab-active' : ''}`}
+            >
+              Users
+            </button>
+          </>
         )}
       </div>
 
@@ -168,6 +232,45 @@ export default function Dashboard() {
                         <option value="organizer">Organizer</option>
                         <option value="admin">Admin</option>
                       </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'tournaments' && currentUser?.role === 'admin' && (
+        <div className="card p-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Tournament Management</h3>
+          {loadingTournaments ? (
+            <p>Loading tournaments...</p>
+          ) : (
+            <table className="w-full table-auto border-collapse border border-gray-300">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border border-gray-300 px-4 py-2">Name</th>
+                  <th className="border border-gray-300 px-4 py-2">Format</th>
+                  <th className="border border-gray-300 px-4 py-2">Status</th>
+                  <th className="border border-gray-300 px-4 py-2">Start Date</th>
+                  <th className="border border-gray-300 px-4 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tournaments.map((tournament) => (
+                  <tr key={tournament._id} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-2">{tournament.name}</td>
+                    <td className="border border-gray-300 px-4 py-2">{tournament.format}</td>
+                    <td className="border border-gray-300 px-4 py-2">{tournament.status}</td>
+                    <td className="border border-gray-300 px-4 py-2">{new Date(tournament.startDate).toLocaleDateString()}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      <button
+                        onClick={() => deleteTournament(tournament._id)}
+                        className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}

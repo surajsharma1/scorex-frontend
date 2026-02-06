@@ -1,0 +1,113 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "export": "Export",
+    "import": "Import"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "tournaments": "Tournaments",
+    "teams": "Teams",
+    "brackets": "Brackets",
+    "overlays": "Overlays",
+    "profile": "Profile",
+    "membership": "Membership",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Tournament Dashboard",
+    "welcome": "Welcome to ScoreX",
+    "subtitle": "Manage your cricket tournaments with ease",
+    "stats": {
+      "tournaments": "Tournaments",
+      "teams": "Teams",
+      "matches": "Matches",
+      "active": "Active"
+    }
+  },
+  "brackets": {
+    "title": "Tournament Brackets",
+    "subtitle": "Create and visualize tournament brackets",
+    "createBracket": "Create Bracket",
+    "bracketConfiguration": "Bracket Configuration",
+    "selectTournament": "Select Tournament",
+    "bracketType": "Bracket Type",
+    "numberOfTeams": "Number of Teams",
+    "singleElimination": "Single Elimination",
+    "doubleElimination": "Double Elimination",
+    "roundRobin": "Round Robin",
+    "groupKnockout": "Group Stage + Knockout",
+    "generateBracket": "Generate Bracket",
+    "noBracketGenerated": "No bracket generated yet",
+    "availableTeams": "Available teams: {{count}} (Need at least {{required}})",
+    "round": "Round {{number}}",
+    "quarterFinals": "Quarter Finals",
+    "semiFinals": "Semi Finals",
+    "final": "Final",
+    "champion": "Champion",
+    "tbd": "TBD",
+    "features": {
+      "title": "Bracket Features",
+      "unlimitedTeams": "✓ Add unlimited teams to create custom bracket sizes",
+      "multipleFormats": "✓ Support for multiple tournament formats",
+      "realTimeUpdates": "✓ Real-time score updates during matches",
+      "automaticAdvancement": "✓ Automatic advancement of winners",
+      "exportOverlay": "✓ Export bracket for overlay generation"
+    }
+  },
+  "teams": {
+    "title": "Team Management",
+    "subtitle": "Manage teams and players",
+    "createTeam": "Create Team",
+    "teamName": "Team Name",
+    "players": "Players",
+    "addPlayer": "Add Player",
+    "removePlayer": "Remove Player"
+  },
+  "tournaments": {
+    "title": "Tournaments",
+    "subtitle": "Create and manage cricket tournaments",
+    "createTournament": "Create Tournament",
+    "tournamentName": "Tournament Name",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "location": "Location",
+    "description": "Description"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network error. Please check your connection.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "notFound": "The requested resource was not found.",
+    "validation": "Please check your input and try again.",
+    "noTeams": "No teams found for this tournament. Please add teams first.",
+    "insufficientTeams": "Not enough teams. Need {{required}} teams, but only {{available}} available."
+  },
+  "accessibility": {
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu",
+    "selectTournament": "Select a tournament",
+    "selectBracketType": "Select bracket type",
+    "selectNumberOfTeams": "Select number of teams",
+    "generateBracketButton": "Generate tournament bracket",
+    "closeBracketView": "Close bracket view",
+    "dragToReorder": "Drag to reorder teams",
+    "dropZone": "Drop zone for team reordering"
+  }
+}

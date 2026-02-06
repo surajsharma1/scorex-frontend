@@ -37,7 +37,7 @@ export const authAPI = {
 };
 
 export const tournamentAPI = {
-  getTournaments: () => api.get('/tournaments'),
+  getTournaments: (page: number = 1, limit: number = 10) => api.get('/tournaments', { params: { page, limit } }),
   getTournament: (id: string) => api.get(`/tournaments/${id}`),
   createTournament: (data: any) => api.post('/tournaments', data),
   updateTournament: (id: string, data: any) => api.put(`/tournaments/${id}`, data),
@@ -53,7 +53,7 @@ export const matchAPI = {
   deleteMatch: (id: string) => api.delete(`/matches/${id}`),
 };
 export const teamAPI = {
-  getTeams: (tournamentId?: string) => api.get('/teams', { params: { tournament: tournamentId } }),
+  getTeams: (tournamentId?: string, page: number = 1, limit: number = 10) => api.get('/teams', { params: { tournament: tournamentId, page, limit } }),
   createTeam: (data: FormData) => api.post('/teams', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
   updateTeam: (id: string, data: FormData) => api.put(`/teams/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
   deleteTeam: (id: string) => api.delete(`/teams/${id}`),
@@ -78,6 +78,10 @@ export const userAPI = {
   getUsers: () => api.get('/users'),
   updateUserRole: (id: string, role: string) => api.put(`/users/${id}`, { role }),
   updateMembership: (membership: string) => api.put('/users/membership', { membership }),
+  getNotificationPreferences: () => api.get('/users/notifications/preferences'),
+  updateNotificationPreferences: (preferences: any) => api.put('/users/notifications/preferences', preferences),
+  getProfile: () => api.get('/users/profile'),
+  updateProfile: (data: { username: string; email: string }) => api.put('/users/profile', data),
 };
 export const notificationAPI = {
   getNotifications: () => api.get('/notifications'),
