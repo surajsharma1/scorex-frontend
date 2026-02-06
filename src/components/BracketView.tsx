@@ -150,8 +150,8 @@ export default function BracketView() {
         bracketAPI.getBrackets(),
         tournamentAPI.getTournaments(),
       ]);
-      setBrackets(bracketsRes.data);
-      setTournaments(tournamentsRes.data);
+      setBrackets(Array.isArray(bracketsRes.data) ? bracketsRes.data : []);
+      setTournaments(Array.isArray(tournamentsRes.data?.tournaments || tournamentsRes.data) ? tournamentsRes.data?.tournaments || tournamentsRes.data : []);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to fetch data');
     } finally {
@@ -215,7 +215,7 @@ export default function BracketView() {
   };
 
   const renderBracket = (bracket: Bracket) => {
-    if (!bracket.rounds || bracket.rounds.length === 0) {
+    if (!bracket.rounds || !Array.isArray(bracket.rounds) || bracket.rounds.length === 0) {
       return (
         <div className="text-center py-8">
           <p className="text-gray-400 mb-4">No bracket generated yet</p>
@@ -243,7 +243,7 @@ export default function BracketView() {
             <h3 className="text-center font-bold text-gray-400 mb-4">
               {roundNames[roundIndex] || `Round ${roundIndex + 1}`}
             </h3>
-            {round.matches.map((match: any, matchIndex: number) => (
+            {Array.isArray(round.matches) && round.matches.map((match: any, matchIndex: number) => (
               <div key={matchIndex} className="space-y-2">
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-600 px-6 py-3 rounded-r-lg min-w-[200px] hover:shadow-md transition-shadow">
                   <p className="font-semibold text-gray-900">{match.team1?.name || 'TBD'}</p>
@@ -397,7 +397,7 @@ export default function BracketView() {
             {initialLoading ? (
               <BracketListSkeleton />
             ) : (
-              brackets.map((bracket) => (
+              Array.isArray(brackets) && brackets.map((bracket) => (
                 <button
                   key={bracket._id}
                   onClick={() => setSelectedBracket(bracket)}
