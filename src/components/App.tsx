@@ -50,9 +50,9 @@ function App() {
         matchAPI.getMatches(),
         teamAPI.getTeams(),
       ]);
-      setTournaments(tournamentsRes.data);
-      setMatches(matchesRes.data.filter((match: Match) => match.status === 'scheduled' || match.status === 'active'));
-      setTeams(teamsRes.data);
+      setTournaments(tournamentsRes.data.tournaments || []);
+      setMatches((Array.isArray(matchesRes.data) ? matchesRes.data : []).filter((match: Match) => match.status === 'scheduled' || match.status === 'active'));
+      setTeams(teamsRes.data.teams || []);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to fetch dashboard data');
     }
