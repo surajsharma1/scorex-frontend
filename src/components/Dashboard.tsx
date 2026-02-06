@@ -51,8 +51,8 @@ const useAdminData = (isAdmin: boolean) => {
         statsAPI.getTournamentStats(),
         statsAPI.getUserStats()
       ]);
-      setTournamentStats(tournamentResponse.data);
-      setUserStats(userResponse.data);
+      setTournamentStats(tournamentResponse.data || {});
+      setUserStats(userResponse.data || {});
     } catch (error) {
       console.error('Failed to fetch stats');
     }
@@ -124,7 +124,7 @@ export default function Dashboard() {
     labels: ['Total', 'Active', 'Completed'],
     datasets: [{
       label: 'Tournaments',
-      data: [tournamentStats.totalTournaments, tournamentStats.activeTournaments, tournamentStats.completedTournaments],
+      data: [tournamentStats.totalTournaments || 0, tournamentStats.activeTournaments || 0, tournamentStats.completedTournaments || 0],
       backgroundColor: ['#3B82F6', '#10B981', '#F59E0B'],
     }],
   };
@@ -132,7 +132,7 @@ export default function Dashboard() {
   const userChartData = {
     labels: ['Total Users', 'Admins', 'Organizers'],
     datasets: [{
-      data: [userStats.totalUsers, userStats.adminUsers, userStats.organizerUsers],
+      data: [userStats.totalUsers || 0, userStats.adminUsers || 0, userStats.organizerUsers || 0],
       backgroundColor: ['#3B82F6', '#EF4444', '#10B981'],
     }],
   };
