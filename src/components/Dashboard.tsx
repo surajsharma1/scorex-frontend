@@ -86,7 +86,7 @@ const useTournamentData = (isAdmin: boolean) => {
     setLoadingTournaments(true);
     try {
       const response = await tournamentAPI.getTournaments(1, 50); // Fetch more for admin
-      setTournaments(response.data.tournaments || []);
+      setTournaments(response.data?.tournaments || []);
     } catch (error) {
       console.error('Failed to fetch tournaments');
     } finally {

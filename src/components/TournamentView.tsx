@@ -75,11 +75,12 @@ export default function TournamentView() {
     setSocket(newSocket);
 
     newSocket.on('scoreUpdate', (data: { matchId: string; match: Match }) => {
-      setMatches((prevMatches) =>
-        prevMatches.map((match) =>
+      setMatches((prevMatches) => {
+        if (!Array.isArray(prevMatches)) return [];
+        return prevMatches.map((match) =>
           match._id === data.matchId ? data.match : match
-        )
-      );
+        );
+      });
     });
 
     return () => {
