@@ -471,7 +471,7 @@ const handleCreateMatch = async (e: React.FormEvent) => {
                               required
                             >
                               <option value="">Select Team 1</option>
-                              {teams.map((team) => (
+                              {Array.isArray(teams) && teams.map((team) => (
                                 <option key={team._id} value={team._id}>
                                   {team.name}
                                 </option>
@@ -487,7 +487,7 @@ const handleCreateMatch = async (e: React.FormEvent) => {
                               required
                             >
                               <option value="">Select Team 2</option>
-                              {teams.map((team) => (
+                              {Array.isArray(teams) && teams.map((team) => (
                                 <option key={team._id} value={team._id}>
                                   {team.name}
                                 </option>
