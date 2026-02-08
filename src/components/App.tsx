@@ -176,7 +176,7 @@ function App() {
                 <Search className="w-8 h-8 text-purple-400 mb-2" />
                 <h3 className="text-lg font-semibold text-blue-400">Overlays</h3>
                 <p className="text-white">Create live streaming overlays.</p>
-                <button onClick={() => navigate('/overlays')} className="text-white hover:underline mt-2">Go to Overlays</button>
+                <button onClick={() => navigate('/overlays')} className="text-white hover:underline mt-2">Go to Overlay Editor</button>
               </div>
             </div>
 
