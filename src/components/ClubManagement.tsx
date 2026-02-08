@@ -23,10 +23,11 @@ const ClubManagement: React.FC = () => {
   const loadClubs = async () => {
     try {
       const response = await clubAPI.getClubs();
-      setClubs(response.data);
+      const clubsArray = Array.isArray(response.data) ? response.data : (Array.isArray(response.data?.clubs) ? response.data.clubs : []);
+      setClubs(clubsArray);
       // Filter clubs where user is a member or creator
       // Note: This would need actual user ID from auth context
-      setMyClubs(response.data.filter((club: Club) => club.members.includes('currentUserId') || club.createdBy === 'currentUserId'));
+      setMyClubs(clubsArray.filter((club: Club) => club.members.includes('currentUserId') || club.createdBy === 'currentUserId'));
     } catch (err) {
       setError('Failed to load clubs');
     } finally {
@@ -71,7 +72,8 @@ const ClubManagement: React.FC = () => {
     }
     try {
       const response = await userAPI.searchUsers(query);
-      setSearchResults(response.data);
+      const usersArray = Array.isArray(response.data) ? response.data : (Array.isArray(response.data?.users) ? response.data.users : []);
+      setSearchResults(usersArray);
     } catch (err) {
       console.error('Search failed');
     }

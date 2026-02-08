@@ -23,7 +23,8 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
   const loadFriends = async () => {
     try {
       const response = await friendAPI.getFriends();
-      setFriends(response.data.friends);
+      const friendsArray = Array.isArray(response.data.friends) ? response.data.friends : [];
+      setFriends(friendsArray);
     } catch (err) {
       setError('Failed to load friends');
     }
