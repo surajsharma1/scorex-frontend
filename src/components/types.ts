@@ -3,6 +3,9 @@ export interface User {
   username: string;
   email: string;
   role: 'admin' | 'organizer';
+  friends?: string[];
+  profilePicture?: string;
+  bio?: string;
 }
 
 export interface Tournament {
@@ -111,4 +114,23 @@ export interface PaginationMeta {
   totalPages: number;
   hasNext: boolean;
   hasPrev: boolean;
+}
+
+export interface Friend {
+  _id: string;
+  from: User;
+  to: User;
+  status: 'pending' | 'accepted' | 'blocked';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Club {
+  _id: string;
+  name: string;
+  description?: string;
+  members: string[];
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
 }

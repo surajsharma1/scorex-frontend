@@ -1,275 +1,288 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Club, User } from './types';
-import api from '../services/api';
+import { clubAPI, userAPI } from '../services/api';
+import { Users, Plus, Settings, UserMinus, UserPlus, Loader } from 'lucide-react';
 
 const ClubManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [myClubs, setMyClubs] = useState<Club[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newClub, setNewClub] = useState({ name: '', description: '' });
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<User[]>([]);
 
   useEffect(() => {
     loadClubs();
-    loadMyClubs();
   }, []);
 
   const loadClubs = async () => {
     try {
-      const response = await api.get('/clubs');
-      setClubs(response.data.clubs);
-    } catch (error) {
-      console.error('Error loading clubs:', error);
-    }
-  };
-
-  const loadMyClubs = async () => {
-    try {
-      // This would need a backend endpoint to get user's clubs
-      // For now, we'll filter from all clubs
-      const response = await api.get('/clubs');
-      // In a real implementation, you'd have an endpoint like /api/clubs/my
-      setMyClubs(response.data.clubs.filter((club: Club) => club.members.includes('currentUserId')));
-    } catch (error) {
-      console.error('Error loading my clubs:', error);
-    }
-  };
-
-  const createClub = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await api.post('/clubs', newClub);
-      setNewClub({ name: '', description: '' });
-      setShowCreateForm(false);
-      loadClubs();
-      loadMyClubs();
-    } catch (error) {
-      console.error('Error creating club:', error);
+      const response = await clubAPI.getClubs();
+      setClubs(response.data);
+      // Filter clubs where user is a member or creator
+      // Note: This would need actual user ID from auth context
+      setMyClubs(response.data.filter((club: Club) => club.members.includes('currentUserId') || club.createdBy === 'currentUserId'));
+    } catch (err) {
+      setError('Failed to load clubs');
     } finally {
       setLoading(false);
     }
   };
 
-  const joinClub = async (clubId: string) => {
+  const handleCreateClub = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      await api.post(`/clubs/${clubId}/join`);
+      await clubAPI.createClub(newClub);
+      setNewClub({ name: '', description: '' });
+      setShowCreateForm(false);
       loadClubs();
-      loadMyClubs();
-    } catch (error) {
-      console.error('Error joining club:', error);
+    } catch (err) {
+      setError('Failed to create club');
     }
   };
 
-  const leaveClub = async (clubId: string) => {
+  const handleJoinClub = async (clubId: string) => {
     try {
-      await api.post(`/clubs/${clubId}/leave`);
+      await clubAPI.joinClub(clubId);
       loadClubs();
-      loadMyClubs();
-    } catch (error) {
-      console.error('Error leaving club:', error);
+    } catch (err) {
+      setError('Failed to join club');
     }
   };
 
-  const updateClub = async (clubId: string, updates: Partial<Club>) => {
+  const handleLeaveClub = async (clubId: string) => {
     try {
-      await api.put(`/clubs/${clubId}`, updates);
+      await clubAPI.leaveClub(clubId);
       loadClubs();
-      loadMyClubs();
-      setSelectedClub(null);
-    } catch (error) {
-      console.error('Error updating club:', error);
+    } catch (err) {
+      setError('Failed to leave club');
     }
   };
 
-  const deleteClub = async (clubId: string) => {
-    if (!confirm('Are you sure you want to delete this club?')) return;
+  const handleSearchUsers = async (query: string) => {
+    if (query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
     try {
-      await api.delete(`/clubs/${clubId}`);
-      loadClubs();
-      loadMyClubs();
-    } catch (error) {
-      console.error('Error deleting club:', error);
+      const response = await userAPI.searchUsers(query);
+      setSearchResults(response.data);
+    } catch (err) {
+      console.error('Search failed');
     }
   };
+
+  const handleAddMember = async (userId: string) => {
+    if (!selectedClub) return;
+    // This would need a backend endpoint to add members
+    // For now, just close the modal
+    setSelectedClub(null);
+    setSearchResults([]);
+    setSearchQuery('');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <Loader className="animate-spin h-8 w-8 text-blue-600" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Clubs</h1>
+        <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+          <Users className="h-8 w-8 mr-3" />
+          {t('clubs.title', 'Club Management')}
+        </h1>
         <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          onClick={() => setShowCreateForm(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
         >
-          {showCreateForm ? 'Cancel' : 'Create Club'}
+          <Plus className="h-4 w-4 mr-2" />
+          {t('clubs.create', 'Create Club')}
         </button>
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700">{error}</p>
+        </div>
+      )}
+
       {/* Create Club Form */}
       {showCreateForm && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Create New Club</h2>
-          <form onSubmit={createClub} className="space-y-4">
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h2 className="text-lg font-semibold mb-4">{t('clubs.createNew', 'Create New Club')}</h2>
+          <form onSubmit={handleCreateClub} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Club Name
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('clubs.name', 'Club Name')}
               </label>
               <input
                 type="text"
                 value={newClub.name}
                 onChange={(e) => setNewClub({ ...newClub, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Description (Optional)
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('clubs.description', 'Description')}
               </label>
               <textarea
                 value={newClub.description}
                 onChange={(e) => setNewClub({ ...newClub, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 rows={3}
               />
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 transition-colors"
-            >
-              {loading ? 'Creating...' : 'Create Club'}
-            </button>
+            <div className="flex space-x-3">
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                {t('common.create', 'Create')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCreateForm(false)}
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
+              >
+                {t('common.cancel', 'Cancel')}
+              </button>
+            </div>
           </form>
         </div>
       )}
 
       {/* My Clubs */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">My Clubs</h2>
-        {myClubs.length === 0 ? (
-          <p className="text-gray-600 dark:text-gray-400">You haven't joined any clubs yet.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {myClubs.map((club) => (
-              <div key={club._id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{club.name}</h3>
-                  <div className="flex space-x-2">
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {t('clubs.myClubs', 'My Clubs')} ({myClubs.length})
+          </h2>
+        </div>
+        <div className="p-4">
+          {myClubs.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">
+              {t('clubs.noClubs', 'You are not a member of any clubs yet')}
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {myClubs.map((club) => (
+                <div key={club._id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-gray-900">{club.name}</h3>
                     <button
                       onClick={() => setSelectedClub(club)}
-                      className="text-blue-500 hover:text-blue-700 text-sm"
+                      className="text-gray-400 hover:text-gray-600"
                     >
-                      Edit
+                      <Settings className="h-4 w-4" />
                     </button>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{club.description}</p>
+                  <div className="flex justify-between items-center text-sm text-gray-500">
+                    <span>{club.members.length} {t('clubs.members', 'members')}</span>
                     <button
-                      onClick={() => leaveClub(club._id)}
-                      className="text-red-500 hover:text-red-700 text-sm"
+                      onClick={() => handleLeaveClub(club._id)}
+                      className="text-red-600 hover:text-red-800 flex items-center"
                     >
-                      Leave
+                      <UserMinus className="h-4 w-4 mr-1" />
+                      {t('clubs.leave', 'Leave')}
                     </button>
                   </div>
                 </div>
-                {club.description && (
-                  <p className="text-gray-600 dark:text-gray-400 mb-2">{club.description}</p>
-                )}
-                <p className="text-sm text-gray-500 dark:text-gray-500">
-                  {club.members.length} member{club.members.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* All Clubs */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Discover Clubs</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {clubs.map((club) => (
-            <div key={club._id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{club.name}</h3>
-              {club.description && (
-                <p className="text-gray-600 dark:text-gray-400 mb-2">{club.description}</p>
-              )}
-              <p className="text-sm text-gray-500 dark:text-gray-500 mb-3">
-                {club.members.length} member{club.members.length !== 1 ? 's' : ''}
-              </p>
-              <button
-                onClick={() => joinClub(club._id)}
-                className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Join Club
-              </button>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       </div>
 
-      {/* Edit Club Modal */}
-      {selectedClub && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Edit Club</h3>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.target as HTMLFormElement);
-                updateClub(selectedClub._id, {
-                  name: formData.get('name') as string,
-                  description: formData.get('description') as string,
-                });
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Club Name
-                </label>
-                <input
-                  name="name"
-                  defaultValue={selectedClub.name}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Description
-                </label>
-                <textarea
-                  name="description"
-                  defaultValue={selectedClub.description}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  rows={3}
-                />
-              </div>
-              <div className="flex justify-between">
-                <button
-                  type="button"
-                  onClick={() => setSelectedClub(null)}
-                  className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-                >
-                  Cancel
-                </button>
-                <div className="flex space-x-2">
+      {/* All Clubs */}
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {t('clubs.allClubs', 'All Clubs')} ({clubs.length})
+          </h2>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {clubs.map((club) => (
+              <div key={club._id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                <h3 className="font-semibold text-gray-900 mb-2">{club.name}</h3>
+                <p className="text-sm text-gray-600 mb-3">{club.description}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500">
+                    {club.members.length} {t('clubs.members', 'members')}
+                  </span>
                   <button
-                    type="button"
-                    onClick={() => deleteClub(selectedClub._id)}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                    onClick={() => handleJoinClub(club._id)}
+                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center"
                   >
-                    Delete Club
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                  >
-                    Update
+                    <UserPlus className="h-3 w-3 mr-1" />
+                    {t('clubs.join', 'Join')}
                   </button>
                 </div>
               </div>
-            </form>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Add Member Modal */}
+      {selectedClub && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">
+              {t('clubs.addMembers', 'Add Members to')} {selectedClub.name}
+            </h3>
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder={t('clubs.searchUsers', 'Search users...')}
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  handleSearchUsers(e.target.value);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              {searchResults.length > 0 && (
+                <div className="max-h-40 overflow-y-auto border rounded-lg">
+                  {searchResults.map((user) => (
+                    <div
+                      key={user._id}
+                      className="p-2 hover:bg-gray-50 cursor-pointer flex justify-between items-center"
+                      onClick={() => handleAddMember(user._id)}
+                    >
+                      <span>{user.username}</span>
+                      <UserPlus className="h-4 w-4 text-blue-600" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => {
+                  setSelectedClub(null);
+                  setSearchResults([]);
+                  setSearchQuery('');
+                }}
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
+              >
+                {t('common.close', 'Close')}
+              </button>
+            </div>
           </div>
         </div>
       )}

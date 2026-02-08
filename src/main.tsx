@@ -18,6 +18,7 @@ import { ThemeProvider } from './components/ThemeProvider';
 import './index.css';
 import './i18n';
 import ClubManagement from './components/ClubManagement';
+import FriendList from './components/FriendList';
 
 // Register service worker for PWA functionality
 if ('serviceWorker' in navigator) {
