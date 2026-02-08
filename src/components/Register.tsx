@@ -41,57 +41,108 @@ export default function Register() {
   };
 
   return (
-    <div className="container flex justify-center items-center min-h-screen">
-      <form onSubmit={handleSubmit} className="card p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Register for ScoreX</h2>
-        {error && <div className="alert alert-error mb-4">{error}</div>}
-        <div className="form-group">
-          <label className="form-label">Username</label>
-          <input
-            type="text"
-            className="form-input"
-            value={formData.username}
-            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-            required
-          />
+    <div className="min-h-screen flex items-center justify-center p-4 animate-fade-in">
+      <div className="card p-8 w-full max-w-md animate-slide-in">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gradient mb-2">Join ScoreX</h2>
+          <p className="text-neutral-400">Create your tournament management account</p>
         </div>
-        <div className="form-group">
-          <label className="form-label">Email</label>
-          <input
-            type="email"
-            className="form-input"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Password</label>
-          <input
-            type="password"
-            className="form-input"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Confirm Password</label>
-          <input
-            type="password"
-            className="form-input"
-            value={formData.confirmPassword}
-            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-            required
-          />
-        </div>
-        <button type="submit" className="btn btn-primary w-full" disabled={loading}>
-          {loading ? 'Registering...' : 'Register'}
-        </button>
-        <p className="text-center mt-4">
-          Already have an account? <button onClick={() => navigate('/login')} className="text-blue-600">Login</button>
-        </p>
-      </form>
+
+        {error && (
+          <div className="alert alert-error mb-6">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium text-neutral-300 mb-2">
+              Username
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              className="w-full px-4 py-3 bg-neutral-800/50 border border-neutral-600/50 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
+              placeholder="Choose a username"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-neutral-300 mb-2">
+              Email Address
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="w-full px-4 py-3 bg-neutral-800/50 border border-neutral-600/50 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-neutral-300 mb-2">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              className="w-full px-4 py-3 bg-neutral-800/50 border border-neutral-600/50 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
+              placeholder="Create a password"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-300 mb-2">
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              className="w-full px-4 py-3 bg-neutral-800/50 border border-neutral-600/50 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
+              placeholder="Confirm your password"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Creating Account...
+              </div>
+            ) : (
+              'Create Account'
+            )}
+          </button>
+
+          <div className="text-center">
+            <p className="text-neutral-400 text-sm">
+              Already have an account?{' '}
+              <button
+                onClick={() => navigate('/login')}
+                className="text-primary-400 hover:text-primary-300 transition-colors font-medium"
+              >
+                Sign in here
+              </button>
+            </p>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
