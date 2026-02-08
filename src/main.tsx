@@ -14,6 +14,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import Frontpage from './components/Frontpage';
 import { ThemeProvider } from './components/ThemeProvider';
 import './index.css';
 import './i18n';
@@ -36,6 +37,14 @@ if ('serviceWorker' in navigator) {
 const router = createBrowserRouter([
   {
     path: "/",
+    element: (
+      <ThemeProvider>
+        <Frontpage />
+      </ThemeProvider>
+    ),
+  },
+  {
+    path: "/app",
     element: (
       <ThemeProvider>
         <App />

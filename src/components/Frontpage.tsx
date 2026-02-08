@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { tournamentAPI } from '../services/api';
 import { Tournament } from './types';
@@ -14,10 +14,18 @@ const Frontpage = () => {
   const [loading, setLoading] = useState(false);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loadingTournaments, setLoadingTournaments] = useState(false);
+  const navigate = useNavigate();
 
   const handleGoogleLogin = () => {
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/app');
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const fetchTournaments = async () => {
@@ -80,6 +88,12 @@ const Frontpage = () => {
             Join thousands of users who trust ScoreX for seamless cricket management and
             stunning live overlays.
           </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition-colors shadow-md"
+          >
+            Get Started
+          </button>
         </div>
       </section>
 
