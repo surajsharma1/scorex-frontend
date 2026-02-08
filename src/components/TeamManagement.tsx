@@ -137,11 +137,11 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
   };
 
   return (
-    <div className="space-y-8 bg-gray-900 text-white min-h-screen p-6">
+    <div className="space-y-8 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen p-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-bold text-blue-400">Teams & Players</h1>
-          <p className="text-gray-300 mt-2">
+          <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400">Teams & Players</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">
             Manage teams and add players with images
           </p>
         </div>
