@@ -533,7 +533,7 @@ button:hover {
 }
 
 .nav-item {
-  @apply flex items-center gap-4 px-4 py-4 text-gray-700 dark:text-neutral-300 rounded-xl transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gradient-to-r hover:from-primary-500/20 hover:to-accent-500/20 hover:text-gray-900 dark:hover:text-white hover:shadow-lg hover:scale-105;
+  @apply flex items-center gap-4 px-4 py-4 text-gray-700 dark:text-neutral-300 rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-primary-500/20 hover:to-accent-500/20 hover:text-primary-700 dark:hover:bg-gradient-to-r dark:hover:from-primary-600/40 dark:hover:to-accent-600/40 dark:hover:text-white hover:shadow-lg hover:scale-105;
 }
 
 .sidebar-footer {
