@@ -170,7 +170,7 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <p className="text-white text-xs opacity-80">TEAM 1</p>
-                <p className="text-white text-2xl font-bold">Mumbai Indians</p>
+                <p className="text-white text-2xl font-bold">Team 1</p>
                 <p className="text-white text-xl">185/4</p>
                 <p className="text-white text-xs opacity-80">20.0 Overs</p>
               </div>
@@ -184,7 +184,7 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
               </div>
               <div className="text-right">
                 <p className="text-white text-xs opacity-80">TEAM 2</p>
-                <p className="text-white text-2xl font-bold">Chennai Super Kings</p>
+                <p className="text-white text-2xl font-bold">Team 2</p>
                 <p className="text-white text-xl">142/7</p>
                 <p className="text-white text-xs opacity-80">16.2 Overs</p>
               </div>
