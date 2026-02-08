@@ -51,37 +51,37 @@ export default function OverlayForm() {
   };
 
   return (
-    <div className="p-6 bg-gray-900 text-white min-h-screen">
-      <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-        <h2 className="text-xl font-bold text-white mb-4">Create Overlay</h2>
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-300 dark:border-gray-700 p-6">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Create Overlay</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
             <input
               type="text"
               placeholder="Overlay Name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white placeholder-gray-400"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Template</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Template</label>
             <input
               type="text"
               placeholder="Template Type"
               value={formData.template}
               onChange={(e) => setFormData({ ...formData, template: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white placeholder-gray-400"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Tournament</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tournament</label>
             <select
               value={formData.tournament}
               onChange={(e) => setFormData({ ...formData, tournament: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               required
             >
               <option value="">Select Tournament</option>
