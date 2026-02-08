@@ -9,8 +9,6 @@ export default function Sidebar() {
   const menuItems = [
     { path: '/', icon: BarChart3, label: 'Dashboard' },
     { path: '/tournaments', icon: Trophy, label: 'Tournaments' },
-    { path: '/teams', icon: Users, label: 'Teams' },
-    { path: '/overlays', icon: Eye, label: 'Overlays' },
     { path: '/membership', icon: Crown, label: 'Membership' },
   ];
 

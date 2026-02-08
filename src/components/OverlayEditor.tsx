@@ -238,24 +238,7 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
         </div>
       )}
 
-      <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-        <h2 className="text-xl font-bold text-white mb-4">Select Tournament</h2>
-        <select
-          value={selectedTournament?._id || ''}
-          onChange={(e) => {
-            const tournament = tournaments.find((t) => t._id === e.target.value);
-            setSelectedTournament(tournament || null);
-          }}
-          className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
-        >
-          <option value="">Choose a tournament</option>
-          {tournaments.map((tournament) => (
-            <option key={tournament._id} value={tournament._id}>
-              {tournament.name}
-            </option>
-          ))}
-        </select>
-      </div>
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {PRE_DESIGNED_OVERLAYS.map((overlayTemplate) => (
