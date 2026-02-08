@@ -20,9 +20,10 @@ export default function OverlayList() {
     const fetchOverlays = async () => {
       try {
         const response = await overlayAPI.getOverlays();
-        setOverlays(response.data);
+        setOverlays(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.error('Failed to fetch overlays');
+        setOverlays([]);
       } finally {
         setLoading(false);
       }
@@ -53,7 +54,7 @@ export default function OverlayList() {
       await overlayAPI.createOverlay(overlayData);
       // Refresh the list
       const response = await overlayAPI.getOverlays();
-      setOverlays(response.data);
+      setOverlays(Array.isArray(response.data) ? response.data : []);
       setSelectedType('');
     } catch (error) {
       alert('Failed to create overlay');
