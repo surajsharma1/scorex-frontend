@@ -353,7 +353,7 @@ const Frontpage = () => {
       {/* Login/Register Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-gray-800 p-8 rounded-lg w-full max-w-md shadow-lg">
+          <div className="bg-gray-800 p-8 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-lg">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-2xl font-bold text-white">
                 {isLogin ? 'Login' : 'Register'}
@@ -365,55 +365,83 @@ const Frontpage = () => {
                 ×
               </button>
             </div>
-            {error && <p className="text-red-500 mb-4">{error}</p>}
-            <form onSubmit={handleEmailSubmit} className="space-y-4">
-              {!isLogin && (
-                <input
-                  type="text"
-                  placeholder="Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              )}
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg text-lg font-semibold transition-colors disabled:opacity-50"
-              >
-                {loading ? 'Processing...' : (isLogin ? 'Login' : 'Register')}
-              </button>
-            </form>
-            <div className="mt-6 text-center">
-              <button
-                onClick={handleGoogleLogin}
-                className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg text-lg font-semibold transition-colors mb-4"
-              >
-                Google
-              </button>
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-blue-400 hover:underline transition-colors"
-              >
-                {isLogin ? 'Need to register?' : 'Already have an account?'}
-              </button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Login/Register Form */}
+              <div>
+                {error && <p className="text-red-500 mb-4">{error}</p>}
+                <form onSubmit={handleEmailSubmit} className="space-y-4">
+                  {!isLogin && (
+                    <input
+                      type="text"
+                      placeholder="Username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="w-full p-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  )}
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full p-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full p-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg text-lg font-semibold transition-colors disabled:opacity-50"
+                  >
+                    {loading ? 'Processing...' : (isLogin ? 'Login' : 'Register')}
+                  </button>
+                </form>
+                <div className="mt-6 text-center">
+                  <button
+                    onClick={handleGoogleLogin}
+                    className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg text-lg font-semibold transition-colors mb-4"
+                  >
+                    Google
+                  </button>
+                  <button
+                    onClick={() => setIsLogin(!isLogin)}
+                    className="text-blue-400 hover:underline transition-colors"
+                  >
+                    {isLogin ? 'Need to register?' : 'Already have an account?'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Live Tournaments Section */}
+              <div>
+                <h4 className="text-xl font-bold text-white mb-4">Live Tournaments</h4>
+                {loadingTournaments ? (
+                  <div className="text-center text-gray-400">Loading tournaments...</div>
+                ) : tournaments.length > 0 ? (
+                  <div className="space-y-4">
+                    {tournaments.map((tournament) => (
+                      <div key={tournament._id} className="bg-gray-700 p-4 rounded-lg">
+                        <h5 className="text-lg font-semibold text-white">{tournament.name}</h5>
+                        <p className="text-gray-300 text-sm">{tournament.description || 'No description available'}</p>
+                        <div className="mt-2 text-sm text-gray-400">
+                          <span>Status: {tournament.status || 'Active'}</span>
+                          <span className="ml-4">Teams: {tournament.teams?.length || 0}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-400">No live tournaments available</div>
+                )}
+              </div>
             </div>
           </div>
         </div>
