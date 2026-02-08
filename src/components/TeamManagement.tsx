@@ -179,15 +179,15 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
       )}
 
       {showCreateForm && (
-        <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-          <h2 className="text-xl font-bold text-white mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-300 dark:border-gray-700 p-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
             {editingTeam ? 'Edit Team' : 'Create New Team'}
           </h2>
 
           <form onSubmit={handleCreateTeam}>
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Team Name
                 </label>
                 <input
@@ -195,19 +195,19 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g., Mumbai Indians"
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Tournament
                 </label>
                 <select
                   value={formData.tournament}
                   onChange={(e) => setFormData({ ...formData, tournament: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                 >
                   <option value="">Select Tournament</option>
@@ -223,10 +223,10 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Team Logo
                 </label>
-                <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-green-500 transition-colors cursor-pointer">
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-green-500 transition-colors cursor-pointer">
                   <input
                     type="file"
                     accept="image/*"
@@ -235,11 +235,11 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
                     id="logo-upload"
                   />
                   <label htmlFor="logo-upload" className="cursor-pointer">
-                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-400">
+                    <Upload className="w-8 h-8 text-gray-600 dark:text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {logoFile ? logoFile.name : 'Click to upload logo'}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                       PNG, JPG up to 5MB
                     </p>
                   </label>
@@ -247,7 +247,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Team Color
                 </label>
                 <div className="flex space-x-2">
@@ -255,153 +255,13 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
                     type="color"
                     value={formData.color}
                     onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="w-16 h-12 rounded-lg border border-gray-600 cursor-pointer"
+                    className="w-16 h-12 rounded-lg border border-gray-300 dark:border-gray-600 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={formData.color}
                     onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="flex-1 px-4 py-3 border border-gray-600 rounded-lg bg-gray-700 text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="flex space-x-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
-                >
-                  {loading ? 'Saving...' : (editingTeam ? 'Update Team' : 'Create Team')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreateForm(false);
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400">Teams & Players</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">
-            Manage teams and add players with images
-          </p>
-        </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2 shadow-md"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Add New Team</span>
-        </button>
-      </div>
-
-      {!selectedTournament && (
-        <div className="card p-6">
-          <h2 className="text-xl font-bold text-gradient mb-4">Filter by Tournament</h2>
-          <select
-            value={selectedTournamentId}
-            onChange={(e) => setSelectedTournamentId(e.target.value)}
-            className="w-full px-4 py-3 bg-white dark:bg-neutral-800/50 border border-gray-300 dark:border-neutral-600/50 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
-          >
-            <option value="">All Tournaments</option>
-            {tournaments.map((tournament) => (
-              <option key={tournament._id} value={tournament._id}>
-                {tournament.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-300 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
-
-      {showCreateForm && (
-        <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-          <h2 className="text-xl font-bold text-white mb-6">
-            {editingTeam ? 'Edit Team' : 'Create New Team'}
-          </h2>
-
-          <form onSubmit={handleCreateTeam}>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Team Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Mumbai Indians"
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Tournament
-                </label>
-                <select
-                  value={formData.tournament}
-                  onChange={(e) => setFormData({ ...formData, tournament: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
-                  required
-                >
-                  <option value="">Select Tournament</option>
-                  {tournaments.map((tournament) => (
-                    <option key={tournament._id} value={tournament._id}>
-                      {tournament.name}
-                    </option>
-                  ))}
-                </select>
-                {tournaments.length === 0 && (
-                  <p className="text-red-400 text-sm mt-1">No tournaments available. Please create a tournament first.</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Team Logo
-                </label>
-                <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-green-500 transition-colors cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
-                    className="hidden"
-                    id="logo-upload"
-                  />
-                  <label htmlFor="logo-upload" className="cursor-pointer">
-                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-400">
-                      {logoFile ? logoFile.name : 'Click to upload logo'}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      PNG, JPG up to 5MB
-                    </p>
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-2">
-                  Team Color
-                </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="color"
-                    value={formData.color}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="w-16 h-12 rounded-lg border border-gray-600 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={formData.color}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="flex-1 px-4 py-3 border border-gray-600 rounded-lg bg-gray-700 text-white"
+                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -429,6 +289,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
             </div>
           </form>
         </div>
+
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
