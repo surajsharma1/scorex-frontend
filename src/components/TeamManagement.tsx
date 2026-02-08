@@ -155,12 +155,12 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
       </div>
 
       {!selectedTournament && (
-        <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Filter by Tournament</h2>
+        <div className="card p-6">
+          <h2 className="text-xl font-bold text-gradient mb-4">Filter by Tournament</h2>
           <select
             value={selectedTournamentId}
             onChange={(e) => setSelectedTournamentId(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
+            className="w-full px-4 py-3 bg-neutral-800/50 border border-neutral-600/50 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
           >
             <option value="">All Tournaments</option>
             {tournaments.map((tournament) => (

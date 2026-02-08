@@ -138,11 +138,17 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl mb-4">Dashboard</h2>
-      <p>Welcome to your dashboard! Manage tournaments, teams, and overlays here.</p>
+    <div className="main-content animate-fade-in">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-4xl font-bold text-gradient">Dashboard</h1>
+          <p className="text-neutral-400 mt-2">
+            Welcome to your dashboard! Manage tournaments, teams, and overlays here.
+          </p>
+        </div>
+      </div>
 
-      <div className="tabs mb-6">
+      <div className="tabs mb-8">
         <button
           onClick={() => setActiveTab('overview')}
           className={`tab ${activeTab === 'overview' ? 'tab-active' : ''}`}
@@ -168,32 +174,32 @@ export default function Dashboard() {
       </div>
 
       {activeTab === 'overview' && (
-        <div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="card p-4">
-              <h3 className="text-lg font-bold">Tournaments</h3>
-              <p>View and manage tournaments.</p>
-              <button onClick={() => navigate('/tournaments')} className="btn btn-primary mt-2">Go to Tournaments</button>
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="card p-6 hover:scale-105 transition-transform duration-300">
+              <h3 className="text-xl font-bold text-gradient mb-3">Tournaments</h3>
+              <p className="text-neutral-400 mb-4">View and manage tournaments.</p>
+              <button onClick={() => navigate('/tournaments')} className="btn-primary w-full">Go to Tournaments</button>
             </div>
-            <div className="card p-4">
-              <h3 className="text-lg font-bold">Teams</h3>
-              <p>Manage teams and players.</p>
-              <button onClick={() => navigate('/teams')} className="btn btn-primary mt-2">Go to Teams</button>
+            <div className="card p-6 hover:scale-105 transition-transform duration-300">
+              <h3 className="text-xl font-bold text-gradient mb-3">Teams</h3>
+              <p className="text-neutral-400 mb-4">Manage teams and players.</p>
+              <button onClick={() => navigate('/teams')} className="btn-primary w-full">Go to Teams</button>
             </div>
-            <div className="card p-4">
-              <h3 className="text-lg font-bold">Overlays</h3>
-              <p>Create live streaming overlays.</p>
-              <button onClick={() => navigate('/overlay')} className="btn btn-primary mt-2">Go to Overlays</button>
+            <div className="card p-6 hover:scale-105 transition-transform duration-300">
+              <h3 className="text-xl font-bold text-gradient mb-3">Overlays</h3>
+              <p className="text-neutral-400 mb-4">Create live streaming overlays.</p>
+              <button onClick={() => navigate('/overlay')} className="btn-primary w-full">Go to Overlays</button>
             </div>
           </div>
           {currentUser?.role === 'admin' && (
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="card p-6">
-                <h3 className="text-lg font-bold mb-4">Tournament Statistics</h3>
+                <h3 className="text-xl font-bold text-gradient mb-6">Tournament Statistics</h3>
                 <Bar data={tournamentChartData} />
               </div>
               <div className="card p-6">
-                <h3 className="text-lg font-bold mb-4">User Statistics</h3>
+                <h3 className="text-xl font-bold text-gradient mb-6">User Statistics</h3>
                 <Pie data={userChartData} />
               </div>
             </div>
