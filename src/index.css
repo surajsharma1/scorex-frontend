@@ -1,9 +1,9 @@
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import Inter font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 /* Global Styles */
 body {
@@ -418,7 +418,7 @@ button:hover {
 }
 
 .btn {
-  @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm;
+  @apply inline-flex items-center justify-c enter px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm;
 }
 
 .btn-primary {
@@ -430,7 +430,7 @@ button:hover {
 }
 
 .form-input {
-  @apply mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary;
+  @apply mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500;
 }
 
 .form-label {
