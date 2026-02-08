@@ -39,14 +39,6 @@ const router = createBrowserRouter([
     path: "/",
     element: (
       <ThemeProvider>
-        <Frontpage />
-      </ThemeProvider>
-    ),
-  },
-  {
-    path: "/app",
-    element: (
-      <ThemeProvider>
         <App />
       </ThemeProvider>
     ),

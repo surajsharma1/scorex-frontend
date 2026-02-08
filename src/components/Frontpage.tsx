@@ -23,6 +23,13 @@ const Frontpage = () => {
 
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/app');
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     const fetchTournaments = async () => {
       setLoadingTournaments(true);
       try {

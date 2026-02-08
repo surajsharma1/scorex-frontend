@@ -487,7 +487,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
                           value={playerForm.jerseyNumber}
                           onChange={(e) => setPlayerForm({ ...playerForm, jerseyNumber: e.target.value })}
                           placeholder="Jersey Number"
-                          className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
+                          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
                           required
                         />
                         <select
