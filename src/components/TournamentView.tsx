@@ -4,6 +4,8 @@ import { Tournament, Match, Team } from './types';
 import io, { Socket } from 'socket.io-client';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import TeamManagement from './TeamManagement';
+import OverlayEditor from './OverlayEditor';
 
 export default function TournamentView() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -396,6 +398,18 @@ const handleCreateMatch = async (e: React.FormEvent) => {
                 >
                   Matches
                 </button>
+                <button
+                  onClick={() => setActiveTab('teams')}
+                  className={`tab ${activeTab === 'teams' ? 'tab-active' : ''}`}
+                >
+                  Teams
+                </button>
+                <button
+                  onClick={() => setActiveTab('overlays')}
+                  className={`tab ${activeTab === 'overlays' ? 'tab-active' : ''}`}
+                >
+                  Overlays
+                </button>
               </div>
 
               {activeTab === 'overview' && (
@@ -565,6 +579,18 @@ const handleCreateMatch = async (e: React.FormEvent) => {
                         ))
                       )}
                     </div>
+                  </div>
+                )}
+
+                {activeTab === 'teams' && (
+                  <div>
+                    <TeamManagement selectedTournament={selectedTournament} />
+                  </div>
+                )}
+
+                {activeTab === 'overlays' && (
+                  <div>
+                    <OverlayEditor selectedTournament={selectedTournament} />
                   </div>
                 )}
               </div>

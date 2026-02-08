@@ -35,11 +35,15 @@ const PRE_DESIGNED_OVERLAYS = [
   },
 ];
 
-export default function OverlayEditor() {
+interface OverlayEditorProps {
+  selectedTournament?: Tournament | null;
+}
+
+export default function OverlayEditor({ selectedTournament: propSelectedTournament }: OverlayEditorProps) {
   const [overlays, setOverlays] = useState<Overlay[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedOverlay, setSelectedOverlay] = useState<Overlay | null>(null);
-  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
+  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(propSelectedTournament || null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingOverlay, setEditingOverlay] = useState<Overlay | null>(null);
   const [loading, setLoading] = useState(false);

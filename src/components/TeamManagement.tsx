@@ -3,7 +3,11 @@ import { Plus, Upload, User, Edit, Trash2 } from 'lucide-react';
 import { teamAPI, tournamentAPI } from '../services/api';
 import { Team, Tournament, Player } from './types';
 
-export default function TeamManagement() {
+interface TeamManagementProps {
+  selectedTournament?: Tournament | null;
+}
+
+export default function TeamManagement({ selectedTournament }: TeamManagementProps) {
   const [teams, setTeams] = useState<Team[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -15,7 +19,7 @@ export default function TeamManagement() {
   const [formData, setFormData] = useState({
     name: '',
     color: '#16a34a',
-    tournament: '',
+    tournament: selectedTournament?._id || '',
   });
   const [playerForm, setPlayerForm] = useState({
     name: '',
