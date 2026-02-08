@@ -178,17 +178,17 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="card p-6 hover:scale-105 transition-transform duration-300">
               <h3 className="text-xl font-bold text-gradient mb-3">Tournaments</h3>
-              <p className="text-neutral-400 mb-4">View and manage tournaments.</p>
+              <p className="text-gray-600 dark:text-neutral-400 mb-4">View and manage tournaments.</p>
               <button onClick={() => navigate('/tournaments')} className="btn-primary w-full">Go to Tournaments</button>
             </div>
             <div className="card p-6 hover:scale-105 transition-transform duration-300">
               <h3 className="text-xl font-bold text-gradient mb-3">Teams</h3>
-              <p className="text-neutral-400 mb-4">Manage teams and players.</p>
+              <p className="text-gray-600 dark:text-neutral-400 mb-4">Manage teams and players.</p>
               <button onClick={() => navigate('/teams')} className="btn-primary w-full">Go to Teams</button>
             </div>
             <div className="card p-6 hover:scale-105 transition-transform duration-300">
               <h3 className="text-xl font-bold text-gradient mb-3">Overlays</h3>
-              <p className="text-neutral-400 mb-4">Create live streaming overlays.</p>
+              <p className="text-gray-600 dark:text-neutral-400 mb-4">Create live streaming overlays.</p>
               <button onClick={() => navigate('/overlay')} className="btn-primary w-full">Go to Overlays</button>
             </div>
           </div>
