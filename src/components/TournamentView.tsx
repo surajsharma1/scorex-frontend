@@ -102,9 +102,12 @@ const undoLastAction = () => {
     setLoading(true);
     try {
       const response = await tournamentAPI.getTournaments();
-      setTournaments(Array.isArray(response.data?.tournaments) ? response.data.tournaments : []);
+      const data = response.data;
+      const tournamentsArray = Array.isArray(data) ? data : (Array.isArray(data?.tournaments) ? data.tournaments : []);
+      setTournaments(tournamentsArray);
     } catch (error) {
       setError('Failed to fetch tournaments');
+      setTournaments([]); // Ensure tournaments is always an array
     } finally {
       setLoading(false);
     }
@@ -114,9 +117,11 @@ const undoLastAction = () => {
     if (!selectedTournament) return;
     try {
       const response = await matchAPI.getMatches(selectedTournament._id);
-      setMatches(Array.isArray(response.data) ? response.data : []);
+      const matchesArray = Array.isArray(response.data) ? response.data : (Array.isArray(response.data?.matches) ? response.data.matches : []);
+      setMatches(matchesArray);
     } catch (error) {
       setError('Failed to fetch matches');
+      setMatches([]); // Ensure matches is always an array
     }
   };
 
@@ -124,9 +129,11 @@ const undoLastAction = () => {
     if (!selectedTournament) return;
     try {
       const response = await teamAPI.getTeams(selectedTournament._id);
-      setTeams(Array.isArray(response.data) ? response.data : []);
+      const teamsArray = Array.isArray(response.data) ? response.data : (Array.isArray(response.data?.teams) ? response.data.teams : []);
+      setTeams(teamsArray);
     } catch (error) {
       setError('Failed to fetch teams');
+      setTeams([]); // Ensure teams is always an array
     }
   };
 
