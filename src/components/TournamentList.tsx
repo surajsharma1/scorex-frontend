@@ -50,17 +50,17 @@ export default function TournamentList() {
   };
 
   if (loading) return (
-    <div className="p-6" role="status" aria-live="polite" aria-label="Loading tournaments">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen" role="status" aria-live="polite" aria-label="Loading tournaments">
       <p>Loading tournaments...</p>
     </div>
   );
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
       <h1 className="text-2xl mb-4" id="tournaments-heading">Tournaments</h1>
       <button
         onClick={() => navigate('/tournaments/new')}
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mb-4 transition-colors"
         aria-label="Create a new tournament"
       >
         Create New
@@ -74,16 +74,16 @@ export default function TournamentList() {
         {tournaments.map((tournament) => (
           <li
             key={tournament._id}
-            className="bg-white p-4 rounded shadow"
+            className="bg-white dark:bg-gray-800 p-4 rounded shadow border border-gray-200 dark:border-gray-700"
             role="listitem"
             aria-label={`Tournament: ${tournament.name}`}
           >
-            <h3 className="text-lg font-semibold" id={`tournament-${tournament._id}-name`}>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white" id={`tournament-${tournament._id}-name`}>
               {tournament.name}
             </h3>
             <button
               onClick={() => navigate(`/tournaments/${tournament._id}/edit`)}
-              className="text-blue-500 hover:text-blue-700 mt-2"
+              className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 mt-2 transition-colors"
               aria-label={`Edit tournament ${tournament.name}`}
               aria-describedby={`tournament-${tournament._id}-name`}
             >
@@ -97,7 +97,7 @@ export default function TournamentList() {
           <button
             onClick={loadMore}
             disabled={loadingMore}
-            className="bg-gray-500 text-white px-4 py-2 rounded disabled:opacity-50"
+            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded disabled:opacity-50 transition-colors"
             aria-label={loadingMore ? "Loading more tournaments" : "Load more tournaments"}
             aria-disabled={loadingMore}
           >

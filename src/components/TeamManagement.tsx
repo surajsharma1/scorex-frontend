@@ -287,7 +287,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
         </div>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center space-x-2 shadow-md"
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2 shadow-md"
         >
           <Plus className="w-5 h-5" />
           <span>Add New Team</span>
