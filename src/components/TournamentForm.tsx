@@ -38,15 +38,15 @@ export default function TeamForm() {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl mb-4">Create Team</h2>
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
+      <h2 className="text-2xl mb-4 text-gray-900 dark:text-white">Create Team</h2>
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded shadow-md border border-gray-300 dark:border-gray-700">
         <input
           type="text"
           placeholder="Team Name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full p-2 mb-4 border rounded"
+          className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           required
         />
         <input
@@ -54,19 +54,19 @@ export default function TeamForm() {
           placeholder="Color"
           value={formData.color}
           onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-          className="w-full p-2 mb-4 border rounded"
+          className="w-full p-2 mb-4 border border-gray-300 dark:border-gray-600 rounded"
           required
         />
 
-        <h3 className="text-lg mb-2">Players</h3>
+        <h3 className="text-lg mb-2 text-gray-900 dark:text-white">Players</h3>
         {formData.players.map((player, index) => (
-          <div key={index} className="mb-4 p-4 border rounded">
+          <div key={index} className="mb-4 p-4 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700">
             <input
               type="text"
               placeholder="Player Name"
               value={player.name}
               onChange={(e) => updatePlayer(index, 'name', e.target.value)}
-              className="w-full p-2 mb-2 border rounded"
+              className="w-full p-2 mb-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
               required
             />
             <input
@@ -74,7 +74,7 @@ export default function TeamForm() {
               placeholder="Role (e.g., Batsman)"
               value={player.role}
               onChange={(e) => updatePlayer(index, 'role', e.target.value)}
-              className="w-full p-2 mb-2 border rounded"
+              className="w-full p-2 mb-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
               required
             />
             <input
@@ -82,15 +82,15 @@ export default function TeamForm() {
               placeholder="Jersey Number"
               value={player.jerseyNumber}
               onChange={(e) => updatePlayer(index, 'jerseyNumber', e.target.value)}
-              className="w-full p-2 mb-2 border rounded"
+              className="w-full p-2 mb-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
               required
             />
           </div>
         ))}
-        <button type="button" onClick={addPlayer} className="bg-gray-500 text-white px-4 py-2 rounded mr-2">
+        <button type="button" onClick={addPlayer} className="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600 transition-colors">
           Add Player
         </button>
-        <button type="submit" disabled={loading} className="bg-blue-500 text-white px-4 py-2 rounded">
+        <button type="submit" disabled={loading} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors disabled:opacity-50">
           {loading ? 'Creating...' : 'Create'}
         </button>
       </form>

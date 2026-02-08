@@ -304,7 +304,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
                       key={team._id}
                       className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
                         selectedTeam && selectedTeam._id === team._id
-                          ? 'bg-green-100 text-green-800'
+                          ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
                           : 'hover:bg-gray-700'
                       }`}
                     >
