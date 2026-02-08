@@ -225,6 +225,8 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
     <div className="space-y-8 bg-gray-900 text-white min-h-screen p-6">
       <div className="flex justify-between items-center">
         <div>
+          <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400">Overlay Editor</h1>
+        <div>
           <h1 className="text-4xl font-bold text-blue-400">Overlay Editor</h1>
           <p className="text-gray-300 mt-2">
             Select and customize overlays for YouTube videos
@@ -443,4 +445,5 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
       )}
     </div>
   );
+    <div className="space-y-8 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen p-6">
 }
