@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+  import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { tournamentAPI } from '../services/api';
@@ -20,12 +20,7 @@ const Frontpage = () => {
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      navigate('/app');
-    }
-  }, [navigate]);
+
 
   useEffect(() => {
     const fetchTournaments = async () => {

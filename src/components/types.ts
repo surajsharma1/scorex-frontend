@@ -9,6 +9,7 @@ export interface User {
 }
 
 export interface Tournament {
+  teams: any;
   _id: string;
   name: string;
   description?: string;
