@@ -359,7 +359,7 @@ const handleCreateMatch = async (e: React.FormEvent) => {
                   ))}
                 </div>
               ) : (
-                filteredTournaments.map((tournament) => (
+                Array.isArray(filteredTournaments) ? filteredTournaments.map((tournament) => (
                   <div key={tournament._id} className="flex justify-between items-center px-4 py-3 rounded-lg hover:bg-gray-700">
                     <button
                       onClick={() => setSelectedTournament(tournament)}
@@ -379,7 +379,7 @@ const handleCreateMatch = async (e: React.FormEvent) => {
                       Delete
                     </button>
                   </div>
-                ))
+                )) : null
               )}
             </div>
           </div>
