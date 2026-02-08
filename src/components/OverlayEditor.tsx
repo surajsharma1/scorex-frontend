@@ -73,8 +73,10 @@ export default function OverlayEditor() {
         overlayAPI.getOverlays(),
         tournamentAPI.getTournaments(),
       ]);
-      setOverlays(Array.isArray(overlaysRes.data) ? overlaysRes.data : []);
-      setTournaments(Array.isArray(tournamentsRes.data) ? tournamentsRes.data : []);
+      const overlaysData = overlaysRes.data || [];
+      const tournamentsData = tournamentsRes.data?.tournaments || tournamentsRes.data || [];
+      setOverlays(Array.isArray(overlaysData) ? overlaysData : []);
+      setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to fetch data');
       setOverlays([]);
