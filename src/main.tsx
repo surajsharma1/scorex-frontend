@@ -5,7 +5,6 @@ import App from './components/App';
 import Dashboard from './components/Dashboard';
 import TournamentView from './components/TournamentView';
 import TeamManagement from './components/TeamManagement';
-import OverlayList from './components/OverlayList';
 import OverlayForm from './components/OverlayForm';
 import OverlayEditor from './components/OverlayEditor';
 import Profile from './components/Profile';
@@ -18,6 +17,7 @@ import ResetPassword from './components/ResetPassword';
 import { ThemeProvider } from './components/ThemeProvider';
 import './index.css';
 import './i18n';
+import ClubManagement from './components/ClubManagement';
 
 // Register service worker for PWA functionality
 if ('serviceWorker' in navigator) {
