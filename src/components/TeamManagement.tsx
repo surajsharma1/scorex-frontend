@@ -35,8 +35,10 @@ export default function TeamManagement() {
         teamAPI.getTeams(),
         tournamentAPI.getTournaments(),
       ]);
-      setTeams(Array.isArray(teamsRes.data) ? teamsRes.data : []);
-      setTournaments(Array.isArray(tournamentsRes.data) ? tournamentsRes.data : []);
+      const teamsData = teamsRes.data?.teams || teamsRes.data || [];
+      const tournamentsData = tournamentsRes.data?.tournaments || tournamentsRes.data || [];
+      setTeams(Array.isArray(teamsData) ? teamsData : []);
+      setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to fetch data');
     }
@@ -190,6 +192,9 @@ export default function TeamManagement() {
                     </option>
                   ))}
                 </select>
+                {tournaments.length === 0 && (
+                  <p className="text-red-400 text-sm mt-1">No tournaments available. Please create a tournament first.</p>
+                )}
               </div>
 
               <div>
