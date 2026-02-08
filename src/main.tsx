@@ -44,6 +44,8 @@ const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       { path: "tournaments", element: <TournamentView /> },
       { path: "teams", element: <TeamManagement /> },
+      { path: "friends", element: <FriendList /> },
+      { path: "clubs", element: <ClubManagement /> },
       { path: "overlays", element: <OverlayEditor /> },
       { path: "overlays/new", element: <OverlayForm /> },
       { path: "overlays/:id/edit", element: <OverlayEditor /> },

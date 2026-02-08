@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Trophy, Users, Settings, Eye, BarChart3, User, Crown } from 'lucide-react'; // Added User and Crown icons
+import { Trophy, Users, Settings, Eye, BarChart3, User, Crown, UserPlus, Users2 } from 'lucide-react'; // Added User and Crown icons
 import { useState } from 'react';
 
 export default function Sidebar() {
@@ -9,6 +9,8 @@ export default function Sidebar() {
   const menuItems = [
     { path: '/', icon: BarChart3, label: 'Dashboard' },
     { path: '/tournaments', icon: Trophy, label: 'Tournaments' },
+    { path: '/friends', icon: UserPlus, label: 'Friends' },
+    { path: '/clubs', icon: Users2, label: 'Clubs' },
     { path: '/membership', icon: Crown, label: 'Membership' },
   ];
 

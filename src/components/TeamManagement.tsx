@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Upload, User, Edit, Trash2 } from 'lucide-react';
+import { Plus, Upload, Edit, Trash2, Loader2 } from 'lucide-react';
 import { teamAPI, tournamentAPI } from '../services/api';
-import { Team, Tournament, Player } from './types';
+import { Team, Tournament, Player, User } from './types';
+import PlayerSearch from './PlayerSearch';
 
 interface TeamManagementProps {
   selectedTournament?: Tournament | null;
@@ -370,62 +371,86 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
                   ))}
                 </div>
 
-                <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
-                  <h4 className="font-bold text-white mb-2">
-                    Add Player with Image
-                  </h4>
-                  <form onSubmit={handleAddPlayer}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <input
-                        type="text"
-                        value={playerForm.name}
-                        onChange={(e) => setPlayerForm({ ...playerForm, name: e.target.value })}
-                        placeholder="Player Name"
-                        className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
-                        required
-                      />
-                      <input
-                        type="text"
-                        value={playerForm.jerseyNumber}
-                        onChange={(e) => setPlayerForm({ ...playerForm, jerseyNumber: e.target.value })}
-                        placeholder="Jersey Number"
-                        className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
-                        required
-                      />
-                      <select
-                        value={playerForm.role}
-                        onChange={(e) => setPlayerForm({ ...playerForm, role: e.target.value })}
-                        className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
-                      >
-                        <option>Batsman</option>
-                        <option>Bowler</option>
-                        <option>All-rounder</option>
-                        <option>Wicket Keeper</option>
-                      </select>
-                      <div className="flex items-center space-x-2">
+                <div className="bg-gray-700 rounded-lg p-6 border border-gray-600 space-y-6">
+                  <div>
+                    <h4 className="font-bold text-white mb-4">
+                      Add Player by Username
+                    </h4>
+                    <PlayerSearch
+                      onPlayerSelect={async (user) => {
+                        try {
+                          setLoading(true);
+                          await teamAPI.addPlayerByUsername(selectedTeam._id, user._id);
+                          fetchData();
+                          setSelectedTeam(teams.find((team) => team._id === selectedTeam._id) || null);
+                        } catch (error) {
+                          console.error('Error adding player:', error);
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      placeholder="Search for players to add..."
+                      className="mb-4"
+                    />
+                  </div>
+
+                  <div className="border-t border-gray-600 pt-4">
+                    <h4 className="font-bold text-white mb-2">
+                      Or Add Player with Image
+                    </h4>
+                    <form onSubmit={handleAddPlayer}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => setPlayerImageFile(e.target.files?.[0] || null)}
-                          className="hidden"
-                          id="player-image-upload"
+                          type="text"
+                          value={playerForm.name}
+                          onChange={(e) => setPlayerForm({ ...playerForm, name: e.target.value })}
+                          placeholder="Player Name"
+                          className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
+                          required
                         />
-                        <label
-                          htmlFor="player-image-upload"
-                          className="flex-1 bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-gray-500 transition-colors cursor-pointer text-center"
+                        <input
+                          type="text"
+                          value={playerForm.jerseyNumber}
+                          onChange={(e) => setPlayerForm({ ...playerForm, jerseyNumber: e.target.value })}
+                          placeholder="Jersey Number"
+                          className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
+                          required
+                        />
+                        <select
+                          value={playerForm.role}
+                          onChange={(e) => setPlayerForm({ ...playerForm, role: e.target.value })}
+                          className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
                         >
-                          {playerImageFile ? playerImageFile.name : 'Upload Photo'}
-                        </label>
+                          <option>Batsman</option>
+                          <option>Bowler</option>
+                          <option>All-rounder</option>
+                          <option>Wicket Keeper</option>
+                        </select>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setPlayerImageFile(e.target.files?.[0] || null)}
+                            className="hidden"
+                            id="player-image-upload"
+                          />
+                          <label
+                            htmlFor="player-image-upload"
+                            className="flex-1 bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-gray-500 transition-colors cursor-pointer text-center"
+                          >
+                            {playerImageFile ? playerImageFile.name : 'Upload Photo'}
+                          </label>
+                        </div>
                       </div>
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
-                    >
-                      {loading ? 'Adding...' : 'Add to Team'}
-                    </button>
-                  </form>
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
+                      >
+                        {loading ? 'Adding...' : 'Add to Team'}
+                      </button>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>

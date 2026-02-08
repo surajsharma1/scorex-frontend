@@ -58,6 +58,7 @@ export const teamAPI = {
   updateTeam: (id: string, data: FormData) => api.put(`/teams/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
   deleteTeam: (id: string) => api.delete(`/teams/${id}`),
   addPlayer: (teamId: string, data: FormData) => api.post(`/teams/${teamId}/players`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  addPlayerByUsername: (teamId: string, userId: string) => api.post(`/teams/${teamId}/players`, { userId }),
 };
 
 export const bracketAPI = {
@@ -81,7 +82,27 @@ export const userAPI = {
   getNotificationPreferences: () => api.get('/users/notifications/preferences'),
   updateNotificationPreferences: (preferences: any) => api.put('/users/notifications/preferences', preferences),
   getProfile: () => api.get('/users/profile'),
-  updateProfile: (data: { username: string; email: string }) => api.put('/users/profile', data),
+  updateProfile: (data: { username: string; email: string; profilePicture?: string; bio?: string }) => api.put('/users/profile', data),
+  searchUsers: (query: string) => api.get('/users/search', { params: { query } }),
+};
+
+export const friendAPI = {
+  sendFriendRequest: (toUserId: string) => api.post('/friends/request', { toUserId }),
+  acceptFriendRequest: (requestId: string) => api.put(`/friends/request/${requestId}/accept`),
+  rejectFriendRequest: (requestId: string) => api.delete(`/friends/request/${requestId}/reject`),
+  getFriends: () => api.get('/friends'),
+  getFriendRequests: () => api.get('/friends/requests'),
+  removeFriend: (friendId: string) => api.delete(`/friends/${friendId}`),
+};
+
+export const clubAPI = {
+  getClubs: () => api.get('/clubs'),
+  getClub: (clubId: string) => api.get(`/clubs/${clubId}`),
+  createClub: (data: { name: string; description?: string }) => api.post('/clubs', data),
+  joinClub: (clubId: string) => api.post(`/clubs/${clubId}/join`),
+  leaveClub: (clubId: string) => api.post(`/clubs/${clubId}/leave`),
+  updateClub: (clubId: string, data: { name?: string; description?: string }) => api.put(`/clubs/${clubId}`, data),
+  deleteClub: (clubId: string) => api.delete(`/clubs/${clubId}`),
 };
 export const notificationAPI = {
   getNotifications: () => api.get('/notifications'),
