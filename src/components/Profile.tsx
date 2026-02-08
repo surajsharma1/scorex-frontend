@@ -31,8 +31,8 @@ export default function Profile() {
     <div className="space-y-8 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen p-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-bold text-blue-400">Profile</h1>
-          <p className="text-gray-300 mt-2">Manage your account details and view statistics</p>
+          <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400">Profile</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">Manage your account details and view statistics</p>
         </div>
         <button
           onClick={() => setIsEditing(!isEditing)}
