@@ -418,7 +418,7 @@ button:hover {
 }
 
 .btn {
-  @apply inline-flex items-center justify-c enter px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm;
+  @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm;
 }
 
 .btn-primary {
