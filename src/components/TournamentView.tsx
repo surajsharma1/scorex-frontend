@@ -57,7 +57,7 @@ export default function TournamentView() {
     status: 'ongoing',
   });
   const updateScore = (newScoreForm: ScoreForm) => {
-    setScoreHistory([...scoreHistory, scoreForm]);
+    setScoreHistory([...scoreHistory,scoreForm]);
     setScoreForm(newScoreForm);
   };
 
@@ -228,17 +228,17 @@ const handleCreateMatch = async (e: React.FormEvent) => {
   });
 
   return (
-    <div className="space-y-8 p-6 bg-gray-900 dark:bg-gray-900 text-white dark:text-white min-h-screen">
-      <div className="flex justify-between items-center">
+    <div className="main-content animate-fade-in">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-gray-100 dark:text-gray-100">All Tournaments</h1>
-          <p className="text-gray-300 dark:text-gray-300 mt-2">
+          <h1 className="text-4xl font-bold text-gradient">All Tournaments</h1>
+          <p className="text-neutral-400 mt-2">
             View all current and live tournaments created by the community
           </p>
         </div>
         <button
           onClick={() => setShowTournamentForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold transition-colors"
+          className="btn-primary"
         >
           Create Tournament
         </button>
