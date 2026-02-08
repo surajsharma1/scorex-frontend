@@ -80,12 +80,12 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-gray-800 p-6 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">Upgrade Your Plan</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Upgrade Your Plan</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white"
+            className="text-gray-400 hover:text-gray-900 dark:hover:text-white"
           >
             <X className="w-6 h-6" />
           </button>
@@ -98,28 +98,28 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
               key={plan.id}
               className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
                 selectedPlan === plan.id
-                  ? 'border-blue-500 bg-gray-700'
-                  : 'border-gray-600 bg-gray-800 hover:border-gray-500'
+                  ? 'border-blue-500 bg-gray-100 dark:bg-gray-700'
+                  : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-500'
               }`}
               onClick={() => setSelectedPlan(plan.id)}
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{plan.name}</h3>
                 {selectedPlan === plan.id && (
                   <CheckCircle className="w-6 h-6 text-green-400" />
                 )}
               </div>
               <div className="mb-4">
-                <span className="text-3xl font-bold text-white">
+                <span className="text-3xl font-bold text-gray-900 dark:text-white">
                   ${plan.price}
                 </span>
                 {plan.price > 0 && (
-                  <span className="text-gray-400">/month</span>
+                  <span className="text-gray-600 dark:text-gray-400">/month</span>
                 )}
               </div>
               <ul className="space-y-2">
                 {plan.features.map((feature, index) => (
-                  <li key={index} className="text-sm text-gray-300 flex items-center">
+                  <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-center">
                     <CheckCircle className="w-4 h-4 text-green-400 mr-2 flex-shrink-0" />
                     {feature}
                   </li>
@@ -161,7 +161,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
         {paymentMethod === 'card' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Card Number
               </label>
               <input
@@ -169,11 +169,11 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
                 placeholder="1234 5678 9012 3456"
                 value={cardDetails.number}
                 onChange={(e) => setCardDetails({ ...cardDetails, number: e.target.value })}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Cardholder Name
               </label>
               <input
@@ -181,11 +181,11 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
                 placeholder="John Doe"
                 value={cardDetails.name}
                 onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Expiry Date
               </label>
               <input
@@ -193,11 +193,11 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
                 placeholder="MM/YY"
                 value={cardDetails.expiry}
                 onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 CVC
               </label>
               <input
@@ -205,20 +205,20 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
                 placeholder="123"
                 value={cardDetails.cvc}
                 onChange={(e) => setCardDetails({ ...cardDetails, cvc: e.target.value })}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
           </div>
         )}
 
         {/* Payment Summary */}
-        <div className="bg-gray-700 rounded-lg p-4 mb-6">
-          <h4 className="text-lg font-semibold text-white mb-2">Payment Summary</h4>
+        <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 mb-6">
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Payment Summary</h4>
           <div className="flex justify-between items-center">
-            <span className="text-gray-300">
+            <span className="text-gray-700 dark:text-gray-300">
               {PLANS.find(p => p.id === selectedPlan)?.name} Plan
             </span>
-            <span className="text-white font-bold">
+            <span className="text-gray-900 dark:text-white font-bold">
               ${PLANS.find(p => p.id === selectedPlan)?.price}/month
             </span>
           </div>

@@ -28,7 +28,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="space-y-8 bg-gray-900 text-white min-h-screen p-6">
+    <div className="space-y-8 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen p-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-4xl font-bold text-blue-400">Profile</h1>
@@ -42,7 +42,7 @@ export default function Profile() {
         </button>
       </div>
 
-      <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-300 dark:border-gray-700 p-6">
         <div className="flex items-center space-x-6 mb-6">
           <div className="relative">
             <img
@@ -122,26 +122,26 @@ export default function Profile() {
         )}
       </div>
 
-      <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-300 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center">
           <Trophy className="w-5 h-5 mr-2" />
           Account Statistics
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-gray-700 rounded-lg">
+          <div className="text-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <Trophy className="w-8 h-8 text-blue-400 mx-auto mb-2" />
             <p className="text-2xl font-bold text-blue-400">{tournamentsCreated}</p>
-            <p className="text-gray-400">Tournaments Created</p>
+            <p className="text-gray-600 dark:text-gray-400">Tournaments Created</p>
           </div>
-          <div className="text-center p-4 bg-gray-700 rounded-lg">
+          <div className="text-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <Eye className="w-8 h-8 text-green-400 mx-auto mb-2" />
             <p className="text-2xl font-bold text-green-400">{matchesManaged}</p>
-            <p className="text-gray-400">Matches Managed</p>
+            <p className="text-gray-600 dark:text-gray-400">Matches Managed</p>
           </div>
-          <div className="text-center p-4 bg-gray-700 rounded-lg">
+          <div className="text-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
             <Users className="w-8 h-8 text-purple-400 mx-auto mb-2" />
             <p className="text-2xl font-bold text-purple-400">{teamsAdded}</p>
-            <p className="text-gray-400">Teams Added</p>
+            <p className="text-gray-600 dark:text-gray-400">Teams Added</p>
           </div>
         </div>
       </div>

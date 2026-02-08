@@ -160,7 +160,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
           <select
             value={selectedTournamentId}
             onChange={(e) => setSelectedTournamentId(e.target.value)}
-            className="w-full px-4 py-3 bg-neutral-800/50 border border-neutral-600/50 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
+            className="w-full px-4 py-3 bg-white dark:bg-neutral-800/50 border border-gray-300 dark:border-neutral-600/50 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
           >
             <option value="">All Tournaments</option>
             {tournaments.map((tournament) => (
@@ -173,7 +173,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
       )}
 
       {error && (
-        <div className="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded">
+        <div className="bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-300 px-4 py-3 rounded">
           {error}
         </div>
       )}
