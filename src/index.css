@@ -422,7 +422,7 @@ button:hover {
 }
 
 .btn-primary {
-  @apply text-white bg-primary hover:bg-blue-700 focus:ring-blue-500;
+  @apply text-white bg-primary-500 hover:bg-primary-600 focus:ring-primary-500;
 }
 
 .btn-secondary {

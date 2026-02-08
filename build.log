@@ -1,0 +1,21 @@
+
+> cricket-overlay-frontend@0.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 18 modules transformed.
+x Build failed in 735ms
+error during build:
+[vite:css] [postcss] D:/github/scorex-frontend/scorex-frontend/src/index.css:425:3: The `bg-primary` class does not exist. If `bg-primary` is a custom class, make sure it is defined within a `@layer` directive.
+file: D:/github/scorex-frontend/scorex-frontend/src/index.css:425:2
+    at Input.error (D:\github\scorex-frontend\scorex-frontend\node_modules\postcss\lib\input.js:135:16)
+    at AtRule.error (D:\github\scorex-frontend\scorex-frontend\node_modules\postcss\lib\node.js:146:32)
+    at processApply (D:\github\scorex-frontend\scorex-frontend\node_modules\tailwindcss\lib\lib\expandApplyAtRules.js:380:29)
+    at D:\github\scorex-frontend\scorex-frontend\node_modules\tailwindcss\lib\lib\expandApplyAtRules.js:551:9
+    at D:\github\scorex-frontend\scorex-frontend\node_modules\tailwindcss\lib\processTailwindFeatures.js:55:50
+    at async plugins (D:\github\scorex-frontend\scorex-frontend\node_modules\tailwindcss\lib\plugin.js:38:17)
+    at async LazyResult.runAsync (D:\github\scorex-frontend\scorex-frontend\node_modules\postcss\lib\lazy-result.js:293:11)
+    at async compileCSS (file:///D:/github/scorex-frontend/scorex-frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:36898:21)
+    at async Object.transform (file:///D:/github/scorex-frontend/scorex-frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:36171:11)
+    at async transform (file:///D:/github/scorex-frontend/scorex-frontend/node_modules/rollup/dist/es/shared/node-entry.js:21246:16)
