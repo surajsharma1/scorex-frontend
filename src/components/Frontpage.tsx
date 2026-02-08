@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { tournamentAPI } from '../services/api';
+import { Tournament } from './types';
 
 const Frontpage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -10,10 +12,29 @@ const Frontpage = () => {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [loadingTournaments, setLoadingTournaments] = useState(false);
 
   const handleGoogleLogin = () => {
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
   };
+
+  useEffect(() => {
+    const fetchTournaments = async () => {
+      setLoadingTournaments(true);
+      try {
+        const response = await tournamentAPI.getTournaments();
+        const tournamentsData = response.data?.tournaments || response.data || [];
+        setTournaments(Array.isArray(tournamentsData) ? tournamentsData.slice(0, 4) : []);
+      } catch (error) {
+        console.error('Failed to fetch tournaments:', error);
+      } finally {
+        setLoadingTournaments(false);
+      }
+    };
+
+    fetchTournaments();
+  }, []);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,6 +127,48 @@ const Frontpage = () => {
             <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               Connect with other organizers and streamers. Share tournaments,
               view public events, and collaborate on cricket projects.
+            </p>
+          </div>
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-700">
+            <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Social Networking</h4>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+              Add friends, join clubs, and build your cricket network. Share achievements,
+              follow favorite teams, and engage with the community.
+            </p>
+          </div>
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-700">
+            <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Payment & Membership</h4>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+              Access premium features with flexible subscription plans. Unlock advanced
+              overlays, priority support, and exclusive tournament templates.
+            </p>
+          </div>
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-700">
+            <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Data Export & Analytics</h4>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+              Export tournament data, generate reports, and analyze performance metrics.
+              Get insights into player stats, team performance, and match outcomes.
+            </p>
+          </div>
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-700">
+            <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Notification System</h4>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+              Stay updated with real-time notifications for match updates, tournament
+              changes, and community activities. Never miss important events.
+            </p>
+          </div>
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-700">
+            <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Multi-Language Support</h4>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+              Experience ScoreX in your preferred language. Support for multiple
+              languages to make cricket management accessible worldwide.
+            </p>
+          </div>
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-700">
+            <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Theme Customization</h4>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+              Personalize your experience with light and dark themes. Customize
+              colors and layouts to match your brand or personal preference.
             </p>
           </div>
         </div>
