@@ -497,7 +497,7 @@ button:hover {
 }
 
 .sidebar {
-  @apply fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-white via-gray-50 to-white shadow-2xl border-r border-gray-200;
+  @apply fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-primary-50 via-accent-50 to-primary-100 shadow-2xl border-r border-primary-200;
 }
 
 .dark .sidebar {
@@ -505,7 +505,7 @@ button:hover {
 }
 
 .sidebar-header {
-  @apply flex items-center justify-center h-20 bg-gradient-to-r from-primary-100 to-accent-100 border-b border-gray-200;
+  @apply flex items-center justify-center h-20 bg-gradient-to-r from-primary-200 to-accent-200 border-b border-primary-300;
 }
 
 .dark .sidebar-header {
@@ -521,11 +521,11 @@ button:hover {
 }
 
 .sidebar-title {
-  @apply text-2xl font-bold text-gray-900 dark:text-white;
+  @apply text-2xl font-bold text-primary-800 dark:text-white;
 }
 
 .sidebar-subtitle {
-  @apply text-sm text-gray-600 dark:text-neutral-400;
+  @apply text-sm text-primary-600 dark:text-neutral-400;
 }
 
 .sidebar-nav {
@@ -533,23 +533,27 @@ button:hover {
 }
 
 .nav-item {
-  @apply flex items-center gap-4 px-4 py-4 text-gray-700 dark:text-neutral-300 rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-primary-500/20 hover:to-accent-500/20 hover:text-primary-700 dark:hover:bg-gradient-to-r dark:hover:from-primary-600/40 dark:hover:to-accent-600/40 dark:hover:text-white hover:shadow-lg hover:scale-105;
+  @apply flex items-center gap-4 px-4 py-4 text-primary-700 dark:text-neutral-300 rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-primary-600/30 hover:to-accent-600/30 hover:text-white hover:shadow-lg hover:scale-105;
+}
+
+.dark .nav-item {
+  @apply text-neutral-300 hover:bg-gradient-to-r hover:from-primary-600/40 hover:to-accent-600/40 hover:text-white;
 }
 
 .sidebar-footer {
-  @apply absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200 dark:border-neutral-700/50;
+  @apply absolute bottom-0 left-0 right-0 p-6 border-t border-primary-300 dark:border-neutral-700/50;
 }
 
 .sidebar-tip {
-  @apply bg-gray-50 dark:bg-neutral-800/50 backdrop-blur-sm p-4 rounded-xl border border-gray-200 dark:border-neutral-600/50;
+  @apply bg-primary-50 dark:bg-neutral-800/50 backdrop-blur-sm p-4 rounded-xl border border-primary-200 dark:border-neutral-600/50;
 }
 
 .sidebar-tip-title {
-  @apply font-semibold text-primary-600 dark:text-primary-300 mb-2;
+  @apply font-semibold text-primary-700 dark:text-primary-300 mb-2;
 }
 
 .sidebar-tip-text {
-  @apply text-sm text-gray-600 dark:text-neutral-400;
+  @apply text-sm text-primary-600 dark:text-neutral-400;
 }
 
 .app-container {
