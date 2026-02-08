@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Upload, Edit, Trash2, Loader2, User } from 'lucide-react';
 import { teamAPI, tournamentAPI } from '../services/api';
-import { Team, Tournament, Player, User } from './types';
+import { Team, Tournament, Player } from './types';
 import PlayerSearch from './PlayerSearch';
 
 interface TeamManagementProps {
