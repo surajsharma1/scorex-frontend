@@ -104,37 +104,41 @@ function App() {
   const activeTournaments = tournaments.filter((t) => t.status === 'active');
 
   return (
-    <div className="flex min-h-screen bg-gray-900 text-white">
+    <div className="app-container">
       <Sidebar />
-      <div className="flex-1 md:ml-64 p-6 overflow-auto">
+      <div className="main-content">
         {isDashboard ? (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">Dashboard</h1>
-              <div className="flex items-center space-x-2">
+          <div className="animate-fade-in">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h1 className="text-4xl font-bold text-gradient mb-2">Dashboard</h1>
+                <p className="text-neutral-400">Welcome back! Here's your tournament overview.</p>
+              </div>
+              <div className="flex items-center space-x-4">
                 <button
                   onClick={toggleTheme}
-                  className="bg-gray-600 text-white p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                  className="btn-secondary text-sm px-4 py-2"
                   title="Toggle theme"
                 >
-                  {isDark ? '☀️' : '🌙'}
+                  {isDark ? '☀️ Light' : '🌙 Dark'}
                 </button>
                 <div className="relative">
                   <button
                     onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                    className="bg-gray-600 text-white p-2 rounded-lg hover:bg-gray-700 transition-colors"
+                    className="btn-secondary p-3"
                   >
                     <User className="w-5 h-5" />
                   </button>
                   {showProfileDropdown && (
-                    <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-50">
+                    <div className="absolute right-0 mt-2 w-56 card z-50 animate-slide-in">
                       <button
                         onClick={() => {
                           navigate('/profile');
                           setShowProfileDropdown(false);
                         }}
-                        className="block w-full text-left px-4 py-2 text-white hover:bg-gray-700 rounded-t-lg"
+                        className="block w-full text-left px-4 py-3 text-neutral-200 hover:bg-primary-500/20 rounded-t-xl transition-colors"
                       >
+                        <User className="w-4 h-4 inline mr-3" />
                         Profile
                       </button>
                       <button
@@ -142,7 +146,7 @@ function App() {
                           handleLogout();
                           setShowProfileDropdown(false);
                         }}
-                        className="block w-full text-left px-4 py-2 text-white hover:bg-gray-700 rounded-b-lg"
+                        className="block w-full text-left px-4 py-3 text-neutral-200 hover:bg-red-500/20 rounded-b-xl transition-colors"
                       >
                         Logout
                       </button>
@@ -153,67 +157,78 @@ function App() {
             </div>
 
             {error && (
-              <div className="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded mb-6">
+              <div className="alert alert-error mb-8">
                 {error}
               </div>
             )}
 
             {/* Dashboard Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              <div className="bg-gray-800 p-6 rounded-lg shadow">
-                <Crown className="w-8 h-8 text-yellow-400 mb-2" />
-                <h3 className="text-lg font-semibold text-blue-400">Tournaments</h3>
-                <p className="text-white">View and manage tournaments.</p>
-                <button onClick={() => navigate('/tournaments')} className="text-white hover:underline mt-2">Go to Tournaments</button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              <div className="card card-hover p-8 cursor-pointer group" onClick={() => navigate('/tournaments')}>
+                <Crown className="w-12 h-12 text-primary-400 mb-4 group-hover:scale-110 transition-transform" />
+                <h3 className="text-xl font-semibold text-primary-300 mb-3">Tournaments</h3>
+                <p className="text-neutral-300 mb-4">View and manage your tournaments with advanced bracket systems.</p>
+                <div className="text-primary-400 font-medium group-hover:text-primary-300 transition-colors">
+                  Go to Tournaments →
+                </div>
               </div>
-              <div className="bg-gray-800 p-6 rounded-lg shadow">
-                <BarChart3 className="w-8 h-8 text-green-400 mb-2" />
-                <h3 className="text-lg font-semibold text-blue-400">Teams</h3>
-                <p className="text-white">Manage teams and players.</p>
-                <button onClick={() => navigate('/teams')} className="text-white hover:underline mt-2">Go to Teams</button>
+              <div className="card card-hover p-8 cursor-pointer group" onClick={() => navigate('/teams')}>
+                <BarChart3 className="w-12 h-12 text-accent-400 mb-4 group-hover:scale-110 transition-transform" />
+                <h3 className="text-xl font-semibold text-accent-300 mb-3">Teams</h3>
+                <p className="text-neutral-300 mb-4">Manage teams, players, and track performance statistics.</p>
+                <div className="text-accent-400 font-medium group-hover:text-accent-300 transition-colors">
+                  Go to Teams →
+                </div>
               </div>
-              <div className="bg-gray-800 p-6 rounded-lg shadow">
-                <Search className="w-8 h-8 text-purple-400 mb-2" />
-                <h3 className="text-lg font-semibold text-blue-400">Overlays</h3>
-                <p className="text-white">Create live streaming overlays.</p>
-                <button onClick={() => navigate('/overlays')} className="text-white hover:underline mt-2">Go to Overlay Editor</button>
+              <div className="card card-hover p-8 cursor-pointer group" onClick={() => navigate('/overlays')}>
+                <Search className="w-12 h-12 text-primary-400 mb-4 group-hover:scale-110 transition-transform" />
+                <h3 className="text-xl font-semibold text-primary-300 mb-3">Overlays</h3>
+                <p className="text-neutral-300 mb-4">Create stunning live streaming overlays for your tournaments.</p>
+                <div className="text-primary-400 font-medium group-hover:text-primary-300 transition-colors">
+                  Go to Overlays →
+                </div>
               </div>
             </div>
 
-            {/* Additional Buttons */}
-            <div className="flex space-x-4 mb-6">
-              <button onClick={() => navigate('/profile')} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                <User className="w-5 h-5 inline mr-2" />
+            {/* Quick Actions */}
+            <div className="flex flex-wrap gap-4 mb-12">
+              <button onClick={() => navigate('/profile')} className="btn-primary">
+                <User className="w-5 h-5 mr-2" />
                 Profile
               </button>
-              <button onClick={() => navigate('/payment')} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                <Bell className="w-5 h-5 inline mr-2" />
+              <button onClick={() => navigate('/payment')} className="btn-accent">
+                <Bell className="w-5 h-5 mr-2" />
                 Payment
               </button>
             </div>
 
             {/* Active Tournaments Section */}
             <section className="mb-12">
-              <h3 className="text-2xl font-bold mb-6">Active Tournaments</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <h3 className="text-3xl font-bold text-gradient mb-8">Active Tournaments</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {activeTournaments.length === 0 ? (
-                  <p className="text-gray-400">No active tournaments.</p>
+                  <div className="card p-8 text-center">
+                    <p className="text-neutral-400 text-lg">No active tournaments at the moment.</p>
+                    <p className="text-neutral-500 mt-2">Create your first tournament to get started!</p>
+                  </div>
                 ) : (
                   activeTournaments.map((tournament) => (
-                    <div key={tournament._id} className="bg-gray-800 p-6 rounded-lg shadow">
-                      <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-lg font-semibold">{tournament.name}</h4>
+                    <div key={tournament._id} className="card card-hover p-8">
+                      <div className="flex justify-between items-start mb-6">
+                        <div>
+                          <h4 className="text-2xl font-semibold text-white mb-2">{tournament.name}</h4>
+                          <p className="text-neutral-300">{tournament.description}</p>
+                        </div>
                         <button
                           onClick={() => handleDeleteTournament(tournament._id)}
-                          className="text-red-400 hover:text-red-300"
+                          className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-500/20 transition-colors"
                         >
                           Delete
                         </button>
                       </div>
-                      <p className="text-gray-300 mb-4">{tournament.description}</p>
                       <button
                         onClick={() => setSelectedTournament(tournament)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                        className="btn-primary w-full"
                       >
                         View Details
                       </button>
@@ -225,22 +240,33 @@ function App() {
 
             {/* Upcoming Matches Section */}
             <section className="mb-12">
-              <h3 className="text-2xl font-bold mb-6">Upcoming Matches</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <h3 className="text-3xl font-bold text-gradient mb-8">Upcoming Matches</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {matches.length === 0 ? (
-                  <p className="text-gray-400">No upcoming matches.</p>
+                  <div className="card p-8 text-center col-span-full">
+                    <p className="text-neutral-400 text-lg">No upcoming matches scheduled.</p>
+                    <p className="text-neutral-500 mt-2">Matches will appear here once tournaments are active.</p>
+                  </div>
                 ) : (
                   matches.map((match) => (
-                    <div key={match._id} className="bg-gray-700 p-6 rounded-lg text-center shadow">
-                      <h4 className="text-xl font-semibold mb-2">{match.team1?.name} vs {match.team2?.name}</h4>
-                      <p className="text-lg">
+                    <div key={match._id} className="card card-hover p-8 text-center">
+                      <h4 className="text-xl font-semibold mb-4 text-white">
+                        {match.team1?.name} <span className="text-primary-400">vs</span> {match.team2?.name}
+                      </h4>
+                      <div className="text-2xl font-bold text-gradient mb-4">
                         {match.score1 || 0}/{match.wickets1 || 0} - {match.score2 || 0}/{match.wickets2 || 0}
-                      </p>
-                      <p className="text-sm text-yellow-400 mt-2">{match.status === 'active' ? 'Active' : 'Scheduled'}</p>
+                      </div>
+                      <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-4 ${
+                        match.status === 'active'
+                          ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                          : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                      }`}>
+                        {match.status === 'active' ? '🔴 Live' : '⏰ Scheduled'}
+                      </div>
                       {match.status !== 'ongoing' && (
                         <button
                           onClick={() => handleGoLive(match._id)}
-                          className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                          className="btn-accent w-full"
                         >
                           Go Live
                         </button>
@@ -253,36 +279,48 @@ function App() {
 
             {/* Tournament Details Modal */}
             {selectedTournament && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                <div className="bg-gray-800 p-6 rounded-lg w-full max-w-4xl max-h-96 overflow-y-auto">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold">{selectedTournament.name}</h2>
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 animate-fade-in">
+                <div className="card w-full max-w-6xl max-h-[90vh] overflow-y-auto m-4">
+                  <div className="flex justify-between items-center p-8 border-b border-neutral-700/50">
+                    <h2 className="text-3xl font-bold text-gradient">{selectedTournament.name}</h2>
                     <button
                       onClick={() => setSelectedTournament(null)}
-                      className="text-gray-400 hover:text-white"
+                      className="text-neutral-400 hover:text-white p-2 rounded-lg hover:bg-neutral-700/50 transition-colors"
                     >
-                      Close
+                      ✕
                     </button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Live Scores</h3>
-                      {matches.filter((m) => m.tournament === selectedTournament._id).map((match) => (
-                        <div key={match._id} className="bg-gray-700 p-4 rounded-lg mb-4">
-                          <p>{match.team1?.name} vs {match.team2?.name}</p>
-                          <p>{match.score1 || 0}/{match.wickets1 || 0} - {match.score2 || 0}/{match.wickets2 || 0}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Team Stats</h3>
-                      {teams.filter((t) => t.tournament === selectedTournament._id).map((team) => (
-                        <div key={team._id} className="bg-gray-700 p-4 rounded-lg mb-4">
-                          <h4 className="font-bold">{team.name}</h4>
-                          <p>Runs: {team.players?.reduce((sum, p) => sum + (p.stats?.runs || 0), 0) || 0}</p>
-                          <p>Wickets: {team.players?.reduce((sum, p) => sum + (p.stats?.wickets || 0), 0) || 0}</p>
-                        </div>
-                      ))}
+                  <div className="p-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      <div>
+                        <h3 className="text-2xl font-semibold text-primary-300 mb-6">Live Scores</h3>
+                        {matches.filter((m) => m.tournament === selectedTournament._id).map((match) => (
+                          <div key={match._id} className="card p-6 mb-4">
+                            <p className="text-lg font-medium text-white mb-2">
+                              {match.team1?.name} vs {match.team2?.name}
+                            </p>
+                            <p className="text-xl font-bold text-gradient">
+                              {match.score1 || 0}/{match.wickets1 || 0} - {match.score2 || 0}/{match.wickets2 || 0}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-semibold text-accent-300 mb-6">Team Stats</h3>
+                        {teams.filter((t) => t.tournament === selectedTournament._id).map((team) => (
+                          <div key={team._id} className="card p-6 mb-4">
+                            <h4 className="text-xl font-bold text-white mb-4">{team.name}</h4>
+                            <div className="space-y-2">
+                              <p className="text-neutral-300">
+                                <span className="text-primary-400 font-medium">Runs:</span> {team.players?.reduce((sum, p) => sum + (p.stats?.runs || 0), 0) || 0}
+                              </p>
+                              <p className="text-neutral-300">
+                                <span className="text-accent-400 font-medium">Wickets:</span> {team.players?.reduce((sum, p) => sum + (p.stats?.wickets || 0), 0) || 0}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
