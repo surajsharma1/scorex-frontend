@@ -292,7 +292,7 @@ export default function BracketView() {
 
       {error && (
         <div
-          className="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded flex items-start space-x-3"
+          className="bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-300 px-4 py-3 rounded flex items-start space-x-3"
           role="alert"
           aria-live="assertive"
           aria-atomic="true"
@@ -306,20 +306,20 @@ export default function BracketView() {
       )}
 
       {showCreateForm && (
-        <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-          <h2 className="text-xl font-bold text-white mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
             Bracket Configuration
           </h2>
           <form onSubmit={handleCreateBracket}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label id="tournament-label" className="block text-sm font-semibold text-gray-300 mb-2">
+                <label id="tournament-label" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Tournament
                 </label>
                 <select
                   value={formData.tournament}
                   onChange={(e) => handleTournamentChange(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                   aria-describedby="tournament-label"
                 >
@@ -332,13 +332,13 @@ export default function BracketView() {
                 </select>
               </div>
               <div>
-                <label id="bracket-type-label" className="block text-sm font-semibold text-gray-300 mb-2">
+                <label id="bracket-type-label" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Bracket Type
                 </label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   aria-describedby="bracket-type-label"
                 >
                   <option value="single-elimination">Single Elimination</option>
@@ -348,13 +348,13 @@ export default function BracketView() {
                 </select>
               </div>
               <div>
-                <label id="number-of-teams-label" className="block text-sm font-semibold text-gray-300 mb-2">
+                <label id="number-of-teams-label" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Number of Teams
                 </label>
                 <select
                   value={formData.numberOfTeams}
                   onChange={(e) => setFormData({ ...formData, numberOfTeams: parseInt(e.target.value) })}
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   aria-describedby="number-of-teams-label"
                 >
                   <option>4</option>
@@ -394,8 +394,8 @@ export default function BracketView() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Available Brackets</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Available Brackets</h2>
           <div className="space-y-2">
             {initialLoading ? (
               <BracketListSkeleton />
