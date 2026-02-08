@@ -36,19 +36,19 @@ export default function Profile() {
         </div>
         <button
           onClick={() => setIsEditing(!isEditing)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
         >
           {isEditing ? 'Cancel' : 'Edit Profile'}
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-300 dark:border-gray-700 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex items-center space-x-6 mb-6">
           <div className="relative">
             <img
               src={profilePicture}
               alt="Profile"
-              className="w-32 h-32 rounded-full object-cover border-4 border-gray-600"
+              className="w-32 h-32 rounded-full object-cover border-4 border-gray-300 dark:border-gray-600"
             />
             {isEditing && (
               <label className="absolute bottom-0 right-0 bg-blue-600 p-2 rounded-full cursor-pointer hover:bg-blue-700">
@@ -68,43 +68,43 @@ export default function Profile() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="text-2xl font-bold bg-gray-700 text-white rounded px-2 py-1 w-full border border-gray-600"
+                className="text-2xl font-bold bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded px-2 py-1 w-full border border-gray-300 dark:border-gray-600"
                 placeholder="Enter username"
               />
             ) : (
-              <h2 className="text-2xl font-bold">{username}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{username}</h2>
             )}
-            <p className="text-gray-400">Member since 2023</p>
+            <p className="text-gray-600 dark:text-gray-400">Member since 2023</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Email</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Email</label>
             {isEditing ? (
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter email"
               />
             ) : (
-              <p className="text-white">{email}</p>
+              <p className="text-gray-900 dark:text-white">{email}</p>
             )}
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-2">Bio</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Bio</label>
             {isEditing ? (
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 rows={3}
                 placeholder="Tell us about yourself"
               />
             ) : (
-              <p className="text-white">{bio}</p>
+              <p className="text-gray-900 dark:text-white">{bio}</p>
             )}
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function Profile() {
           <div className="mt-6 flex justify-end">
             <button
               onClick={handleSave}
-              className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center space-x-2"
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2"
             >
               <Save className="w-4 h-4" />
               <span>Save Changes</span>

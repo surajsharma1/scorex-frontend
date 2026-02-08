@@ -228,14 +228,14 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
         <div className="flex justify-end space-x-4">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handlePayment}
             disabled={loading}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Processing...' : `Pay $${PLANS.find(p => p.id === selectedPlan)?.price}`}
           </button>
