@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Upload, Edit, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Upload, Edit, Trash2, Loader2, User } from 'lucide-react';
 import { teamAPI, tournamentAPI } from '../services/api';
 import { Team, Tournament, Player, User } from './types';
 import PlayerSearch from './PlayerSearch';
@@ -17,6 +17,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedTournamentId, setSelectedTournamentId] = useState<string>(selectedTournament?._id || '');
   const [formData, setFormData] = useState({
     name: '',
     color: '#16a34a',
@@ -32,12 +33,13 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedTournament, selectedTournamentId]);
 
   const fetchData = async () => {
     try {
+      const tournamentFilter = selectedTournament ? selectedTournament._id : (selectedTournamentId && selectedTournamentId !== '' ? selectedTournamentId : undefined);
       const [teamsRes, tournamentsRes] = await Promise.all([
-        teamAPI.getTeams(),
+        teamAPI.getTeams(tournamentFilter),
         tournamentAPI.getTournaments(),
       ]);
       const teamsData = teamsRes.data?.teams || teamsRes.data || [];
@@ -151,6 +153,24 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
           <span>Add New Team</span>
         </button>
       </div>
+
+      {!selectedTournament && (
+        <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+          <h2 className="text-xl font-bold text-white mb-4">Filter by Tournament</h2>
+          <select
+            value={selectedTournamentId}
+            onChange={(e) => setSelectedTournamentId(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-700 text-white"
+          >
+            <option value="">All Tournaments</option>
+            {tournaments.map((tournament) => (
+              <option key={tournament._id} value={tournament._id}>
+                {tournament.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded">
@@ -275,39 +295,92 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
         <div className="lg:col-span-1">
           <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
             <h2 className="text-xl font-bold text-white mb-4">Teams</h2>
-            <div className="space-y-2">
-              {teams.map((team) => (
-                <div
-                  key={team._id}
-                  className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedTeam && selectedTeam._id === team._id
-                      ? 'bg-green-100 text-green-800'
-                      : 'hover:bg-gray-700'
-                  }`}
-                >
-                  <button
-                    onClick={() => setSelectedTeam(team)}
-                    className="flex-1 text-left"
-                  >
-                    <p className="font-semibold text-white">{team.name}</p>
-                    <p className="text-sm text-gray-400">{team.players?.length || 0} players</p>
-                  </button>
-                  <div className="flex space-x-1">
-                    <button
-                      onClick={() => handleEditTeam(team)}
-                      className="p-1 text-blue-400 hover:bg-blue-50 rounded"
+            <div className="space-y-4">
+              {selectedTournament ? (
+                // When viewing specific tournament, show flat list
+                <div className="space-y-2">
+                  {teams.map((team) => (
+                    <div
+                      key={team._id}
+                      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedTeam && selectedTeam._id === team._id
+                          ? 'bg-green-100 text-green-800'
+                          : 'hover:bg-gray-700'
+                      }`}
                     >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteTeam(team._id)}
-                      className="p-1 text-red-400 hover:bg-red-50 rounded"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                      <button
+                        onClick={() => setSelectedTeam(team)}
+                        className="flex-1 text-left"
+                      >
+                        <p className="font-semibold text-white">{team.name}</p>
+                        <p className="text-sm text-gray-400">{team.players?.length || 0} players</p>
+                      </button>
+                      <div className="flex space-x-1">
+                        <button
+                          onClick={() => handleEditTeam(team)}
+                          className="p-1 text-blue-400 hover:bg-blue-50 rounded"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTeam(team._id)}
+                          className="p-1 text-red-400 hover:bg-red-50 rounded"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                // When viewing all teams, group by tournament
+                tournaments.map((tournament) => {
+                  const tournamentTeams = teams.filter(team => {
+                    const teamTournamentId = typeof team.tournament === 'string' ? team.tournament : team.tournament?._id;
+                    return teamTournamentId === tournament._id;
+                  });
+                  if (tournamentTeams.length === 0) return null;
+                  return (
+                    <div key={tournament._id} className="space-y-2">
+                      <h3 className="text-lg font-semibold text-blue-400 border-b border-gray-600 pb-2">
+                        {tournament.name}
+                      </h3>
+                      {tournamentTeams.map((team) => (
+                        <div
+                          key={team._id}
+                          className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ml-4 ${
+                            selectedTeam && selectedTeam._id === team._id
+                              ? 'bg-green-100 text-green-800'
+                              : 'hover:bg-gray-700'
+                          }`}
+                        >
+                          <button
+                            onClick={() => setSelectedTeam(team)}
+                            className="flex-1 text-left"
+                          >
+                            <p className="font-semibold text-white">{team.name}</p>
+                            <p className="text-sm text-gray-400">{team.players?.length || 0} players</p>
+                          </button>
+                          <div className="flex space-x-1">
+                            <button
+                              onClick={() => handleEditTeam(team)}
+                              className="p-1 text-blue-400 hover:bg-blue-50 rounded"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTeam(team._id)}
+                              className="p-1 text-red-400 hover:bg-red-50 rounded"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
