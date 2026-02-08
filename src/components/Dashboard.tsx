@@ -142,7 +142,7 @@ export default function Dashboard() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-4xl font-bold text-gradient">Dashboard</h1>
-          <p className="text-neutral-400 mt-2">
+          <p className="text-gray-600 dark:text-neutral-400 mt-2">
             Welcome to your dashboard! Manage tournaments, teams, and overlays here.
           </p>
         </div>

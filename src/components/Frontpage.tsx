@@ -33,9 +33,9 @@ const Frontpage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Header */}
-      <header className="flex justify-between items-center p-6 bg-gray-800 shadow-lg">
+      <header className="flex justify-between items-center p-6 bg-white dark:bg-gray-800 shadow-lg">
         <h1 className="text-3xl font-bold">ScoreX</h1>
         <button
           onClick={() => setIsModalOpen(true)}
@@ -63,47 +63,47 @@ const Frontpage = () => {
       </section>
 
       {/* Services Section */}
-      <section className="py-20 px-6">
-        <h3 className="text-4xl font-bold text-center mb-12">Our Services</h3>
+      <section className="py-20 px-6 bg-white dark:bg-gray-900">
+        <h3 className="text-4xl font-bold text-center mb-12 text-gray-900 dark:text-white">Our Services</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
-            <h4 className="text-2xl font-semibold mb-4">Tournament Management</h4>
-            <p className="text-gray-300 leading-relaxed">
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-700">
+            <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Tournament Management</h4>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               Easily create and manage cricket tournaments. Schedule matches, track scores,
               and organize brackets for leagues, cups, and local events.
             </p>
           </div>
-          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
-            <h4 className="text-2xl font-semibold mb-4">Team & Player Organization</h4>
-            <p className="text-gray-300 leading-relaxed">
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-700">
+            <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Team & Player Organization</h4>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               Build teams, add players, and manage rosters. Keep track of player stats,
               performance, and team standings with our intuitive tools.
             </p>
           </div>
-          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
-            <h4 className="text-2xl font-semibold mb-4">Live Streaming Overlays</h4>
-            <p className="text-gray-300 leading-relaxed">
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-700">
+            <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Live Streaming Overlays</h4>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               Generate professional overlays for your live streams. Customize designs,
               display scores, brackets, and team info in real-time.
             </p>
           </div>
-          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
-            <h4 className="text-2xl font-semibold mb-4">Real-Time Score Updates</h4>
-            <p className="text-gray-300 leading-relaxed">
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-700">
+            <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Real-Time Score Updates</h4>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               Update match scores live during games. View real-time statistics,
               wickets, overs, and more for an immersive experience.
             </p>
           </div>
-          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
-            <h4 className="text-2xl font-semibold mb-4">Bracket Generation</h4>
-            <p className="text-gray-300 leading-relaxed">
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-700">
+            <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Bracket Generation</h4>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               Automatically generate tournament brackets for single-elimination,
               round-robin, and custom formats. Visualize progress and winners.
             </p>
           </div>
-          <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
-            <h4 className="text-2xl font-semibold mb-4">Community Features</h4>
-            <p className="text-gray-300 leading-relaxed">
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-700">
+            <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Community Features</h4>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               Connect with other organizers and streamers. Share tournaments,
               view public events, and collaborate on cricket projects.
             </p>
@@ -112,37 +112,37 @@ const Frontpage = () => {
       </section>
 
       {/* Overlay Previews Section */}
-      <section className="py-20 px-6 bg-gray-800">
-        <h3 className="text-4xl font-bold text-center mb-12">Overlay Previews</h3>
-        <p className="text-center text-lg mb-12 text-gray-300">
+      <section className="py-20 px-6 bg-gray-100 dark:bg-gray-800">
+        <h3 className="text-4xl font-bold text-center mb-12 text-gray-900 dark:text-white">Overlay Previews</h3>
+        <p className="text-center text-lg mb-12 text-gray-600 dark:text-gray-300">
           See examples of our professional overlay designs. Unlock premium templates
           and customizations with our membership plans.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-gray-700 p-6 rounded-lg shadow-lg text-center">
-            <div className="bg-gray-600 h-48 rounded-lg mb-4 flex items-center justify-center">
-              <span className="text-gray-400">Overlay Preview 1</span>
+          <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-600">
+            <div className="bg-gray-200 dark:bg-gray-600 h-48 rounded-lg mb-4 flex items-center justify-center">
+              <span className="text-gray-500 dark:text-gray-400">Overlay Preview 1</span>
             </div>
-            <h4 className="text-xl font-semibold mb-2">Score Overlay</h4>
-            <p className="text-gray-300">Display live scores, wickets, and overs.</p>
+            <h4 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Score Overlay</h4>
+            <p className="text-gray-600 dark:text-gray-300">Display live scores, wickets, and overs.</p>
           </div>
-          <div className="bg-gray-700 p-6 rounded-lg shadow-lg text-center">
-            <div className="bg-gray-600 h-48 rounded-lg mb-4 flex items-center justify-center">
-              <span className="text-gray-400">Overlay Preview 2</span>
+          <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-600">
+            <div className="bg-gray-200 dark:bg-gray-600 h-48 rounded-lg mb-4 flex items-center justify-center">
+              <span className="text-gray-500 dark:text-gray-400">Overlay Preview 2</span>
             </div>
-            <h4 className="text-xl font-semibold mb-2">Bracket Overlay</h4>
-            <p className="text-gray-300">Show tournament brackets and matchups.</p>
+            <h4 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Bracket Overlay</h4>
+            <p className="text-gray-600 dark:text-gray-300">Show tournament brackets and matchups.</p>
           </div>
-          <div className="bg-gray-700 p-6 rounded-lg shadow-lg text-center">
-            <div className="bg-gray-600 h-48 rounded-lg mb-4 flex items-center justify-center">
-              <span className="text-gray-400">Overlay Preview 3</span>
+          <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-lg text-center border border-gray-200 dark:border-gray-600">
+            <div className="bg-gray-200 dark:bg-gray-600 h-48 rounded-lg mb-4 flex items-center justify-center">
+              <span className="text-gray-500 dark:text-gray-400">Overlay Preview 3</span>
             </div>
-            <h4 className="text-xl font-semibold mb-2">Team Stats Overlay</h4>
-            <p className="text-gray-300">Highlight player and team statistics.</p>
+            <h4 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Team Stats Overlay</h4>
+            <p className="text-gray-600 dark:text-gray-300">Highlight player and team statistics.</p>
           </div>
         </div>
         <div className="text-center mt-12">
-          <p className="text-lg text-gray-300 mb-4">
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
             These premium overlays are available with our membership subscription.
           </p>
           <button
@@ -155,39 +155,39 @@ const Frontpage = () => {
       </section>
 
       {/* Membership Section */}
-      <section className="py-20 px-6">
-        <h3 className="text-4xl font-bold text-center mb-12">Membership & Subscription</h3>
+      <section className="py-20 px-6 bg-gray-50 dark:bg-gray-900">
+        <h3 className="text-4xl font-bold text-center mb-12 text-gray-900 dark:text-white">Membership & Subscription</h3>
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xl mb-8 text-gray-300 leading-relaxed">
+          <p className="text-xl mb-8 text-gray-600 dark:text-gray-300 leading-relaxed">
             Unlock the full potential of ScoreX with our premium membership. Access
             exclusive overlay designs, advanced customization tools, and priority
             support. Our subscription plans are designed for organizers and streamers
             who want professional-grade cricket management and streaming tools.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-gray-800 p-8 rounded-lg shadow-lg">
-              <h4 className="text-2xl font-semibold mb-4">Basic Plan</h4>
-              <p className="text-gray-300 mb-4">Free - Core tournament management features.</p>
-              <ul className="text-left text-gray-300 space-y-2">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+              <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Basic Plan</h4>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">Free - Core tournament management features.</p>
+              <ul className="text-left text-gray-600 dark:text-gray-300 space-y-2">
                 <li>✓ Create tournaments</li>
                 <li>✓ Manage teams</li>
                 <li>✓ Basic brackets</li>
               </ul>
             </div>
-            <div className="bg-gray-800 p-8 rounded-lg shadow-lg border-2 border-blue-500">
-              <h4 className="text-2xl font-semibold mb-4">Pro Plan</h4>
-              <p className="text-gray-300 mb-4">$9.99/month - Advanced features.</p>
-              <ul className="text-left text-gray-300 space-y-2">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border-2 border-blue-500">
+              <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Pro Plan</h4>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">$9.99/month - Advanced features.</p>
+              <ul className="text-left text-gray-600 dark:text-gray-300 space-y-2">
                 <li>✓ All Basic features</li>
                 <li>✓ Premium overlays</li>
                 <li>✓ Real-time updates</li>
                 <li>✓ Custom designs</li>
               </ul>
             </div>
-            <div className="bg-gray-800 p-8 rounded-lg shadow-lg">
-              <h4 className="text-2xl font-semibold mb-4">Enterprise Plan</h4>
-              <p className="text-gray-300 mb-4">$29.99/month - For large events.</p>
-              <ul className="text-left text-gray-300 space-y-2">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+              <h4 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Enterprise Plan</h4>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">$29.99/month - For large events.</p>
+              <ul className="text-left text-gray-600 dark:text-gray-300 space-y-2">
                 <li>✓ All Pro features</li>
                 <li>✓ Multi-tournament support</li>
                 <li>✓ API access</li>
@@ -207,23 +207,23 @@ const Frontpage = () => {
       </section>
 
       {/* Live Scores Section */}
-      <section className="py-20 px-6 bg-gray-800">
-        <h3 className="text-4xl font-bold text-center mb-12">Live Scores</h3>
+      <section className="py-20 px-6 bg-gray-100 dark:bg-gray-800">
+        <h3 className="text-4xl font-bold text-center mb-12 text-gray-900 dark:text-white">Live Scores</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-gray-700 p-6 rounded-lg text-center shadow-lg">
-            <h4 className="text-xl font-semibold mb-2">Match 1</h4>
-            <p className="text-lg">Team A vs Team B: 150/5 (20 overs)</p>
-            <p className="text-sm text-gray-400 mt-2">Live</p>
+          <div className="bg-white dark:bg-gray-700 p-6 rounded-lg text-center shadow-lg border border-gray-200 dark:border-gray-600">
+            <h4 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Match 1</h4>
+            <p className="text-lg text-gray-900 dark:text-white">Team A vs Team B: 150/5 (20 overs)</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Live</p>
           </div>
-          <div className="bg-gray-700 p-6 rounded-lg text-center shadow-lg">
-            <h4 className="text-xl font-semibold mb-2">Match 2</h4>
-            <p className="text-lg">Team C vs Team D: 120/3 (18 overs)</p>
-            <p className="text-sm text-gray-400 mt-2">Completed</p>
+          <div className="bg-white dark:bg-gray-700 p-6 rounded-lg text-center shadow-lg border border-gray-200 dark:border-gray-600">
+            <h4 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Match 2</h4>
+            <p className="text-lg text-gray-900 dark:text-white">Team C vs Team D: 120/3 (18 overs)</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Completed</p>
           </div>
-          <div className="bg-gray-700 p-6 rounded-lg text-center shadow-lg">
-            <h4 className="text-xl font-semibold mb-2">Match 3</h4>
-            <p className="text-lg">Team E vs Team F: 180/7 (20 overs)</p>
-            <p className="text-sm text-gray-400 mt-2">Upcoming</p>
+          <div className="bg-white dark:bg-gray-700 p-6 rounded-lg text-center shadow-lg border border-gray-200 dark:border-gray-600">
+            <h4 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Match 3</h4>
+            <p className="text-lg text-gray-900 dark:text-white">Team E vs Team F: 180/7 (20 overs)</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Upcoming</p>
           </div>
         </div>
       </section>
@@ -260,24 +260,24 @@ const Frontpage = () => {
       </section>
 
       {/* Team Stats Section */}
-      <section className="py-20 px-6 bg-gray-800">
-        <h3 className="text-4xl font-bold text-center mb-12">Team Stats</h3>
+      <section className="py-20 px-6 bg-gray-100 dark:bg-gray-800">
+        <h3 className="text-4xl font-bold text-center mb-12 text-gray-900 dark:text-white">Team Stats</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
           <div>
             <h4 className="text-5xl font-bold text-blue-400 mb-2">150</h4>
-            <p className="text-lg">Total Runs</p>
+            <p className="text-lg text-gray-900 dark:text-white">Total Runs</p>
           </div>
           <div>
             <h4 className="text-5xl font-bold text-green-400 mb-2">10</h4>
-            <p className="text-lg">Wickets Taken</p>
+            <p className="text-lg text-gray-900 dark:text-white">Wickets Taken</p>
           </div>
           <div>
             <h4 className="text-5xl font-bold text-yellow-400 mb-2">5</h4>
-            <p className="text-lg">Matches Won</p>
+            <p className="text-lg text-gray-900 dark:text-white">Matches Won</p>
           </div>
           <div>
             <h4 className="text-5xl font-bold text-red-400 mb-2">95%</h4>
-            <p className="text-lg">Win Rate</p>
+            <p className="text-lg text-gray-900 dark:text-white">Win Rate</p>
           </div>
         </div>
       </section>

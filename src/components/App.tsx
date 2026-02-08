@@ -112,7 +112,7 @@ function App() {
             <div className="flex justify-between items-center mb-8">
               <div>
                 <h1 className="text-4xl font-bold text-gradient mb-2">Dashboard</h1>
-                <p className="text-neutral-400">Welcome back! Here's your tournament overview.</p>
+                <p className="text-gray-600 dark:text-neutral-400">Welcome back! Here's your tournament overview.</p>
               </div>
               <div className="flex items-center space-x-4">
                 <button
@@ -136,7 +136,7 @@ function App() {
                           navigate('/profile');
                           setShowProfileDropdown(false);
                         }}
-                        className="block w-full text-left px-4 py-3 text-neutral-200 hover:bg-primary-500/20 rounded-t-xl transition-colors"
+                        className="block w-full text-left px-4 py-3 text-gray-900 dark:text-neutral-200 hover:bg-primary-500/20 rounded-t-xl transition-colors"
                       >
                         <User className="w-4 h-4 inline mr-3" />
                         Profile
@@ -146,7 +146,7 @@ function App() {
                           handleLogout();
                           setShowProfileDropdown(false);
                         }}
-                        className="block w-full text-left px-4 py-3 text-neutral-200 hover:bg-red-500/20 rounded-b-xl transition-colors"
+                        className="block w-full text-left px-4 py-3 text-gray-900 dark:text-neutral-200 hover:bg-red-500/20 rounded-b-xl transition-colors"
                       >
                         Logout
                       </button>
