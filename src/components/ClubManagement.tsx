@@ -15,6 +15,7 @@ const ClubManagement: React.FC = () => {
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
 
   useEffect(() => {
     loadClubs();
