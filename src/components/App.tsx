@@ -7,7 +7,7 @@ import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { Tournament, Match, Team } from './types';
 import Profile from './Profile';
 import Payment from './Payment';
-import { User, Search, Bell, BarChart3, Crown } from 'lucide-react';
+import { User, Search, Bell, BarChart3, Crown, Menu } from 'lucide-react';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -20,6 +20,7 @@ function App() {
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [error, setError] = useState('');
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { isDark, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -105,14 +106,23 @@ function App() {
 
   return (
     <div className="app-container">
-      <Sidebar />
+      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <div className="main-content">
         {isDashboard ? (
           <div className="animate-fade-in">
             <div className="flex justify-between items-center mb-8">
-              <div>
-                <h1 className="text-4xl font-bold text-gradient mb-2">Dashboard</h1>
-                <p className="text-gray-600 dark:text-neutral-400">Welcome back! Here's your tournament overview.</p>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="md:hidden btn-secondary p-3"
+                  title="Open sidebar"
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+                <div>
+                  <h1 className="text-4xl font-bold text-gradient mb-2">Dashboard</h1>
+                  <p className="text-gray-600 dark:text-neutral-400">Welcome back! Here's your tournament overview.</p>
+                </div>
               </div>
               <div className="flex items-center space-x-4">
                 <button

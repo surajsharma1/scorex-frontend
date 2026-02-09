@@ -1,8 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Trophy, Users, Settings, Eye, BarChart3, User, Crown, UserPlus, Users2, Zap } from 'lucide-react';
+import { Trophy, Users, Settings, Eye, BarChart3, User, Crown, UserPlus, Users2, Zap, X } from 'lucide-react';
 import { useState } from 'react';
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const location = useLocation();
   const [showProfile, setShowProfile] = useState(false);
 
@@ -33,6 +38,7 @@ export default function Sidebar() {
           <Link
             key={item.path}
             to={item.path}
+            onClick={() => isOpen && onToggle()} // Close sidebar on mobile when clicking nav item
             className={`nav-item animate-slide-in`}
             style={{ animationDelay: `${index * 0.1}s` }}
           >
