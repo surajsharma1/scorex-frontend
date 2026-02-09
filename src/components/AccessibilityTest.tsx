@@ -72,17 +72,17 @@ const AccessibilityTest: React.FC<AccessibilityTestProps> = ({ componentName, ch
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Test Controls */}
-      <div className="bg-white shadow-sm border-b p-4">
+      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 p-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             Accessibility Test: {componentName}
           </h1>
           <button
             onClick={runAccessibilityTest}
             disabled={isRunning}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 transition-colors"
           >
             {isRunning ? 'Running...' : 'Run Accessibility Test'}
           </button>
@@ -91,10 +91,10 @@ const AccessibilityTest: React.FC<AccessibilityTestProps> = ({ componentName, ch
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 m-4">
+        <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-400 dark:border-red-600 p-4 m-4">
           <div className="flex">
             <div className="ml-3">
-              <p className="text-sm text-red-700">Test Error: {error}</p>
+              <p className="text-sm text-red-700 dark:text-red-300">Test Error: {error}</p>
             </div>
           </div>
         </div>
@@ -103,13 +103,13 @@ const AccessibilityTest: React.FC<AccessibilityTestProps> = ({ componentName, ch
       {/* Test Results */}
       {results.length > 0 && (
         <div className="p-4">
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold text-gray-900">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Accessibility Issues Found: {results.length}
               </h2>
             </div>
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
               {results.map((result, index) => (
                 <div key={index} className="p-4">
                   <div className="flex items-start">
@@ -117,16 +117,16 @@ const AccessibilityTest: React.FC<AccessibilityTestProps> = ({ componentName, ch
                       {result.impact.toUpperCase()}
                     </div>
                     <div className="ml-3 flex-1">
-                      <h3 className="text-sm font-medium text-gray-900">
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-white">
                         {result.id}
                       </h3>
-                      <p className="mt-1 text-sm text-gray-600">
+                      <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                         {result.description}
                       </p>
-                      <p className="mt-2 text-sm text-gray-500">
+                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">
                         {result.help}
                       </p>
-                      <p className="mt-1 text-xs text-gray-400">
+                      <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                         Affected elements: {result.nodes.length}
                       </p>
                       {result.helpUrl && (
@@ -134,7 +134,7 @@ const AccessibilityTest: React.FC<AccessibilityTestProps> = ({ componentName, ch
                           href={result.helpUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-2 inline-flex items-center text-xs text-blue-600 hover:text-blue-500"
+                          className="mt-2 inline-flex items-center text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                         >
                           Learn more →
                         </a>
@@ -150,9 +150,9 @@ const AccessibilityTest: React.FC<AccessibilityTestProps> = ({ componentName, ch
 
       {/* Component Under Test */}
       <div className="p-4">
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-900">Component Preview</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Component Preview</h2>
           </div>
           <div className="p-4">
             {children}
