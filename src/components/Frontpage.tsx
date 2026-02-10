@@ -20,12 +20,10 @@ const Frontpage = () => {
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
   };
 
-
-
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      navigate('/app');
+      navigate('/');
     }
   }, [navigate]);
 
@@ -69,7 +67,7 @@ const Frontpage = () => {
       <header className="flex justify-between items-center p-6 bg-white dark:bg-gray-800 shadow-lg">
         <h1 className="text-3xl font-bold">ScoreX</h1>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => navigate('/login')}
           className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition-colors shadow-md"
         >
           Login
@@ -91,7 +89,7 @@ const Frontpage = () => {
             stunning live overlays.
           </p>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => navigate('/login')}
             className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition-colors shadow-md"
           >
             Get Started
@@ -225,7 +223,7 @@ const Frontpage = () => {
             These premium overlays are available with our membership subscription.
           </p>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => navigate('/login')}
             className="bg-green-600 hover:bg-green-700 px-8 py-3 rounded-lg font-semibold transition-colors shadow-md"
           >
             Join Now
@@ -275,12 +273,12 @@ const Frontpage = () => {
             </div>
           </div>
           <div className="mt-12">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition-colors shadow-md"
-            >
-              Start Free Trial
-            </button>
+          <button
+            onClick={() => navigate('/login')}
+            className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition-colors shadow-md"
+          >
+            Start Free Trial
+          </button>
           </div>
         </div>
       </section>
@@ -365,103 +363,6 @@ const Frontpage = () => {
       <footer className="py-12 px-6 bg-gray-900 text-center">
         <p>&copy; 2023 ScoreX. All rights reserved. Built for cricket enthusiasts.</p>
       </footer>
-
-      {/* Login/Register Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-gray-800 p-8 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-lg">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold text-white">
-                {isLogin ? 'Login' : 'Register'}
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-white text-2xl"
-              >
-                ×
-              </button>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Login/Register Form */}
-              <div>
-                {error && <p className="text-red-500 mb-4">{error}</p>}
-                <form onSubmit={handleEmailSubmit} className="space-y-4">
-                  {!isLogin && (
-                    <input
-                      type="text"
-                      placeholder="Username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="w-full p-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  )}
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg text-lg font-semibold transition-colors disabled:opacity-50"
-                  >
-                    {loading ? 'Processing...' : (isLogin ? 'Login' : 'Register')}
-                  </button>
-                </form>
-                <div className="mt-6 text-center">
-                  <button
-                    onClick={handleGoogleLogin}
-                    className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg text-lg font-semibold transition-colors mb-4"
-                  >
-                    Google
-                  </button>
-                  <button
-                    onClick={() => setIsLogin(!isLogin)}
-                    className="text-blue-400 hover:underline transition-colors"
-                  >
-                    {isLogin ? 'Need to register?' : 'Already have an account?'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Live Tournaments Section */}
-              <div>
-                <h4 className="text-xl font-bold text-white mb-4">Live Tournaments</h4>
-                {loadingTournaments ? (
-                  <div className="text-center text-gray-400">Loading tournaments...</div>
-                ) : tournaments.length > 0 ? (
-                  <div className="space-y-4">
-                    {tournaments.map((tournament) => (
-                      <div key={tournament._id} className="bg-gray-700 p-4 rounded-lg">
-                        <h5 className="text-lg font-semibold text-white">{tournament.name}</h5>
-                        <p className="text-gray-300 text-sm">{tournament.description || 'No description available'}</p>
-                        <div className="mt-2 text-sm text-gray-400">
-                          <span>Status: {tournament.status || 'Active'}</span>
-                          <span className="ml-4">Teams: {tournament.teams?.length || 0}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center text-gray-400">No live tournaments available</div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
