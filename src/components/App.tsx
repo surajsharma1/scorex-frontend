@@ -102,6 +102,7 @@ function App() {
   }
 
   const isDashboard = location.pathname === '/';
+  const isProfile = location.pathname === '/profile';
   const activeTournaments = tournaments.filter((t) => t.status === 'active');
 
   return (
