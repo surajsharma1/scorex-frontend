@@ -4,15 +4,16 @@ import api, { userAPI } from '../services/api';
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null);
-  const [username, setUsername] = useState('John Doe');
+  const [username, setUsername] = useState('');
   const [profilePicture, setProfilePicture] = useState('https://via.placeholder.com/150');
-  const [email, setEmail] = useState('john@example.com');
+  const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [dob, setDob] = useState('');
-  const [bio, setBio] = useState('Cricket enthusiast and tournament organizer.');
+  const [bio, setBio] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [tournamentsCreated] = useState(5);
   const [matchesManaged] = useState(12);
   const [teamsAdded] = useState(8);
@@ -20,7 +21,7 @@ export default function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await api.getProfile();
+        const response = await userAPI.getProfile();
         setUser(response.data);
         setUsername(response.data.username);
         setEmail(response.data.email);
@@ -55,6 +56,10 @@ export default function Profile() {
       // Refresh profile data
       const response = await userAPI.getProfile();
       setUser(response.data);
+      setUsername(response.data.username);
+      setEmail(response.data.email);
+      setProfilePicture(response.data.profilePicture || 'https://via.placeholder.com/150');
+      setBio(response.data.bio || '');
       setFullName(response.data.fullName || '');
       setDob(response.data.dob ? new Date(response.data.dob).toISOString().split('T')[0] : '');
     } catch (error) {
