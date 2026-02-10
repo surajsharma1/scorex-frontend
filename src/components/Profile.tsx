@@ -50,11 +50,9 @@ export default function Profile() {
 
   const handleSave = async () => {
     setSaving(true);
+    setError('');
     try {
-      await userAPI.updateProfile({ username, email, profilePicture, bio, fullName, dob });
-      setIsEditing(false);
-      // Refresh profile data
-      const response = await userAPI.getProfile();
+      const response = await userAPI.updateProfile({ username, email, profilePicture, bio, fullName, dob });
       setUser(response.data);
       setUsername(response.data.username);
       setEmail(response.data.email);
@@ -62,8 +60,10 @@ export default function Profile() {
       setBio(response.data.bio || '');
       setFullName(response.data.fullName || '');
       setDob(response.data.dob ? new Date(response.data.dob).toISOString().split('T')[0] : '');
-    } catch (error) {
+      setIsEditing(false);
+    } catch (error: any) {
       console.error('Failed to update profile:', error);
+      setError(error.response?.data?.message || 'Failed to update profile');
     } finally {
       setSaving(false);
     }
