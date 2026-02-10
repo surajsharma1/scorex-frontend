@@ -26,6 +26,8 @@ export default function Profile() {
         setEmail(response.data.email);
         setProfilePicture(response.data.profilePicture || 'https://via.placeholder.com/150');
         setBio(response.data.bio || '');
+        setFullName(response.data.fullName || '');
+        setDob(response.data.dob ? new Date(response.data.dob).toISOString().split('T')[0] : '');
       } catch (error) {
         console.error('Failed to fetch profile:', error);
       } finally {
@@ -48,11 +50,13 @@ export default function Profile() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await userAPI.updateProfile({ username, email, profilePicture, bio });
+      await userAPI.updateProfile({ username, email, profilePicture, bio, fullName, dob });
       setIsEditing(false);
       // Refresh profile data
       const response = await userAPI.getProfile();
       setUser(response.data);
+      setFullName(response.data.fullName || '');
+      setDob(response.data.dob ? new Date(response.data.dob).toISOString().split('T')[0] : '');
     } catch (error) {
       console.error('Failed to update profile:', error);
     } finally {
@@ -124,6 +128,33 @@ export default function Profile() {
               />
             ) : (
               <p className="text-gray-900 dark:text-white">{email}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter full name"
+              />
+            ) : (
+              <p className="text-gray-900 dark:text-white">{fullName || 'Not provided'}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date of Birth</label>
+            {isEditing ? (
+              <input
+                type="date"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              />
+            ) : (
+              <p className="text-gray-900 dark:text-white">{dob ? new Date(dob).toLocaleDateString() : 'Not provided'}</p>
             )}
           </div>
           <div>
