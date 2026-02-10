@@ -1,24 +1,8 @@
-  import React, { useState, useEffect } from 'react';
+  import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { tournamentAPI } from '../services/api';
-import { Tournament } from './types';
 
 const Frontpage = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [loadingTournaments, setLoadingTournaments] = useState(false);
   const navigate = useNavigate();
-
-  const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
-  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -26,40 +10,6 @@ const Frontpage = () => {
       navigate('/');
     }
   }, [navigate]);
-
-  useEffect(() => {
-    const fetchTournaments = async () => {
-      setLoadingTournaments(true);
-      try {
-        const response = await tournamentAPI.getTournaments();
-        const tournamentsData = response.data?.tournaments || response.data || [];
-        setTournaments(Array.isArray(tournamentsData) ? tournamentsData.slice(0, 4) : []);
-      } catch (error) {
-        console.error('Failed to fetch tournaments:', error);
-      } finally {
-        setLoadingTournaments(false);
-      }
-    };
-
-    fetchTournaments();
-  }, []);
-
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const data = isLogin ? { email, password } : { username, email, password };
-      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}${endpoint}`, data);
-      localStorage.setItem('token', response.data.token);
-      window.location.reload();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">

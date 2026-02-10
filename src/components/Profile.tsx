@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User, Camera, Save, Trophy, Users, Eye } from 'lucide-react'; // Removed unused: Settings
-import { userAPI } from '../services/api';
+import api, { userAPI } from '../services/api';
 
 export default function Profile() {
   const [user, setUser] = useState<any>(null);
