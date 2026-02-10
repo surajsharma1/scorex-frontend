@@ -108,7 +108,9 @@ function App() {
     <div className="app-container">
       <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <div className="main-content">
-        {isDashboard ? (
+        {isProfile ? (
+          <Profile />
+        ) : isDashboard ? (
           <div className="animate-fade-in">
             <div className="flex justify-between items-center mb-8">
               <div className="flex items-center space-x-4">

@@ -117,6 +117,18 @@ export default function Login() {
             Continue with Google
           </button>
         </form>
+
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
+            Don't have an account?{' '}
+            <button
+              onClick={() => navigate('/register')}
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium"
+            >
+              Sign up here
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );
