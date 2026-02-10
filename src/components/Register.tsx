@@ -46,18 +46,8 @@ export default function Register() {
         dob: formData.dob,
         googleId: formData.googleId,
       });
-      if (formData.googleId) {
-        // Google registration: direct login
-        if (response.data.token) {
-          localStorage.setItem('token', response.data.token);
-          navigate('/profile');
-        } else {
-          setError('Registration failed: No token received');
-        }
-      } else {
-        // Email registration: OTP sent, show OTP input
-        setShowOtp(true);
-      }
+      // Always show OTP input after registration
+      setShowOtp(true);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
