@@ -1,15 +1,37 @@
 import { useState, useEffect } from 'react';
 import { User, Camera, Save, Trophy, Users, Eye } from 'lucide-react'; // Removed unused: Settings
+import { userAPI } from '../services/api';
 
 export default function Profile() {
+  const [user, setUser] = useState<any>(null);
   const [username, setUsername] = useState('John Doe');
   const [profilePicture, setProfilePicture] = useState('https://via.placeholder.com/150');
   const [email, setEmail] = useState('john@example.com');
   const [bio, setBio] = useState('Cricket enthusiast and tournament organizer.');
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [tournamentsCreated] = useState(5);
   const [matchesManaged] = useState(12);
   const [teamsAdded] = useState(8);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.getProfile();
+        setUser(response.data);
+        setUsername(response.data.username);
+        setEmail(response.data.email);
+        setProfilePicture(response.data.profilePicture || 'https://via.placeholder.com/150');
+        setBio(response.data.bio || '');
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -21,10 +43,19 @@ export default function Profile() {
     }
   };
 
-  const handleSave = () => {
-    // TODO: Send updated data to backend (e.g., API call to update user profile)
-    console.log('Saving profile:', { username, email, bio, profilePicture });
-    setIsEditing(false);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await userAPI.updateProfile({ username, email, profilePicture, bio });
+      setIsEditing(false);
+      // Refresh profile data
+      const response = await userAPI.getProfile();
+      setUser(response.data);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
