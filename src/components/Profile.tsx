@@ -7,6 +7,8 @@ export default function Profile() {
   const [username, setUsername] = useState('John Doe');
   const [profilePicture, setProfilePicture] = useState('https://via.placeholder.com/150');
   const [email, setEmail] = useState('john@example.com');
+  const [fullName, setFullName] = useState('');
+  const [dob, setDob] = useState('');
   const [bio, setBio] = useState('Cricket enthusiast and tournament organizer.');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);

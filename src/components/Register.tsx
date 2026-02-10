@@ -1,17 +1,31 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authAPI } from '../services/api';
 
 export default function Register() {
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     confirmPassword: '',
+    fullName: '',
+    dob: '',
+    googleId: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Prefill from query params if from Google OAuth
+    const email = searchParams.get('email');
+    const fullName = searchParams.get('fullName');
+    const googleId = searchParams.get('googleId');
+    if (email) setFormData(prev => ({ ...prev, email }));
+    if (fullName) setFormData(prev => ({ ...prev, fullName }));
+    if (googleId) setFormData(prev => ({ ...prev, googleId }));
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,10 +40,13 @@ export default function Register() {
         username: formData.username,
         email: formData.email,
         password: formData.password,
+        fullName: formData.fullName,
+        dob: formData.dob,
+        googleId: formData.googleId,
       });
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        navigate('/');
+        navigate('/profile');
       } else {
         setError('Registration failed: No token received');
       }

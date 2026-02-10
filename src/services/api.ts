@@ -30,7 +30,7 @@ api.interceptors.response.use(
 );
 
 export const authAPI = {
-  register: (data: { username: string; email: string; password: string }) => api.post('/auth/register', data),
+  register: (data: { username: string; email: string; password: string; fullName?: string; dob?: string; googleId?: string }) => api.post('/auth/register', data),
   login: (data: { email: string; password: string }) => api.post('/auth/login', data),
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
   resetPassword: (token: string, password: string) => api.post(`/auth/reset-password/${token}`, { password }),
@@ -82,7 +82,7 @@ export const userAPI = {
   getNotificationPreferences: () => api.get('/users/notifications/preferences'),
   updateNotificationPreferences: (preferences: any) => api.put('/users/notifications/preferences', preferences),
   getProfile: () => api.get('/users/profile'),
-  updateProfile: (data: { username: string; email: string; profilePicture?: string; bio?: string }) => api.put('/users/profile', data),
+  updateProfile: (data: { username: string; email: string; profilePicture?: string; bio?: string; fullName?: string; dob?: string }) => api.put('/users/profile', data),
   searchUsers: (query: string) => api.get('/users/search', { params: { query } }),
 };
 
