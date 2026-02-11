@@ -362,7 +362,7 @@ const handleCreateMatch = async (e: React.FormEvent) => {
                 Array.isArray(filteredTournaments) ? filteredTournaments.map((tournament) => (
                   <div key={tournament._id} className="flex justify-between items-center px-4 py-3 rounded-lg hover:bg-gray-700">
                     <button
-                      onClick={() => setSelectedTournament(tournament)}
+                      onClick={() => navigate(`/tournaments/${tournament._id}`)}
                       className={`flex-1 text-left ${
                         selectedTournament && selectedTournament._id === tournament._id
                           ? 'bg-blue-600 text-white'
