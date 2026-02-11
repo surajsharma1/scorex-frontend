@@ -19,6 +19,8 @@ const ClubManagement: React.FC = () => {
   const [clubDetails, setClubDetails] = useState<Club | null>(null);
   const [clubMembers, setClubMembers] = useState<User[]>([]);
   const [showClubDetails, setShowClubDetails] = useState(false);
+  const [clubSearchQuery, setClubSearchQuery] = useState('');
+  const [clubSearchResults, setClubSearchResults] = useState<Club[]>([]);
 
   useEffect(() => {
     loadClubs();
@@ -117,6 +119,20 @@ const ClubManagement: React.FC = () => {
       setShowClubDetails(true);
     } catch (err) {
       console.error('Failed to load club details');
+    }
+  };
+
+  const handleSearchClubs = async (query: string) => {
+    if (query.length < 2) {
+      setClubSearchResults([]);
+      return;
+    }
+    try {
+      const response = await clubAPI.searchClubs(query);
+      const clubsArray = Array.isArray(response.data) ? response.data : (Array.isArray(response.data?.clubs) ? response.data.clubs : []);
+      setClubSearchResults(clubsArray);
+    } catch (err) {
+      console.error('Club search failed');
     }
   };
 
