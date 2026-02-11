@@ -46,6 +46,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Dashboard /> },
       { path: "tournaments", element: <TournamentView /> },
+      { path: "tournaments/:id", element: <TournamentDetail /> },
       { path: "teams", element: <TeamManagement /> },
       { path: "friends", element: <FriendList /> },
       { path: "clubs", element: <ClubManagement /> },
