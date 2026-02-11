@@ -105,6 +105,8 @@ export const clubAPI = {
   leaveClub: (clubId: string) => api.post(`/clubs/${clubId}/leave`),
   updateClub: (clubId: string, data: { name?: string; description?: string }) => api.put(`/clubs/${clubId}`, data),
   deleteClub: (clubId: string) => api.delete(`/clubs/${clubId}`),
+  addMember: (clubId: string, userId: string) => api.post(`/clubs/${clubId}/members`, { userId }),
+  removeMember: (clubId: string, userId: string) => api.delete(`/clubs/${clubId}/members/${userId}`),
 };
 export const notificationAPI = {
   getNotifications: () => api.get('/notifications'),

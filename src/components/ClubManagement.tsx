@@ -82,11 +82,15 @@ const ClubManagement: React.FC = () => {
 
   const handleAddMember = async (userId: string) => {
     if (!selectedClub) return;
-    // This would need a backend endpoint to add members
-    // For now, just close the modal
-    setSelectedClub(null);
-    setSearchResults([]);
-    setSearchQuery('');
+    try {
+      await clubAPI.addMember(selectedClub._id, userId);
+      setSelectedClub(null);
+      setSearchResults([]);
+      setSearchQuery('');
+      loadClubs();
+    } catch (err) {
+      console.error('Failed to add member');
+    }
   };
 
   if (loading) {

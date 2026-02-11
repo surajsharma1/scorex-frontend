@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User, Friend } from './types';
-import { friendAPI } from '../services/api';
-import { Users, UserPlus, UserCheck, UserX, Loader } from 'lucide-react';
+import { friendAPI, userAPI } from '../services/api';
+import { Users, UserPlus, UserCheck, UserX, Loader, Search } from 'lucide-react';
 
 interface FriendListProps {
   onFriendSelect?: (friend: User) => void;
@@ -14,6 +14,9 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
   const [pendingRequests, setPendingRequests] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     loadFriends();
@@ -66,6 +69,35 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
       loadFriends();
     } catch (err) {
       setError('Failed to remove friend');
+    }
+  };
+
+  const handleSearchUsers = async (query: string) => {
+    setSearchQuery(query);
+    if (query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setSearching(true);
+    try {
+      const response = await userAPI.searchUsers(query);
+      const usersArray = Array.isArray(response.data) ? response.data : [];
+      setSearchResults(usersArray);
+    } catch (err) {
+      console.error('Search failed');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleSendFriendRequest = async (userId: string) => {
+    try {
+      await friendAPI.sendFriendRequest(userId);
+      setSearchResults([]);
+      setSearchQuery('');
+      setError('');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to send friend request');
     }
   };
 
@@ -132,6 +164,54 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
           </div>
         </div>
       )}
+
+      {/* Search Users */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+          {t('friends.searchUsers', 'Search Users')}
+        </h3>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder={t('friends.searchPlaceholder', 'Search by username...')}
+            value={searchQuery}
+            onChange={(e) => handleSearchUsers(e.target.value)}
+            className="w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          {searching && (
+            <div className="absolute right-3 top-2.5">
+              <Loader className="animate-spin h-4 w-4 text-blue-600" />
+            </div>
+          )}
+        </div>
+        {searchResults.length > 0 && (
+          <div className="mt-3 max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg">
+            {searchResults.map((user) => (
+              <div
+                key={user._id}
+                className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer flex justify-between items-center border-b border-gray-100 dark:border-gray-600 last:border-b-0"
+                onClick={() => handleSendFriendRequest(user._id)}
+              >
+                <div className="flex items-center">
+                  <div className="h-8 w-8 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-white">
+                      {user.username.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="ml-3">
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{user.username}</span>
+                    {user.bio && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{user.bio}</p>
+                    )}
+                  </div>
+                </div>
+                <UserPlus className="h-4 w-4 text-blue-600" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Friends List */}
       <div className="p-4">
