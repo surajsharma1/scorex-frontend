@@ -93,6 +93,8 @@ export default function TournamentDetail() {
       setTournament(response.data);
     } catch (error) {
       setError('Failed to fetch tournament');
+    } finally {
+      setLoading(false);
     }
   };
 
