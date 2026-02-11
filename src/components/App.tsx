@@ -115,13 +115,6 @@ function App() {
           <div className="animate-fade-in">
             <div className="flex justify-between items-center mb-8">
               <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setIsSidebarOpen(true)}
-                  className="md:hidden btn-secondary p-3"
-                  title="Open sidebar"
-                >
-                  <Menu className="w-5 h-5" />
-                </button>
                 <div>
                   <h1 className="text-4xl font-bold text-gradient mb-2">Dashboard</h1>
                   <p className="text-gray-600 dark:text-neutral-400">Welcome back! Here's your tournament overview.</p>
