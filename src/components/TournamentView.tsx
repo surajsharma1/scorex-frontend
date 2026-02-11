@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { Tournament, Match, Team } from './types';
 import io, { Socket } from 'socket.io-client';
@@ -8,6 +9,7 @@ import TeamManagement from './TeamManagement';
 import OverlayEditor from './OverlayEditor';
 
 export default function TournamentView() {
+  const navigate = useNavigate();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
