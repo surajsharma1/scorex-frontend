@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './components/App';
 import Dashboard from './components/Dashboard';
 import TournamentView from './components/TournamentView';
+import TournamentDetail from './components/TournamentDetail';
 import TeamManagement from './components/TeamManagement';
 import OverlayForm from './components/OverlayForm';
 import OverlayEditor from './components/OverlayEditor';
