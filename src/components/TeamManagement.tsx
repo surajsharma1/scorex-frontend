@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Upload, Edit, Trash2, Loader2, User } from 'lucide-react';
-import { teamAPI, tournamentAPI } from '../services/api';
+import { Plus, Upload, Edit, Trash2, Loader2, User, Settings } from 'lucide-react';
+import { teamAPI, tournamentAPI, overlayAPI } from '../services/api';
 import { Team, Tournament, Player } from './types';
 import PlayerSearch from './PlayerSearch';
 
@@ -134,6 +134,34 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
   const resetForm = () => {
     setFormData({ name: '', color: '#16a34a', tournament: '' });
     setLogoFile(null);
+  };
+
+  const handleCreateOverlay = async (team: Team, tournament: Tournament) => {
+    try {
+      setLoading(true);
+      const overlayData = {
+        name: `${team.name} - Live Score`,
+        tournament: tournament._id,
+        template: 'classic',
+        config: {
+          backgroundColor: team.color || '#16a34a',
+          opacity: 90,
+          fontFamily: 'Inter',
+          position: 'top',
+          showAnimations: true,
+          autoUpdate: true,
+        },
+        elements: [],
+      };
+
+      await overlayAPI.createOverlay(overlayData);
+      setError('Overlay created successfully! Check Overlay Editor to view and customize.');
+      setTimeout(() => setError(''), 3000);
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Failed to create overlay');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

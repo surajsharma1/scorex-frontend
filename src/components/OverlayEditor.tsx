@@ -33,6 +33,34 @@ const PRE_DESIGNED_OVERLAYS = [
     membership: 'pro',
     preview: '/overlays/ipl-preview.png',
   },
+  {
+    id: 'dark',
+    name: 'Dark Theme',
+    description: 'Dark overlay with neon accents for night streaming',
+    membership: 'premium',
+    preview: '/overlays/dark-preview.png',
+  },
+  {
+    id: 'minimalist',
+    name: 'Minimalist',
+    description: 'Ultra-clean design focusing on scores only',
+    membership: 'free',
+    preview: '/overlays/minimalist-preview.png',
+  },
+  {
+    id: 'animated',
+    name: 'Animated Score',
+    description: 'Dynamic overlay with smooth animations',
+    membership: 'pro',
+    preview: '/overlays/animated-preview.png',
+  },
+  {
+    id: 'retro',
+    name: 'Retro Style',
+    description: 'Vintage cricket scoreboard design',
+    membership: 'premium',
+    preview: '/overlays/retro-preview.png',
+  },
 ];
 
 interface OverlayEditorProps {
