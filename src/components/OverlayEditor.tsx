@@ -275,7 +275,14 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
       ]);
       const overlaysData = overlaysRes.data || [];
       const tournamentsData = tournamentsRes.data?.tournaments || tournamentsRes.data || [];
-      setOverlays(Array.isArray(overlaysData) ? overlaysData : []);
+      let filteredOverlays = Array.isArray(overlaysData) ? overlaysData : [];
+
+      // If selectedTournament is passed as prop, filter overlays by that tournament
+      if (propSelectedTournament) {
+        filteredOverlays = filteredOverlays.filter(overlay => overlay.tournament === propSelectedTournament._id);
+      }
+
+      setOverlays(filteredOverlays);
       setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to fetch data');
