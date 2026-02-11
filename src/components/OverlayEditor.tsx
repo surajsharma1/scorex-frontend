@@ -279,7 +279,7 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
 
       // If selectedTournament is passed as prop, filter overlays by that tournament
       if (propSelectedTournament) {
-        filteredOverlays = filteredOverlays.filter(overlay => overlay.tournament === propSelectedTournament._id);
+        filteredOverlays = filteredOverlays.filter(overlay => overlay.tournament?._id === propSelectedTournament._id);
       }
 
       setOverlays(filteredOverlays);
@@ -349,8 +349,8 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
   };
 
   const handlePreview = (overlay: Overlay) => {
-    const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-    window.open(`${backendUrl.replace('/api', '')}/api/overlays/public/${overlay.publicId}`, '_blank');
+    const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+    window.open(`${backendUrl}/overlays/public/${overlay.publicId}`, '_blank');
   };
 
   const handleDownload = (overlay: Overlay) => {

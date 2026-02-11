@@ -18,7 +18,7 @@ export default function TournamentView() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [scoreHistory, setScoreHistory] = useState([]);
   const [matchForm, setMatchForm] = useState({
-    tournament: '',
+    tournament: '',   
     team1: '',
     team2: '',
     date: '',
