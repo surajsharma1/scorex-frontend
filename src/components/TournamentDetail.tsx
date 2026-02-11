@@ -24,7 +24,7 @@ export default function TournamentDetail() {
     venue: '',
   });
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   interface ScoreForm {
