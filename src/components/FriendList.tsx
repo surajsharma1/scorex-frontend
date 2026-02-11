@@ -173,7 +173,7 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
         <div className="relative">
           <input
             type="text"
-            placeholder={t('friends.searchPlaceholder', 'Search by username...')}
+            placeholder={t('friends.searchPlaceholder', 'Search by username or email...')}
             value={searchQuery}
             onChange={(e) => handleSearchUsers(e.target.value)}
             className="w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -201,6 +201,9 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
                   </div>
                   <div className="ml-3">
                     <span className="text-sm font-medium text-gray-900 dark:text-white">{user.username}</span>
+                    {user.email && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                    )}
                     {user.bio && (
                       <p className="text-xs text-gray-500 dark:text-gray-400">{user.bio}</p>
                     )}
@@ -227,25 +230,36 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
             {friends.map((friend) => (
               <div
                 key={friend._id}
-                className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
+                className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer border border-gray-100 dark:border-gray-600"
                 onClick={() => onFriendSelect?.(friend)}
               >
                 <div className="flex items-center">
-                  <div className="h-8 w-8 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center">
+                  <div className="h-10 w-10 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-sm font-medium text-white">
                       {friend.username.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <span className="ml-3 text-sm font-medium text-gray-900 dark:text-white">
-                    {friend.username}
-                  </span>
+                  <div className="ml-3">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{friend.username}</span>
+                      {friend.fullName && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">({friend.fullName})</span>
+                      )}
+                    </div>
+                    {friend.email && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{friend.email}</p>
+                    )}
+                    {friend.bio && (
+                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">{friend.bio}</p>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRemoveFriend(friend._id);
                   }}
-                  className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                  className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                   aria-label={`Remove ${friend.username} from friends`}
                 >
                   <UserX className="h-4 w-4" />
