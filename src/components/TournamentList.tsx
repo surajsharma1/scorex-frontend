@@ -74,14 +74,14 @@ export default function TournamentList() {
         {tournaments.map((tournament) => (
           <div
             key={tournament._id}
-            className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded shadow border border-gray-200 dark:border-gray-700"
+            className="flex items-center justify-between w-full bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700"
             role="listitem"
             aria-label={`Tournament: ${tournament.name}`}
           >
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white" id={`tournament-${tournament._id}-name`}>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex-1" id={`tournament-${tournament._id}-name`}>
               {tournament.name}
             </h3>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
                 {/* Placeholder for logo */}
                 <span className="text-gray-600 dark:text-gray-400 text-sm">Logo</span>
