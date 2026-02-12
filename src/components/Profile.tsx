@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+ import { useState, useEffect } from 'react';
 import { User, Camera, Save, Trophy, Users, Eye } from 'lucide-react'; // Removed unused: Settings
 import api, { userAPI } from '../services/api';
 

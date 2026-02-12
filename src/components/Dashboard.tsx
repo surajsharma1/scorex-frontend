@@ -81,12 +81,16 @@ const useAdminData = (isAdmin: boolean) => {
 const useTournamentData = (isAdmin: boolean) => {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loadingTournaments, setLoadingTournaments] = useState(false);
+  const [activeTournaments, setActiveTournaments] = useState<Tournament[]>([]);
 
   const fetchTournaments = useCallback(async () => {
     setLoadingTournaments(true);
     try {
       const response = await tournamentAPI.getTournaments(1, 50); // Fetch more for admin
-      setTournaments(response.data?.tournaments || []);
+      const allTournaments = response.data?.tournaments || [];
+      setTournaments(allTournaments);
+      // Filter active tournaments
+      setActiveTournaments(allTournaments.filter((t: { status: string; }) => t.status === 'active'));
     } catch (error) {
       console.error('Failed to fetch tournaments');
     } finally {
@@ -98,6 +102,7 @@ const useTournamentData = (isAdmin: boolean) => {
     try {
       await tournamentAPI.deleteTournament(id);
       setTournaments(prev => prev.filter(t => t._id !== id));
+      setActiveTournaments(prev => prev.filter(t => t._id !== id));
     } catch (error) {
       console.error('Failed to delete tournament');
     }
@@ -109,7 +114,7 @@ const useTournamentData = (isAdmin: boolean) => {
     }
   }, [isAdmin, fetchTournaments]);
 
-  return { tournaments, loadingTournaments, deleteTournament };
+  return { tournaments, loadingTournaments, deleteTournament, activeTournaments };
 };
 
 export default function Dashboard() {
@@ -118,7 +123,7 @@ export default function Dashboard() {
   const currentUser = useAuth();
   const isAdmin = currentUser?.role === 'admin';
   const { users, loading, tournamentStats, userStats, updateUserRole } = useAdminData(isAdmin);
-  const { tournaments, loadingTournaments, deleteTournament } = useTournamentData(isAdmin);
+  const { tournaments, loadingTournaments, deleteTournament, activeTournaments } = useTournamentData(isAdmin);
 
   const tournamentChartData = {
     labels: ['Total', 'Active', 'Completed'],
