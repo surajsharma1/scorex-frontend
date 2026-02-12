@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CreditCard, CheckCircle, X } from 'lucide-react';
+import { Smartphone, CheckCircle, X, CreditCard } from 'lucide-react';
 
 interface PaymentProps {
   onClose: () => void;
@@ -14,7 +14,7 @@ const LEVELS = [
     features: [
       'All unanimated overlay templates',
       'Basic customization',
-      'Up to 5 tournaments',
+      'Unlimited tournaments',
       'Community support'
     ],
     color: 'bg-blue-600'
@@ -49,7 +49,11 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
   const [selectedLevel, setSelectedLevel] = useState('level1');
   const [selectedDuration, setSelectedDuration] = useState('1week');
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('upi');
+  const [upiDetails, setUpiDetails] = useState({
+    upiId: '',
+    name: ''
+  });
   const [cardDetails, setCardDetails] = useState({
     number: '',
     expiry: '',
@@ -65,20 +69,57 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
 
   const handlePayment = async () => {
     setLoading(true);
-    // Simulate payment processing
-    setTimeout(async () => {
+    try {
+      const price = calculatePrice();
+
+      // Create payment intent
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/payments/create-intent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          amount: price,
+          level: selectedLevel,
+          duration: selectedDuration
+        })
+      });
+
+      const { clientSecret, paymentIntentId } = await response.json();
+
+      // For UPI payments, we would integrate with Stripe Elements
+      // For now, simulate successful payment
+      setTimeout(async () => {
+        // Confirm payment
+        const confirmResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/payments/confirm`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            paymentIntentId,
+            level: selectedLevel,
+            duration: selectedDuration
+          })
+        });
+
+        const result = await confirmResponse.json();
+
+        if (result.success) {
+          onSuccess(`premium-${selectedLevel}`);
+        } else {
+          throw new Error('Payment confirmation failed');
+        }
+      }, 2000);
+
+    } catch (error) {
+      console.error('Payment failed:', error);
+      onSuccess(`premium-${selectedLevel}`); // Still proceed for demo
+    } finally {
       setLoading(false);
-      // Update user membership on backend
-      try {
-        // Assuming we have an API to update membership
-        // await userAPI.updateMembership(`premium-${selectedLevel}`);
-        // For now, just call onSuccess
-        onSuccess(`premium-${selectedLevel}`);
-      } catch (error) {
-        console.error('Failed to update membership:', error);
-        onSuccess(`premium-${selectedLevel}`); // Still proceed for demo
-      }
-    }, 2000);
+    }
   };
 
   return (
@@ -151,7 +192,18 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
         {/* Payment Method Selection */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-white mb-4">Payment Method</h3>
-          <div className="flex space-x-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <button
+              onClick={() => setPaymentMethod('upi')}
+              className={`flex items-center px-4 py-2 rounded-lg ${
+                paymentMethod === 'upi'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              <Smartphone className="w-5 h-5 mr-2" />
+              UPI
+            </button>
             <button
               onClick={() => setPaymentMethod('card')}
               className={`flex items-center px-4 py-2 rounded-lg ${
@@ -177,6 +229,35 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
         </div>
 
         {/* Payment Form */}
+        {paymentMethod === 'upi' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                UPI ID
+              </label>
+              <input
+                type="text"
+                placeholder="user@upi"
+                value={upiDetails.upiId}
+                onChange={(e) => setUpiDetails({ ...upiDetails, upiId: e.target.value })}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Full Name
+              </label>
+              <input
+                type="text"
+                placeholder="John Doe"
+                value={upiDetails.name}
+                onChange={(e) => setUpiDetails({ ...upiDetails, name: e.target.value })}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              />
+            </div>
+          </div>
+        )}
+
         {paymentMethod === 'card' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
