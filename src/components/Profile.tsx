@@ -25,7 +25,7 @@ export default function Profile() {
         setUser(response.data);
         setUsername(response.data.username);
         setEmail(response.data.email);
-        setProfilePicture(response.data.profilePicture || 'https://via.placeholder.com/150');
+        setProfilePicture(response.data.profilePicture || 'https://ui-avatars.com/api/?name=User&background=random&color=fff&size=150');
         setBio(response.data.bio || '');
         setFullName(response.data.fullName || '');
         setDob(response.data.dob ? new Date(response.data.dob).toISOString().split('T')[0] : '');

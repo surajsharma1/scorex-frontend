@@ -65,33 +65,39 @@ export default function TournamentList() {
       >
         Create New
       </button>
-      <ul
+      <div
         className="space-y-2"
         role="list"
         aria-labelledby="tournaments-heading"
         aria-label={`List of ${tournaments.length} tournaments`}
       >
         {tournaments.map((tournament) => (
-          <li
+          <div
             key={tournament._id}
-            className="bg-white dark:bg-gray-800 p-4 rounded shadow border border-gray-200 dark:border-gray-700"
+            className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded shadow border border-gray-200 dark:border-gray-700"
             role="listitem"
             aria-label={`Tournament: ${tournament.name}`}
           >
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white" id={`tournament-${tournament._id}-name`}>
               {tournament.name}
             </h3>
-            <button
-              onClick={() => navigate(`/tournaments/${tournament._id}/edit`)}
-              className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 mt-2 transition-colors"
-              aria-label={`Edit tournament ${tournament.name}`}
-              aria-describedby={`tournament-${tournament._id}-name`}
-            >
-              Edit
-            </button>
-          </li>
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                {/* Placeholder for logo */}
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Logo</span>
+              </div>
+              <button
+                onClick={() => navigate(`/tournaments/${tournament._id}/edit`)}
+                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                aria-label={`Edit tournament ${tournament.name}`}
+                aria-describedby={`tournament-${tournament._id}-name`}
+              >
+                Edit
+              </button>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
       {pagination?.hasNext && (
         <div className="mt-4 text-center">
           <button
