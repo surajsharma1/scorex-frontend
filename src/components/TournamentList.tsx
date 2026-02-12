@@ -78,23 +78,23 @@ export default function TournamentList() {
             role="listitem"
             aria-label={`Tournament: ${tournament.name}`}
           >
-            <div className="flex items-center space-x-3 flex-1">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex-1" id={`tournament-${tournament._id}-name`}>
+              {tournament.name}
+            </h3>
+            <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
                 {/* Placeholder for logo */}
                 <span className="text-gray-600 dark:text-gray-400 text-sm">Logo</span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white" id={`tournament-${tournament._id}-name`}>
-                {tournament.name}
-              </h3>
+              <button
+                onClick={() => navigate(`/tournaments/${tournament._id}/edit`)}
+                className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                aria-label={`Edit tournament ${tournament.name}`}
+                aria-describedby={`tournament-${tournament._id}-name`}
+              >
+                Edit
+              </button>
             </div>
-            <button
-              onClick={() => navigate(`/tournaments/${tournament._id}/edit`)}
-              className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-              aria-label={`Edit tournament ${tournament.name}`}
-              aria-describedby={`tournament-${tournament._id}-name`}
-            >
-              Edit
-            </button>
           </div>
         ))}
       </div>
