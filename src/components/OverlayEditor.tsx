@@ -9,7 +9,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'classic',
     name: 'Classic Score',
     description: 'Traditional cricket scoreboard with team names and scores',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/classic-preview.png',
   },
@@ -17,7 +17,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'modern',
     name: 'Modern Minimal',
     description: 'Clean, modern design with essential match information',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/modern-preview.png',
   },
@@ -25,7 +25,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'dark',
     name: 'Dark Theme',
     description: 'Dark overlay with neon accents for night streaming',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/dark-preview.png',
   },
@@ -33,7 +33,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'minimalist',
     name: 'Minimalist',
     description: 'Ultra-clean design focusing on scores only',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/minimalist-preview.png',
   },
@@ -41,7 +41,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'retro',
     name: 'Retro Style',
     description: 'Vintage cricket scoreboard design',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/retro-preview.png',
   },
@@ -49,7 +49,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'gradient',
     name: 'Gradient Flow',
     description: 'Smooth gradient backgrounds with flowing colors',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/gradient-preview.png',
   },
@@ -57,7 +57,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'vintage',
     name: 'Vintage Cricket',
     description: 'Old-school cricket board with classic fonts',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/vintage-preview.png',
   },
@@ -65,7 +65,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'chalkboard',
     name: 'Chalkboard',
     description: 'Green chalkboard with handwritten-style scores',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/chalkboard-preview.png',
   },
@@ -73,7 +73,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'minimal-dark',
     name: 'Minimal Dark',
     description: 'Ultra-minimal dark theme with subtle highlights',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/minimal-dark-preview.png',
   },
@@ -81,7 +81,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'ocean',
     name: 'Ocean Waves',
     description: 'Calming ocean waves with blue gradients',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/ocean-preview.png',
   },
@@ -89,7 +89,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'forest',
     name: 'Forest Green',
     description: 'Natural forest theme with green tones',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/forest-preview.png',
   },
@@ -97,7 +97,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'sunset',
     name: 'Sunset Glow',
     description: 'Warm sunset colors with golden highlights',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/sunset-preview.png',
   },
@@ -105,7 +105,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'desert',
     name: 'Desert Sands',
     description: 'Sandy desert theme with warm earth tones',
-    membership: 'basic',
+    membership: 'premium',
     level: 'basic',
     preview: '/overlays/desert-preview.png',
   },
@@ -113,7 +113,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'broadcast',
     name: 'Broadcast Style',
     description: 'Professional broadcast-quality overlay',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/broadcast-preview.png',
   },
@@ -121,7 +121,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'ipl',
     name: 'IPL Style',
     description: 'Inspired by Indian Premier League design',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/ipl-preview.png',
   },
@@ -129,7 +129,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'animated',
     name: 'Animated Score',
     description: 'Dynamic overlay with smooth animations',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/animated-preview.png',
   },
@@ -137,7 +137,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'neon',
     name: 'Neon Glow',
     description: 'Vibrant neon colors with glowing effects',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/neon-preview.png',
   },
@@ -145,7 +145,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'glass',
     name: 'Glass Morphism',
     description: 'Modern glass-like design with transparency',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/glass-preview.png',
   },
@@ -153,7 +153,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'wooden',
     name: 'Wooden Board',
     description: 'Classic wooden scoreboard appearance',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/wooden-preview.png',
   },
@@ -161,7 +161,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'metallic',
     name: 'Metallic Shine',
     description: 'Shiny metallic overlay with reflections',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/metallic-preview.png',
   },
@@ -169,7 +169,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'cyberpunk',
     name: 'Cyberpunk',
     description: 'Futuristic cyberpunk style with digital elements',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/cyberpunk-preview.png',
   },
@@ -177,7 +177,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'particle',
     name: 'Particle Effect',
     description: 'Animated particles floating around the scoreboard',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/particle-preview.png',
   },
@@ -185,7 +185,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'holographic',
     name: 'Holographic',
     description: '3D holographic projection effect',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/holographic-preview.png',
   },
@@ -193,7 +193,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'fire',
     name: 'Fire Theme',
     description: 'Fiery animated background with flame effects',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/fire-preview.png',
   },
@@ -201,7 +201,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'space',
     name: 'Space Theme',
     description: 'Cosmic space background with stars and planets',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/space-preview.png',
   },
@@ -209,7 +209,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'crystal',
     name: 'Crystal Clear',
     description: 'Crystal-like transparency with prism effects',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/crystal-preview.png',
   },
@@ -217,7 +217,7 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'storm',
     name: 'Storm Clouds',
     description: 'Dramatic storm clouds with lightning effects',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/storm-preview.png',
   },
@@ -225,9 +225,49 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'aurora',
     name: 'Aurora Borealis',
     description: 'Northern lights with colorful aurora effects',
-    membership: 'designer',
+    membership: 'premium',
     level: 'designer',
     preview: '/overlays/aurora-preview.png',
+  },
+  {
+    id: 'neon2',
+    name: 'Neon Glow 2',
+    description: 'Another vibrant neon colors with glowing effects',
+    membership: 'premium',
+    level: 'designer',
+    preview: '/overlays/neon2-preview.png',
+  },
+  {
+    id: 'glass2',
+    name: 'Glass Morphism 2',
+    description: 'Another modern glass-like design with transparency',
+    membership: 'premium',
+    level: 'designer',
+    preview: '/overlays/glass2-preview.png',
+  },
+  {
+    id: 'wooden2',
+    name: 'Wooden Board 2',
+    description: 'Another classic wooden scoreboard appearance',
+    membership: 'premium',
+    level: 'designer',
+    preview: '/overlays/wooden2-preview.png',
+  },
+  {
+    id: 'metallic2',
+    name: 'Metallic Shine 2',
+    description: 'Another shiny metallic overlay with reflections',
+    membership: 'premium',
+    level: 'designer',
+    preview: '/overlays/metallic2-preview.png',
+  },
+  {
+    id: 'cyberpunk2',
+    name: 'Cyberpunk 2',
+    description: 'Another futuristic cyberpunk style with digital elements',
+    membership: 'premium',
+    level: 'designer',
+    preview: '/overlays/cyberpunk2-preview.png',
   },
 ];
 
@@ -441,7 +481,28 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
         </div>
       )}
 
-
+      {/* Tournament Selector */}
+      <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Select Tournament</h3>
+        <select
+          value={selectedTournament?._id || ''}
+          onChange={(e) => {
+            const tournament = tournaments.find(t => t._id === e.target.value);
+            setSelectedTournament(tournament || null);
+          }}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+        >
+          <option value="">Select a tournament</option>
+          {tournaments.map((tournament) => (
+            <option key={tournament._id} value={tournament._id}>{tournament.name}</option>
+          ))}
+        </select>
+        {selectedTournament && (
+          <p className="text-sm text-gray-400 mt-2">
+            Selected: {selectedTournament.name} - {selectedTournament.format}
+          </p>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {PRE_DESIGNED_OVERLAYS.map((overlayTemplate) => (
@@ -485,6 +546,8 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
                 <button
                   onClick={() => {
                     if (overlayTemplate.membership !== 'free' && userMembership === 'free') {
+                      setShowPayment(true);
+                    } else if (overlayTemplate.level === 'designer' && userMembership !== 'premium-level2') {
                       setShowPayment(true);
                     } else {
                       handleSelectOverlay(overlayTemplate);

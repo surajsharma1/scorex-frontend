@@ -6,51 +6,48 @@ interface PaymentProps {
   onSuccess: (plan: string) => void;
 }
 
-const PLANS = [
+const LEVELS = [
   {
-    id: 'free',
-    name: 'Free',
-    price: 0,
+    id: 'level1',
+    name: 'Level 1',
+    description: 'Unanimated overlays',
     features: [
-      'Classic Score overlay',
+      'All unanimated overlay templates',
       'Basic customization',
-      'Up to 2 tournaments',
+      'Up to 5 tournaments',
       'Community support'
-    ],
-    color: 'bg-gray-600'
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    price: 9.99,
-    features: [
-      'Modern Minimal overlay',
-      'Advanced customization',
-      'Up to 10 tournaments',
-      'Priority support',
-      'Custom branding'
     ],
     color: 'bg-blue-600'
   },
   {
-    id: 'pro',
-    name: 'Pro',
-    price: 19.99,
+    id: 'level2',
+    name: 'Level 2',
+    description: 'All overlays',
     features: [
-      'All overlay templates',
+      'All overlay templates (including animated)',
       'Full customization',
       'Unlimited tournaments',
-      'Live score integration',
-      'Custom branding',
-      'API access',
-      'White-label option'
+      'Priority support',
+      'Custom branding'
     ],
     color: 'bg-purple-600'
   }
 ];
 
+const DURATIONS = [
+  { id: '1day', name: '1 Day', multiplier: 1 },
+  { id: '1week', name: '1 Week', multiplier: 7 },
+  { id: '1month', name: '1 Month', multiplier: 30 }
+];
+
+const PRICES = {
+  level1: { base: 1 }, // $1 per day
+  level2: { base: 2 }  // $2 per day
+};
+
 export default function Payment({ onClose, onSuccess }: PaymentProps) {
-  const [selectedPlan, setSelectedPlan] = useState('premium');
+  const [selectedLevel, setSelectedLevel] = useState('level1');
+  const [selectedDuration, setSelectedDuration] = useState('1week');
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cardDetails, setCardDetails] = useState({
@@ -60,6 +57,12 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
     name: ''
   });
 
+  const calculatePrice = () => {
+    const levelPrice = PRICES[selectedLevel as keyof typeof PRICES].base;
+    const durationMultiplier = DURATIONS.find(d => d.id === selectedDuration)?.multiplier || 1;
+    return levelPrice * durationMultiplier;
+  };
+
   const handlePayment = async () => {
     setLoading(true);
     // Simulate payment processing
@@ -68,12 +71,12 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
       // Update user membership on backend
       try {
         // Assuming we have an API to update membership
-        // await userAPI.updateMembership(selectedPlan);
+        // await userAPI.updateMembership(`premium-${selectedLevel}`);
         // For now, just call onSuccess
-        onSuccess(selectedPlan);
+        onSuccess(`premium-${selectedLevel}`);
       } catch (error) {
         console.error('Failed to update membership:', error);
-        onSuccess(selectedPlan); // Still proceed for demo
+        onSuccess(`premium-${selectedLevel}`); // Still proceed for demo
       }
     }, 2000);
   };
@@ -91,42 +94,58 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
           </button>
         </div>
 
-        {/* Plan Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
-                selectedPlan === plan.id
-                  ? 'border-blue-500 bg-gray-100 dark:bg-gray-700'
-                  : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-500'
-              }`}
-              onClick={() => setSelectedPlan(plan.id)}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{plan.name}</h3>
-                {selectedPlan === plan.id && (
-                  <CheckCircle className="w-6 h-6 text-green-400" />
-                )}
+        {/* Level Selection */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Select Level</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {LEVELS.map((level) => (
+              <div
+                key={level.id}
+                className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
+                  selectedLevel === level.id
+                    ? 'border-blue-500 bg-gray-100 dark:bg-gray-700'
+                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-500'
+                }`}
+                onClick={() => setSelectedLevel(level.id)}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">{level.name}</h3>
+                  {selectedLevel === level.id && (
+                    <CheckCircle className="w-6 h-6 text-green-400" />
+                  )}
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{level.description}</p>
+                <ul className="space-y-2">
+                  {level.features.map((feature, index) => (
+                    <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-center">
+                      <CheckCircle className="w-4 h-4 text-green-400 mr-2 flex-shrink-0" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div className="mb-4">
-                <span className="text-3xl font-bold text-gray-900 dark:text-white">
-                  ${plan.price}
-                </span>
-                {plan.price > 0 && (
-                  <span className="text-gray-600 dark:text-gray-400">/month</span>
-                )}
-              </div>
-              <ul className="space-y-2">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-center">
-                    <CheckCircle className="w-4 h-4 text-green-400 mr-2 flex-shrink-0" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* Duration Selection */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Select Duration</h3>
+          <div className="grid grid-cols-3 gap-4">
+            {DURATIONS.map((duration) => (
+              <button
+                key={duration.id}
+                onClick={() => setSelectedDuration(duration.id)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  selectedDuration === duration.id
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                {duration.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Payment Method Selection */}
@@ -214,13 +233,18 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
         {/* Payment Summary */}
         <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 mb-6">
           <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Payment Summary</h4>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700 dark:text-gray-300">
-              {PLANS.find(p => p.id === selectedPlan)?.name} Plan
-            </span>
-            <span className="text-gray-900 dark:text-white font-bold">
-              ${PLANS.find(p => p.id === selectedPlan)?.price}/month
-            </span>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700 dark:text-gray-300">
+                {LEVELS.find(l => l.id === selectedLevel)?.name} - {DURATIONS.find(d => d.id === selectedDuration)?.name}
+              </span>
+              <span className="text-gray-900 dark:text-white font-bold">
+                ${calculatePrice()}
+              </span>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {LEVELS.find(l => l.id === selectedLevel)?.description}
+            </p>
           </div>
         </div>
 
@@ -237,7 +261,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
             disabled={loading}
             className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Processing...' : `Pay $${PLANS.find(p => p.id === selectedPlan)?.price}`}
+            {loading ? 'Processing...' : `Pay $${calculatePrice()}`}
           </button>
         </div>
       </div>

@@ -11,7 +11,19 @@ export default function Membership() {
   const handleSuccess = (plan: string) => {
     console.log('Membership upgraded to:', plan);
     setShowPayment(false);
-    // TODO: Update user membership status in state/context
+    // Update user membership in localStorage
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        payload.membership = plan;
+        const newToken = btoa(JSON.stringify(payload));
+        localStorage.setItem('token', newToken);
+      } catch (error) {
+        console.error('Error updating token:', error);
+      }
+    }
+    // TODO: Update user membership status in global state/context if needed
   };
 
   return (
