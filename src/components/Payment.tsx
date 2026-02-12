@@ -73,7 +73,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
       const price = calculatePrice();
 
       // Create payment intent
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/payments/create-intent`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/v1/payments/create-intent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
