@@ -21,6 +21,7 @@ function App() {
   const [error, setError] = useState('');
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showGoToTop, setShowGoToTop] = useState(false);
   const { isDark, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -43,6 +44,28 @@ function App() {
     };
     checkAuth();
   }, []);
+
+  // Handle scroll events to show/hide Go to Top button
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowGoToTop(true);
+      } else {
+        setShowGoToTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -344,6 +367,19 @@ function App() {
           <Outlet />
         )}
       </div>
+
+      {/* Go to Top Button */}
+      {showGoToTop && (
+        <div className="go-to-top-container">
+          <button
+            onClick={scrollToTop}
+            className="btn-3"
+            aria-label="Go to top"
+          >
+            <ChevronUp />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
