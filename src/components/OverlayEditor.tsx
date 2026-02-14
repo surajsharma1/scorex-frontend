@@ -666,36 +666,31 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
 
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
         <h3 className="font-bold text-white mb-3">Membership Benefits</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h4 className="font-semibold text-green-400 mb-2">Free</h4>
+            <h4 className="font-semibold text-blue-400 mb-2">Premium Level 1</h4>
             <ul className="text-sm text-gray-300 space-y-1">
-              <li>• Classic Score overlay</li>
-              <li>• Basic customization</li>
-              <li>• Up to 2 tournaments</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-blue-400 mb-2">Premium</h4>
-            <ul className="text-sm text-gray-300 space-y-1">
-              <li>• Modern Minimal overlay</li>
-              <li>• Advanced customization</li>
-              <li>• Up to 10 tournaments</li>
-              <li>• Priority support</li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-purple-400 mb-2">Pro</h4>
-            <ul className="text-sm text-gray-300 space-y-1">
-              <li>• All overlay templates</li>
-              <li>• Full customization</li>
+              <li>• All unanimated overlay templates (13 designs)</li>
+              <li>• Basic customization options</li>
               <li>• Unlimited tournaments</li>
-              <li>• Live score integration</li>
-              <li>• Custom branding</li>
+              <li>• Community support</li>
+              <li>• Perfect for beginners and casual streamers</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-purple-400 mb-2">Premium Level 2</h4>
+            <ul className="text-sm text-gray-300 space-y-1">
+              <li>• All overlay templates (32+ designs including animated)</li>
+              <li>• Full customization options</li>
+              <li>• Unlimited tournaments</li>
+              <li>• Priority support</li>
+              <li>• Custom branding options</li>
+              <li>• Perfect for professional streamers</li>
             </ul>
           </div>
         </div>
       </div>
+
 
       {showPayment && (
         <Payment

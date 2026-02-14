@@ -15,14 +15,15 @@ const Frontpage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Header */}
       <header className="flex justify-between items-center p-6 bg-white dark:bg-gray-800 shadow-lg">
-        <h1 className="text-3xl font-bold">ScoreX</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">ScoreX</h1>
         <button
           onClick={() => navigate('/login')}
-          className="btn-2"
+          className="frontpage-btn"
         >
           Login
         </button>
       </header>
+
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-blue-900 to-purple-900 py-20 px-6 flex items-center justify-center">
@@ -40,10 +41,11 @@ const Frontpage = () => {
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="btn-primary"
+            className="frontpage-btn"
           >
             Get Started
           </button>
+
         </div>
       </section>
 
@@ -174,10 +176,11 @@ const Frontpage = () => {
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="btn-primary"
+            className="frontpage-btn"
           >
             Join Now
           </button>
+
         </div>
       </section>
 
@@ -225,10 +228,11 @@ const Frontpage = () => {
           <div className="mt-12">
           <button
             onClick={() => navigate('/login')}
-            className="btn-primary"
+            className="frontpage-btn"
           >
             Start Free Trial
           </button>
+
           </div>
         </div>
       </section>
@@ -266,7 +270,7 @@ const Frontpage = () => {
             </p>
             <Link
               to="/tournaments"
-              className="btn-primary inline-block"
+              className="frontpage-btn inline-block"
             >
               View All Tournaments
             </Link>
@@ -278,10 +282,11 @@ const Frontpage = () => {
             </p>
             <Link
               to="/tournaments"
-              className="btn-primary inline-block"
+              className="frontpage-btn inline-block"
             >
               View All Tournaments
             </Link>
+
           </div>
         </div>
       </section>

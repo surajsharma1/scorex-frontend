@@ -682,7 +682,7 @@ button:hover {
   background: #0284c7;
 }
 
-/* btn-2: Login button with sliding animation */
+/* btn-2: Login button with sliding animation - NAVY BLUE VERSION */
 .btn-2 {
   outline: none;
   cursor: pointer;
@@ -690,14 +690,14 @@ button:hover {
   margin: 0;
   min-height: 40px;
   max-width: 100%;
-  width: 100%;
+  width: auto;
   font-family: 'Inter', sans-serif;
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.05rem;
   border-radius: 8px;
   overflow: hidden;
-  background: #0ea5e9;
+  background: #1e3a8a;
   color: #fff;
   position: relative;
   display: inline-flex;
@@ -705,7 +705,9 @@ button:hover {
   justify-content: center;
   padding: 0 24px;
   transition: background 0.3s;
+  white-space: nowrap;
 }
+
 
 .btn-2 span,
 .btn-2 > * {
@@ -731,12 +733,13 @@ button:hover {
 
 .btn-2::before {
   content: "";
-  background: #8b5cf6;
+  background: #3b82f6;
   width: 120%;
   left: -10%;
   transform: skew(30deg);
   transition: transform 0.4s cubic-bezier(0.3, 1, 0.8, 1);
 }
+
 
 .btn-2:hover::before {
   transform: translate3d(100%, 0, 0);
@@ -751,12 +754,12 @@ button:hover {
   display: none;
 }
 
-/* btn-3: Back to Top button with expand animation */
+/* btn-3: Back to Top button with expand animation - NAVY BLUE VERSION */
 .btn-3 {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: #0ea5e9;
+  background: #1e3a8a;
   border: none;
   font-weight: 600;
   display: flex;
@@ -769,6 +772,11 @@ button:hover {
   color: #fff;
   font-size: 14px;
 }
+
+.btn-3:hover {
+  background: #1e40af;
+}
+
 
 .btn-3 svg {
   width: 20px;
@@ -784,10 +792,11 @@ button:hover {
   width: 140px;
   border-radius: 50px;
   transition-duration: 0.3s;
-  background: #0ea5e9;
+  background: #1e40af;
   justify-content: flex-start;
   padding-left: 16px;
 }
+
 
 .btn-3:hover svg {
   transition-duration: 0.3s;
@@ -811,7 +820,7 @@ button:hover {
   transition-duration: 0.3s;
 }
 
-/* btn-4: Explore All button with icon animation */
+/* btn-4: Explore All button with icon animation - NAVY BLUE VERSION */
 .btn-4 {
   line-height: 1;
   text-decoration: none;
@@ -820,7 +829,7 @@ button:hover {
   cursor: pointer;
   align-items: center;
   gap: 12px;
-  background: #8b5cf6;
+  background: #1e3a8a;
   color: #fff;
   border-radius: 10rem;
   font-weight: 600;
@@ -835,6 +844,11 @@ button:hover {
   font-size: 14px;
 }
 
+.btn-4:hover {
+  background: #1e40af;
+}
+
+
 .btn-4 .button__icon-wrapper {
   flex-shrink: 0;
   width: 20px;
@@ -848,9 +862,7 @@ button:hover {
   overflow: hidden;
 }
 
-.btn-4:hover {
-  background: #7c3aed;
-}
+
 
 .btn-4:hover .button__icon-wrapper {
   color: #7c3aed;
@@ -872,15 +884,15 @@ button:hover {
   transform: translate(0);
 }
 
-/* btn-5: Sign Up button with diagonal fill animation */
+/* btn-5: Sign Up button with diagonal fill animation - NAVY BLUE VERSION */
 .btn-5 {
   margin-top: 0.15rem;
   min-height: 48px;
   max-width: 100%;
   border-radius: 10rem;
-  width: 100%;
+  width: auto;
   font-weight: 600;
-  outline: 2px solid #0ea5e9;
+  outline: 2px solid #1e3a8a;
   outline-offset: 2px;
   border: none;
   position: relative;
@@ -893,12 +905,14 @@ button:hover {
   z-index: 1;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
-  color: #0ea5e9;
+  color: #1e3a8a;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0 24px;
+  white-space: nowrap;
 }
+
 
 .btn-5::before {
   content: '';
@@ -908,11 +922,12 @@ button:hover {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) rotate(45deg);
-  background: #0ea5e9;
+  background: #1e3a8a;
   transition: 0.5s ease;
   display: block;
   z-index: -1;
 }
+
 
 .btn-5:hover::before {
   width: 105%;
@@ -931,10 +946,10 @@ button:hover {
   display: none;
 }
 
-/* btn-6: Send/Submit button with icon fly animation */
+/* btn-6: Send/Submit button with icon fly animation - NAVY BLUE VERSION */
 .btn-6 {
   font-size: 16px;
-  background: #0ea5e9;
+  background: #1e3a8a;
   color: white;
   padding: 12px 24px;
   min-height: 48px;
@@ -949,6 +964,11 @@ button:hover {
   font-family: 'Inter', sans-serif;
   font-weight: 600;
 }
+
+.btn-6:hover {
+  background: #1e40af;
+}
+
 
 .btn-6 span {
   display: block;
@@ -982,6 +1002,38 @@ button:hover {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Frontpage specific button styles - ensure text visibility */
+.frontpage-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 32px;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 6px rgba(30, 58, 138, 0.3);
+  white-space: nowrap;
+}
+
+.frontpage-btn:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(30, 58, 138, 0.4);
+}
+
+.frontpage-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(30, 58, 138, 0.3);
+}
+
 
 @keyframes fly-1 {
   from {

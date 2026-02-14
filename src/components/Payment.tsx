@@ -92,7 +92,8 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
       // For now, simulate successful payment
       setTimeout(async () => {
         // Confirm payment
-        const confirmResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/payments/confirm`, {
+        const confirmResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/v1/payments/confirm`, {
+
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

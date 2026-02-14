@@ -11,20 +11,42 @@ export default function Membership() {
   const handleSuccess = (plan: string) => {
     console.log('Membership upgraded to:', plan);
     setShowPayment(false);
-    // Update user membership in localStorage
-    const token = localStorage.getItem('token');
-    if (token) {
+    // Update user membership in localStorage by calling the API to get updated token
+    const updateMembership = async () => {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        payload.membership = plan;
-        const newToken = btoa(JSON.stringify(payload));
-        localStorage.setItem('token', newToken);
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/v1/users/me`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ membership: plan })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Update token if returned, otherwise update local user data
+          if (data.token) {
+            localStorage.setItem('token', data.token);
+          } else if (data.user) {
+            // Store membership info separately if no new token
+            localStorage.setItem('userMembership', plan);
+          }
+          console.log('Membership updated successfully');
+        } else {
+          // Fallback: store membership locally
+          localStorage.setItem('userMembership', plan);
+        }
       } catch (error) {
-        console.error('Error updating token:', error);
+        console.error('Error updating membership:', error);
+        // Fallback: store membership locally
+        localStorage.setItem('userMembership', plan);
       }
-    }
-    // TODO: Update user membership status in global state/context if needed
+    };
+    
+    updateMembership();
   };
+
 
   return (
     <div className="space-y-8 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen p-6">
