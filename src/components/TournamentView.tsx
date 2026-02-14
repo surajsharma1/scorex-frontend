@@ -234,7 +234,7 @@ const handleCreateMatch = async (e: React.FormEvent) => {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-4xl font-bold text-gradient">All Tournaments</h1>
-          <p className="text-gray-600 dark:text-neutral-400 mt-2">
+          <p className="text-gray-600 dark:text-dark-accent mt-2">
             View all current and live tournaments created by the community
           </p>
         </div>
