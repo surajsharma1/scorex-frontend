@@ -50,14 +50,14 @@ export default function TournamentList() {
   };
 
   if (loading) return (
-    <div className="p-6 bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-dark-light min-h-screen" role="status" aria-live="polite" aria-label="Loading tournaments">
+    <div className="p-6 bg-light-bg-alt dark:bg-dark-bg text-light-dark dark:text-dark-light min-h-screen" role="status" aria-live="polite" aria-label="Loading tournaments">
 
       <p>Loading tournaments...</p>
     </div>
   );
 
   return (
-    <div className="p-6 bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-dark-light min-h-screen">
+    <div className="p-6 bg-light-bg-alt dark:bg-dark-bg text-light-dark dark:text-dark-light min-h-screen">
 
       <h1 className="text-2xl mb-4" id="tournaments-heading">Tournaments</h1>
       <button

@@ -23,7 +23,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
   return (
     <div className="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-light-bg via-light-bg-alt to-light-accent dark:from-dark-bg dark:via-dark-bg-alt dark:to-dark-primary shadow-2xl border-r border-light-secondary/30 dark:border-dark-primary/30 animate-fade-in">
-      <div className="flex items-center justify-center h-20 bg-gradient-to-r from-light-primary to-light-secondary dark:bg-dark-bg border-b border-light-secondary/30 dark:border-dark-primary/30">
+      <div className="flex items-center justify-center h-20 bg-gradient-to-r from-light-dark to-light-primary dark:from-dark-bg dark:to-dark-bg-alt border-b border-light-secondary/30 dark:border-dark-primary/30">
 
         <div className="flex items-center gap-4">
           <div className="bg-gradient-to-r from-light-primary to-light-secondary dark:from-dark-primary dark:to-dark-secondary p-3 rounded-xl shadow-lg">
