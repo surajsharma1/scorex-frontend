@@ -112,10 +112,10 @@ export default function Register() {
               />
             </div>
 
-            <button
+<button
               type="submit"
               disabled={loading}
-              className="btn-6"
+              className="btn-11 w-full"
             >
               {loading ? (
                 <div className="flex items-center justify-center">
@@ -200,10 +200,10 @@ export default function Register() {
               />
             </div>
 
-            <button
+<button
               type="submit"
               disabled={loading}
-              className="btn-5"
+              className="btn-11 w-full"
             >
               {loading ? (
                 <div className="flex items-center justify-center">

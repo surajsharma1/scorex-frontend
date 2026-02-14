@@ -943,66 +943,61 @@ button:hover {
 }
 
 
-/* btn-6: Send/Submit button with icon fly animation - NAVY BLUE VERSION */
+/* btn-6: Position Aware button (expanding circle from center) - NAVY BLUE VERSION */
 .btn-6 {
-  font-size: 16px;
-  background: #1e3a8a;
-  color: white;
-  padding: 12px 24px;
-  min-height: 48px;
-  width: 100%;
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 12px 24px;
+  min-height: 48px;
+  background: #1e3a8a;
   border: none;
-  border-radius: 4rem;
-  overflow: hidden;
-  transition: all 0.2s;
-  cursor: pointer;
+  border-radius: 8px;
+  color: #ffffff;
   font-family: 'Inter', sans-serif;
   font-weight: 600;
-}
-
-.btn-6:hover {
-  background: #1e40af;
-}
-
-.btn-6 > * {
-  position: relative;
-  z-index: 20;
+  font-size: 16px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: color 0.3s ease;
+  z-index: 1;
+  width: 100%;
 }
 
 .btn-6 span {
+  position: absolute;
   display: block;
-  margin-left: 8px;
-  transition: all 0.3s ease-in-out;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease-in-out, height 0.4s ease-in-out;
+  z-index: -1;
 }
 
-.btn-6 svg {
-  display: block;
-  transform-origin: center center;
-  transition: transform 0.3s ease-in-out;
-}
-
-.btn-6:hover .svg-wrapper {
-  animation: fly-1 0.6s ease-in-out infinite alternate;
-}
-
-.btn-6:hover svg {
-  transform: translateX(1.2em) rotate(45deg) scale(1.1);
+.btn-6:hover {
+  color: #ffffff;
 }
 
 .btn-6:hover span {
-  transform: translateX(5em);
+  width: 300px;
+  height: 300px;
 }
 
 .btn-6:active {
-  transform: scale(0.95);
+  background-color: #1e40af;
 }
 
 .btn-6:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.btn-6:disabled:hover span {
+  width: 0;
+  height: 0;
 }
 
 
@@ -1063,4 +1058,404 @@ button:hover {
   bottom: 30px;
   right: 30px;
   z-index: 1000;
+}
+
+/* ========================
+   Additional Button Hover Effects (btn-0, btn-7 to btn-11)
+   ======================== */
+
+/* Common button base styles for new effects */
+[class^="btn-"] {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+}
+
+/* btn-0: Swipe effect - NAVY BLUE VERSION */
+.btn-0 {
+  min-height: 48px;
+  padding: 12px 24px;
+  background: transparent;
+  border: 2px solid #1e3a8a;
+  border-radius: 8px;
+  color: #1e3a8a;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn-0::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #1e3a8a;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  z-index: -1;
+}
+
+.btn-0:hover {
+  color: #ffffff;
+}
+
+.btn-0:hover::before {
+  transform: translateX(0);
+}
+
+/* btn-7: Alternate effect (bars sliding) - NAVY BLUE VERSION */
+.btn-7 {
+  min-height: 48px;
+  padding: 12px 24px;
+  background: #1e3a8a;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-7::before,
+.btn-7::after,
+.btn-7 span::before,
+.btn-7 span::after {
+  content: '';
+  position: absolute;
+  width: 25.25%;
+  height: 0;
+  background-color: #3b82f6;
+  transition: height 0.3s ease-in-out;
+}
+
+.btn-7::before {
+  left: 0;
+  top: 0;
+}
+
+.btn-7::after {
+  left: 50%;
+  top: 0;
+}
+
+.btn-7 span::before,
+.btn-7 span::after {
+  bottom: 0;
+}
+
+.btn-7 span::before {
+  left: 25%;
+}
+
+.btn-7 span::after {
+  left: 75%;
+}
+
+.btn-7:hover::before,
+.btn-7:hover::after,
+.btn-7:hover span::before,
+.btn-7:hover span::after {
+  height: 100%;
+}
+
+/* btn-8: Smoosh effect - NAVY BLUE VERSION */
+.btn-8 {
+  min-height: 48px;
+  padding: 12px 24px;
+  background: #1e3a8a;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-8::before,
+.btn-8::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  background-color: #3b82f6;
+  transition: transform 0.3s ease-in-out;
+  z-index: 0;
+}
+
+.btn-8::before {
+  top: 0;
+  transform: translateY(-100%);
+}
+
+.btn-8::after {
+  bottom: 0;
+  transform: translateY(100%);
+}
+
+.btn-8:hover::before {
+  transform: translateY(-50%);
+}
+
+.btn-8:hover::after {
+  transform: translateY(50%);
+}
+
+.btn-8 > span {
+  position: relative;
+  z-index: 1;
+}
+
+/* btn-9: Vertical Overlap effect - NAVY BLUE VERSION */
+.btn-9 {
+  min-height: 48px;
+  padding: 12px 24px;
+  background: #1e3a8a;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-9::before,
+.btn-9::after,
+.btn-9 span::before,
+.btn-9 span::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 0;
+  background-color: rgba(59, 130, 246, 0.4);
+  transition: height 0.4s ease-in-out;
+}
+
+.btn-9::before {
+  top: 0;
+}
+
+.btn-9::after,
+.btn-9 span::before {
+  top: 50%;
+}
+
+.btn-9::after {
+  bottom: 0;
+}
+
+.btn-9 span::before {
+  bottom: 50%;
+}
+
+.btn-9 span::after {
+  top: 0;
+  bottom: auto;
+}
+
+.btn-9 span::before,
+.btn-9 span::after {
+  transition-delay: 0.4s;
+}
+
+.btn-9:hover::before,
+.btn-9:hover::after,
+.btn-9:hover span::before,
+.btn-9:hover span::after {
+  height: 50%;
+}
+
+.btn-9:active {
+  background-color: #1e40af;
+}
+
+/* btn-10: Horizontal Overlap effect - NAVY BLUE VERSION */
+.btn-10 {
+  min-height: 48px;
+  padding: 12px 24px;
+  background: #1e3a8a;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-10::before,
+.btn-10::after,
+.btn-10 span::before,
+.btn-10 span::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 100%;
+  background-color: rgba(59, 130, 246, 0.4);
+  transition: width 0.4s ease-in-out;
+}
+
+.btn-10::before {
+  left: 0;
+}
+
+.btn-10::after,
+.btn-10 span::before {
+  left: 50%;
+}
+
+.btn-10::after {
+  right: 0;
+  left: auto;
+}
+
+.btn-10 span::before {
+  right: 50%;
+  left: auto;
+}
+
+.btn-10 span::before,
+.btn-10 span::after {
+  transition-delay: 0.4s;
+}
+
+.btn-10:hover::before,
+.btn-10:hover::after,
+.btn-10:hover span::before,
+.btn-10:hover span::after {
+  width: 50%;
+}
+
+.btn-10:active {
+  background-color: #1e40af;
+}
+
+/* btn-11: Collision effect (criss-cross circles) - NAVY BLUE VERSION */
+.btn-11 {
+  min-height: 48px;
+  padding: 12px 24px;
+  background: #1e3a8a;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-11::before,
+.btn-11::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  transition: all 0.8s ease-in-out;
+}
+
+.btn-11::before {
+  left: -20px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.btn-11::after {
+  right: -20px;
+  top: 50%;
+  transform: translate(50%, -50%);
+}
+
+.btn-11:hover::before {
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  transform: translate(-50%, -50%);
+}
+
+.btn-11:hover::after {
+  right: 50%;
+  width: 200px;
+  height: 200px;
+  transform: translate(50%, -50%);
+}
+
+.btn-11:active {
+  background-color: #1e40af;
+}
+
+/* Dark mode support for new buttons */
+.dark .btn-0 {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.dark .btn-0::before {
+  background-color: #3b82f6;
+}
+
+.dark .btn-0:hover {
+  color: #ffffff;
+}
+
+.dark .btn-7,
+.dark .btn-8,
+.dark .btn-9,
+.dark .btn-10,
+.dark .btn-11 {
+  background: #1e3a8a;
+}
+
+.dark .btn-7::before,
+.dark .btn-7::after,
+.dark .btn-7 span::before,
+.dark .btn-7 span::after {
+  background-color: #60a5fa;
+}
+
+.dark .btn-8::before,
+.dark .btn-8::after {
+  background-color: #60a5fa;
+}
+
+.dark .btn-9::before,
+.dark .btn-9::after,
+.dark .btn-9 span::before,
+.dark .btn-9 span::after {
+  background-color: rgba(96, 165, 250, 0.4);
+}
+
+.dark .btn-10::before,
+.dark .btn-10::after,
+.dark .btn-10 span::before,
+.dark .btn-10 span::after {
+  background-color: rgba(96, 165, 250, 0.4);
+}
+
+.dark .btn-11::before,
+.dark .btn-11::after {
+  background-color: #60a5fa;
 }
