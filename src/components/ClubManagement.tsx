@@ -139,7 +139,7 @@ const ClubManagement: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
-        <Loader className="animate-spin h-8 w-8 text-blue-600" />
+        <Loader className="animate-spin h-8 w-8 text-light-primary dark:text-dark-accent" />
       </div>
     );
   }
@@ -148,13 +148,13 @@ const ClubManagement: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-light flex items-center">
           <Users className="h-8 w-8 mr-3" />
           {t('clubs.title', 'Club Management')}
         </h1>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+          className="bg-light-primary dark:bg-dark-accent text-white px-4 py-2 rounded-lg hover:bg-light-dark dark:hover:bg-dark-primary flex items-center"
         >
           <Plus className="h-4 w-4 mr-2" />
           {t('clubs.create', 'Create Club')}
@@ -169,43 +169,43 @@ const ClubManagement: React.FC = () => {
 
       {/* Create Club Form */}
       {showCreateForm && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('clubs.createNew', 'Create New Club')}</h2>
+        <div className="bg-white dark:bg-dark-bg-alt rounded-lg shadow-sm border border-gray-200 dark:border-dark-primary/30 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-light mb-4">{t('clubs.createNew', 'Create New Club')}</h2>
           <form onSubmit={handleCreateClub} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-1">
                 {t('clubs.name', 'Club Name')}
               </label>
               <input
                 type="text"
                 value={newClub.name}
                 onChange={(e) => setNewClub({ ...newClub, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-dark-primary/30 rounded-lg focus:ring-2 focus:ring-light-primary dark:focus:ring-dark-accent bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-light"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-1">
                 {t('clubs.description', 'Description')}
               </label>
               <textarea
                 value={newClub.description}
                 onChange={(e) => setNewClub({ ...newClub, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-dark-primary/30 rounded-lg focus:ring-2 focus:ring-light-primary dark:focus:ring-dark-accent bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-light"
                 rows={3}
               />
             </div>
             <div className="flex space-x-3">
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="bg-light-primary dark:bg-dark-accent text-white px-4 py-2 rounded-lg hover:bg-light-dark dark:hover:bg-dark-primary"
               >
                 {t('common.create', 'Create')}
               </button>
               <button
                 type="button"
                 onClick={() => setShowCreateForm(false)}
-                className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500"
+                className="bg-gray-300 dark:bg-dark-bg text-gray-700 dark:text-dark-light px-4 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-dark-bg-alt"
               >
                 {t('common.cancel', 'Cancel')}
               </button>
@@ -215,28 +215,28 @@ const ClubManagement: React.FC = () => {
       )}
 
       {/* My Clubs */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+      <div className="bg-white dark:bg-dark-bg-alt rounded-lg shadow-sm border border-gray-200 dark:border-dark-primary/30">
+        <div className="p-4 border-b border-gray-200 dark:border-dark-primary/30">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-light">
             {t('clubs.myClubs', 'My Clubs')} ({myClubs.length})
           </h2>
         </div>
         <div className="p-4">
           {myClubs.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+            <p className="text-gray-500 dark:text-dark-accent/70 text-center py-4">
               {t('clubs.noClubs', 'You are not a member of any clubs yet')}
             </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {myClubs.map((club) => (
-                <div key={club._id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-50 dark:bg-gray-700">
+                <div key={club._id} className="border border-gray-200 dark:border-dark-primary/30 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-50 dark:bg-dark-bg">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center">
-                      <div className="h-8 w-8 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                      <div className="h-8 w-8 bg-light-primary dark:bg-dark-accent rounded-full flex items-center justify-center mr-3">
                         <Users className="h-4 w-4 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white">{club.name}</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-dark-light">{club.name}</h3>
                         {club.createdBy === 'currentUserId' && (
                           <div className="flex items-center mt-1">
                             <Crown className="h-3 w-3 text-yellow-500 mr-1" />
@@ -247,13 +247,13 @@ const ClubManagement: React.FC = () => {
                     </div>
                     <button
                       onClick={() => setSelectedClub(club)}
-                      className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                      className="text-gray-400 dark:text-dark-accent/50 hover:text-gray-600 dark:hover:text-dark-light"
                     >
                       <Settings className="h-4 w-4" />
                     </button>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">{club.description}</p>
-                  <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-gray-600 dark:text-dark-accent mb-3">{club.description}</p>
+                  <div className="flex justify-between items-center text-sm text-gray-500 dark:text-dark-accent/70">
                     <span>{club.members.length} {t('clubs.members', 'members')}</span>
                     <button
                       onClick={() => handleLeaveClub(club._id)}
@@ -271,25 +271,25 @@ const ClubManagement: React.FC = () => {
       </div>
 
       {/* All Clubs */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+      <div className="bg-white dark:bg-dark-bg-alt rounded-lg shadow-sm border border-gray-200 dark:border-dark-primary/30">
+        <div className="p-4 border-b border-gray-200 dark:border-dark-primary/30">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-light">
             {t('clubs.allClubs', 'All Clubs')} ({clubs.length})
           </h2>
         </div>
         <div className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {clubs.map((club) => (
-              <div key={club._id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-50 dark:bg-gray-700 cursor-pointer" onClick={() => handleViewClubDetails(club)}>
+              <div key={club._id} className="border border-gray-200 dark:border-dark-primary/30 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-50 dark:bg-dark-bg cursor-pointer" onClick={() => handleViewClubDetails(club)}>
                 <div className="flex items-center mb-2">
-                  <div className="h-8 w-8 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                  <div className="h-8 w-8 bg-light-primary dark:bg-dark-accent rounded-full flex items-center justify-center mr-3">
                     <Users className="h-4 w-4 text-white" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{club.name}</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-dark-light">{club.name}</h3>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">{club.description}</p>
+                <p className="text-sm text-gray-600 dark:text-dark-accent mb-3">{club.description}</p>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                  <span className="text-sm text-gray-500 dark:text-dark-accent/70">
                     {club.members.length} {t('clubs.members', 'members')}
                   </span>
                   {!club.members.includes('currentUserId') ? (
@@ -298,7 +298,7 @@ const ClubManagement: React.FC = () => {
                         e.stopPropagation();
                         handleJoinClub(club._id);
                       }}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center"
+                      className="bg-light-primary dark:bg-dark-accent text-white px-3 py-1 rounded text-sm hover:bg-light-dark dark:hover:bg-dark-primary flex items-center"
                     >
                       <UserPlus className="h-3 w-3 mr-1" />
                       {t('clubs.join', 'Join')}
@@ -325,15 +325,15 @@ const ClubManagement: React.FC = () => {
       {/* Club Details Modal */}
       {showClubDetails && clubDetails && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-dark-bg-alt rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-6">
               <div className="flex items-center">
-                <div className="h-12 w-12 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center mr-4">
+                <div className="h-12 w-12 bg-light-primary dark:bg-dark-accent rounded-full flex items-center justify-center mr-4">
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">{clubDetails.name}</h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">{clubDetails.description}</p>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-dark-light">{clubDetails.name}</h2>
+                  <p className="text-sm text-gray-600 dark:text-dark-accent">{clubDetails.description}</p>
                 </div>
               </div>
               <button
@@ -342,7 +342,7 @@ const ClubManagement: React.FC = () => {
                   setClubDetails(null);
                   setClubMembers([]);
                 }}
-                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-gray-400 dark:text-dark-accent/50 hover:text-gray-600 dark:hover:text-dark-light"
               >
                 ✕
               </button>
@@ -350,7 +350,7 @@ const ClubManagement: React.FC = () => {
 
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-light">
                   {t('clubs.members', 'Members')} ({clubDetails.members.length})
                 </h3>
                 {clubDetails.createdBy === 'currentUserId' && (
@@ -359,7 +359,7 @@ const ClubManagement: React.FC = () => {
                       setSelectedClub(clubDetails);
                       setShowClubDetails(false);
                     }}
-                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center"
+                    className="bg-light-primary dark:bg-dark-accent text-white px-3 py-1 rounded text-sm hover:bg-light-dark dark:hover:bg-dark-primary flex items-center"
                   >
                     <UserPlus className="h-3 w-3 mr-1" />
                     {t('clubs.addMembers', 'Add Members')}
@@ -369,16 +369,16 @@ const ClubManagement: React.FC = () => {
 
               <div className="space-y-3">
                 {clubMembers.map((member, index) => (
-                  <div key={member._id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div key={member._id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-bg rounded-lg">
                     <div className="flex items-center">
-                      <div className="h-8 w-8 bg-gray-400 dark:bg-gray-500 rounded-full flex items-center justify-center mr-3">
+                      <div className="h-8 w-8 bg-gray-400 dark:bg-dark-secondary rounded-full flex items-center justify-center mr-3">
                         <span className="text-sm font-medium text-white">
                           {member.username.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div>
                         <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">{member.username}</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-dark-light">{member.username}</span>
                           {member._id === clubDetails.createdBy && (
                             <div className="flex items-center">
                               <Crown className="h-3 w-3 text-yellow-500 mr-1" />
@@ -387,12 +387,12 @@ const ClubManagement: React.FC = () => {
                           )}
                         </div>
                         {member.bio && (
-                          <p className="text-xs text-gray-600 dark:text-gray-300">{member.bio}</p>
+                          <p className="text-xs text-gray-600 dark:text-dark-accent">{member.bio}</p>
                         )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center text-xs text-gray-500 dark:text-dark-accent/70">
                         <Calendar className="h-3 w-3 mr-1" />
                         <span>Member #{index + 1}</span>
                       </div>
@@ -418,7 +418,7 @@ const ClubManagement: React.FC = () => {
                     handleJoinClub(clubDetails._id);
                     setShowClubDetails(false);
                   }}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                  className="bg-light-primary dark:bg-dark-accent text-white px-4 py-2 rounded-lg hover:bg-light-dark dark:hover:bg-dark-primary flex items-center"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
                   {t('clubs.join', 'Join Club')}
@@ -443,8 +443,8 @@ const ClubManagement: React.FC = () => {
       {/* Add Member Modal */}
       {selectedClub && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <div className="bg-white dark:bg-dark-bg-alt rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-light mb-4">
               {t('clubs.addMembers', 'Add Members to')} {selectedClub.name}
             </h3>
             <div className="space-y-4">
@@ -456,18 +456,18 @@ const ClubManagement: React.FC = () => {
                   setSearchQuery(e.target.value);
                   handleSearchUsers(e.target.value);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-dark-primary/30 rounded-lg focus:ring-2 focus:ring-light-primary dark:focus:ring-dark-accent bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-light"
               />
               {searchResults.length > 0 && (
-                <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg">
+                <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-dark-primary/30 rounded-lg">
                   {searchResults.map((user) => (
                     <div
                       key={user._id}
-                      className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer flex justify-between items-center"
+                      className="p-2 hover:bg-gray-50 dark:hover:bg-dark-bg cursor-pointer flex justify-between items-center"
                       onClick={() => handleAddMember(user._id)}
                     >
-                      <span className="text-gray-900 dark:text-white">{user.username}</span>
-                      <UserPlus className="h-4 w-4 text-blue-600" />
+                      <span className="text-gray-900 dark:text-dark-light">{user.username}</span>
+                      <UserPlus className="h-4 w-4 text-light-primary dark:text-dark-accent" />
                     </div>
                   ))}
                 </div>
@@ -480,7 +480,7 @@ const ClubManagement: React.FC = () => {
                   setSearchResults([]);
                   setSearchQuery('');
                 }}
-                className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500"
+                className="bg-gray-300 dark:bg-dark-bg text-gray-700 dark:text-dark-light px-4 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-dark-bg-alt"
               >
                 {t('common.close', 'Close')}
               </button>

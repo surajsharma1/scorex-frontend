@@ -49,10 +49,11 @@ export default function Membership() {
 
 
   return (
-    <div className="space-y-8 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen p-6">
+    <div className="space-y-8 bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-dark-light min-h-screen p-6">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-4">Membership</h1>
-        <p className="text-gray-600 dark:text-gray-300">Upgrade your plan to unlock more features</p>
+        <h1 className="text-4xl font-bold text-blue-600 dark:text-dark-accent mb-4">Membership</h1>
+        <p className="text-gray-600 dark:text-dark-accent">Upgrade your plan to unlock more features</p>
+
       </div>
 
       {showPayment && (
@@ -61,9 +62,10 @@ export default function Membership() {
 
       {!showPayment && (
         <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-300">Membership management coming soon...</p>
+          <p className="text-gray-600 dark:text-dark-accent">Membership management coming soon...</p>
         </div>
       )}
+
     </div>
   );
 }
