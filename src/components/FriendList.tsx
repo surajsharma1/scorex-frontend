@@ -104,15 +104,16 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
-        <Loader className="animate-spin h-8 w-8 text-blue-600" />
+        <Loader className="animate-spin h-8 w-8 text-blue-600 dark:text-dark-accent" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+    <div className="bg-white dark:bg-dark-bg-alt rounded-lg shadow-sm border border-gray-200 dark:border-dark-primary/30">
+      <div className="p-4 border-b border-gray-200 dark:border-dark-primary/30">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-light flex items-center">
+
           <Users className="h-5 w-5 mr-2" />
           {t('friends.title', 'Friends')}
         </h2>
@@ -124,29 +125,30 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
         </div>
       )}
 
+
       {/* Pending Requests */}
       {pendingRequests.length > 0 && (
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+        <div className="p-4 border-b border-gray-200 dark:border-dark-primary/30">
+          <h3 className="text-sm font-medium text-gray-900 dark:text-dark-light mb-3">
             {t('friends.pendingRequests', 'Pending Requests')}
           </h3>
           <div className="space-y-2">
             {pendingRequests.map((request) => (
-              <div key={request._id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div key={request._id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-bg rounded-lg">
                 <div className="flex items-center">
-                  <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <div className="h-8 w-8 bg-gray-300 dark:bg-dark-secondary rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-gray-700 dark:text-dark-accent">
                       {request.from.username.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <span className="ml-3 text-sm font-medium text-gray-900 dark:text-white">
+                  <span className="ml-3 text-sm font-medium text-gray-900 dark:text-dark-light">
                     {request.from.username}
                   </span>
                 </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handleAcceptRequest(request._id)}
-                    className="p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
+                    className="p-1 text-green-600 dark:text-dark-accent hover:bg-green-50 dark:hover:bg-dark-primary/20 rounded"
                     aria-label={`Accept friend request from ${request.from.username}`}
                   >
                     <UserCheck className="h-4 w-4" />
@@ -165,9 +167,10 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
         </div>
       )}
 
+
       {/* Search Users */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+      <div className="p-4 border-b border-gray-200 dark:border-dark-primary/30">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-dark-light mb-3">
           {t('friends.searchUsers', 'Search Users')}
         </h3>
         <div className="relative">
@@ -176,53 +179,54 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
             placeholder={t('friends.searchPlaceholder', 'Search by username or email...')}
             value={searchQuery}
             onChange={(e) => handleSearchUsers(e.target.value)}
-            className="w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-3 py-2 pl-10 border border-gray-300 dark:border-dark-primary/30 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-light"
           />
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 dark:text-dark-accent/50" />
           {searching && (
             <div className="absolute right-3 top-2.5">
-              <Loader className="animate-spin h-4 w-4 text-blue-600" />
+              <Loader className="animate-spin h-4 w-4 text-blue-600 dark:text-dark-accent" />
             </div>
           )}
         </div>
         {searchResults.length > 0 && (
-          <div className="mt-3 max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg">
+          <div className="mt-3 max-h-40 overflow-y-auto border border-gray-200 dark:border-dark-primary/30 rounded-lg">
             {searchResults.map((user) => (
               <div
                 key={user._id}
-                className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer flex justify-between items-center border-b border-gray-100 dark:border-gray-600 last:border-b-0"
+                className="p-3 hover:bg-gray-50 dark:hover:bg-dark-primary/20 cursor-pointer flex justify-between items-center border-b border-gray-100 dark:border-dark-primary/20 last:border-b-0"
                 onClick={() => handleSendFriendRequest(user._id)}
               >
                 <div className="flex items-center">
-                  <div className="h-8 w-8 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center">
+                  <div className="h-8 w-8 bg-blue-500 dark:bg-dark-primary rounded-full flex items-center justify-center">
                     <span className="text-sm font-medium text-white">
                       {user.username.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="ml-3">
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{user.username}</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-dark-light">{user.username}</span>
                     {user.email && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+                      <p className="text-xs text-gray-500 dark:text-dark-accent/70">{user.email}</p>
                     )}
                     {user.bio && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{user.bio}</p>
+                      <p className="text-xs text-gray-500 dark:text-dark-accent/70">{user.bio}</p>
                     )}
                   </div>
                 </div>
-                <UserPlus className="h-4 w-4 text-blue-600" />
+                <UserPlus className="h-4 w-4 text-blue-600 dark:text-dark-accent" />
               </div>
             ))}
           </div>
         )}
       </div>
 
+
       {/* Friends List */}
       <div className="p-4">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-dark-light mb-3">
           {t('friends.myFriends', 'My Friends')} ({friends.length})
         </h3>
         {friends.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+          <p className="text-sm text-gray-500 dark:text-dark-accent/70 text-center py-4">
             {t('friends.noFriends', 'No friends yet')}
           </p>
         ) : (
@@ -230,27 +234,27 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
             {friends.map((friend) => (
               <div
                 key={friend._id}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer border border-gray-100 dark:border-gray-600"
+                className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-dark-primary/20 rounded-lg cursor-pointer border border-gray-100 dark:border-dark-primary/30"
                 onClick={() => onFriendSelect?.(friend)}
               >
                 <div className="flex items-center">
-                  <div className="h-10 w-10 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center">
+                  <div className="h-10 w-10 bg-blue-500 dark:bg-dark-primary rounded-full flex items-center justify-center">
                     <span className="text-sm font-medium text-white">
                       {friend.username.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="ml-3">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">{friend.username}</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-dark-light">{friend.username}</span>
                       {friend.fullName && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">({friend.fullName})</span>
+                        <span className="text-xs text-gray-500 dark:text-dark-accent/70">({friend.fullName})</span>
                       )}
                     </div>
                     {friend.email && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{friend.email}</p>
+                      <p className="text-xs text-gray-500 dark:text-dark-accent/70">{friend.email}</p>
                     )}
                     {friend.bio && (
-                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">{friend.bio}</p>
+                      <p className="text-xs text-gray-600 dark:text-dark-accent mt-1">{friend.bio}</p>
                     )}
                   </div>
                 </div>
@@ -271,6 +275,7 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
       </div>
     </div>
   );
+
 };
 
 export default FriendList;
