@@ -113,12 +113,13 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-900 text-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto"></div>
-        <p className="mt-4 text-gray-400">Loading...</p>
+      <div className="flex justify-center items-center min-h-screen bg-light-bg dark:bg-dark-bg text-light-dark dark:text-dark-light">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-light-primary dark:border-dark-accent mx-auto"></div>
+        <p className="mt-4 text-light-dark/70 dark:text-dark-accent">Loading...</p>
       </div>
     );
   }
+
 
   if (!isAuthenticated) {
     return <Frontpage />;
@@ -145,19 +146,22 @@ function App() {
                 >
                   <Menu className="w-5 h-5" />
                 </button>
-                <div>
-                  <h1 className="text-4xl font-bold text-gradient mb-2">Dashboard</h1>
-                  <p className="text-gray-600 dark:text-neutral-400">Welcome back! Here's your tournament overview.</p>
-                </div>
+              <div>
+                <h1 className="text-4xl font-bold text-gradient mb-2 text-light-primary dark:text-dark-light">Dashboard</h1>
+                <p className="text-light-dark/70 dark:text-dark-accent">Welcome back! Here's your tournament overview.</p>
+              </div>
+
               </div>
               <div className="flex items-center space-x-4">
                 <button
                   onClick={toggleTheme}
-                  className="btn-secondary text-sm px-4 py-2"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-light-secondary/20 dark:bg-dark-primary/20 text-light-primary dark:text-dark-light hover:bg-light-secondary/40 dark:hover:bg-dark-primary/40 transition-all duration-300"
                   title="Toggle theme"
                 >
-                  {isDark ? '☀️ Light' : '🌙 Dark'}
+                  {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  <span className="text-sm font-medium">{isDark ? 'Light' : 'Dark'}</span>
                 </button>
+
                 <div className="relative">
                   <button
                     onClick={() => setShowProfileDropdown(!showProfileDropdown)}
@@ -193,67 +197,70 @@ function App() {
             </div>
 
             {error && (
-              <div className="alert alert-error mb-8">
+              <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl mb-8">
                 {error}
               </div>
             )}
 
+
             {/* Dashboard Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-              <div className="card card-hover p-8 cursor-pointer group" onClick={() => navigate('/tournaments')}>
-                <Crown className="w-12 h-12 text-primary-400 mb-4 group-hover:scale-110 transition-transform" />
-                <h3 className="text-xl font-semibold text-primary-300 mb-3">Tournaments</h3>
-                <p className="text-neutral-300 mb-4">View and manage your tournaments with advanced bracket systems.</p>
-                <div className="text-primary-400 font-medium group-hover:text-primary-300 transition-colors">
+              <div className="bg-white dark:bg-dark-bg-alt p-8 rounded-xl shadow-lg border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-all cursor-pointer group" onClick={() => navigate('/tournaments')}>
+                <Crown className="w-12 h-12 text-light-primary dark:text-dark-accent mb-4 group-hover:scale-110 transition-transform" />
+                <h3 className="text-xl font-semibold text-light-primary dark:text-dark-light mb-3">Tournaments</h3>
+                <p className="text-light-dark/70 dark:text-dark-accent mb-4">View and manage your tournaments with advanced bracket systems.</p>
+                <div className="text-light-primary dark:text-dark-accent font-medium group-hover:text-light-secondary dark:group-hover:text-dark-light transition-colors">
                   Go to Tournaments →
                 </div>
               </div>
-              <div className="card card-hover p-8 cursor-pointer group" onClick={() => navigate('/teams')}>
-                <BarChart3 className="w-12 h-12 text-accent-400 mb-4 group-hover:scale-110 transition-transform" />
-                <h3 className="text-xl font-semibold text-accent-300 mb-3">Teams</h3>
-                <p className="text-neutral-300 mb-4">Manage teams, players, and track performance statistics.</p>
-                <div className="text-accent-400 font-medium group-hover:text-accent-300 transition-colors">
+              <div className="bg-white dark:bg-dark-bg-alt p-8 rounded-xl shadow-lg border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-all cursor-pointer group" onClick={() => navigate('/teams')}>
+                <BarChart3 className="w-12 h-12 text-light-secondary dark:text-dark-secondary mb-4 group-hover:scale-110 transition-transform" />
+                <h3 className="text-xl font-semibold text-light-secondary dark:text-dark-light mb-3">Teams</h3>
+                <p className="text-light-dark/70 dark:text-dark-accent mb-4">Manage teams, players, and track performance statistics.</p>
+                <div className="text-light-secondary dark:text-dark-secondary font-medium group-hover:text-light-primary dark:group-hover:text-dark-light transition-colors">
                   Go to Teams →
                 </div>
               </div>
-              <div className="card card-hover p-8 cursor-pointer group" onClick={() => navigate('/overlays')}>
-                <Search className="w-12 h-12 text-primary-400 mb-4 group-hover:scale-110 transition-transform" />
-                <h3 className="text-xl font-semibold text-primary-300 mb-3">Overlays</h3>
-                <p className="text-neutral-300 mb-4">Create stunning live streaming overlays for your tournaments.</p>
-                <div className="text-primary-400 font-medium group-hover:text-primary-300 transition-colors">
+              <div className="bg-white dark:bg-dark-bg-alt p-8 rounded-xl shadow-lg border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-all cursor-pointer group" onClick={() => navigate('/overlays')}>
+                <Search className="w-12 h-12 text-light-accent dark:text-dark-primary mb-4 group-hover:scale-110 transition-transform" />
+                <h3 className="text-xl font-semibold text-light-accent dark:text-dark-light mb-3">Overlays</h3>
+                <p className="text-light-dark/70 dark:text-dark-accent mb-4">Create stunning live streaming overlays for your tournaments.</p>
+                <div className="text-light-accent dark:text-dark-primary font-medium group-hover:text-light-primary dark:group-hover:text-dark-light transition-colors">
                   Go to Overlays →
                 </div>
               </div>
             </div>
 
+
             {/* Quick Actions */}
             <div className="flex flex-wrap gap-4 mb-12">
-              <button onClick={() => navigate('/profile')} className="btn-primary">
+              <button onClick={() => navigate('/profile')} className="flex items-center px-6 py-3 bg-gradient-to-r from-light-primary to-light-secondary dark:from-dark-primary dark:to-dark-secondary text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <User className="w-5 h-5 mr-2" />
                 Profile
               </button>
-              <button onClick={() => navigate('/payment')} className="btn-accent">
+              <button onClick={() => navigate('/payment')} className="flex items-center px-6 py-3 bg-gradient-to-r from-light-secondary to-light-accent dark:from-dark-secondary dark:to-dark-primary text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <Bell className="w-5 h-5 mr-2" />
                 Payment
               </button>
             </div>
 
+
             {/* Active Tournaments Section */}
             <section className="mb-12">
-              <h3 className="text-3xl font-bold text-gradient mb-8">Active Tournaments</h3>
+              <h3 className="text-3xl font-bold text-gradient mb-8 text-light-primary dark:text-dark-light">Active Tournaments</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {activeTournaments.length === 0 ? (
-                  <div className="card p-8 text-center">
-                    <p className="text-neutral-400 text-lg">No active tournaments at the moment.</p>
-                    <p className="text-neutral-500 mt-2">Create your first tournament to get started!</p>
+                  <div className="bg-white dark:bg-dark-bg-alt p-8 rounded-xl shadow-lg border border-light-secondary/30 dark:border-dark-primary/30 text-center">
+                    <p className="text-light-dark/70 dark:text-dark-accent text-lg">No active tournaments at the moment.</p>
+                    <p className="text-light-dark/50 dark:text-dark-accent/70 mt-2">Create your first tournament to get started!</p>
                   </div>
                 ) : (
                   activeTournaments.map((tournament) => (
-                    <div key={tournament._id} className="card card-hover p-8">
+                    <div key={tournament._id} className="bg-white dark:bg-dark-bg-alt p-8 rounded-xl shadow-lg border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-all">
                       <div className="flex justify-between items-start mb-6">
                         <div>
-                          <h4 className="text-2xl font-semibold text-white mb-2">{tournament.name}</h4>
-                          <p className="text-neutral-300">{tournament.description}</p>
+                          <h4 className="text-2xl font-semibold text-light-dark dark:text-dark-light mb-2">{tournament.name}</h4>
+                          <p className="text-light-dark/70 dark:text-dark-accent">{tournament.description}</p>
                         </div>
                         <button
                           onClick={() => handleDeleteTournament(tournament._id)}
@@ -264,7 +271,7 @@ function App() {
                       </div>
                       <button
                         onClick={() => setSelectedTournament(tournament)}
-                        className="btn-primary w-full"
+                        className="w-full px-6 py-3 bg-gradient-to-r from-light-primary to-light-secondary dark:from-dark-primary dark:to-dark-secondary text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                       >
                         View Details
                       </button>
@@ -274,22 +281,23 @@ function App() {
               </div>
             </section>
 
+
             {/* Upcoming Matches Section */}
             <section className="mb-12">
-              <h3 className="text-3xl font-bold text-gradient mb-8">Upcoming Matches</h3>
+              <h3 className="text-3xl font-bold text-gradient mb-8 text-light-primary dark:text-dark-light">Upcoming Matches</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {matches.length === 0 ? (
-                  <div className="card p-8 text-center col-span-full">
-                    <p className="text-neutral-400 text-lg">No upcoming matches scheduled.</p>
-                    <p className="text-neutral-500 mt-2">Matches will appear here once tournaments are active.</p>
+                  <div className="bg-white dark:bg-dark-bg-alt p-8 rounded-xl shadow-lg border border-light-secondary/30 dark:border-dark-primary/30 text-center col-span-full">
+                    <p className="text-light-dark/70 dark:text-dark-accent text-lg">No upcoming matches scheduled.</p>
+                    <p className="text-light-dark/50 dark:text-dark-accent/70 mt-2">Matches will appear here once tournaments are active.</p>
                   </div>
                 ) : (
                   matches.map((match) => (
-                    <div key={match._id} className="card card-hover p-8 text-center">
-                      <h4 className="text-xl font-semibold mb-4 text-white">
-                        {match.team1?.name} <span className="text-primary-400">vs</span> {match.team2?.name}
+                    <div key={match._id} className="bg-white dark:bg-dark-bg-alt p-8 rounded-xl shadow-lg border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-all text-center">
+                      <h4 className="text-xl font-semibold mb-4 text-light-dark dark:text-dark-light">
+                        {match.team1?.name} <span className="text-light-primary dark:text-dark-accent">vs</span> {match.team2?.name}
                       </h4>
-                      <div className="text-2xl font-bold text-gradient mb-4">
+                      <div className="text-2xl font-bold text-gradient mb-4 text-light-primary dark:text-dark-accent">
                         {match.score1 || 0}/{match.wickets1 || 0} - {match.score2 || 0}/{match.wickets2 || 0}
                       </div>
                       <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-4 ${
@@ -302,7 +310,7 @@ function App() {
                       {match.status !== 'ongoing' && (
                         <button
                           onClick={() => handleGoLive(match._id)}
-                          className="btn-accent w-full"
+                          className="w-full px-6 py-3 bg-gradient-to-r from-light-secondary to-light-accent dark:from-dark-secondary dark:to-dark-primary text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                         >
                           Go Live
                         </button>
@@ -313,15 +321,16 @@ function App() {
               </div>
             </section>
 
+
             {/* Tournament Details Modal */}
             {selectedTournament && (
               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 animate-fade-in">
-                <div className="card w-full max-w-6xl max-h-[90vh] overflow-y-auto m-4">
-                  <div className="flex justify-between items-center p-8 border-b border-neutral-700/50">
-                    <h2 className="text-3xl font-bold text-gradient">{selectedTournament.name}</h2>
+                <div className="bg-white dark:bg-dark-bg-alt w-full max-w-6xl max-h-[90vh] overflow-y-auto m-4 rounded-xl shadow-2xl border border-light-secondary/30 dark:border-dark-primary/30">
+                  <div className="flex justify-between items-center p-8 border-b border-light-secondary/30 dark:border-dark-primary/30">
+                    <h2 className="text-3xl font-bold text-gradient text-light-primary dark:text-dark-light">{selectedTournament.name}</h2>
                     <button
                       onClick={() => setSelectedTournament(null)}
-                      className="text-neutral-400 hover:text-white p-2 rounded-lg hover:bg-neutral-700/50 transition-colors"
+                      className="text-light-dark/50 dark:text-dark-accent hover:text-light-dark dark:hover:text-dark-light p-2 rounded-lg hover:bg-light-secondary/20 dark:hover:bg-dark-primary/20 transition-colors"
                     >
                       ✕
                     </button>
@@ -329,29 +338,29 @@ function App() {
                   <div className="p-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                       <div>
-                        <h3 className="text-2xl font-semibold text-primary-300 mb-6">Live Scores</h3>
+                        <h3 className="text-2xl font-semibold text-light-primary dark:text-dark-light mb-6">Live Scores</h3>
                         {matches.filter((m) => m.tournament === selectedTournament._id).map((match) => (
-                          <div key={match._id} className="card p-6 mb-4">
-                            <p className="text-lg font-medium text-white mb-2">
+                          <div key={match._id} className="bg-light-bg-alt dark:bg-dark-bg p-6 mb-4 rounded-xl border border-light-secondary/20 dark:border-dark-primary/20">
+                            <p className="text-lg font-medium text-light-dark dark:text-dark-light mb-2">
                               {match.team1?.name} vs {match.team2?.name}
                             </p>
-                            <p className="text-xl font-bold text-gradient">
+                            <p className="text-xl font-bold text-gradient text-light-primary dark:text-dark-accent">
                               {match.score1 || 0}/{match.wickets1 || 0} - {match.score2 || 0}/{match.wickets2 || 0}
                             </p>
                           </div>
                         ))}
                       </div>
                       <div>
-                        <h3 className="text-2xl font-semibold text-accent-300 mb-6">Team Stats</h3>
+                        <h3 className="text-2xl font-semibold text-light-secondary dark:text-dark-light mb-6">Team Stats</h3>
                         {teams.filter((t) => t.tournament === selectedTournament._id).map((team) => (
-                          <div key={team._id} className="card p-6 mb-4">
-                            <h4 className="text-xl font-bold text-white mb-4">{team.name}</h4>
+                          <div key={team._id} className="bg-light-bg-alt dark:bg-dark-bg p-6 mb-4 rounded-xl border border-light-secondary/20 dark:border-dark-primary/20">
+                            <h4 className="text-xl font-bold text-light-dark dark:text-dark-light mb-4">{team.name}</h4>
                             <div className="space-y-2">
-                              <p className="text-neutral-300">
-                                <span className="text-primary-400 font-medium">Runs:</span> {team.players?.reduce((sum, p) => sum + (p.stats?.runs || 0), 0) || 0}
+                              <p className="text-light-dark/70 dark:text-dark-accent">
+                                <span className="text-light-primary dark:text-dark-accent font-medium">Runs:</span> {team.players?.reduce((sum, p) => sum + (p.stats?.runs || 0), 0) || 0}
                               </p>
-                              <p className="text-neutral-300">
-                                <span className="text-accent-400 font-medium">Wickets:</span> {team.players?.reduce((sum, p) => sum + (p.stats?.wickets || 0), 0) || 0}
+                              <p className="text-light-dark/70 dark:text-dark-accent">
+                                <span className="text-light-secondary dark:text-dark-secondary font-medium">Wickets:</span> {team.players?.reduce((sum, p) => sum + (p.stats?.wickets || 0), 0) || 0}
                               </p>
                             </div>
                           </div>
@@ -362,6 +371,7 @@ function App() {
                 </div>
               </div>
             )}
+
           </div>
         ) : (
           <Outlet />

@@ -5,7 +5,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global Styles */
+/* Global Styles - Light Theme (Default) */
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -13,15 +13,17 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
-  color: #1e293b;
+  background: linear-gradient(135deg, #d1ecff 0%, #cbeaec 50%, #d1ecff 100%);
+  color: #1e5470;
   min-height: 100vh;
 }
 
+/* Dark Theme */
 .dark body {
-  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-  color: #e2e8f0;
+  background: linear-gradient(135deg, #323d42 0%, #38524c 50%, #323d42 100%);
+  color: #cbdced;
 }
+
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
@@ -460,7 +462,7 @@ button:hover {
 }
 
 .btn-primary {
-  @apply text-white bg-primary-500 hover:bg-primary-600 focus:ring-primary-500;
+  @apply text-white bg-light-primary hover:bg-light-dark focus:ring-light-primary;
 }
 
 .btn-secondary {
@@ -468,7 +470,7 @@ button:hover {
 }
 
 .form-input {
-  @apply mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500;
+  @apply mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-light-primary focus:border-light-primary;
 }
 
 .form-label {
@@ -476,11 +478,11 @@ button:hover {
 }
 
 .card {
-  @apply bg-neutral-800/50 backdrop-blur-sm border border-neutral-700/50 rounded-xl shadow-xl;
+  @apply bg-white dark:bg-dark-bg-alt backdrop-blur-sm border border-light-secondary/30 dark:border-dark-primary/30 rounded-xl shadow-xl;
 }
 
 .card-hover {
-  @apply transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:bg-neutral-800/70;
+  @apply transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:bg-light-bg-alt dark:hover:bg-dark-bg;
 }
 
 .text-gradient {
@@ -491,15 +493,15 @@ button:hover {
 }
 
 .btn-primary {
-  @apply bg-gradient-to-r from-primary-500 to-primary-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-900;
+  @apply bg-gradient-to-r from-light-primary to-light-secondary dark:from-dark-primary dark:to-dark-secondary text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-light-primary dark:focus:ring-dark-accent focus:ring-offset-2 focus:ring-offset-light-bg dark:focus:ring-offset-dark-bg;
 }
 
 .btn-secondary {
-  @apply bg-neutral-700/50 backdrop-blur-sm border border-neutral-600/50 text-neutral-200 px-6 py-3 rounded-xl font-medium shadow-lg hover:bg-neutral-600/50 transition-all duration-300 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:ring-offset-neutral-900;
+  @apply bg-light-bg-alt dark:bg-dark-bg-alt backdrop-blur-sm border border-light-secondary/30 dark:border-dark-primary/30 text-light-dark dark:text-dark-light px-6 py-3 rounded-xl font-medium shadow-lg hover:bg-light-secondary/20 dark:hover:bg-dark-primary/20 transition-all duration-300 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-light-secondary dark:focus:ring-dark-primary focus:ring-offset-2 focus:ring-offset-light-bg dark:focus:ring-offset-dark-bg;
 }
 
 .btn-accent {
-  @apply bg-gradient-to-r from-accent-500 to-accent-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 focus:ring-offset-neutral-900;
+  @apply bg-gradient-to-r from-light-accent to-light-secondary dark:from-dark-accent dark:to-dark-secondary text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-light-accent dark:focus:ring-dark-accent focus:ring-offset-2 focus:ring-offset-light-bg dark:focus:ring-offset-dark-bg;
 }
 
 .alert-error {
@@ -511,19 +513,11 @@ button:hover {
 }
 
 .sidebar {
-  @apply fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-primary-50 via-accent-50 to-primary-100 shadow-2xl border-r border-primary-200;
-}
-
-.dark .sidebar {
-  @apply bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-900 border-r border-neutral-700/50;
+  @apply fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-light-bg via-light-bg-alt to-light-accent dark:from-dark-bg dark:via-dark-bg-alt dark:to-dark-primary shadow-2xl border-r border-light-secondary/30 dark:border-dark-primary/30;
 }
 
 .sidebar-header {
-  @apply flex items-center justify-center h-20 bg-gradient-to-r from-primary-200 to-accent-200 border-b border-primary-300;
-}
-
-.dark .sidebar-header {
-  @apply bg-gradient-to-r from-primary-900/50 to-accent-900/50 border-b border-neutral-700/50;
+  @apply flex items-center justify-center h-20 bg-gradient-to-r from-light-primary to-light-secondary dark:from-dark-primary dark:to-dark-secondary border-b border-light-secondary/30 dark:border-dark-primary/30;
 }
 
 .sidebar-logo {
@@ -531,15 +525,15 @@ button:hover {
 }
 
 .sidebar-logo-icon {
-  @apply bg-gradient-to-r from-primary-500 to-accent-500 p-3 rounded-xl shadow-lg;
+  @apply bg-gradient-to-r from-light-primary to-light-secondary dark:from-dark-primary dark:to-dark-secondary p-3 rounded-xl shadow-lg;
 }
 
 .sidebar-title {
-  @apply text-2xl font-bold text-primary-800 dark:text-white;
+  @apply text-2xl font-bold text-light-dark dark:text-dark-light;
 }
 
 .sidebar-subtitle {
-  @apply text-sm text-primary-600 dark:text-neutral-400;
+  @apply text-sm text-light-primary dark:text-dark-accent;
 }
 
 .sidebar-nav {
@@ -547,28 +541,25 @@ button:hover {
 }
 
 .nav-item {
-  @apply flex items-center gap-4 px-4 py-4 text-primary-700 dark:text-neutral-300 rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-primary-600/30 hover:to-accent-600/30 hover:text-white hover:shadow-lg hover:scale-105;
-}
-
-.dark .nav-item {
-  @apply text-neutral-300 hover:bg-gradient-to-r hover:from-primary-600/40 hover:to-accent-600/40 hover:text-white;
+  @apply flex items-center gap-4 px-4 py-4 text-light-dark dark:text-dark-light rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-light-primary/30 hover:to-light-secondary/30 hover:text-light-primary dark:hover:from-dark-primary/40 dark:hover:to-dark-secondary/40 dark:hover:text-dark-light hover:shadow-lg hover:scale-105;
 }
 
 .sidebar-footer {
-  @apply absolute bottom-0 left-0 right-0 p-6 border-t border-primary-300 dark:border-neutral-700/50;
+  @apply absolute bottom-0 left-0 right-0 p-6 border-t border-light-secondary/30 dark:border-dark-primary/30;
 }
 
 .sidebar-tip {
-  @apply bg-primary-50 dark:bg-neutral-800/50 backdrop-blur-sm p-4 rounded-xl border border-primary-200 dark:border-neutral-600/50;
+  @apply bg-light-bg-alt dark:bg-dark-bg-alt/50 backdrop-blur-sm p-4 rounded-xl border border-light-secondary/20 dark:border-dark-primary/20;
 }
 
 .sidebar-tip-title {
-  @apply font-semibold text-primary-700 dark:text-primary-300 mb-2;
+  @apply font-semibold text-light-primary dark:text-dark-light mb-2;
 }
 
 .sidebar-tip-text {
-  @apply text-sm text-primary-600 dark:text-neutral-400;
+  @apply text-sm text-light-dark/70 dark:text-dark-accent;
 }
+
 
 .app-container {
   @apply flex min-h-screen;
