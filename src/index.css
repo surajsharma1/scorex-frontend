@@ -820,7 +820,7 @@ button:hover {
   cursor: pointer;
   align-items: center;
   gap: 12px;
-  background: #000000;
+  background: #8b5cf6;
   color: #fff;
   border-radius: 10rem;
   font-weight: 600;
@@ -840,7 +840,7 @@ button:hover {
   width: 20px;
   height: 20px;
   position: relative;
-  color: #000;
+  color: #8b5cf6;
   background: #fff;
   border-radius: 50%;
   display: grid;
@@ -849,16 +849,16 @@ button:hover {
 }
 
 .btn-4:hover {
-  background: #0ea5e9;
+  background: #7c3aed;
 }
 
 .btn-4:hover .button__icon-wrapper {
-  color: #0ea5e9;
+  color: #7c3aed;
 }
 
 .btn-4 .button__icon-svg--copy {
   position: absolute;
-  fill: #000;
+  fill: #8b5cf6;
   transform: translate(-150%, 150%);
 }
 
