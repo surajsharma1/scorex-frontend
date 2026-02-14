@@ -18,7 +18,7 @@ const Frontpage = () => {
         <h1 className="text-3xl font-bold">ScoreX</h1>
         <button
           onClick={() => navigate('/login')}
-          className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition-colors shadow-md"
+          className="btn-2"
         >
           Login
         </button>
@@ -40,7 +40,7 @@ const Frontpage = () => {
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition-colors shadow-md"
+            className="btn-primary"
           >
             Get Started
           </button>
@@ -174,7 +174,7 @@ const Frontpage = () => {
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="bg-green-600 hover:bg-green-700 px-8 py-3 rounded-lg font-semibold transition-colors shadow-md"
+            className="btn-primary"
           >
             Join Now
           </button>
@@ -225,7 +225,7 @@ const Frontpage = () => {
           <div className="mt-12">
           <button
             onClick={() => navigate('/login')}
-            className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition-colors shadow-md"
+            className="btn-primary"
           >
             Start Free Trial
           </button>
@@ -266,7 +266,7 @@ const Frontpage = () => {
             </p>
             <Link
               to="/tournaments"
-              className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition-colors inline-block"
+              className="btn-primary inline-block"
             >
               View All Tournaments
             </Link>
@@ -278,7 +278,7 @@ const Frontpage = () => {
             </p>
             <Link
               to="/tournaments"
-              className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition-colors inline-block"
+              className="btn-primary inline-block"
             >
               View All Tournaments
             </Link>
