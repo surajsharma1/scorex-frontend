@@ -17,12 +17,13 @@ export default {
         'light-dark': '#1e5470',
         
         // Dark Theme Colors
-        'dark-bg': '#323d42',
-        'dark-bg-alt': '#38524c',
-        'dark-primary': '#3f778c',
-        'dark-secondary': '#6587a1',
-        'dark-accent': '#8fa9b5',
-        'dark-light': '#cbdced',
+        'dark-bg': '#0a1828',
+        'dark-bg-alt': '#0f2438',
+        'dark-primary': '#178582',
+        'dark-secondary': '#1a9a96',
+        'dark-accent': '#178582',
+        'dark-light': '#bfa181',
+
         
         // Semantic colors
         primary: {
@@ -43,18 +44,21 @@ export default {
         background: {
           DEFAULT: '#d1ecff',
           light: '#cbeaec',
-          dark: '#323d42',
-          darkAlt: '#38524c',
+          dark: '#0a1828',
+          darkAlt: '#0f2438',
         },
+
         surface: {
           DEFAULT: '#ffffff',
-          dark: '#3f778c',
+          dark: '#0f2438',
         },
+
         text: {
           DEFAULT: '#1e5470',
           light: '#34729c',
-          dark: '#cbdced',
+          dark: '#bfa181',
         },
+
         success: '#6ec1d1',
         error: '#e74c3c',
         warning: '#f39c12',
