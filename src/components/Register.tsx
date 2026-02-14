@@ -115,7 +115,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full frontpage-btn py-3 text-base font-semibold"
+              className="btn-6"
             >
               {loading ? (
                 <div className="flex items-center justify-center">
@@ -126,6 +126,7 @@ export default function Register() {
                 'Verify OTP'
               )}
             </button>
+
 
 
             <div className="text-center">
@@ -202,7 +203,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full frontpage-btn py-3 text-base font-semibold"
+              className="btn-5"
             >
               {loading ? (
                 <div className="flex items-center justify-center">
@@ -213,6 +214,7 @@ export default function Register() {
                 'Create Account'
               )}
             </button>
+
 
 
             <div className="text-center">

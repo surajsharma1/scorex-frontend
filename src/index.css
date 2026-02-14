@@ -688,9 +688,8 @@ button:hover {
   cursor: pointer;
   border: none;
   margin: 0;
-  min-height: 40px;
-  max-width: 100%;
-  width: auto;
+  min-height: 48px;
+  width: 100%;
   font-family: 'Inter', sans-serif;
   font-size: 16px;
   font-weight: 600;
@@ -708,38 +707,23 @@ button:hover {
   white-space: nowrap;
 }
 
-
-.btn-2 span,
 .btn-2 > * {
   position: relative;
   z-index: 20;
-  transition: color 0.4s;
-}
-
-.btn-2:hover span,
-.btn-2:hover > * {
-  color: #fff;
-}
-
-.btn-2::before,
-.btn-2::after {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10;
 }
 
 .btn-2::before {
   content: "";
-  background: #3b82f6;
-  width: 120%;
+  position: absolute;
+  top: 0;
   left: -10%;
+  width: 120%;
+  height: 100%;
+  background: #3b82f6;
   transform: skew(30deg);
   transition: transform 0.4s cubic-bezier(0.3, 1, 0.8, 1);
+  z-index: 10;
 }
-
 
 .btn-2:hover::before {
   transform: translate3d(100%, 0, 0);
@@ -753,6 +737,7 @@ button:hover {
 .btn-2:disabled::before {
   display: none;
 }
+
 
 /* btn-3: Back to Top button with expand animation - NAVY BLUE VERSION */
 .btn-3 {
@@ -888,9 +873,8 @@ button:hover {
 .btn-5 {
   margin-top: 0.15rem;
   min-height: 48px;
-  max-width: 100%;
+  width: 100%;
   border-radius: 10rem;
-  width: auto;
   font-weight: 600;
   outline: 2px solid #1e3a8a;
   outline-offset: 2px;
@@ -901,7 +885,7 @@ button:hover {
   text-align: center;
   text-transform: uppercase;
   font-size: 15px;
-  transition: 0.3s;
+  transition: color 0.3s;
   z-index: 1;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
@@ -913,6 +897,10 @@ button:hover {
   white-space: nowrap;
 }
 
+.btn-5 > * {
+  position: relative;
+  z-index: 20;
+}
 
 .btn-5::before {
   content: '';
@@ -923,11 +911,9 @@ button:hover {
   left: 50%;
   transform: translate(-50%, -50%) rotate(45deg);
   background: #1e3a8a;
-  transition: 0.5s ease;
-  display: block;
-  z-index: -1;
+  transition: width 0.5s ease;
+  z-index: 10;
 }
-
 
 .btn-5:hover::before {
   width: 105%;
@@ -946,6 +932,7 @@ button:hover {
   display: none;
 }
 
+
 /* btn-6: Send/Submit button with icon fly animation - NAVY BLUE VERSION */
 .btn-6 {
   font-size: 16px;
@@ -953,9 +940,10 @@ button:hover {
   color: white;
   padding: 12px 24px;
   min-height: 48px;
-  padding-left: 16px;
+  width: 100%;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   border: none;
   border-radius: 4rem;
   overflow: hidden;
@@ -969,6 +957,10 @@ button:hover {
   background: #1e40af;
 }
 
+.btn-6 > * {
+  position: relative;
+  z-index: 20;
+}
 
 .btn-6 span {
   display: block;
@@ -1002,6 +994,7 @@ button:hover {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
 
 /* Frontpage specific button styles - ensure text visibility */
 .frontpage-btn {
