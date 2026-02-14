@@ -60,7 +60,7 @@ export default function TournamentList() {
       <h1 className="text-2xl mb-4" id="tournaments-heading">Tournaments</h1>
       <button
         onClick={() => navigate('/tournaments/new')}
-        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mb-4 transition-colors"
+        className="btn-primary mb-4"
         aria-label="Create a new tournament"
       >
         Create New
@@ -103,7 +103,7 @@ export default function TournamentList() {
           <button
             onClick={loadMore}
             disabled={loadingMore}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded disabled:opacity-50 transition-colors"
+            className="btn-secondary"
             aria-label={loadingMore ? "Loading more tournaments" : "Load more tournaments"}
             aria-disabled={loadingMore}
           >

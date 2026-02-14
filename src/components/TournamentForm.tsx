@@ -8,7 +8,7 @@ export default function TeamForm() {
     color: '',
     players: [{ name: '', role: '', jerseyNumber: '' }],
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);                                                                                                                                                                                                                                          
   const navigate = useNavigate();
 
   const addPlayer = () => {
@@ -87,10 +87,10 @@ export default function TeamForm() {
             />
           </div>
         ))}
-        <button type="button" onClick={addPlayer} className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded mr-2 transition-colors">
+        <button type="button" onClick={addPlayer} className="btn-secondary mr-2">
           Add Player
         </button>
-        <button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors disabled:opacity-50">
+        <button type="submit" disabled={loading} className="btn-primary">
           {loading ? 'Creating...' : 'Create'}
         </button>
       </form>

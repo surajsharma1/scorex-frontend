@@ -83,7 +83,7 @@ export default function TeamList() {
       <h1 className="text-2xl mb-4" id="teams-heading">Teams</h1>
       <button
         onClick={() => navigate('/teams/new')}
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+        className="btn-primary mb-4"
         aria-label="Create a new team"
       >
         Create New
@@ -120,7 +120,7 @@ export default function TeamList() {
           <button
             onClick={loadMore}
             disabled={loadingMore}
-            className="bg-gray-500 text-white px-4 py-2 rounded disabled:opacity-50"
+            className="btn-secondary"
             aria-label={loadingMore ? "Loading more teams" : "Load more teams"}
             aria-disabled={loadingMore}
           >
