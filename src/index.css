@@ -4,8 +4,7 @@
 /* Bierika Custom Font */
 @font-face {
   font-family: "Bierika";
-  src: url("/fonts/bierika-font.woff2") format("woff2"),
-       url("/fonts/bierika-font.woff") format("woff");
+  src:
   font-weight: normal;
   font-style: normal;
   font-display: swap;
