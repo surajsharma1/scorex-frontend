@@ -125,12 +125,12 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-300 dark:border-gray-700">
+      <div className="bg-white dark:bg-dark-bg-alt p-6 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-dark-primary/30">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Upgrade Your Plan</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-dark-light">Upgrade Your Plan</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            className="text-gray-400 hover:text-gray-900 dark:hover:text-dark-light"
           >
             <X className="w-6 h-6" />
           </button>
@@ -138,28 +138,28 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
 
         {/* Level Selection */}
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Select Level</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-light mb-4">Select Level</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {LEVELS.map((level) => (
               <div
                 key={level.id}
                 className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
                   selectedLevel === level.id
-                    ? 'border-blue-500 bg-gray-100 dark:bg-gray-700'
-                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-500'
+                    ? 'border-blue-500 bg-gray-100 dark:bg-dark-bg'
+                    : 'border-gray-300 dark:border-dark-primary/30 bg-white dark:bg-dark-bg-alt hover:border-gray-500'
                 }`}
                 onClick={() => setSelectedLevel(level.id)}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">{level.name}</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-dark-light">{level.name}</h3>
                   {selectedLevel === level.id && (
                     <CheckCircle className="w-6 h-6 text-green-400" />
                   )}
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{level.description}</p>
+                <p className="text-sm text-gray-600 dark:text-dark-accent/70 mb-4">{level.description}</p>
                 <ul className="space-y-2">
                   {level.features.map((feature, index) => (
-                    <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-center">
+                    <li key={index} className="text-sm text-gray-700 dark:text-dark-accent flex items-center">
                       <CheckCircle className="w-4 h-4 text-green-400 mr-2 flex-shrink-0" />
                       {feature}
                     </li>
@@ -172,7 +172,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
 
         {/* Duration Selection */}
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Select Duration</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-light mb-4">Select Duration</h3>
           <div className="grid grid-cols-3 gap-4">
             {DURATIONS.map((duration) => (
               <button
@@ -181,7 +181,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   selectedDuration === duration.id
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
+                    : 'bg-gray-200 dark:bg-dark-bg text-gray-900 dark:text-dark-light hover:bg-gray-300 dark:hover:bg-dark-bg-alt'
                 }`}
               >
                 {duration.name}
@@ -192,14 +192,14 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
 
         {/* Payment Method Selection */}
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Payment Method</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-light mb-4">Payment Method</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <button
               onClick={() => setPaymentMethod('upi')}
               className={`flex items-center px-4 py-2 rounded-lg ${
                 paymentMethod === 'upi'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-200 dark:bg-dark-bg text-gray-900 dark:text-dark-light hover:bg-gray-300 dark:hover:bg-dark-bg-alt'
               }`}
             >
               <Smartphone className="w-5 h-5 mr-2" />
@@ -210,7 +210,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
               className={`flex items-center px-4 py-2 rounded-lg ${
                 paymentMethod === 'card'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-200 dark:bg-dark-bg text-gray-900 dark:text-dark-light hover:bg-gray-300 dark:hover:bg-dark-bg-alt'
               }`}
             >
               <CreditCard className="w-5 h-5 mr-2" />
@@ -221,7 +221,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
               className={`flex items-center px-4 py-2 rounded-lg ${
                 paymentMethod === 'paypal'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-200 dark:bg-dark-bg text-gray-900 dark:text-dark-light hover:bg-gray-300 dark:hover:bg-dark-bg-alt'
               }`}
             >
               PayPal
@@ -233,7 +233,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
         {paymentMethod === 'upi' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-2">
                 UPI ID
               </label>
               <input
@@ -241,11 +241,11 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
                 placeholder="user@upi"
                 value={upiDetails.upiId}
                 onChange={(e) => setUpiDetails({ ...upiDetails, upiId: e.target.value })}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-dark-primary/30 rounded-lg text-gray-900 dark:text-dark-light placeholder-gray-500 dark:placeholder-dark-accent/50"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-2">
                 Full Name
               </label>
               <input
@@ -253,7 +253,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
                 placeholder="John Doe"
                 value={upiDetails.name}
                 onChange={(e) => setUpiDetails({ ...upiDetails, name: e.target.value })}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-dark-primary/30 rounded-lg text-gray-900 dark:text-dark-light placeholder-gray-500 dark:placeholder-dark-accent/50"
               />
             </div>
           </div>
@@ -262,7 +262,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
         {paymentMethod === 'card' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-2">
                 Card Number
               </label>
               <input
@@ -270,11 +270,11 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
                 placeholder="1234 5678 9012 3456"
                 value={cardDetails.number}
                 onChange={(e) => setCardDetails({ ...cardDetails, number: e.target.value })}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-dark-primary/30 rounded-lg text-gray-900 dark:text-dark-light placeholder-gray-500 dark:placeholder-dark-accent/50"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-2">
                 Cardholder Name
               </label>
               <input
@@ -282,11 +282,11 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
                 placeholder="John Doe"
                 value={cardDetails.name}
                 onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-dark-primary/30 rounded-lg text-gray-900 dark:text-dark-light placeholder-gray-500 dark:placeholder-dark-accent/50"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-2">
                 Expiry Date
               </label>
               <input
@@ -294,11 +294,11 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
                 placeholder="MM/YY"
                 value={cardDetails.expiry}
                 onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-dark-primary/30 rounded-lg text-gray-900 dark:text-dark-light placeholder-gray-500 dark:placeholder-dark-accent/50"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-2">
                 CVC
               </label>
               <input
@@ -306,25 +306,25 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
                 placeholder="123"
                 value={cardDetails.cvc}
                 onChange={(e) => setCardDetails({ ...cardDetails, cvc: e.target.value })}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-dark-primary/30 rounded-lg text-gray-900 dark:text-dark-light placeholder-gray-500 dark:placeholder-dark-accent/50"
               />
             </div>
           </div>
         )}
 
         {/* Payment Summary */}
-        <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 mb-6">
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Payment Summary</h4>
+        <div className="bg-gray-100 dark:bg-dark-bg rounded-lg p-4 mb-6">
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-dark-light mb-2">Payment Summary</h4>
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-gray-700 dark:text-gray-300">
+              <span className="text-gray-700 dark:text-dark-accent">
                 {LEVELS.find(l => l.id === selectedLevel)?.name} - {DURATIONS.find(d => d.id === selectedDuration)?.name}
               </span>
-              <span className="text-gray-900 dark:text-white font-bold">
+              <span className="text-gray-900 dark:text-dark-light font-bold">
                 ${calculatePrice()}
               </span>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-dark-accent/70">
               {LEVELS.find(l => l.id === selectedLevel)?.description}
             </p>
           </div>
@@ -334,7 +334,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
         <div className="flex justify-end space-x-4">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white dark:bg-dark-bg dark:hover:bg-dark-bg-alt rounded-lg transition-colors"
           >
             Cancel
           </button>
