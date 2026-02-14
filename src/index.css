@@ -20,9 +20,10 @@ body {
 
 /* Dark Theme */
 .dark body {
-  background: linear-gradient(135deg, #323d42 0%, #38524c 50%, #323d42 100%);
-  color: #cbdced;
+  background: linear-gradient(135deg, #0a1828 0%, #0f2438 50%, #0a1828 100%);
+  color: #bfa181;
 }
+
 
 
 code {
@@ -90,12 +91,13 @@ button:hover {
 }
 
 .dark .card {
-  background: rgba(38, 38, 38, 0.5);
+  background: rgba(15, 36, 56, 0.7);
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(75, 85, 99, 0.5);
+  border: 1px solid rgba(23, 133, 130, 0.3);
   border-radius: 0.75rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
 }
+
 
 /* Tab Styles */
 .tabs {
@@ -104,8 +106,9 @@ button:hover {
 }
 
 .dark .tabs {
-  border-bottom: 1px solid #374151;
+  border-bottom: 1px solid #178582;
 }
+
 
 .tab {
   padding: 0.75rem 1rem;
@@ -118,16 +121,18 @@ button:hover {
 }
 
 .dark .tab {
-  color: #9ca3af;
+  color: #bfa181;
 }
+
 
 .tab:hover {
   color: #374151;
 }
 
 .dark .tab:hover {
-  color: #d1d5db;
+  color: #178582;
 }
+
 
 .tab-active {
   color: #3b82f6;
@@ -261,8 +266,9 @@ button:hover {
 }
 
 .dark .main-content {
-  background-color: #111827;
+  background-color: #0a1828;
 }
+
 
 /* PC-Specific Adjustments */
 @media (min-width: 768px) {
@@ -513,12 +519,14 @@ button:hover {
 }
 
 .sidebar {
-  @apply fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-light-bg via-light-bg-alt to-light-accent dark:from-dark-bg dark:via-dark-bg-alt dark:to-dark-primary shadow-2xl border-r border-light-secondary/30 dark:border-dark-primary/30;
+  @apply fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-light-bg via-light-bg-alt to-light-accent dark:from-dark-bg dark:via-dark-bg-alt dark:to-dark-bg shadow-2xl border-r border-light-secondary/30 dark:border-dark-primary/30;
 }
 
+
 .sidebar-header {
-  @apply flex items-center justify-center h-20 bg-gradient-to-r from-light-primary to-light-secondary dark:from-dark-primary dark:to-dark-secondary border-b border-light-secondary/30 dark:border-dark-primary/30;
+  @apply flex items-center justify-center h-20 bg-gradient-to-r from-light-primary to-light-secondary dark:from-dark-primary dark:to-dark-accent border-b border-light-secondary/30 dark:border-dark-primary/30;
 }
+
 
 .sidebar-logo {
   @apply flex items-center gap-4;
@@ -541,24 +549,28 @@ button:hover {
 }
 
 .nav-item {
-  @apply flex items-center gap-4 px-4 py-4 text-light-dark dark:text-dark-light rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-light-primary/30 hover:to-light-secondary/30 hover:text-light-primary dark:hover:from-dark-primary/40 dark:hover:to-dark-secondary/40 dark:hover:text-dark-light hover:shadow-lg hover:scale-105;
+  @apply flex items-center gap-4 px-4 py-4 text-light-dark dark:text-dark-light rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-light-primary/30 hover:to-light-secondary/30 hover:text-light-primary dark:hover:from-dark-primary/40 dark:hover:to-dark-accent/40 dark:hover:text-dark-primary hover:shadow-lg hover:scale-105;
 }
+
 
 .sidebar-footer {
   @apply absolute bottom-0 left-0 right-0 p-6 border-t border-light-secondary/30 dark:border-dark-primary/30;
 }
 
 .sidebar-tip {
-  @apply bg-light-bg-alt dark:bg-dark-bg-alt/50 backdrop-blur-sm p-4 rounded-xl border border-light-secondary/20 dark:border-dark-primary/20;
+  @apply bg-light-bg-alt dark:bg-dark-bg-alt/70 backdrop-blur-sm p-4 rounded-xl border border-light-secondary/20 dark:border-dark-primary/30;
 }
+
 
 .sidebar-tip-title {
-  @apply font-semibold text-light-primary dark:text-dark-light mb-2;
+  @apply font-semibold text-light-primary dark:text-dark-primary mb-2;
 }
 
+
 .sidebar-tip-text {
-  @apply text-sm text-light-dark/70 dark:text-dark-accent;
+  @apply text-sm text-light-dark/70 dark:text-dark-light/80;
 }
+
 
 
 .app-container {
