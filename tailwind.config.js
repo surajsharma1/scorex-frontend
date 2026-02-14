@@ -64,7 +64,7 @@ export default {
         warning: '#f39c12',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Bierika', 'Inter', 'system-ui', 'sans-serif'],
       },
     },
   },
