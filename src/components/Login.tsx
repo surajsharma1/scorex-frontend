@@ -82,7 +82,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-2"
+            className="w-full frontpage-btn py-3 text-base font-semibold"
           >
             {loading ? (
               <div className="flex items-center justify-center">
@@ -93,6 +93,7 @@ export default function Login() {
               'Sign In'
             )}
           </button>
+
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
