@@ -46,10 +46,14 @@ export default function Register() {
         dob: formData.dob,
         googleId: formData.googleId,
       });
-      // Always show OTP input after registration
-      setShowOtp(true);
+      // Only show OTP screen on successful registration
+      if (response.data.message) {
+        setShowOtp(true);
+        setError(''); // Clear any previous errors
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
+      setShowOtp(false);
     } finally {
       setLoading(false);
     }
