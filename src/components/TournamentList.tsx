@@ -50,13 +50,15 @@ export default function TournamentList() {
   };
 
   if (loading) return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen" role="status" aria-live="polite" aria-label="Loading tournaments">
+    <div className="p-6 bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-dark-light min-h-screen" role="status" aria-live="polite" aria-label="Loading tournaments">
+
       <p>Loading tournaments...</p>
     </div>
   );
 
   return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
+    <div className="p-6 bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-dark-light min-h-screen">
+
       <h1 className="text-2xl mb-4" id="tournaments-heading">Tournaments</h1>
       <button
         onClick={() => navigate('/tournaments/new')}
@@ -74,22 +76,26 @@ export default function TournamentList() {
         {tournaments.map((tournament) => (
           <div
             key={tournament._id}
-            className="flex items-center justify-between w-full bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700"
+            className="flex items-center justify-between w-full bg-white dark:bg-dark-bg-alt p-4 border-b border-gray-200 dark:border-dark-primary/30"
+
             role="listitem"
             aria-label={`Tournament: ${tournament.name}`}
           >
             <div className="flex items-center space-x-3 flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white" id={`tournament-${tournament._id}-name`}>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-light" id={`tournament-${tournament._id}-name`}>
+
                 {tournament.name}
               </h3>
             </div>
-            <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-gray-300 dark:bg-dark-secondary rounded-full flex items-center justify-center">
               {/* Placeholder for logo */}
-              <span className="text-gray-600 dark:text-gray-400 text-sm">Logo</span>
+              <span className="text-gray-600 dark:text-dark-accent/70 text-sm">Logo</span>
+
             </div>
             <button
               onClick={() => navigate(`/tournaments/${tournament._id}/edit`)}
-              className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              className="text-blue-500 hover:text-blue-600 dark:text-dark-accent dark:hover:text-dark-light transition-colors"
+
               aria-label={`Edit tournament ${tournament.name}`}
               aria-describedby={`tournament-${tournament._id}-name`}
             >
