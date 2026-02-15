@@ -1,4 +1,5 @@
-the import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authAPI } from '../services/api';
 
