@@ -22,7 +22,24 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   ];
 
   return (
-    <div className="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-light-bg via-light-bg-alt to-light-accent dark:from-dark-bg dark:via-dark-bg-alt dark:to-dark-primary shadow-2xl border-r border-light-secondary/30 dark:border-dark-primary/30 animate-fade-in">
+    <div className={`
+      fixed inset-y-0 left-0 z-50 w-64 
+      bg-gradient-to-b from-light-bg via-light-bg-alt to-light-accent 
+      dark:from-dark-bg dark:via-dark-bg-alt dark:to-dark-primary 
+      shadow-2xl border-r border-light-secondary/30 dark:border-dark-primary/30 
+      transform transition-transform duration-300 ease-in-out
+      lg:translate-x-0
+      ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+    `}>
+      {/* Close button for mobile */}
+      <button
+        onClick={onToggle}
+        className="absolute top-4 right-4 lg:hidden p-2 rounded-lg bg-light-secondary/20 dark:bg-dark-primary/20 text-light-dark dark:text-dark-light hover:bg-light-secondary/40 dark:hover:bg-dark-primary/40 transition-colors z-50"
+        aria-label="Close sidebar"
+      >
+        <X className="w-5 h-5" />
+      </button>
+
       <div className="flex items-center justify-center h-20 bg-gradient-to-r from-light-dark to-light-primary dark:from-dark-bg dark:to-dark-bg-alt border-b border-light-secondary/30 dark:border-dark-primary/30">
 
         <div className="flex items-center gap-4">

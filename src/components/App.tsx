@@ -132,71 +132,82 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      
       <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+      
       <div className="main-content">
-        {isProfile ? (
-          <Profile />
-        ) : isDashboard ? (
-          <div className="animate-fade-in">
-            <div className="flex justify-between items-center mb-8">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="lg:hidden btn-secondary p-3"
-                  title="Toggle sidebar"
-                >
-                  <Menu className="w-5 h-5" />
-                </button>
+        {/* Header - shows on ALL authenticated pages */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="btn-secondary p-3"
+              title="Toggle sidebar"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            {isDashboard && (
               <div>
                 <h1 className="text-4xl font-bold text-gradient mb-2 text-light-primary dark:text-dark-light">Dashboard</h1>
                 <p className="text-light-dark/70 dark:text-dark-accent">Welcome back! Here's your tournament overview.</p>
               </div>
+            )}
+          </div>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-light-secondary/20 dark:bg-dark-primary/20 text-light-primary dark:text-dark-light hover:bg-light-secondary/40 dark:hover:bg-dark-primary/40 transition-all duration-300"
+              title="Toggle theme"
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <span className="text-sm font-medium">{isDark ? 'Light' : 'Dark'}</span>
+            </button>
 
-              </div>
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={toggleTheme}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-light-secondary/20 dark:bg-dark-primary/20 text-light-primary dark:text-dark-light hover:bg-light-secondary/40 dark:hover:bg-dark-primary/40 transition-all duration-300"
-                  title="Toggle theme"
-                >
-                  {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                  <span className="text-sm font-medium">{isDark ? 'Light' : 'Dark'}</span>
-                </button>
-
-                <div className="relative">
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                className="btn-secondary p-3"
+              >
+                <User className="w-5 h-5" />
+              </button>
+              {showProfileDropdown && (
+                <div className="absolute right-0 mt-2 w-56 card z-50 animate-slide-in">
                   <button
-                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                    className="btn-secondary p-3"
+                    onClick={() => {
+                      navigate('/profile');
+                      setShowProfileDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-3 text-gray-900 dark:text-neutral-200 hover:bg-primary-500/20 rounded-t-xl transition-colors"
                   >
-                    <User className="w-5 h-5" />
+                    <User className="w-4 h-4 inline mr-3" />
+                    Profile
                   </button>
-                  {showProfileDropdown && (
-                    <div className="absolute right-0 mt-2 w-56 card z-50 animate-slide-in">
-                      <button
-                        onClick={() => {
-                          navigate('/profile');
-                          setShowProfileDropdown(false);
-                        }}
-                        className="block w-full text-left px-4 py-3 text-gray-900 dark:text-neutral-200 hover:bg-primary-500/20 rounded-t-xl transition-colors"
-                      >
-                        <User className="w-4 h-4 inline mr-3" />
-                        Profile
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          setShowProfileDropdown(false);
-                        }}
-                        className="block w-full text-left px-4 py-3 text-gray-900 dark:text-neutral-200 hover:bg-red-500/20 rounded-b-xl transition-colors"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  )}
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setShowProfileDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-3 text-gray-900 dark:text-neutral-200 hover:bg-red-500/20 rounded-b-xl transition-colors"
+                  >
+                    Logout
+                  </button>
                 </div>
-              </div>
+              )}
             </div>
+          </div>
+        </div>
 
+        {isProfile ? (
+          <Profile />
+        ) : isDashboard ? (
+          <div className="animate-fade-in">
             {error && (
               <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl mb-8">
                 {error}
