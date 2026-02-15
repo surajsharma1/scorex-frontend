@@ -33,11 +33,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 animate-fade-in bg-gray-50 dark:bg-gray-900">
-      <div className="bg-white dark:bg-gray-800 p-8 w-full max-w-md animate-slide-in rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-light-bg dark:bg-dark-bg">
+      <div className="bg-white dark:bg-gray-800 p-8 w-full max-w-md rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back</h2>
-          <p className="text-gray-600 dark:text-gray-400">Sign in to your ScoreX account</p>
+          <h2 className="text-3xl font-bold text-light-primary dark:text-dark-light mb-2">Welcome Back</h2>
+          <p className="text-text dark:text-text-dark">Sign in to your ScoreX account</p>
         </div>
 
         {error && (
@@ -48,7 +48,7 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-text dark:text-text-dark mb-2">
               Email Address
             </label>
             <input
@@ -56,7 +56,7 @@ export default function Login() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+              className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-text dark:text-text-dark placeholder-text/50 dark:placeholder-text-dark/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter your email"
               required
               aria-describedby="email-help"
@@ -64,7 +64,7 @@ export default function Login() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-text dark:text-text-dark mb-2">
               Password
             </label>
             <input
@@ -72,7 +72,7 @@ export default function Login() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+              className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-text dark:text-text-dark placeholder-text/50 dark:placeholder-text-dark/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter your password"
               required
               aria-describedby="password-help"
@@ -102,7 +102,7 @@ export default function Login() {
               <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400">Or continue with</span>
+              <span className="px-2 bg-white dark:bg-gray-800 text-text dark:text-text-dark">Or continue with</span>
             </div>
           </div>
 
@@ -122,11 +122,11 @@ export default function Login() {
         </form>
 
         <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400 text-sm">
+          <p className="text-text dark:text-text-dark text-sm">
             Don't have an account?{' '}
             <button
               onClick={() => navigate('/register')}
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-medium"
+              className="text-light-primary dark:text-dark-primary hover:text-light-dark dark:hover:text-dark-secondary font-medium"
             >
               Sign up here
             </button>
