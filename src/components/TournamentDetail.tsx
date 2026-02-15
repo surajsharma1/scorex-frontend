@@ -168,7 +168,8 @@ export default function TournamentDetail() {
   }
 
   return (
-    <div className="main-content animate-fade-in bg-gray-900 text-white min-h-screen p-4 md:p-6">
+    <div className="animate-fade-in bg-gray-900 text-white min-h-screen p-4 md:p-6">
+
       {/* Mobile Header */}
       <div className="lg:hidden mb-6">
         <button
