@@ -16,7 +16,7 @@ export default defineConfig({
             // React core
             if (id.includes('react-dom') || id.includes('react-router-dom')) {
               return 'react-vendor';
-            }
+                      }
             // Charts
             if (id.includes('chart.js') || id.includes('react-chartjs-2')) {
               return 'chart-vendor';
