@@ -5,15 +5,12 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'dist',
-    sourcemap: false,
+    sourcemap: true, // Enable sourcemap for better debugging
     minify: 'terser',
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          utils: ['axios', 'lucide-react']
-        }
+        // Simplified chunking - let Vite handle chunking automatically
+        // This can help avoid issues with manual chunking causing import issues
       }
     }
   },
