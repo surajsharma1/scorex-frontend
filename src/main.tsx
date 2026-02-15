@@ -55,7 +55,7 @@ const router = createBrowserRouter([
       { path: "overlays/:id/edit", element: <OverlayEditor /> },
       { path: "profile", element: <Profile /> },
       { path: "membership", element: <Membership /> },
-      { path: "payment", element: <Payment onClose={() => {}} onSuccess={() => {}} /> },
+      { path: "payment", element: <Payment onClose={() => {}} onSuccess={(plan) => console.log('Payment successful:', plan)} /> },
     ],
   },
   { path: "/login", element: <Login /> },
