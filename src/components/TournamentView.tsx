@@ -555,10 +555,19 @@ const handleCreateMatch = async (e: React.FormEvent) => {
                               className="w-full px-3 py-2 border border-gray-300 dark:border-dark-primary/30 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-light"
                             >
                               <option value="">Select Toss Winner</option>
-                              {matchForm.team1 && <option value={matchForm.team1}>Team 1</option>}
-                              {matchForm.team2 && <option value={matchForm.team2}>Team 2</option>}
+                              {matchForm.team1 && (
+                                <option value={matchForm.team1}>
+                                  {teams.find(t => t._id === matchForm.team1)?.name || 'Team 1'}
+                                </option>
+                              )}
+                              {matchForm.team2 && (
+                                <option value={matchForm.team2}>
+                                  {teams.find(t => t._id === matchForm.team2)?.name || 'Team 2'}
+                                </option>
+                              )}
                             </select>
                           </div>
+
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-1">Match Type</label>
                             <select
