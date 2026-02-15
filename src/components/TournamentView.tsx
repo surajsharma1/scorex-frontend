@@ -11,13 +11,13 @@ import OverlayEditor from './OverlayEditor';
 export default function TournamentView() {
   const navigate = useNavigate();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
+  const [selectedTournament] = useState<Tournament | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [showMatchForm, setShowMatchForm] = useState(false);
   const [showTournamentForm, setShowTournamentForm] = useState(false);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [setSocket] = useState<Socket | null>(null);
   const [scoreHistory, setScoreHistory] = useState([]);
   const [matchForm, setMatchForm] = useState({
     tournament: '',   

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from './ThemeProvider';
 import { Sun, Moon } from 'lucide-react';
@@ -15,7 +15,8 @@ const Frontpage = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-light-bg dark:bg-dark-bg text-light-dark dark:text-dark-light transition-colors duration-300">
+    <div className="min-h-screen bg-light-bg dark:bg-dark-bg text-text dark:text-text-dark">
+
       {/* Header */}
       <header className="flex justify-between items-center p-6 bg-white/80 dark:bg-dark-bg-alt/80 backdrop-blur-sm shadow-lg border-b border-light-secondary/20 dark:border-dark-primary/20">
         <h1 className="text-3xl font-bold text-light-primary dark:text-dark-light">ScoreX</h1>
@@ -23,19 +24,20 @@ const Frontpage = () => {
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full bg-light-secondary/20 dark:bg-dark-primary/20 text-light-primary dark:text-dark-light hover:bg-light-secondary/40 dark:hover:bg-dark-primary/40 transition-all duration-300"
+            className="p-2 rounded-full bg-light-secondary/20 dark:bg-dark-primary/20 text-light-primary dark:text-dark-light"
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
           <button
             onClick={() => navigate('/login')}
-            className="frontpage-btn"
+            className="px-6 py-2 bg-light-primary dark:bg-dark-primary text-white rounded-lg font-medium"
           >
             Login
           </button>
         </div>
       </header>
+
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-light-primary via-light-secondary to-light-accent dark:from-dark-bg dark:via-dark-primary dark:to-dark-secondary py-20 px-6 flex items-center justify-center">
@@ -53,10 +55,11 @@ const Frontpage = () => {
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="frontpage-btn"
+            className="px-8 py-3 bg-white text-light-primary rounded-lg font-medium"
           >
             Get Started
           </button>
+
         </div>
       </section>
 
@@ -64,85 +67,97 @@ const Frontpage = () => {
       <section className="py-20 px-6 bg-light-bg-alt dark:bg-dark-bg-alt">
         <h3 className="text-4xl font-bold text-center mb-12 text-light-dark dark:text-dark-light">Our Services</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-shadow">
+          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30">
             <h4 className="text-2xl font-semibold mb-4 text-light-primary dark:text-dark-light">Tournament Management</h4>
+
             <p className="text-light-dark/80 dark:text-dark-accent leading-relaxed">
               Easily create and manage cricket tournaments. Schedule matches, track scores,
               and organize brackets for leagues, cups, and local events.
             </p>
           </div>
-          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-shadow">
+          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30">
             <h4 className="text-2xl font-semibold mb-4 text-light-primary dark:text-dark-light">Team & Player Organization</h4>
+
             <p className="text-light-dark/80 dark:text-dark-accent leading-relaxed">
               Build teams, add players, and manage rosters. Keep track of player stats,
               performance, and team standings with our intuitive tools.
             </p>
           </div>
-          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-shadow">
+          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30">
             <h4 className="text-2xl font-semibold mb-4 text-light-primary dark:text-dark-light">Live Streaming Overlays</h4>
+
             <p className="text-light-dark/80 dark:text-dark-accent leading-relaxed">
               Generate professional overlays for your live streams. Customize designs,
               display scores, brackets, and team info in real-time.
             </p>
           </div>
-          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-shadow">
+          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30">
             <h4 className="text-2xl font-semibold mb-4 text-light-primary dark:text-dark-light">Real-Time Score Updates</h4>
+
             <p className="text-light-dark/80 dark:text-dark-accent leading-relaxed">
               Update match scores live during games. View real-time statistics,
               wickets, overs, and more for an immersive experience.
             </p>
           </div>
-          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-shadow">
+          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30">
             <h4 className="text-2xl font-semibold mb-4 text-light-primary dark:text-dark-light">Bracket Generation</h4>
+
             <p className="text-light-dark/80 dark:text-dark-accent leading-relaxed">
               Automatically generate tournament brackets for single-elimination,
               round-robin, and custom formats. Visualize progress and winners.
             </p>
           </div>
-          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-shadow">
+          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30">
             <h4 className="text-2xl font-semibold mb-4 text-light-primary dark:text-dark-light">Community Features</h4>
+
             <p className="text-light-dark/80 dark:text-dark-accent leading-relaxed">
               Connect with other organizers and streamers. Share tournaments,
               view public events, and collaborate on cricket projects.
             </p>
           </div>
-          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-shadow">
+          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30">
             <h4 className="text-2xl font-semibold mb-4 text-light-primary dark:text-dark-light">Social Networking</h4>
+
             <p className="text-light-dark/80 dark:text-dark-accent leading-relaxed">
               Add friends, join clubs, and build your cricket network. Share achievements,
               follow favorite teams, and engage with the community.
             </p>
           </div>
-          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-shadow">
+          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30">
             <h4 className="text-2xl font-semibold mb-4 text-light-primary dark:text-dark-light">Payment & Membership</h4>
+
             <p className="text-light-dark/80 dark:text-dark-accent leading-relaxed">
               Access premium features with flexible subscription plans. Unlock advanced
               overlays, priority support, and exclusive tournament templates.
             </p>
           </div>
-          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-shadow">
+          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30">
             <h4 className="text-2xl font-semibold mb-4 text-light-primary dark:text-dark-light">Data Export & Analytics</h4>
+
             <p className="text-light-dark/80 dark:text-dark-accent leading-relaxed">
               Export tournament data, generate reports, and analyze performance metrics.
               Get insights into player stats, team performance, and match outcomes.
             </p>
           </div>
-          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-shadow">
+          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30">
             <h4 className="text-2xl font-semibold mb-4 text-light-primary dark:text-dark-light">Notification System</h4>
+
             <p className="text-light-dark/80 dark:text-dark-accent leading-relaxed">
               Stay updated with real-time notifications for match updates, tournament
               changes, and community activities. Never miss important events.
             </p>
           </div>
-          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-shadow">
+          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30">
             <h4 className="text-2xl font-semibold mb-4 text-light-primary dark:text-dark-light">Multi-Language Support</h4>
+
             <p className="text-light-dark/80 dark:text-dark-accent leading-relaxed">
               Experience ScoreX in your preferred language. Support for multiple
               languages to make cricket management accessible worldwide.
             </p>
           </div>
-          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30 hover:shadow-xl transition-shadow">
+          <div className="bg-white dark:bg-dark-bg p-8 rounded-lg shadow-lg text-center border border-light-secondary/30 dark:border-dark-primary/30">
             <h4 className="text-2xl font-semibold mb-4 text-light-primary dark:text-dark-light">Theme Customization</h4>
+
             <p className="text-light-dark/80 dark:text-dark-accent leading-relaxed">
               Personalize your experience with light and dark themes. Customize
               colors and layouts to match your brand or personal preference.
@@ -187,10 +202,11 @@ const Frontpage = () => {
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="frontpage-btn"
+            className="px-8 py-3 bg-light-primary dark:bg-dark-primary text-white rounded-lg font-medium"
           >
             Join Now
           </button>
+
         </div>
       </section>
 
@@ -238,10 +254,11 @@ const Frontpage = () => {
           <div className="mt-12">
             <button
               onClick={() => navigate('/login')}
-              className="frontpage-btn"
+              className="px-8 py-3 bg-light-primary dark:bg-dark-primary text-white rounded-lg font-medium"
             >
               Start Free Trial
             </button>
+
           </div>
         </div>
       </section>
@@ -279,7 +296,7 @@ const Frontpage = () => {
             </p>
             <Link
               to="/tournaments"
-              className="frontpage-btn inline-block"
+              className="px-6 py-2 bg-white text-light-primary rounded-lg font-medium inline-block"
             >
               View All Tournaments
             </Link>
@@ -291,7 +308,7 @@ const Frontpage = () => {
             </p>
             <Link
               to="/tournaments"
-              className="frontpage-btn inline-block"
+              className="px-6 py-2 bg-white text-light-primary rounded-lg font-medium inline-block"
             >
               View All Tournaments
             </Link>
@@ -331,4 +348,3 @@ const Frontpage = () => {
 };
 
 export default Frontpage;
-
