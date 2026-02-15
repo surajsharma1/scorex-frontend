@@ -230,7 +230,7 @@ const handleCreateMatch = async (e: React.FormEvent) => {
   });
 
   return (
-    <div className="main-content animate-fade-in">
+    <div className="animate-fade-in">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-4xl font-bold text-gradient">All Tournaments</h1>
