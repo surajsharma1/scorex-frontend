@@ -15,14 +15,18 @@ export default function TournamentDetail() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [showMatchForm, setShowMatchForm] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [scoreHistory, setScoreHistory] = useState([]);
+  const [scoreHistory, setScoreHistory] = useState<ScoreForm[]>([]);
+
   const [matchForm, setMatchForm] = useState({
     tournament: '',
     team1: '',
     team2: '',
     date: '',
     venue: '',
+    tossWinner: '',
+    matchType: 'League',
   });
+
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -46,6 +50,8 @@ export default function TournamentDetail() {
     overs2: 0,
     status: 'ongoing',
   });
+  const [selectedTeamForUpdate, setSelectedTeamForUpdate] = useState<'team1' | 'team2'>('team1');
+
 
   const updateScore = (newScoreForm: ScoreForm) => {
     setScoreHistory([...scoreHistory, scoreForm]);
@@ -133,7 +139,8 @@ export default function TournamentDetail() {
         tournament: id,
       });
       setShowMatchForm(false);
-      setMatchForm({ tournament: '', team1: '', team2: '', date: '', venue: '' });
+      setMatchForm({ tournament: '', team1: '', team2: '', date: '', venue: '', tossWinner: '', matchType: 'League' });
+
       fetchMatches();
     } catch (error: any) {
       console.error('Create match error:', error.response?.data || error);
@@ -387,7 +394,43 @@ export default function TournamentDetail() {
                       className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Toss Winner</label>
+                    <select
+                      value={matchForm.tossWinner}
+                      onChange={(e) => setMatchForm({ ...matchForm, tossWinner: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
+                    >
+                      <option value="">Select Toss Winner</option>
+                      {matchForm.team1 && (
+                        <option value={matchForm.team1}>
+                          {teams.find(t => t._id === matchForm.team1)?.name || 'Team 1'}
+                        </option>
+                      )}
+                      {matchForm.team2 && (
+                        <option value={matchForm.team2}>
+                          {teams.find(t => t._id === matchForm.team2)?.name || 'Team 2'}
+                        </option>
+                      )}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Match Type</label>
+                    <select
+                      value={matchForm.matchType}
+                      onChange={(e) => setMatchForm({ ...matchForm, matchType: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
+                      required
+                    >
+                      <option value="League">League</option>
+                      <option value="Quarter-Final">Quarter-Final</option>
+                      <option value="Semi-Final">Semi-Final</option>
+                      <option value="Final">Final</option>
+                      <option value="Playoff">Playoff</option>
+                    </select>
+                  </div>
                 </div>
+
                 <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 mt-4">
                   <button
                     type="submit"
@@ -427,6 +470,17 @@ export default function TournamentDetail() {
                             {match.score1}/{match.wickets1 || 0} ({match.overs1 || 0} overs) - {match.score2}/{match.wickets2 || 0} ({match.overs2 || 0} overs)
                           </p>
                         )}
+                        {match.matchType && (
+                          <span className={`inline-block mt-2 px-2 py-1 rounded-full text-xs font-medium ${
+                            match.matchType === 'Final' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
+                            match.matchType === 'Semi-Final' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' :
+                            match.matchType === 'Quarter-Final' ? 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300' :
+                            'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                          }`}>
+                            {match.matchType}
+                          </span>
+                        )}
+
                       </div>
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                         <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
@@ -489,45 +543,61 @@ export default function TournamentDetail() {
                 <p className="text-white text-lg">Team 2 Score: {scoreForm.score2}/{scoreForm.wickets2} ({scoreForm.overs2} overs)</p>
               </div>
 
-              {/* Team 1 Buttons */}
+              {/* Team Selection Dropdown */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-300 mb-2">Select Team to Update</label>
+                <select
+                  value={selectedTeamForUpdate}
+                  onChange={(e) => setSelectedTeamForUpdate(e.target.value as 'team1' | 'team2')}
+                  className="w-full p-2 border rounded border-gray-600 bg-gray-700 text-white"
+                >
+                  <option value="team1">{selectedMatch?.team1?.name || 'Team 1'}</option>
+                  <option value="team2">{selectedMatch?.team2?.name || 'Team 2'}</option>
+                </select>
+              </div>
+
+              {/* Dynamic Team Actions */}
               <div>
-                <h4 className="text-white font-semibold mb-2">Team 1 Actions</h4>
+                <h4 className="text-white font-semibold mb-2">
+                  {selectedTeamForUpdate === 'team1' ? (selectedMatch?.team1?.name || 'Team 1') : (selectedMatch?.team2?.name || 'Team 2')} Actions
+                </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 0 })} className="btn-secondary text-sm py-2">0 Run</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 1 })} className="btn-primary text-sm py-2">+1 Run</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 2 })} className="btn-primary text-sm py-2">+2 Runs</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 3 })} className="btn-primary text-sm py-2">+3 Runs</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 4 })} className="btn-accent text-sm py-2">+4</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 6 })} className="btn-accent text-sm py-2">+6</button>
-                  <button onClick={() => updateScore({ ...scoreForm, wickets1: scoreForm.wickets1 + 1 })} className="bg-red-600 text-white py-2 rounded text-sm hover:bg-red-700">Wicket</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 1, overs1: scoreForm.overs1 + 0.1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">No-ball</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">Wide</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">Bye</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">Leg-bye</button>
-                  <button onClick={() => updateScore({ ...scoreForm, overs1: scoreForm.overs1 + 0.1 })} className="btn-accent text-sm py-2">+0.1 Over</button>
-                  <button onClick={() => updateScore({ ...scoreForm, overs1: scoreForm.overs1 + 1 })} className="btn-accent text-sm py-2">+1 Over</button>
+                  {selectedTeamForUpdate === 'team1' ? (
+                    <>
+                      <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 0 })} className="btn-secondary text-sm py-2">0 Run</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 1 })} className="btn-primary text-sm py-2">+1 Run</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 2 })} className="btn-primary text-sm py-2">+2 Runs</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 3 })} className="btn-primary text-sm py-2">+3 Runs</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 4 })} className="btn-accent text-sm py-2">+4</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 6 })} className="btn-accent text-sm py-2">+6</button>
+                      <button onClick={() => updateScore({ ...scoreForm, wickets1: scoreForm.wickets1 + 1 })} className="bg-red-600 text-white py-2 rounded text-sm hover:bg-red-700">Wicket</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 1, overs1: scoreForm.overs1 + 0.1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">No-ball</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">Wide</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">Bye</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score1: scoreForm.score1 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">Leg-bye</button>
+                      <button onClick={() => updateScore({ ...scoreForm, overs1: scoreForm.overs1 + 0.1 })} className="btn-accent text-sm py-2">+0.1 Over</button>
+                      <button onClick={() => updateScore({ ...scoreForm, overs1: scoreForm.overs1 + 1 })} className="btn-accent text-sm py-2">+1 Over</button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 0 })} className="btn-secondary text-sm py-2">0 Run</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 1 })} className="btn-primary text-sm py-2">+1 Run</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 2 })} className="btn-primary text-sm py-2">+2 Runs</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 3 })} className="btn-primary text-sm py-2">+3 Runs</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 4 })} className="btn-accent text-sm py-2">+4</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 6 })} className="btn-accent text-sm py-2">+6</button>
+                      <button onClick={() => updateScore({ ...scoreForm, wickets2: scoreForm.wickets2 + 1 })} className="bg-red-600 text-white py-2 rounded text-sm hover:bg-red-700">Wicket</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 1, overs2: scoreForm.overs2 + 0.1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">No-ball</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">Wide</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">Bye</button>
+                      <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">Leg-bye</button>
+                      <button onClick={() => updateScore({ ...scoreForm, overs2: scoreForm.overs2 + 0.1 })} className="btn-accent text-sm py-2">+0.1 Over</button>
+                      <button onClick={() => updateScore({ ...scoreForm, overs2: scoreForm.overs2 + 1 })} className="btn-accent text-sm py-2">+1 Over</button>
+                    </>
+                  )}
                 </div>
               </div>
 
-              {/* Team 2 Buttons */}
-              <div>
-                <h4 className="text-white font-semibold mb-2">Team 2 Actions</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 0 })} className="btn-secondary text-sm py-2">0 Run</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 1 })} className="btn-primary text-sm py-2">+1 Run</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 2 })} className="btn-primary text-sm py-2">+2 Runs</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 3 })} className="btn-primary text-sm py-2">+3 Runs</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 4 })} className="btn-accent text-sm py-2">+4</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 6 })} className="btn-accent text-sm py-2">+6</button>
-                  <button onClick={() => updateScore({ ...scoreForm, wickets2: scoreForm.wickets2 + 1 })} className="bg-red-600 text-white py-2 rounded text-sm hover:bg-red-700">Wicket</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 1, overs2: scoreForm.overs2 + 0.1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">No-ball</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">Wide</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">Bye</button>
-                  <button onClick={() => updateScore({ ...scoreForm, score2: scoreForm.score2 + 1 })} className="bg-yellow-600 text-white py-2 rounded text-sm hover:bg-yellow-700">Leg-bye</button>
-                  <button onClick={() => updateScore({ ...scoreForm, overs2: scoreForm.overs2 + 0.1 })} className="btn-accent text-sm py-2">+0.1 Over</button>
-                  <button onClick={() => updateScore({ ...scoreForm, overs2: scoreForm.overs2 + 1 })} className="btn-accent text-sm py-2">+1 Over</button>
-                </div>
-              </div>
 
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-300 mb-2">Match Status</label>
