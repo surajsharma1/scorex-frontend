@@ -6,7 +6,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true, // Enable sourcemap for better debugging
-    minify: 'terser',
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         // Simplified chunking - let Vite handle chunking automatically
