@@ -7,10 +7,18 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true, // Enable sourcemap for better debugging
     minify: 'esbuild',
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
-        // Simplified chunking - let Vite handle chunking automatically
-        // This can help avoid issues with manual chunking causing import issues
+        manualChunks: {
+          // Vendor chunks
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'chart-vendor': ['chart.js', 'react-chartjs-2'],
+          'lucide-vendor': ['lucide-react'],
+          'i18n-vendor': ['i18next', 'react-i18next'],
+          // Move axios to vendor
+          'axios-vendor': ['axios'],
+        }
       }
     }
   },
