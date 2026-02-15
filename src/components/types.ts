@@ -85,8 +85,11 @@ export interface Match {
   overs1?: number;
   overs2?: number;
   winner?: string;
+  tossWinner?: string;
+  matchType?: 'League' | 'Quarter-Final' | 'Semi-Final' | 'Final' | 'Playoff';
   createdBy: string;
 }
+
 export interface Notification {
   _id: string;
   message: string;
