@@ -4,21 +4,40 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
 });
 
+// Request interceptor for debugging
 api.interceptors.request.use((config) => {
+  console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.data);
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Ensure Content-Type is set for POST/PUT requests with data
+  if (config.data && (config.method === 'post' || config.method === 'put')) {
+    config.headers['Content-Type'] = 'application/json';
+  }
   return config;
+}, (error) => {
+  console.error('[API Request Error]', error);
+  return Promise.reject(error);
 });
 
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`[API Response] ${response.config.method?.toUpperCase()} ${response.config.url}`, response.status);
+    return response;
+  },
   (error) => {
+    console.error('[API Response Error]', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
     if (error.response?.status === 401) {
       const currentPath = window.location.pathname;
       if (!['/login', '/register'].includes(currentPath)) {
@@ -29,6 +48,7 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export const authAPI = {
   register: (data: { username: string; email: string; password: string; fullName?: string; dob?: string; googleId?: string }) => api.post('/auth/register', data),

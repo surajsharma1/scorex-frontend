@@ -32,43 +32,62 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submission started');
+    
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
     setLoading(true);
     setError('');
+    
     try {
-      const response = await authAPI.register({
-        username: formData.username,
-        email: formData.email,
+      const registrationData = {
+        username: formData.username.trim(),
+        email: formData.email.trim(),
         password: formData.password,
-        fullName: formData.fullName,
-        dob: formData.dob,
-        googleId: formData.googleId,
-      });
+        fullName: formData.fullName?.trim() || undefined,
+        dob: formData.dob || undefined,
+        googleId: formData.googleId || undefined,
+      };
+      
+      console.log('Sending registration data:', registrationData);
+      
+      const response = await authAPI.register(registrationData);
+      console.log('Registration response:', response.data);
+      
       // Only show OTP screen on successful registration
       if (response.data.message) {
         setShowOtp(true);
         setError(''); // Clear any previous errors
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+      console.error('Registration error details:', err);
+      console.error('Error response:', err.response?.data);
+      console.error('Error status:', err.response?.status);
+      setError(err.response?.data?.message || err.message || 'Registration failed');
       setShowOtp(false);
     } finally {
       setLoading(false);
     }
   };
 
+
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
     try {
+      console.log('Verifying OTP for email:', formData.email);
+      
       const response = await authAPI.verifyOtp({
-        email: formData.email,
-        otp,
+        email: formData.email.trim(),
+        otp: otp.trim(),
       });
+      
+      console.log('OTP verification response:', response.data);
+      
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         navigate('/profile');
@@ -76,11 +95,14 @@ export default function Register() {
         setError('Verification failed: No token received');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'OTP verification failed');
+      console.error('OTP verification error:', err);
+      console.error('Error response:', err.response?.data);
+      setError(err.response?.data?.message || err.message || 'OTP verification failed');
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-light-bg dark:bg-dark-bg">
