@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+the import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authAPI } from '../services/api';
 
@@ -123,7 +123,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-6 w-full"
+              className="w-full py-3 px-4 bg-light-primary dark:bg-dark-primary text-white rounded-lg font-medium hover:bg-light-dark dark:hover:bg-dark-secondary transition-colors"
             >
               {loading ? (
                 <div className="flex items-center justify-center">
@@ -134,6 +134,7 @@ export default function Register() {
                 'Verify OTP'
               )}
             </button>
+
 
 
 
@@ -220,7 +221,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-6 w-full"
+              className="w-full py-3 px-4 bg-light-primary dark:bg-dark-primary text-white rounded-lg font-medium hover:bg-light-dark dark:hover:bg-dark-secondary transition-colors"
             >
               {loading ? (
                 <div className="flex items-center justify-center">
@@ -231,6 +232,7 @@ export default function Register() {
                 'Create Account'
               )}
             </button>
+
 
 
 
