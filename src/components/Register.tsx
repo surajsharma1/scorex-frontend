@@ -124,8 +124,9 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-light-primary dark:bg-dark-primary text-white rounded-lg font-medium hover:bg-light-dark dark:hover:bg-dark-secondary transition-colors"
+              className="w-full py-3 px-4 bg-light-primary dark:bg-dark-primary text-white rounded-lg font-medium"
             >
+
               {loading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
@@ -142,8 +143,9 @@ export default function Register() {
             <div className="text-center">
               <button
                 onClick={() => setShowOtp(false)}
-                className="text-light-primary dark:text-dark-primary hover:text-light-dark dark:hover:text-dark-secondary font-medium"
+                className="text-light-primary dark:text-dark-primary font-medium"
               >
+
                 Back to Registration
               </button>
 
@@ -222,8 +224,9 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-light-primary dark:bg-dark-primary text-white rounded-lg font-medium hover:bg-light-dark dark:hover:bg-dark-secondary transition-colors"
+              className="w-full py-3 px-4 bg-light-primary dark:bg-dark-primary text-white rounded-lg font-medium"
             >
+
               {loading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
@@ -242,8 +245,9 @@ export default function Register() {
               Already have an account?{' '}
               <button
                 onClick={() => navigate('/login')}
-                className="text-light-primary dark:text-dark-primary hover:text-light-dark dark:hover:text-dark-secondary font-medium"
+                className="text-light-primary dark:text-dark-primary font-medium"
               >
+
                 Sign in here
               </button>
             </p>
