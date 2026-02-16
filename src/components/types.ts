@@ -19,13 +19,14 @@ export interface Tournament {
   status: 'upcoming' | 'active' | 'completed';
   isLive: boolean;
   liveScores?: {
-    team1: { name: string; score: number; wickets: number; overs: number };
-    team2: { name: string; score: number; wickets: number; overs: number };
+    team1: { name: string; score: number; wickets: number; overs: number; balls?: number };
+    team2: { name: string; score: number; wickets: number; overs: number; balls?: number };
     currentRunRate: number;
     requiredRunRate: number;
     target: number;
     lastFiveOvers: string;
   };
+
   createdBy: string;
 }
 
