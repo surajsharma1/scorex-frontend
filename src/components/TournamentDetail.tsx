@@ -31,6 +31,11 @@ export default function TournamentDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Cricket scoring popup state
+  const [showCricketPopup, setShowCricketPopup] = useState(false);
+  const [cricketPopupType, setCricketPopupType] = useState('');
+  const [cricketPopupLabel, setCricketPopupLabel] = useState('');
+
   interface ScoreForm {
     score1: number;
     score2: number;
@@ -51,6 +56,45 @@ export default function TournamentDetail() {
     status: 'ongoing',
   });
   const [selectedTeamForUpdate, setSelectedTeamForUpdate] = useState<'team1' | 'team2'>('team1');
+
+  // Functions to handle cricket popup
+  const openCricketPopup = (type: string, label: string) => {
+    setCricketPopupType(type);
+    setCricketPopupLabel(label);
+    setShowCricketPopup(true);
+  };
+
+  const closeCricketPopup = () => {
+    setShowCricketPopup(false);
+    setCricketPopupType('');
+    setCricketPopupLabel('');
+  };
+
+  const handleCricketScore = (runs: number, addOver: boolean = false, addWicket: boolean = false) => {
+    const team = selectedTeamForUpdate;
+    let newForm = { ...scoreForm };
+    
+    if (team === 'team1') {
+      newForm.score1 = scoreForm.score1 + runs;
+      if (addOver) {
+        newForm.overs1 = scoreForm.overs1 + 0.1;
+      }
+      if (addWicket) {
+        newForm.wickets1 = scoreForm.wickets1 + 1;
+      }
+    } else {
+      newForm.score2 = scoreForm.score2 + runs;
+      if (addOver) {
+        newForm.overs2 = scoreForm.overs2 + 0.1;
+      }
+      if (addWicket) {
+        newForm.wickets2 = scoreForm.wickets2 + 1;
+      }
+    }
+    
+    updateScore(newForm);
+    closeCricketPopup();
+  };
 
 
   const updateScore = (newScoreForm: ScoreForm) => {
