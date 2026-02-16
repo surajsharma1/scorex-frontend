@@ -24,8 +24,10 @@ export default function TournamentDetail() {
     date: '',
     venue: '',
     tossWinner: '',
+    tossChoice: '',
     matchType: 'League',
   });
+
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
@@ -183,7 +185,8 @@ export default function TournamentDetail() {
         tournament: id,
       });
       setShowMatchForm(false);
-      setMatchForm({ tournament: '', team1: '', team2: '', date: '', venue: '', tossWinner: '', matchType: 'League' });
+      setMatchForm({ tournament: '', team1: '', team2: '', date: '', venue: '', tossWinner: '', tossChoice: '', matchType: 'League' });
+
 
       fetchMatches();
     } catch (error: any) {
@@ -459,7 +462,21 @@ export default function TournamentDetail() {
                     </select>
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Toss Choice</label>
+                    <select
+                      value={matchForm.tossChoice}
+                      onChange={(e) => setMatchForm({ ...matchForm, tossChoice: e.target.value })}
+                      disabled={!matchForm.tossWinner}
+                      className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white disabled:opacity-50"
+                    >
+                      <option value="">Select Choice</option>
+                      <option value="bat">Bat First</option>
+                      <option value="bowl">Bowl First</option>
+                    </select>
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1">Match Type</label>
+
                     <select
                       value={matchForm.matchType}
                       onChange={(e) => setMatchForm({ ...matchForm, matchType: e.target.value })}
@@ -568,9 +585,10 @@ export default function TournamentDetail() {
 
         {activeTab === 'overlays' && (
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <OverlayEditor selectedTournament={tournament} />
+            <OverlayEditor />
           </div>
         )}
+
       </div>
 
       {/* Score Update Modal */}

@@ -69,11 +69,13 @@ export const tournamentAPI = {
 };
 export const matchAPI = {
   getMatches: (tournamentId?: string) => api.get('/matches', { params: { tournament: tournamentId } }),
+  getAllMatches: () => api.get('/matches'),
   createMatch: (data: any) => api.post('/matches', data),
   updateMatch: (id: string, data: any) => api.put(`/matches/${id}`, data),
   updateMatchScore: (id: string, data: any) => api.put(`/matches/${id}/score`, data),
   deleteMatch: (id: string) => api.delete(`/matches/${id}`),
 };
+
 export const teamAPI = {
   getTeams: (tournamentId?: string, page: number = 1, limit: number = 10) => api.get('/teams', { params: { tournament: tournamentId, page, limit } }),
   createTeam: (data: FormData) => api.post('/teams', data, { headers: { 'Content-Type': 'multipart/form-data' } }),

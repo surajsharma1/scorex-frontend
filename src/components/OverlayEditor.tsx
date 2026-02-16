@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Eye, Download, Settings, Crown, Edit, Trash2 } from 'lucide-react';
-import { overlayAPI, tournamentAPI } from '../services/api';
-import { Overlay, Tournament } from './types';
+import { overlayAPI, matchAPI } from '../services/api';
+import { Overlay, Match } from './types';
+
 import Payment from './Payment';
 
 const PRE_DESIGNED_OVERLAYS = [
@@ -272,14 +273,15 @@ const PRE_DESIGNED_OVERLAYS = [
 ];
 
 interface OverlayEditorProps {
-  selectedTournament?: Tournament | null;
+  selectedMatch?: Match | null;
 }
 
-export default function OverlayEditor({ selectedTournament: propSelectedTournament }: OverlayEditorProps) {
+export default function OverlayEditor({ selectedMatch: propSelectedMatch }: OverlayEditorProps) {
   const [overlays, setOverlays] = useState<Overlay[]>([]);
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [selectedOverlay, setSelectedOverlay] = useState<Overlay | null>(null);
-  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(propSelectedTournament || null);
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(propSelectedMatch || null);
+
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingOverlay, setEditingOverlay] = useState<Overlay | null>(null);
   const [loading, setLoading] = useState(false);
@@ -309,31 +311,32 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
 
   const fetchData = async () => {
     try {
-      const [overlaysRes, tournamentsRes] = await Promise.all([
+      const [overlaysRes, matchesRes] = await Promise.all([
         overlayAPI.getOverlays(),
-        tournamentAPI.getTournaments(),
+        matchAPI.getAllMatches(),
       ]);
       const overlaysData = overlaysRes.data || [];
-      const tournamentsData = tournamentsRes.data?.tournaments || tournamentsRes.data || [];
+      const matchesData = matchesRes.data?.matches || matchesRes.data || [];
       let filteredOverlays = Array.isArray(overlaysData) ? overlaysData : [];
 
-      // If selectedTournament is passed as prop, filter overlays by that tournament
-      if (propSelectedTournament) {
-        filteredOverlays = filteredOverlays.filter(overlay => overlay.tournament?._id === propSelectedTournament._id);
+      // If selectedMatch is passed as prop, filter overlays by that match
+      if (propSelectedMatch) {
+        filteredOverlays = filteredOverlays.filter(overlay => overlay.match?._id === propSelectedMatch._id);
       }
 
       setOverlays(filteredOverlays);
-      setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
+      setMatches(Array.isArray(matchesData) ? matchesData : []);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to fetch data');
       setOverlays([]);
-      setTournaments([]);
+      setMatches([]);
     }
   };
 
+
   const handleSelectOverlay = async (overlayTemplate: any) => {
-    if (!selectedTournament) {
-      setError('Please select a tournament first');
+    if (!selectedMatch) {
+      setError('Please select a match first');
       return;
     }
 
@@ -345,8 +348,9 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
     setLoading(true);
     try {
       const overlayData = {
-        name: `${selectedTournament.name} - ${overlayTemplate.name}`,
-        tournament: selectedTournament._id,
+        name: `${selectedMatch.team1?.name || 'Team 1'} vs ${selectedMatch.team2?.name || 'Team 2'} - ${overlayTemplate.name}`,
+        match: selectedMatch._id,
+        tournament: selectedMatch.tournament,
         template: overlayTemplate.id,
         config: {
           backgroundColor: '#16a34a',
@@ -368,6 +372,7 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
       setLoading(false);
     }
   };
+
 
   const handleEditOverlay = (overlay: Overlay) => {
     setEditingOverlay(overlay);
@@ -481,28 +486,31 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
         </div>
       )}
 
-      {/* Tournament Selector */}
+      {/* Match Selector */}
       <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Select Tournament</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">Select Match</h3>
         <select
-          value={selectedTournament?._id || ''}
+          value={selectedMatch?._id || ''}
           onChange={(e) => {
-            const tournament = tournaments.find(t => t._id === e.target.value);
-            setSelectedTournament(tournament || null);
+            const match = matches.find(m => m._id === e.target.value);
+            setSelectedMatch(match || null);
           }}
           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
         >
-          <option value="">Select a tournament</option>
-          {tournaments.map((tournament) => (
-            <option key={tournament._id} value={tournament._id}>{tournament.name}</option>
+          <option value="">Select a match</option>
+          {matches.map((match) => (
+            <option key={match._id} value={match._id}>
+              {match.team1?.name || 'Team 1'} vs {match.team2?.name || 'Team 2'} - {new Date(match.date).toLocaleDateString()}
+            </option>
           ))}
         </select>
-        {selectedTournament && (
+        {selectedMatch && (
           <p className="text-sm text-gray-400 mt-2">
-            Selected: {selectedTournament.name} - {selectedTournament.format}
+            Selected: {selectedMatch.team1?.name || 'Team 1'} vs {selectedMatch.team2?.name || 'Team 2'}
           </p>
         )}
       </div>
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {PRE_DESIGNED_OVERLAYS.map((overlayTemplate) => (
@@ -553,11 +561,12 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
                       handleSelectOverlay(overlayTemplate);
                     }
                   }}
-                  disabled={!selectedTournament}
+                  disabled={!selectedMatch}
                   className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {overlayTemplate.membership === 'free' ? 'Select' : 'Upgrade'}
                 </button>
+
               </div>
             </div>
           </div>
@@ -580,8 +589,9 @@ export default function OverlayEditor({ selectedTournament: propSelectedTourname
               >
                 <h3 className="font-bold text-white mb-2">{overlay.name}</h3>
                 <p className="text-sm text-gray-300 mb-3">
-                  {overlay.tournament?.name} - {overlay.template}
+                  {overlay.match ? `${overlay.match.team1?.name || 'Team 1'} vs ${overlay.match.team2?.name || 'Team 2'}` : 'No match'} - {overlay.template}
                 </p>
+
                 <div className="flex space-x-2">
                   <button
                     onClick={(e) => {
