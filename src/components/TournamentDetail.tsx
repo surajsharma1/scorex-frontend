@@ -212,6 +212,34 @@ export default function TournamentDetail() {
     }
   };
 
+  const handleDeleteMatch = async (matchId: string) => {
+    if (window.confirm('Are you sure you want to delete this match?')) {
+      setLoading(true);
+      try {
+        await matchAPI.deleteMatch(matchId);
+        fetchMatches();
+      } catch (error: any) {
+        setError(error.response?.data?.message || 'Failed to delete match');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleDeleteTournament = async () => {
+    if (window.confirm('Are you sure you want to delete this tournament? This action cannot be undone.')) {
+      setLoading(true);
+      try {
+        await tournamentAPI.deleteTournament(id!);
+        navigate('/tournaments');
+      } catch (error: any) {
+        setError(error.response?.data?.message || 'Failed to delete tournament');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   if (!tournament) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-900 text-white">
@@ -259,6 +287,13 @@ export default function TournamentDetail() {
               <p className="text-white">{tournament.status}</p>
             </div>
           </div>
+          <button
+            onClick={handleDeleteTournament}
+            disabled={loading}
+            className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+          >
+            Delete Tournament
+          </button>
         </div>
       </div>
 
