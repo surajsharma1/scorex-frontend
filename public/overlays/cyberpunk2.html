@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synthwave Retro Overlay</title>
+  <link rel="stylesheet" href="base.css">
+  <style>
+    body { background: transparent; overflow: hidden; }
+    .overlay-container { font-family: 'Press Start 2P', cursive; }
+
+    /* Scanlines */
+    .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.1) 0px,
+        rgba(0, 0, 0, 0.1) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .score-card {
+      background: linear-gradient(180deg, 
+        #0a0020 0%, 
+        #1a0040 50%,
+        #2a0060 100%
+      );
+      border: 4px solid;
+      border-image: linear-gradient(180deg, #ff00ff, #00ffff) 1;
+      box-shadow: 
+        0 0 30px rgba(255, 0, 255, 0.3),
+        0 0 60px rgba(0, 255, 255, 0.2),
+        inset 0 0 50px rgba(255, 0, 255, 0.1);
+      animation: slideInDown 0.5s ease, retroGlow 3s ease-in-out infinite;
+      position: relative;
+      z-index: 10;
+    }
+    @keyframes retroGlow {
+      0%, 100% { box-shadow: 0 0 30px rgba(255, 0, 255, 0.3), 0 0 60px rgba(0, 255, 255, 0.2); }
+      50% { box-shadow: 0 0 50px rgba(255, 0, 255, 0.5), 0 0 100px rgba(0, 255, 255, 0.3); }
+    }
+
+    .team-section { padding: 20px 25px; }
+    .team-label { font-size: 0.45rem; color: #00ffff; margin-bottom: 10px; letter-spacing: 2px; }
+    .team-name { 
+      color: #ff00ff; 
+      font-size: 0.8rem; 
+      text-shadow: 2px 2px 0 #00ffff, -2px -2px 0 #ff0080;
+      letter-spacing: 1px;
+    }
+    .team-score { 
+      font-size: 2rem;
+      background: linear-gradient(180deg, #ff00ff, #ff0080, #ff6600);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 10px #ff00ff);
+      animation: scoreChrome 2s ease infinite;
+    }
+    @keyframes scoreChrome {
+      0%, 100% { filter: drop-shadow(0 0 10px #ff00ff); }
+      50% { filter: drop-shadow(0 0 20px #00ffff); }
+    }
+    .team-overs { color: #00ffff; font-size: 0.5rem; }
+
+    .vs-section { 
+      background: linear-gradient(90deg, #ff00ff, #ff0080, #00ffff);
+      padding: 15px 25px;
+      position: relative;
+    }
+    .vs-section::before {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      background: #1a0040;
+    }
+    .vs-text { color: #00ffff; font-size: 0.9rem; position: relative; z-index: 1; }
+    .tournament-name { color: #ff00ff; font-size: 0.4rem; position: relative; z-index: 1; letter-spacing: 2px; }
+
+    .stats-bar {
+      background: linear-gradient(180deg, #1a0040, #0a0020);
+      border: 3px solid;
+      border-image: linear-gradient(90deg, #00ffff, #ff00ff) 1;
+      animation: slideInUp 0.5s ease 0.2s both;
+      position: relative;
+      z-index: 10;
+    }
+    .stat-label { color: #00ffff; font-size: 0.4rem; letter-spacing: 1px; }
+    .stat-value { color: #ff00ff; font-size: 0.8rem; text-shadow: 0 0 10px #ff00ff; }
+    .stat-value.highlight { color: #00ffff; text-shadow: 0 0 15px #00ffff; }
+
+    /* VHS Glitch Push */
+    .push-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2000;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .push-message.show { animation: vhsAppear 3s ease forwards; }
+    .push-message .main-text {
+      font-size: 3rem;
+      color: #ff00ff;
+      text-shadow: 
+        4px 4px 0 #00ffff,
+        -4px -4px 0 #ff0080,
+        0 0 30px #ff00ff;
+      letter-spacing: 10px;
+      animation: vhsGlitch 0.2s ease infinite;
+    }
+    .push-message .sub-text {
+      font-size: 0.8rem;
+      color: #00ffff;
+      margin-top: 20px;
+      letter-spacing: 5px;
+      text-shadow: 2px 2px 0 #ff00ff;
+    }
+    .push-message .tracking-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        rgba(0, 255, 255, 0.1) 2px,
+        transparent 4px
+      );
+      animation: trackingMove 0.1s linear infinite;
+    }
+    @keyframes vhsAppear {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); filter: blur(10px); }
+      5% { opacity: 1; transform: translate(-48%, -50%) scale(1); filter: blur(0); }
+      10% { transform: translate(-52%, -50%) scale(1); }
+      15% { transform: translate(-50%, -50%) scale(1); }
+      20% { transform: translate(-50%, -52%); }
+      25% { transform: translate(-50%, -50%); }
+      75% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+    }
+    @keyframes vhsGlitch {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      50% { transform: translateX(3px); color: #00ffff; }
+      75% { transform: translateX(-2px); }
+    }
+    @keyframes trackingMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 10px; }
+    }
+
+    .teams-panel { background: rgba(10, 0, 32, 0.98); }
+    .teams-content { background: linear-gradient(180deg, #1a0040, #0a0020); border: 4px solid; border-image: linear-gradient(180deg, #ff00ff, #00ffff) 1; }
+    .teams-header h2 { color: #ff00ff; text-shadow: 2px 2px 0 #00ffff; font-size: 0.8rem; }
+    .teams-header p { color: #00ffff; font-size: 0.5rem; }
+    .team-roster { background: rgba(255, 0, 255, 0.1); border: 2px solid #ff00ff; }
+    .team-roster h3 { color: #00ffff; border-color: #ff00ff; font-size: 0.6rem; }
+    .player-name { color: #ff00ff; font-size: 0.5rem; }
+    .player-role { color: #00ffff; background: rgba(0, 255, 255, 0.1); font-size: 0.4rem; }
+
+    .toggle-teams-btn { background: linear-gradient(90deg, #ff00ff, #00ffff); color: #0a0020; font-size: 0.5rem; letter-spacing: 2px; }
+    .close-panel-btn { background: #ff00ff; color: #0a0020; }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="overlay-container">
+    <div class="score-card">
+      <div class="team-section">
+        <div class="team-label">BATTING</div>
+        <div class="team-name" id="team1-name">MUMBAI WARRIORS</div>
+        <div class="team-score" id="team1-score">185/4</div>
+        <div class="team-overs" id="team1-overs">20.0 OVERS</div>
+      </div>
+      <div class="vs-section">
+        <div class="vs-text">VS</div>
+        <div class="tournament-name" id="tournament-name">PREMIER LEAGUE</div>
+      </div>
+      <div class="team-section">
+        <div class="team-label">BOWLING</div>
+        <div class="team-name" id="team2-name">CHENNAI KINGS</div>
+        <div class="team-score" id="team2-score">142/7</div>
+        <div class="team-overs" id="team2-overs">16.2 OVERS</div>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-label">CRR</div><div class="stat-value" id="current-rr">8.75</div></div>
+      <div class="stat-item"><div class="stat-label">RRR</div><div class="stat-value highlight" id="required-rr">12.30</div></div>
+      <div class="stat-item"><div class="stat-label">L5</div><div class="stat-value" id="last-5">48/2</div></div>
+      <div class="stat-item"><div class="stat-label">TGT</div><div class="stat-value highlight" id="target">186</div></div>
+    </div>
+  </div>
+
+  <div class="push-message" id="push-message">
+    <div class="tracking-lines"></div>
+    <div class="main-text">SIX!</div>
+    <div class="sub-text">RADICAL!</div>
+  </div>
+
+  <div class="teams-panel" id="teams-panel">
+    <div class="teams-content">
+      <button class="close-panel-btn" onclick="closeTeamsPanel()">&times;</button>
+      <div class="teams-header"><h2>PLAYING XI</h2><p id="tournament-name-panel">PREMIER LEAGUE T20</p></div>
+      <div class="teams-grid">
+        <div class="team-roster"><h3 id="team1-roster-title">MUMBAI</h3><ul class="player-list" id="team1-roster"></ul></div>
+        <div class="team-roster"><h3 id="team2-roster-title">CHENNAI</h3><ul class="player-list" id="team2-roster"></ul></div>
+      </div>
+    </div>
+  </div>
+  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">TEAMS</button>
+
+  <script src="overlay-utils.js"></script>
+  <script>
+    function showPushMessage(main, sub) {
+      const msg = document.getElementById('push-message');
+      msg.querySelector('.main-text').textContent = main;
+      msg.querySelector('.sub-text').textContent = sub;
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>

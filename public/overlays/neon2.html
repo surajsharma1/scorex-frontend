@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neon Matrix Overlay</title>
+  <link rel="stylesheet" href="base.css">
+  <style>
+    body { background: transparent; overflow: hidden; }
+    .overlay-container { font-family: 'Orbitron', sans-serif; }
+
+    #matrix { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0.3; }
+
+    .score-card {
+      background: rgba(0, 0, 0, 0.9);
+      border: 3px solid #39ff14;
+      border-radius: 0;
+      box-shadow: 0 0 30px #39ff14, inset 0 0 20px rgba(57, 255, 20, 0.1);
+      animation: slideInDown 0.5s ease, neonFlicker 3s ease-in-out infinite;
+      position: relative;
+      z-index: 10;
+      clip-path: polygon(0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px));
+    }
+    @keyframes neonFlicker {
+      0%, 100% { box-shadow: 0 0 30px #39ff14, inset 0 0 20px rgba(57, 255, 20, 0.1); }
+      50% { box-shadow: 0 0 50px #39ff14, 0 0 80px #39ff14, inset 0 0 30px rgba(57, 255, 20, 0.2); }
+      52% { box-shadow: 0 0 20px #39ff14; }
+      54% { box-shadow: 0 0 50px #39ff14, 0 0 80px #39ff14; }
+    }
+
+    .team-section { padding: 20px 30px; }
+    .team-label { font-size: 0.6rem; color: #39ff14; margin-bottom: 8px; letter-spacing: 5px; }
+    .team-name { color: #00ff00; font-size: 1.3rem; text-shadow: 0 0 10px #00ff00; letter-spacing: 2px; }
+    .team-score { 
+      color: #39ff14; 
+      font-size: 3rem;
+      text-shadow: 0 0 20px #39ff14, 0 0 40px #39ff14;
+      letter-spacing: 5px;
+      animation: scoreGlow 2s ease-in-out infinite;
+    }
+    @keyframes scoreGlow {
+      0%, 100% { text-shadow: 0 0 20px #39ff14, 0 0 40px #39ff14; }
+      50% { text-shadow: 0 0 30px #39ff14, 0 0 60px #39ff14, 0 0 90px #39ff14; }
+    }
+    .team-overs { color: #00aa00; font-size: 0.8rem; }
+
+    .vs-section { 
+      background: #39ff14;
+      padding: 15px 30px;
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%);
+    }
+    .vs-text { color: #000; font-size: 1.5rem; font-weight: 900; letter-spacing: 5px; }
+    .tournament-name { color: #003300; font-size: 0.7rem; letter-spacing: 3px; }
+
+    .stats-bar {
+      background: rgba(0, 0, 0, 0.9);
+      border: 2px solid #39ff14;
+      clip-path: polygon(0 5px, 5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px));
+      animation: slideInUp 0.5s ease 0.2s both;
+      position: relative;
+      z-index: 10;
+    }
+    .stat-label { color: #00aa00; font-size: 0.55rem; letter-spacing: 3px; }
+    .stat-value { color: #39ff14; font-size: 1.3rem; text-shadow: 0 0 10px #39ff14; }
+    .stat-value.highlight { color: #00ff00; text-shadow: 0 0 15px #00ff00; }
+
+    /* Matrix Glitch Push */
+    .push-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2000;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .push-message.show { animation: matrixReveal 2.5s ease forwards; }
+    .push-message .main-text {
+      font-size: 5rem;
+      font-weight: 900;
+      color: #39ff14;
+      text-shadow: 0 0 30px #39ff14, 0 0 60px #39ff14;
+      letter-spacing: 20px;
+      animation: glitchText 0.3s ease infinite;
+    }
+    .push-message .sub-text {
+      font-size: 1.2rem;
+      color: #00ff00;
+      margin-top: 15px;
+      letter-spacing: 10px;
+    }
+    .push-message .binary {
+      position: absolute;
+      font-size: 0.8rem;
+      color: rgba(57, 255, 20, 0.5);
+      animation: binaryFall 1s ease forwards;
+    }
+    @keyframes matrixReveal {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); filter: blur(10px); }
+      10% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
+      15% { transform: translate(-48%, -50%); }
+      20% { transform: translate(-52%, -50%); }
+      25% { transform: translate(-50%, -50%); }
+      80% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+    }
+    @keyframes glitchText {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-2px); }
+      75% { transform: translateX(2px); }
+    }
+    @keyframes binaryFall {
+      0% { transform: translateY(-50px); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(100px); opacity: 0; }
+    }
+
+    .teams-panel { background: rgba(0, 0, 0, 0.98); }
+    .teams-content { background: #000; border: 3px solid #39ff14; }
+    .teams-header h2 { color: #39ff14; text-shadow: 0 0 20px #39ff14; letter-spacing: 5px; }
+    .teams-header p { color: #00aa00; }
+    .team-roster { background: rgba(57, 255, 20, 0.05); border: 1px solid #39ff14; }
+    .team-roster h3 { color: #00ff00; border-color: #39ff14; }
+    .player-name { color: #39ff14; }
+    .player-role { color: #00aa00; background: rgba(57, 255, 20, 0.1); }
+
+    .toggle-teams-btn { background: #39ff14; color: #000; font-weight: 700; letter-spacing: 3px; }
+    .close-panel-btn { background: #39ff14; color: #000; }
+  </style>
+</head>
+<body>
+  <canvas id="matrix"></canvas>
+  <div class="overlay-container">
+    <div class="score-card">
+      <div class="team-section">
+        <div class="team-label">BATTING</div>
+        <div class="team-name" id="team1-name">MUMBAI WARRIORS</div>
+        <div class="team-score" id="team1-score">185/4</div>
+        <div class="team-overs" id="team1-overs">20.0 Overs</div>
+      </div>
+      <div class="vs-section">
+        <div class="vs-text">VS</div>
+        <div class="tournament-name" id="tournament-name">PREMIER LEAGUE</div>
+      </div>
+      <div class="team-section">
+        <div class="team-label">BOWLING</div>
+        <div class="team-name" id="team2-name">CHENNAI KINGS</div>
+        <div class="team-score" id="team2-score">142/7</div>
+        <div class="team-overs" id="team2-overs">16.2 Overs</div>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-label">CRR</div><div class="stat-value" id="current-rr">8.75</div></div>
+      <div class="stat-item"><div class="stat-label">RRR</div><div class="stat-value highlight" id="required-rr">12.30</div></div>
+      <div class="stat-item"><div class="stat-label">L5</div><div class="stat-value" id="last-5">48/2</div></div>
+      <div class="stat-item"><div class="stat-label">TGT</div><div class="stat-value highlight" id="target">186</div></div>
+    </div>
+  </div>
+
+  <div class="push-message" id="push-message">
+    <div class="main-text">SIX!</div>
+    <div class="sub-text">SYSTEM OVERRIDE</div>
+  </div>
+
+  <div class="teams-panel" id="teams-panel">
+    <div class="teams-content">
+      <button class="close-panel-btn" onclick="closeTeamsPanel()">&times;</button>
+      <div class="teams-header"><h2>PLAYING XI</h2><p id="tournament-name-panel">Premier League T20</p></div>
+      <div class="teams-grid">
+        <div class="team-roster"><h3 id="team1-roster-title">MUMBAI WARRIORS</h3><ul class="player-list" id="team1-roster"></ul></div>
+        <div class="team-roster"><h3 id="team2-roster-title">CHENNAI KINGS</h3><ul class="player-list" id="team2-roster"></ul></div>
+      </div>
+    </div>
+  </div>
+  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">TEAMS</button>
+
+  <script src="overlay-utils.js"></script>
+  <script>
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const chars = '01';
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = Array(Math.floor(columns)).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#39ff14';
+      ctx.font = fontSize + 'px monospace';
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
+      requestAnimationFrame(drawMatrix);
+    }
+    drawMatrix();
+
+    function showPushMessage(main, sub) {
+      const msg = document.getElementById('push-message');
+      msg.querySelector('.main-text').textContent = main;
+      msg.querySelector('.sub-text').textContent = sub;
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 2500);
+    }
+  </script>
+</body>
+</html>

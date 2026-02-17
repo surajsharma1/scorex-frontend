@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chalkboard Overlay</title>
+  <link rel="stylesheet" href="base.css">
+  <style>
+    body { background: transparent; }
+    .overlay-container { font-family: 'Permanent Marker', cursive; }
+
+    .score-card {
+      background: linear-gradient(135deg, #2d5a27 0%, #1e3d1a 50%, #152912 100%);
+      border: 8px solid #8b4513;
+      border-radius: 3px;
+      box-shadow: inset 0 0 50px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.4);
+      animation: slideInDown 0.5s ease;
+      position: relative;
+    }
+    .score-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    .team-section { padding: 15px 25px; }
+    .team-label { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+    .team-name { color: #ffffff; font-size: 1.4rem; text-shadow: 2px 2px 0 rgba(0,0,0,0.3); opacity: 0.9; }
+    .team-score { color: #ffeb3b; font-size: 2.8rem; text-shadow: 3px 3px 0 rgba(0,0,0,0.3); }
+    .team-overs { color: rgba(255,255,255,0.7); font-size: 0.9rem; }
+
+    .vs-section { background: transparent; padding: 15px 25px; }
+    .vs-text { color: #ff6b6b; font-size: 1.5rem; text-shadow: 2px 2px 0 rgba(0,0,0,0.3); }
+    .tournament-name { color: #87ceeb; font-size: 0.9rem; }
+
+    .stats-bar {
+      background: linear-gradient(135deg, #1e3d1a 0%, #152912 100%);
+      border: 5px solid #8b4513;
+      animation: slideInUp 0.5s ease 0.2s both;
+    }
+    .stat-label { color: rgba(255,255,255,0.5); font-size: 0.7rem; font-family: 'Permanent Marker', cursive; }
+    .stat-value { color: #ffffff; font-size: 1.4rem; text-shadow: 2px 2px 0 rgba(0,0,0,0.3); }
+    .stat-value.highlight { color: #ffeb3b; }
+
+    .teams-panel { background: rgba(30, 61, 26, 0.98); }
+    .teams-content { background: linear-gradient(135deg, #2d5a27, #1e3d1a); border: 8px solid #8b4513; }
+    .teams-header h2 { color: #ffeb3b; text-shadow: 2px 2px 0 rgba(0,0,0,0.3); }
+    .teams-header p { color: #87ceeb; }
+    .team-roster { background: rgba(0,0,0,0.2); border: 2px dashed rgba(255,255,255,0.3); }
+    .team-roster h3 { color: #ff6b6b; border-color: rgba(255,255,255,0.2); }
+    .player-name { color: #ffffff; opacity: 0.9; }
+    .player-role { color: #87ceeb; background: transparent; }
+
+    .toggle-teams-btn { background: #8b4513; color: #fff; font-family: 'Permanent Marker', cursive; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+    .close-panel-btn { background: #ff6b6b; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="overlay-container">
+    <div class="score-card">
+      <div class="team-section">
+        <div class="team-label">Batting</div>
+        <div class="team-name" id="team1-name">Mumbai Warriors</div>
+        <div class="team-score" id="team1-score">185/4</div>
+        <div class="team-overs" id="team1-overs">20.0 Overs</div>
+      </div>
+      <div class="vs-section">
+        <div class="vs-text">VS</div>
+        <div class="tournament-name" id="tournament-name">Premier League T20</div>
+      </div>
+      <div class="team-section">
+        <div class="team-label">Bowling</div>
+        <div class="team-name" id="team2-name">Chennai Kings</div>
+        <div class="team-score" id="team2-score">142/7</div>
+        <div class="team-overs" id="team2-overs">16.2 Overs</div>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-label">CRR</div><div class="stat-value" id="current-rr">8.75</div></div>
+      <div class="stat-item"><div class="stat-label">RRR</div><div class="stat-value highlight" id="required-rr">12.30</div></div>
+      <div class="stat-item"><div class="stat-label">Last 5</div><div class="stat-value" id="last-5">48/2</div></div>
+      <div class="stat-item"><div class="stat-label">Target</div><div class="stat-value highlight" id="target">186</div></div>
+    </div>
+  </div>
+  <div class="teams-panel" id="teams-panel">
+    <div class="teams-content">
+      <button class="close-panel-btn" onclick="closeTeamsPanel()">&times;</button>
+      <div class="teams-header"><h2>Playing XI</h2><p id="tournament-name-panel">Premier League T20</p></div>
+      <div class="teams-grid">
+        <div class="team-roster"><h3 id="team1-roster-title">Mumbai Warriors</h3><ul class="player-list" id="team1-roster"></ul></div>
+        <div class="team-roster"><h3 id="team2-roster-title">Chennai Kings</h3><ul class="player-list" id="team2-roster"></ul></div>
+      </div>
+    </div>
+  </div>
+  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">Show Teams</button>
+  <script src="overlay-utils.js"></script>
+</body>
+</html>

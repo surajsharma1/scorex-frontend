@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classic Score Overlay</title>
+  <link rel="stylesheet" href="base.css">
+  <style>
+    body {
+      background: transparent;
+    }
+
+    .overlay-container {
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Classic Green Score Card */
+    .score-card {
+      background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #1a472a 100%);
+      border: 3px solid #ffd700;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      animation: slideInDown 0.5s ease;
+    }
+
+    .score-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, #ffd700, transparent);
+    }
+
+    .team-section {
+      padding: 10px 20px;
+      position: relative;
+    }
+
+    .team-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #ffd700;
+      margin-bottom: 5px;
+    }
+
+    .team-name {
+      color: #ffffff;
+      font-size: 1.4rem;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .team-score {
+      color: #ffd700;
+      font-size: 2.8rem;
+      font-weight: 800;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    .team-overs {
+      color: #a8d5a2;
+      font-size: 0.85rem;
+    }
+
+    .vs-section {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px 25px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+    }
+
+    .vs-text {
+      color: #ffd700;
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+
+    .tournament-name {
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+      background: linear-gradient(135deg, #0f2818 0%, #1a3a25 100%);
+      border: 2px solid #2d5a3d;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      animation: slideInUp 0.5s ease 0.2s both;
+    }
+
+    .stat-label {
+      color: #a8d5a2;
+      text-transform: uppercase;
+      font-size: 0.65rem;
+      letter-spacing: 1px;
+    }
+
+    .stat-value {
+      color: #ffffff;
+      font-size: 1.4rem;
+    }
+
+    .stat-value.highlight {
+      color: #ffd700;
+    }
+
+    /* Teams Panel - Classic Theme */
+    .teams-panel {
+      background: rgba(26, 71, 42, 0.95);
+    }
+
+    .teams-content {
+      background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 100%);
+      border: 3px solid #ffd700;
+    }
+
+    .teams-header h2 {
+      color: #ffd700;
+    }
+
+    .teams-header p {
+      color: #a8d5a2;
+    }
+
+    .team-roster {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 215, 0, 0.2);
+    }
+
+    .team-roster h3 {
+      color: #ffd700;
+      border-color: rgba(255, 215, 0, 0.3);
+    }
+
+    .player-name {
+      color: #ffffff;
+    }
+
+    .player-role {
+      color: #a8d5a2;
+      background: rgba(255, 215, 0, 0.1);
+    }
+
+    /* Toggle Button */
+    .toggle-teams-btn {
+      background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+      color: #1a472a;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    }
+
+    .toggle-teams-btn:hover {
+      box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+    }
+
+    .close-panel-btn {
+      background: #ffd700;
+      color: #1a472a;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay-container">
+    <!-- Score Card -->
+    <div class="score-card">
+      <div class="team-section">
+        <div class="team-label">Batting</div>
+        <div class="team-name" id="team1-name">Mumbai Warriors</div>
+        <div class="team-score" id="team1-score">185/4</div>
+        <div class="team-overs" id="team1-overs">20.0 Overs</div>
+      </div>
+
+      <div class="vs-section">
+        <div class="vs-text">VS</div>
+        <div class="tournament-name" id="tournament-name">Premier League T20</div>
+      </div>
+
+      <div class="team-section">
+        <div class="team-label">Bowling</div>
+        <div class="team-name" id="team2-name">Chennai Kings</div>
+        <div class="team-score" id="team2-score">142/7</div>
+        <div class="team-overs" id="team2-overs">16.2 Overs</div>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-label">Current RR</div>
+        <div class="stat-value" id="current-rr">8.75</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Required RR</div>
+        <div class="stat-value highlight" id="required-rr">12.30</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Last 5 Overs</div>
+        <div class="stat-value" id="last-5">48/2</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Target</div>
+        <div class="stat-value highlight" id="target">186</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teams Panel -->
+  <div class="teams-panel" id="teams-panel">
+    <div class="teams-content">
+      <button class="close-panel-btn" onclick="closeTeamsPanel()">&times;</button>
+      <div class="teams-header">
+        <h2>Playing XI</h2>
+        <p id="tournament-name-panel">Premier League T20</p>
+      </div>
+      <div class="teams-grid">
+        <div class="team-roster">
+          <h3 id="team1-roster-title">Mumbai Warriors</h3>
+          <ul class="player-list" id="team1-roster"></ul>
+        </div>
+        <div class="team-roster">
+          <h3 id="team2-roster-title">Chennai Kings</h3>
+          <ul class="player-list" id="team2-roster"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toggle Button -->
+  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+    </svg>
+    Show Teams
+  </button>
+
+  <script src="overlay-utils.js"></script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crystal Clear Overlay</title>
+  <link rel="stylesheet" href="base.css">
+  <style>
+    body { background: transparent; }
+    .overlay-container { font-family: 'Inter', sans-serif; }
+
+    .score-card {
+      background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.15) 0%, 
+        rgba(200, 220, 255, 0.2) 25%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(220, 200, 255, 0.2) 75%,
+        rgba(255, 255, 255, 0.15) 100%
+      );
+      backdrop-filter: blur(20px);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 20px;
+      box-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.2),
+        inset 0 0 30px rgba(255, 255, 255, 0.1),
+        0 20px 50px rgba(0, 0, 0, 0.1);
+      animation: slideInDown 0.6s ease, crystalShimmer 5s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+    .score-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(255, 255, 255, 0.4) 45%, 
+        rgba(200, 220, 255, 0.3) 50%, 
+        rgba(255, 255, 255, 0.4) 55%,
+        transparent 70%
+      );
+      animation: crystalShine 4s linear infinite;
+    }
+    @keyframes crystalShine { 0% { transform: translateX(-100%) rotate(45deg); } 100% { transform: translateX(100%) rotate(45deg); } }
+    @keyframes crystalShimmer {
+      0%, 100% { border-color: rgba(255, 255, 255, 0.4); }
+      50% { border-color: rgba(200, 220, 255, 0.6); }
+    }
+
+    .team-section { padding: 20px 35px; position: relative; z-index: 1; }
+    .team-label { font-size: 0.65rem; color: rgba(100, 150, 255, 0.8); margin-bottom: 8px; letter-spacing: 3px; text-transform: uppercase; }
+    .team-name { color: rgba(50, 50, 80, 0.9); font-size: 1.4rem; font-weight: 600; }
+    .team-score { 
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #4a90e2, #8b5cf6, #ec4899, #4a90e2);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: prismShift 4s ease infinite;
+      filter: drop-shadow(0 2px 10px rgba(139, 92, 246, 0.3));
+    }
+    @keyframes prismShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    .team-overs { color: rgba(100, 100, 150, 0.8); font-size: 0.85rem; }
+
+    .vs-section { 
+      background: linear-gradient(135deg, rgba(74, 144, 226, 0.3), rgba(139, 92, 246, 0.3));
+      backdrop-filter: blur(10px);
+      padding: 20px 35px;
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .vs-text { color: #4a4a6a; font-size: 1.3rem; font-weight: 700; }
+    .tournament-name { color: #8b5cf6; font-size: 0.85rem; }
+
+    .stats-bar {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 15px;
+      animation: slideInUp 0.6s ease 0.2s both;
+    }
+    .stat-label { color: rgba(100, 100, 150, 0.8); text-transform: uppercase; font-size: 0.6rem; letter-spacing: 2px; }
+    .stat-value { color: rgba(50, 50, 80, 0.9); font-size: 1.4rem; font-weight: 600; }
+    .stat-value.highlight { 
+      background: linear-gradient(135deg, #4a90e2, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Crystal Shatter Push */
+    .push-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2000;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .push-message.show { animation: crystalAppear 3s ease forwards; }
+    .push-message .main-text {
+      font-size: 4.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #4a90e2, #8b5cf6, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.5));
+    }
+    .push-message .sub-text {
+      font-size: 1.3rem;
+      color: #8b5cf6;
+      margin-top: 15px;
+      letter-spacing: 5px;
+    }
+    .push-message .crystal-shard {
+      position: absolute;
+      width: 20px;
+      height: 40px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(139, 92, 246, 0.5));
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    }
+    @keyframes crystalAppear {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); filter: blur(10px); }
+      20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); filter: blur(0); }
+      30% { transform: translate(-50%, -50%) scale(1); }
+      80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); filter: blur(5px); }
+    }
+
+    .teams-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); }
+    .teams-content { background: rgba(255, 255, 255, 0.9); border: 2px solid rgba(139, 92, 246, 0.3); border-radius: 20px; }
+    .teams-header h2 { background: linear-gradient(135deg, #4a90e2, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .teams-header p { color: #8b5cf6; }
+    .team-roster { background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 15px; }
+    .team-roster h3 { color: #4a90e2; border-color: rgba(74, 144, 226, 0.2); }
+    .player-name { color: #4a4a6a; }
+    .player-role { color: #8b5cf6; background: rgba(139, 92, 246, 0.1); }
+
+    .toggle-teams-btn { background: linear-gradient(135deg, #4a90e2, #8b5cf6); color: #fff; }
+    .close-panel-btn { background: #8b5cf6; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="overlay-container">
+    <div class="score-card">
+      <div class="team-section">
+        <div class="team-label">Batting</div>
+        <div class="team-name" id="team1-name">Mumbai Warriors</div>
+        <div class="team-score" id="team1-score">185/4</div>
+        <div class="team-overs" id="team1-overs">20.0 Overs</div>
+      </div>
+      <div class="vs-section">
+        <div class="vs-text">VS</div>
+        <div class="tournament-name" id="tournament-name">Premier League T20</div>
+      </div>
+      <div class="team-section">
+        <div class="team-label">Bowling</div>
+        <div class="team-name" id="team2-name">Chennai Kings</div>
+        <div class="team-score" id="team2-score">142/7</div>
+        <div class="team-overs" id="team2-overs">16.2 Overs</div>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-label">CRR</div><div class="stat-value" id="current-rr">8.75</div></div>
+      <div class="stat-item"><div class="stat-label">RRR</div><div class="stat-value highlight" id="required-rr">12.30</div></div>
+      <div class="stat-item"><div class="stat-label">Last 5</div><div class="stat-value" id="last-5">48/2</div></div>
+      <div class="stat-item"><div class="stat-label">Target</div><div class="stat-value highlight" id="target">186</div></div>
+    </div>
+  </div>
+
+  <div class="push-message" id="push-message">
+    <div class="main-text">FOUR!</div>
+    <div class="sub-text">CRYSTAL CLEAR</div>
+  </div>
+
+  <div class="teams-panel" id="teams-panel">
+    <div class="teams-content">
+      <button class="close-panel-btn" onclick="closeTeamsPanel()">&times;</button>
+      <div class="teams-header"><h2>Playing XI</h2><p id="tournament-name-panel">Premier League T20</p></div>
+      <div class="teams-grid">
+        <div class="team-roster"><h3 id="team1-roster-title">Mumbai Warriors</h3><ul class="player-list" id="team1-roster"></ul></div>
+        <div class="team-roster"><h3 id="team2-roster-title">Chennai Kings</h3><ul class="player-list" id="team2-roster"></ul></div>
+      </div>
+    </div>
+  </div>
+  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">Show Teams</button>
+  <script src="overlay-utils.js"></script>
+  <script>
+    function showPushMessage(main, sub) {
+      const msg = document.getElementById('push-message');
+      msg.querySelector('.main-text').textContent = main;
+      msg.querySelector('.sub-text').textContent = sub;
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyberpunk Overlay</title>
+  <link rel="stylesheet" href="base.css">
+  <style>
+    body { background: transparent; }
+    .overlay-container { font-family: 'Orbitron', sans-serif; }
+
+    .score-card {
+      background: #0d0d0d;
+      border: 2px solid #ff2a6d;
+      border-radius: 0;
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+      box-shadow: 0 0 30px rgba(255, 42, 109, 0.5), inset 0 0 50px rgba(255, 42, 109, 0.1);
+      animation: slideInDown 0.3s ease, glitch 5s infinite;
+      position: relative;
+    }
+    .score-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(255, 42, 109, 0.03) 2px, rgba(255, 42, 109, 0.03) 4px);
+      pointer-events: none;
+    }
+    .score-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: #05d9e8;
+      animation: scanline 3s linear infinite;
+    }
+
+    .team-section { padding: 20px 30px; position: relative; }
+    .team-label { 
+      font-size: 0.55rem; 
+      color: #05d9e8; 
+      margin-bottom: 8px; 
+      letter-spacing: 4px;
+      text-shadow: 0 0 10px #05d9e8;
+    }
+    .team-name { 
+      color: #ffffff; 
+      font-size: 1.2rem; 
+      text-shadow: 2px 0 #ff2a6d, -2px 0 #05d9e8;
+      animation: glitch 3s infinite;
+    }
+    .team-score { 
+      color: #ff2a6d; 
+      font-size: 2.8rem;
+      text-shadow: 0 0 20px #ff2a6d, 3px 0 #05d9e8, -3px 0 #d1f7ff;
+      animation: textGlow 1.5s ease-in-out infinite;
+    }
+    .team-overs { color: #05d9e8; font-size: 0.75rem; text-shadow: 0 0 5px #05d9e8; }
+
+    .vs-section { 
+      background: linear-gradient(135deg, #ff2a6d, #ff6b6b);
+      padding: 15px 25px;
+      clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    }
+    .vs-text { color: #ffffff; font-size: 1.2rem; text-shadow: 2px 2px 0 #0d0d0d; }
+    .tournament-name { color: #0d0d0d; font-size: 0.7rem; font-weight: 700; }
+
+    .stats-bar {
+      background: #0d0d0d;
+      border: 2px solid #05d9e8;
+      clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
+      animation: slideInUp 0.3s ease 0.2s both;
+    }
+    .stat-label { color: #05d9e8; font-size: 0.5rem; letter-spacing: 2px; text-shadow: 0 0 5px #05d9e8; }
+    .stat-value { color: #ffffff; font-size: 1.2rem; }
+    .stat-value.highlight { color: #ff2a6d; text-shadow: 0 0 10px #ff2a6d; }
+
+    /* Cyberpunk Push Message */
+    .push-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #0d0d0d;
+      border: 3px solid #ff2a6d;
+      padding: 40px 80px;
+      clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .push-message.show {
+      animation: cyberPush 2.5s ease forwards;
+    }
+    .push-message .main-text {
+      font-size: 3rem;
+      color: #ff2a6d;
+      text-shadow: 0 0 30px #ff2a6d, 4px 0 #05d9e8, -4px 0 #d1f7ff;
+      animation: glitch 0.3s infinite;
+    }
+    .push-message .sub-text {
+      font-size: 1rem;
+      color: #05d9e8;
+      margin-top: 15px;
+      text-shadow: 0 0 10px #05d9e8;
+    }
+    .push-message::before {
+      content: '[ ALERT ]';
+      position: absolute;
+      top: 10px;
+      left: 20px;
+      font-size: 0.6rem;
+      color: #05d9e8;
+      letter-spacing: 3px;
+    }
+    @keyframes cyberPush {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      10% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+      15% { transform: translate(-48%, -50%) scale(1); }
+      20% { transform: translate(-52%, -50%) scale(1); }
+      25% { transform: translate(-50%, -50%) scale(1); }
+      80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    }
+
+    .teams-panel { background: rgba(13, 13, 13, 0.98); }
+    .teams-content { 
+      background: #0d0d0d; 
+      border: 2px solid #ff2a6d;
+      clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
+    }
+    .teams-header h2 { color: #ff2a6d; text-shadow: 0 0 20px #ff2a6d; }
+    .teams-header p { color: #05d9e8; }
+    .team-roster { background: rgba(5, 217, 232, 0.05); border: 1px solid #05d9e8; }
+    .team-roster h3 { color: #05d9e8; border-color: #05d9e8; text-shadow: 0 0 10px #05d9e8; }
+    .player-name { color: #ffffff; }
+    .player-role { color: #ff2a6d; background: rgba(255, 42, 109, 0.1); }
+
+    .toggle-teams-btn { 
+      background: #ff2a6d; 
+      color: #0d0d0d; 
+      clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+      font-weight: 700;
+    }
+    .close-panel-btn { background: #ff2a6d; color: #0d0d0d; border-radius: 0; }
+  </style>
+</head>
+<body>
+  <div class="overlay-container">
+    <div class="score-card">
+      <div class="team-section">
+        <div class="team-label">// BATTING</div>
+        <div class="team-name" id="team1-name">MUMBAI_WARRIORS</div>
+        <div class="team-score" id="team1-score">185/4</div>
+        <div class="team-overs" id="team1-overs">20.0 OVR</div>
+      </div>
+      <div class="vs-section">
+        <div class="vs-text">VS</div>
+        <div class="tournament-name" id="tournament-name">PREMIER_LEAGUE</div>
+      </div>
+      <div class="team-section">
+        <div class="team-label">// BOWLING</div>
+        <div class="team-name" id="team2-name">CHENNAI_KINGS</div>
+        <div class="team-score" id="team2-score">142/7</div>
+        <div class="team-overs" id="team2-overs">16.2 OVR</div>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-label">CRR</div><div class="stat-value" id="current-rr">8.75</div></div>
+      <div class="stat-item"><div class="stat-label">RRR</div><div class="stat-value highlight" id="required-rr">12.30</div></div>
+      <div class="stat-item"><div class="stat-label">L5</div><div class="stat-value" id="last-5">48/2</div></div>
+      <div class="stat-item"><div class="stat-label">TGT</div><div class="stat-value highlight" id="target">186</div></div>
+    </div>
+  </div>
+
+  <div class="push-message" id="push-message">
+    <div class="main-text">WICKET!</div>
+    <div class="sub-text">// SYSTEM_BREACH</div>
+  </div>
+
+  <div class="teams-panel" id="teams-panel">
+    <div class="teams-content">
+      <button class="close-panel-btn" onclick="closeTeamsPanel()">X</button>
+      <div class="teams-header"><h2>// SQUAD_DATA</h2><p id="tournament-name-panel">PREMIER_LEAGUE_T20</p></div>
+      <div class="teams-grid">
+        <div class="team-roster"><h3 id="team1-roster-title">MUMBAI_WARRIORS</h3><ul class="player-list" id="team1-roster"></ul></div>
+        <div class="team-roster"><h3 id="team2-roster-title">CHENNAI_KINGS</h3><ul class="player-list" id="team2-roster"></ul></div>
+      </div>
+    </div>
+  </div>
+  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">ACCESS_TEAMS</button>
+  <script src="overlay-utils.js"></script>
+  <script>
+    function showPushMessage(main, sub) {
+      const msg = document.getElementById('push-message');
+      msg.querySelector('.main-text').textContent = main;
+      msg.querySelector('.sub-text').textContent = '// ' + sub.toUpperCase().replace(/ /g, '_');
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 2500);
+    }
+  </script>
+</body>
+</html>

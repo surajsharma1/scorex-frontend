@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bamboo Carved Overlay</title>
+  <link rel="stylesheet" href="base.css">
+  <style>
+    body { background: transparent; }
+    .overlay-container { font-family: 'Special Elite', cursive; }
+
+    .score-card {
+      background: linear-gradient(135deg, 
+        #2d4a3e 0%, 
+        #3d5a4e 20%,
+        #2d4a3e 40%,
+        #3d5a4e 60%,
+        #2d4a3e 80%,
+        #3d5a4e 100%
+      );
+      border: 4px solid #1a2e26;
+      border-radius: 15px;
+      box-shadow: 
+        0 8px 30px rgba(0, 0, 0, 0.4),
+        inset 0 2px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+      animation: slideInDown 0.5s ease;
+      position: relative;
+    }
+    .score-card::before {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      border: 2px dashed rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      pointer-events: none;
+    }
+
+    .team-section { padding: 25px 35px; }
+    .team-label { font-size: 0.7rem; color: #a8c4a0; margin-bottom: 10px; letter-spacing: 3px; }
+    .team-name { color: #e8f0e0; font-size: 1.4rem; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); }
+    .team-score { 
+      color: #c8e0b8; 
+      font-size: 3rem;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+      letter-spacing: 3px;
+    }
+    .team-overs { color: #88a880; font-size: 0.9rem; }
+
+    .vs-section { 
+      background: linear-gradient(180deg, #1a2e26, #243832);
+      padding: 20px 35px;
+      border-radius: 10px;
+      border: 2px solid #3d5a4e;
+    }
+    .vs-text { color: #c8e0b8; font-size: 1.5rem; }
+    .tournament-name { color: #88a880; font-size: 0.85rem; }
+
+    .stats-bar {
+      background: linear-gradient(180deg, #1a2e26 0%, #243832 100%);
+      border: 3px solid #3d5a4e;
+      border-radius: 10px;
+      animation: slideInUp 0.5s ease 0.2s both;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+    .stat-label { color: #88a880; font-size: 0.65rem; letter-spacing: 2px; }
+    .stat-value { color: #c8e0b8; font-size: 1.4rem; }
+    .stat-value.highlight { color: #a8d098; text-shadow: 0 0 10px rgba(168, 208, 152, 0.3); }
+
+    /* Stamp Push */
+    .push-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2000;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .push-message.show { animation: stampDown 2.5s ease forwards; }
+    .push-message .stamp-container {
+      background: rgba(45, 74, 62, 0.95);
+      border: 4px solid #c8e0b8;
+      border-radius: 10px;
+      padding: 30px 60px;
+      transform: rotate(-5deg);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+    .push-message .main-text {
+      font-size: 4rem;
+      color: #c8e0b8;
+      text-shadow: 2px 2px 0 #1a2e26;
+      letter-spacing: 10px;
+    }
+    .push-message .sub-text {
+      font-size: 1.2rem;
+      color: #88a880;
+      margin-top: 10px;
+      letter-spacing: 5px;
+    }
+    @keyframes stampDown {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(2) rotate(-15deg); }
+      20% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-5deg); }
+      25% { transform: translate(-50%, -50%) scale(0.95) rotate(-3deg); }
+      30% { transform: translate(-50%, -50%) scale(1) rotate(-5deg); }
+      75% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1) rotate(-5deg); }
+    }
+
+    .teams-panel { background: rgba(26, 46, 38, 0.98); }
+    .teams-content { background: linear-gradient(135deg, #2d4a3e, #3d5a4e); border: 3px solid #1a2e26; border-radius: 15px; }
+    .teams-header h2 { color: #c8e0b8; }
+    .teams-header p { color: #88a880; }
+    .team-roster { background: rgba(26, 46, 38, 0.5); border: 2px solid #3d5a4e; border-radius: 10px; }
+    .team-roster h3 { color: #a8c4a0; border-color: #3d5a4e; }
+    .player-name { color: #e8f0e0; }
+    .player-role { color: #88a880; background: rgba(61, 90, 78, 0.3); }
+
+    .toggle-teams-btn { background: linear-gradient(180deg, #3d5a4e, #2d4a3e); color: #c8e0b8; border: 2px solid #1a2e26; }
+    .close-panel-btn { background: #3d5a4e; color: #c8e0b8; }
+  </style>
+</head>
+<body>
+  <div class="overlay-container">
+    <div class="score-card">
+      <div class="team-section">
+        <div class="team-label">BATTING</div>
+        <div class="team-name" id="team1-name">Mumbai Warriors</div>
+        <div class="team-score" id="team1-score">185/4</div>
+        <div class="team-overs" id="team1-overs">20.0 Overs</div>
+      </div>
+      <div class="vs-section">
+        <div class="vs-text">VS</div>
+        <div class="tournament-name" id="tournament-name">Premier League T20</div>
+      </div>
+      <div class="team-section">
+        <div class="team-label">BOWLING</div>
+        <div class="team-name" id="team2-name">Chennai Kings</div>
+        <div class="team-score" id="team2-score">142/7</div>
+        <div class="team-overs" id="team2-overs">16.2 Overs</div>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-label">CRR</div><div class="stat-value" id="current-rr">8.75</div></div>
+      <div class="stat-item"><div class="stat-label">RRR</div><div class="stat-value highlight" id="required-rr">12.30</div></div>
+      <div class="stat-item"><div class="stat-label">Last 5</div><div class="stat-value" id="last-5">48/2</div></div>
+      <div class="stat-item"><div class="stat-label">Target</div><div class="stat-value highlight" id="target">186</div></div>
+    </div>
+  </div>
+
+  <div class="push-message" id="push-message">
+    <div class="stamp-container">
+      <div class="main-text">SIX!</div>
+      <div class="sub-text">APPROVED</div>
+    </div>
+  </div>
+
+  <div class="teams-panel" id="teams-panel">
+    <div class="teams-content">
+      <button class="close-panel-btn" onclick="closeTeamsPanel()">&times;</button>
+      <div class="teams-header"><h2>Playing XI</h2><p id="tournament-name-panel">Premier League T20</p></div>
+      <div class="teams-grid">
+        <div class="team-roster"><h3 id="team1-roster-title">Mumbai Warriors</h3><ul class="player-list" id="team1-roster"></ul></div>
+        <div class="team-roster"><h3 id="team2-roster-title">Chennai Kings</h3><ul class="player-list" id="team2-roster"></ul></div>
+      </div>
+    </div>
+  </div>
+  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">Show Teams</button>
+
+  <script src="overlay-utils.js"></script>
+  <script>
+    function showPushMessage(main, sub) {
+      const msg = document.getElementById('push-message');
+      msg.querySelector('.main-text').textContent = main;
+      msg.querySelector('.sub-text').textContent = sub;
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 2500);
+    }
+  </script>
+</body>
+</html>
