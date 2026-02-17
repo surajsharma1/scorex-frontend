@@ -121,7 +121,6 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
     <div className="bg-white dark:bg-dark-bg-alt rounded-lg shadow-sm border border-gray-200 dark:border-dark-primary/30">
       <div className="p-4 border-b border-gray-200 dark:border-dark-primary/30">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-light flex items-center">
-
           <Users className="h-5 w-5 mr-2" />
           {t('friends.title', 'Friends')}
         </h2>
@@ -184,62 +183,63 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
       <div className="p-4">
         {/* Friends List Tab */}
         {activeTab === 'friends' && (
-          <>
+          <div>
             <h3 className="text-sm font-medium text-gray-900 dark:text-dark-light mb-3">
               {t('friends.myFriends', 'My Friends')} ({friends.length})
             </h3>
             {friends.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-dark-accent/70 text-center py-4">
-            {t('friends.noFriends', 'No friends yet')}
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {friends.map((friend) => (
-              <div
-                key={friend._id}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-dark-primary/20 rounded-lg cursor-pointer border border-gray-100 dark:border-dark-primary/30"
-                onClick={() => onFriendSelect?.(friend)}
-              >
-                <div className="flex items-center">
-                  <div className="h-10 w-10 bg-blue-500 dark:bg-dark-primary rounded-full flex items-center justify-center">
-                    <span className="text-sm font-medium text-white">
-                      {friend.username.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="ml-3">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-gray-900 dark:text-dark-light">{friend.username}</span>
-                      {friend.fullName && (
-                        <span className="text-xs text-gray-500 dark:text-dark-accent/70">({friend.fullName})</span>
-                      )}
+                {t('friends.noFriends', 'No friends yet')}
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {friends.map((friend) => (
+                  <div
+                    key={friend._id}
+                    className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-dark-primary/20 rounded-lg cursor-pointer border border-gray-100 dark:border-dark-primary/30"
+                    onClick={() => onFriendSelect?.(friend)}
+                  >
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 bg-blue-500 dark:bg-dark-primary rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-white">
+                          {friend.username.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="ml-3">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-gray-900 dark:text-dark-light">{friend.username}</span>
+                          {friend.fullName && (
+                            <span className="text-xs text-gray-500 dark:text-dark-accent/70">({friend.fullName})</span>
+                          )}
+                        </div>
+                        {friend.email && (
+                          <p className="text-xs text-gray-500 dark:text-dark-accent/70">{friend.email}</p>
+                        )}
+                        {friend.bio && (
+                          <p className="text-xs text-gray-600 dark:text-dark-accent mt-1">{friend.bio}</p>
+                        )}
+                      </div>
                     </div>
-                    {friend.email && (
-                      <p className="text-xs text-gray-500 dark:text-dark-accent/70">{friend.email}</p>
-                    )}
-                    {friend.bio && (
-                      <p className="text-xs text-gray-600 dark:text-dark-accent mt-1">{friend.bio}</p>
-                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFriend(friend._id);
+                      }}
+                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                      aria-label={`Remove ${friend.username} from friends`}
+                    >
+                      <UserX className="h-4 w-4" />
+                    </button>
                   </div>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveFriend(friend._id);
-                  }}
-                  className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                  aria-label={`Remove ${friend.username} from friends`}
-                >
-                  <UserX className="h-4 w-4" />
-                </button>
+                ))}
               </div>
             )}
           </div>
-          </>
         )}
 
         {/* Friend Requests Tab */}
         {activeTab === 'requests' && (
-          <>
+          <div>
             <h3 className="text-sm font-medium text-gray-900 dark:text-dark-light mb-3">
               {t('friends.pendingRequests', 'Pending Requests')} ({pendingRequests.length})
             </h3>
@@ -288,12 +288,12 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
                 ))}
               </div>
             )}
-          </>
+          </div>
         )}
 
         {/* Find Friends Tab */}
         {activeTab === 'find' && (
-          <>
+          <div>
             <h3 className="text-sm font-medium text-gray-900 dark:text-dark-light mb-3">
               {t('friends.searchUsers', 'Search Users')}
             </h3>
@@ -346,12 +346,11 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
                 No users found matching "{searchQuery}"
               </p>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>
   );
-
 };
 
 export default FriendList;
