@@ -188,8 +188,8 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
             <h3 className="text-sm font-medium text-gray-900 dark:text-dark-light mb-3">
               {t('friends.myFriends', 'My Friends')} ({friends.length})
             </h3>
-        {friends.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-dark-accent/70 text-center py-4">
+            {friends.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-dark-accent/70 text-center py-4">
             {t('friends.noFriends', 'No friends yet')}
           </p>
         ) : (
