@@ -101,9 +101,9 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
       const currentTeam = prev[team];
       
       let newScore = currentTeam.score;
-      let newBalls = currentTeam.balls;
-      let newOvers = currentTeam.overs;
-      let newWickets = currentTeam.wickets;
+      let newBalls = currentTeam.balls || 0;
+      let newOvers = currentTeam.overs || 0;
+      let newWickets = currentTeam.wickets || 0;
       
       // Handle different scoring types
       if (extraType === 'normal') {
@@ -112,10 +112,12 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
       } else if (extraType === 'wide') {
         // Wide adds to team score but not batsman, no ball counted
         newScore += runs + 1; // +1 for the wide itself
+        // Wide doesn't count as a legal delivery
       } else if (extraType === 'noBall') {
         // No ball adds to team score, extra runs can be scored
         newScore += runs + 1; // +1 for the no ball itself
-        // No ball doesn't count as a legal delivery for over calculation
+        // No ball DOES count as a legal delivery for over calculation
+        newBalls += 1;
       } else if (extraType === 'bye' || extraType === 'legBye') {
         // Byes and leg byes add to team score but not batsman
         newScore += runs;
@@ -125,7 +127,7 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
       // Calculate overs (6 balls = 1 over)
       if (newBalls >= 6) {
         newOvers = Math.floor(newOvers) + 1;
-        newBalls = 0;
+        newBalls = newBalls % 6;
       }
       
       return {
