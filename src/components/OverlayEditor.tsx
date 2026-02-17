@@ -143,22 +143,6 @@ const PRE_DESIGNED_OVERLAYS = [
     preview: '/overlays/neon-preview.png',
   },
   {
-    id: 'glass',
-    name: 'Glass Morphism',
-    description: 'Modern glass-like design with transparency',
-    membership: 'premium',
-    level: 'designer',
-    preview: '/overlays/glass-preview.png',
-  },
-  {
-    id: 'wooden',
-    name: 'Wooden Board',
-    description: 'Classic wooden scoreboard appearance',
-    membership: 'premium',
-    level: 'designer',
-    preview: '/overlays/wooden-preview.png',
-  },
-  {
     id: 'metallic',
     name: 'Metallic Shine',
     description: 'Shiny metallic overlay with reflections',
