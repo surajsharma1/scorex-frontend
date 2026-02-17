@@ -81,7 +81,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
           aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
         >
           {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          <span className="text-sm font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+          <span className="text-sm font-medium">{isDark ? 'dark mode' : 'light mode'}</span>
         </button>
         
         <div className="bg-light-bg-alt dark:bg-dark-bg-alt/50 backdrop-blur-sm p-4 rounded-xl border border-light-secondary/20 dark:border-dark-primary/20">

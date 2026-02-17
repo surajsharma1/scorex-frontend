@@ -52,9 +52,9 @@ const Frontpage = () => {
           <button
             onClick={toggleTheme}
             className="p-2 rounded-full bg-light-secondary/20 dark:bg-dark-primary/20 text-light-primary dark:text-dark-light"
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={isDark ? 'Switch to dark mode' : 'Switch to light mode'}
           >
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            {isDark ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </button>
           <button
             onClick={() => navigate('/login')}
