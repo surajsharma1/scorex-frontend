@@ -234,6 +234,7 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
               </div>
             )}
           </div>
+          </>
         )}
 
         {/* Friend Requests Tab */}
