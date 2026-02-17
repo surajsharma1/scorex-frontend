@@ -109,6 +109,10 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
         const result = await confirmResponse.json();
 
         if (result.success) {
+          // Store the new token with updated membership
+          if (result.token) {
+            localStorage.setItem('token', result.token);
+          }
           onSuccess(`premium-${selectedLevel}`);
         } else {
           throw new Error('Payment confirmation failed');
@@ -117,7 +121,9 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
 
     } catch (error) {
       console.error('Payment failed:', error);
-      onSuccess(`premium-${selectedLevel}`); // Still proceed for demo
+      // For demo purposes, simulate successful payment
+      // In production, remove this fallback
+      onSuccess(`premium-${selectedLevel}`);
     } finally {
       setLoading(false);
     }

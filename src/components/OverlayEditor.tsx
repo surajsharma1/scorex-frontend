@@ -537,20 +537,51 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
                 </span>
                 <button
                   onClick={() => {
-                    if (overlayTemplate.membership !== 'free' && userMembership === 'free') {
-                      setShowPayment(true);
-                    } else if (overlayTemplate.level === 'designer' && userMembership !== 'premium-level2') {
-                      setShowPayment(true);
-                    } else {
+                    // Check if user has the required membership
+                    const hasBasicAccess = userMembership !== 'free' && 
+                      (userMembership === 'premium' || userMembership === 'pro' || 
+                       userMembership === 'premium-level1' || userMembership === 'premium-level2');
+                    const hasDesignerAccess = userMembership === 'premium-level2' || 
+                      userMembership === 'pro' || userRole === 'admin';
+                    
+                    if (overlayTemplate.membership === 'free') {
                       handleSelectOverlay(overlayTemplate);
+                    } else if (overlayTemplate.level === 'designer') {
+                      // Designer level requires premium-level2
+                      if (hasDesignerAccess) {
+                        handleSelectOverlay(overlayTemplate);
+                      } else {
+                        setShowPayment(true);
+                      }
+                    } else {
+                      // Basic premium level
+                      if (hasBasicAccess) {
+                        handleSelectOverlay(overlayTemplate);
+                      } else {
+                        setShowPayment(true);
+                      }
                     }
                   }}
                   disabled={!selectedMatch}
                   className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {overlayTemplate.membership === 'free' ? 'Select' : 'Upgrade'}
+                  {(() => {
+                    // Determine button text based on access
+                    const hasBasicAccess = userMembership !== 'free' && 
+                      (userMembership === 'premium' || userMembership === 'pro' || 
+                       userMembership === 'premium-level1' || userMembership === 'premium-level2');
+                    const hasDesignerAccess = userMembership === 'premium-level2' || 
+                      userMembership === 'pro' || userRole === 'admin';
+                    
+                    if (overlayTemplate.membership === 'free') {
+                      return 'Create';
+                    } else if (overlayTemplate.level === 'designer') {
+                      return hasDesignerAccess ? 'Create' : 'Upgrade';
+                    } else {
+                      return hasBasicAccess ? 'Create' : 'Upgrade';
+                    }
+                  })()}
                 </button>
-
               </div>
             </div>
           </div>
@@ -692,7 +723,10 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
           onSuccess={(plan) => {
             setUserMembership(plan);
             setShowPayment(false);
-            setError(`Successfully upgraded to ${plan} plan!`);
+            // Show success message instead of error
+            setError('');
+            // Optionally show a success toast/message
+            alert(`Successfully upgraded to ${plan} plan! You can now create overlays.`);
           }}
         />
       )}

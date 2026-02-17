@@ -1,8 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Payment from './Payment';
 
 export default function Membership() {
   const [showPayment, setShowPayment] = useState(true);
+  const [currentMembership, setCurrentMembership] = useState<string>('free');
+  const [successMessage, setSuccessMessage] = useState<string>('');
+
+  useEffect(() => {
+    // Read current membership from token
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setCurrentMembership(payload.membership || 'free');
+      } catch (error) {
+        console.error('Error parsing token:', error);
+      }
+    }
+  }, []);
 
   const handleClose = () => {
     setShowPayment(false);
@@ -11,40 +26,15 @@ export default function Membership() {
   const handleSuccess = (plan: string) => {
     console.log('Membership upgraded to:', plan);
     setShowPayment(false);
-    // Update user membership in localStorage by calling the API to get updated token
-    const updateMembership = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/v1/users/me`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({ membership: plan })
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          // Update token if returned, otherwise update local user data
-          if (data.token) {
-            localStorage.setItem('token', data.token);
-          } else if (data.user) {
-            // Store membership info separately if no new token
-            localStorage.setItem('userMembership', plan);
-          }
-          console.log('Membership updated successfully');
-        } else {
-          // Fallback: store membership locally
-          localStorage.setItem('userMembership', plan);
-        }
-      } catch (error) {
-        console.error('Error updating membership:', error);
-        // Fallback: store membership locally
-        localStorage.setItem('userMembership', plan);
-      }
-    };
+    setCurrentMembership(plan);
+    setSuccessMessage(`Successfully upgraded to ${plan}!`);
     
-    updateMembership();
+    // The payment confirmation endpoint now returns a new token
+    // which is already saved by the Payment component
+    // Just update the local state to reflect the change
+    setTimeout(() => {
+      setSuccessMessage('');
+    }, 5000);
   };
 
 
@@ -53,19 +43,55 @@ export default function Membership() {
       <div className="text-center">
         <h1 className="text-4xl font-bold text-blue-600 dark:text-dark-accent mb-4">Membership</h1>
         <p className="text-gray-600 dark:text-dark-accent">Upgrade your plan to unlock more features</p>
+      </div>
 
+      {successMessage && (
+        <div className="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 px-4 py-3 rounded text-center">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Current Membership Status */}
+      <div className="bg-white dark:bg-dark-bg-alt rounded-xl shadow-sm border border-gray-200 dark:border-dark-primary/30 p-6">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-light mb-4">Current Plan</h2>
+        <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
+          currentMembership === 'free' ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' :
+          currentMembership.includes('level1') ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
+          'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300'
+        }`}>
+          {currentMembership === 'free' ? 'Free Plan' :
+           currentMembership === 'premium-level1' ? 'Premium Level 1' :
+           currentMembership === 'premium-level2' ? 'Premium Level 2' :
+           currentMembership.charAt(0).toUpperCase() + currentMembership.slice(1)}
+        </div>
       </div>
 
       {showPayment && (
         <Payment onClose={handleClose} onSuccess={handleSuccess} />
       )}
 
-      {!showPayment && (
+      {!showPayment && currentMembership !== 'free' && (
         <div className="text-center">
-          <p className="text-gray-600 dark:text-dark-accent">Membership management coming soon...</p>
+          <p className="text-gray-600 dark:text-dark-accent mb-4">You already have an active membership!</p>
+          <button
+            onClick={() => setShowPayment(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+          >
+            Upgrade Plan
+          </button>
         </div>
       )}
 
+      {!showPayment && currentMembership === 'free' && (
+        <div className="text-center">
+          <button
+            onClick={() => setShowPayment(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+          >
+            Get Premium
+          </button>
+        </div>
+      )}
     </div>
   );
 }

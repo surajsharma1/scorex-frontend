@@ -162,6 +162,18 @@ async function fetchLiveData(matchId, apiBaseUrl) {
     const data = await response.json();
     
     if (data) {
+      // Calculate run rates based on match data
+      const overs1 = parseFloat(data.overs1) || 0;
+      const overs2 = parseFloat(data.overs2) || 0;
+      const score1 = parseInt(data.score1) || 0;
+      const score2 = parseInt(data.score2) || 0;
+      
+      const currentRunRate = overs2 > 0 ? (score2 / overs2).toFixed(2) : '0.00';
+      const target = score1 + 1;
+      const remainingRuns = target - score2;
+      const remainingOvers = 20 - overs2; // Assuming T20 format
+      const requiredRunRate = remainingOvers > 0 ? (remainingRuns / remainingOvers).toFixed(2) : '0.00';
+      
       matchData = {
         tournament: {
           name: data.tournament?.name || 'Tournament',
@@ -170,26 +182,26 @@ async function fetchLiveData(matchId, apiBaseUrl) {
         team1: {
           name: data.team1?.name || 'Team 1',
           shortName: data.team1?.shortName || 'T1',
-          score: data.team1Score?.runs?.toString() || '0',
-          wickets: data.team1Score?.wickets?.toString() || '0',
-          overs: data.team1Score?.overs?.toString() || '0.0',
+          score: data.score1?.toString() || '0',
+          wickets: data.wickets1?.toString() || '0',
+          overs: data.overs1?.toString() || '0.0',
           color: data.team1?.color || '#004BA0',
           players: data.team1?.players || []
         },
         team2: {
           name: data.team2?.name || 'Team 2',
           shortName: data.team2?.shortName || 'T2',
-          score: data.team2Score?.runs?.toString() || '0',
-          wickets: data.team2Score?.wickets?.toString() || '0',
-          overs: data.team2Score?.overs?.toString() || '0.0',
+          score: data.score2?.toString() || '0',
+          wickets: data.wickets2?.toString() || '0',
+          overs: data.overs2?.toString() || '0.0',
           color: data.team2?.color || '#FCCA06',
           players: data.team2?.players || []
         },
         stats: {
-          currentRunRate: data.currentRunRate?.toFixed(2) || '0.00',
-          requiredRunRate: data.requiredRunRate?.toFixed(2) || '0.00',
-          last5Overs: data.last5Overs || '0/0',
-          target: data.target?.toString() || '0'
+          currentRunRate: currentRunRate,
+          requiredRunRate: requiredRunRate,
+          last5Overs: data.last5Overs || '-',
+          target: target.toString()
         },
         status: data.status || 'Scheduled',
         result: data.result || ''
@@ -214,7 +226,7 @@ function getUrlParams() {
   const params = new URLSearchParams(window.location.search);
   return {
     matchId: params.get('matchId'),
-    apiBaseUrl: params.get('apiUrl') || 'http://localhost:5000/api/v1'
+    apiBaseUrl: params.get('apiBaseUrl') || params.get('apiUrl') || 'http://localhost:5000/api/v1'
   };
 }
 
