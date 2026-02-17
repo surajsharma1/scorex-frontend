@@ -282,7 +282,18 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         setUserRole(payload.role || 'viewer');
-        setUserMembership(payload.membership || 'free');
+        
+        // Check if membership has expired
+        let membership = payload.membership || 'free';
+        if (payload.membershipExpiresAt) {
+          const expiryDate = new Date(payload.membershipExpiresAt);
+          if (expiryDate < new Date()) {
+            // Membership has expired, reset to free
+            membership = 'free';
+          }
+        }
+        
+        setUserMembership(membership);
         // If admin, set to pro for full access
         if (payload.role === 'admin') {
           setUserMembership('pro');
@@ -378,8 +389,11 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
   };
 
   const handlePreview = (overlay: Overlay) => {
-    const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
-    window.open(`${backendUrl}/overlays/public/${overlay.publicId}`, '_blank');
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+    // Use the template HTML from public/overlays folder with match data via query params
+    const templateUrl = `/overlays/${overlay.template}.html`;
+    const matchId = overlay.match?._id || '';
+    window.open(`${templateUrl}?matchId=${matchId}&apiBaseUrl=${encodeURIComponent(apiBaseUrl)}`, '_blank');
   };
 
   const handleDownload = (overlay: Overlay) => {

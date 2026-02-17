@@ -4,6 +4,7 @@ import Payment from './Payment';
 export default function Membership() {
   const [showPayment, setShowPayment] = useState(true);
   const [currentMembership, setCurrentMembership] = useState<string>('free');
+  const [membershipExpiresAt, setMembershipExpiresAt] = useState<Date | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>('');
 
   useEffect(() => {
@@ -12,7 +13,19 @@ export default function Membership() {
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        setCurrentMembership(payload.membership || 'free');
+        let membership = payload.membership || 'free';
+        
+        // Check if membership has expired
+        if (payload.membershipExpiresAt) {
+          const expiryDate = new Date(payload.membershipExpiresAt);
+          setMembershipExpiresAt(expiryDate);
+          if (expiryDate < new Date()) {
+            // Membership has expired, reset to free
+            membership = 'free';
+          }
+        }
+        
+        setCurrentMembership(membership);
       } catch (error) {
         console.error('Error parsing token:', error);
       }
@@ -64,6 +77,15 @@ export default function Membership() {
            currentMembership === 'premium-level2' ? 'Premium Level 2' :
            currentMembership.charAt(0).toUpperCase() + currentMembership.slice(1)}
         </div>
+        {membershipExpiresAt && currentMembership !== 'free' && (
+          <p className="mt-3 text-sm text-gray-600 dark:text-dark-accent">
+            {membershipExpiresAt > new Date() ? (
+              <span>Expires on: <strong>{membershipExpiresAt.toLocaleDateString()}</strong></span>
+            ) : (
+              <span className="text-red-500">Expired on: {membershipExpiresAt.toLocaleDateString()}</span>
+            )}
+          </p>
+        )}
       </div>
 
       {showPayment && (
