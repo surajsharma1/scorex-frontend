@@ -2,7 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Club, User } from './types';
 import { clubAPI, userAPI } from '../services/api';
-import { Users, Plus, Settings, UserMinus, UserPlus, Loader, Crown, Calendar } from 'lucide-react';
+import { Users, Plus, Settings, UserMinus, UserPlus, Loader, Crown, Calendar, Search } from 'lucide-react';
+
+// Helper to get current user ID from token
+const getCurrentUserId = (): string => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      return decoded.userId || decoded.id || decoded._id || '';
+    } catch (error) {
+      console.error('Error decoding token:', error);
+    }
+  }
+  return '';
+};
 
 const ClubManagement: React.FC = () => {
   const { t } = useTranslation();
@@ -23,17 +37,21 @@ const ClubManagement: React.FC = () => {
   const [clubSearchResults, setClubSearchResults] = useState<Club[]>([]);
 
   useEffect(() => {
-    loadClubs();
+    const userId = getCurrentUserId();
+    setCurrentUserId(userId);
+    loadClubs(userId);
   }, []);
 
-  const loadClubs = async () => {
+  const loadClubs = async (userId?: string) => {
+    const effectiveUserId = userId || currentUserId;
     try {
       const response = await clubAPI.getClubs();
       const clubsArray = Array.isArray(response.data) ? response.data : (Array.isArray(response.data?.clubs) ? response.data.clubs : []);
       setClubs(clubsArray);
       // Filter clubs where user is a member or creator
-      // Note: This would need actual user ID from auth context
-      setMyClubs(clubsArray.filter((club: Club) => club.members.includes('currentUserId') || club.createdBy === 'currentUserId'));
+      setMyClubs(clubsArray.filter((club: Club) => 
+        club.members.includes(effectiveUserId) || club.createdBy === effectiveUserId
+      ));
     } catch (err) {
       setError('Failed to load clubs');
     } finally {
@@ -237,7 +255,7 @@ const ClubManagement: React.FC = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900 dark:text-dark-light">{club.name}</h3>
-                        {club.createdBy === 'currentUserId' && (
+                    {club.createdBy === currentUserId && (
                           <div className="flex items-center mt-1">
                             <Crown className="h-3 w-3 text-yellow-500 mr-1" />
                             <span className="text-xs text-yellow-600 dark:text-yellow-400">Creator</span>
@@ -292,7 +310,7 @@ const ClubManagement: React.FC = () => {
                   <span className="text-sm text-gray-500 dark:text-dark-accent/70">
                     {club.members.length} {t('clubs.members', 'members')}
                   </span>
-                  {!club.members.includes('currentUserId') ? (
+                  {!club.members.includes(currentUserId) ? (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -353,7 +371,7 @@ const ClubManagement: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-light">
                   {t('clubs.members', 'Members')} ({clubDetails.members.length})
                 </h3>
-                {clubDetails.createdBy === 'currentUserId' && (
+                {clubDetails.createdBy === currentUserId && (
                   <button
                     onClick={() => {
                       setSelectedClub(clubDetails);
@@ -396,7 +414,7 @@ const ClubManagement: React.FC = () => {
                         <Calendar className="h-3 w-3 mr-1" />
                         <span>Member #{index + 1}</span>
                       </div>
-                      {clubDetails.createdBy === 'currentUserId' && member._id !== clubDetails.createdBy && (
+                      {clubDetails.createdBy === currentUserId && member._id !== clubDetails.createdBy && (
                         <button
                           onClick={() => handleRemoveMember(clubDetails._id, member._id)}
                           className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"
@@ -412,7 +430,7 @@ const ClubManagement: React.FC = () => {
             </div>
 
             <div className="flex justify-end space-x-3">
-              {!clubDetails.members.includes('currentUserId') ? (
+            {!clubDetails.members.includes(currentUserId) ? (
                 <button
                   onClick={() => {
                     handleJoinClub(clubDetails._id);

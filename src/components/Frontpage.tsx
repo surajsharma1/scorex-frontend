@@ -1,18 +1,45 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from './ThemeProvider';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Radio, Play, Trophy, Users } from 'lucide-react';
+import Carousel from './Carousel';
+import { matchAPI, tournamentAPI } from '../services/api';
+import { Match, Tournament } from './types';
 
 const Frontpage = () => {
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
+  const [liveMatches, setLiveMatches] = useState<Match[]>([]);
+  const [featuredTournaments, setFeaturedTournaments] = useState<Tournament[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       navigate('/');
     }
+    // Load live matches and tournaments for carousel
+    loadLiveData();
   }, [navigate]);
+
+  const loadLiveData = async () => {
+    try {
+      const [matchesRes, tournamentsRes] = await Promise.all([
+        matchAPI.getAllMatches(),
+        tournamentAPI.getTournaments(1, 10),
+      ]);
+      
+      const matchesData = matchesRes.data?.matches || matchesRes.data || [];
+      const liveOnly = Array.isArray(matchesData) 
+        ? matchesData.filter((m: Match) => m.status === 'ongoing')
+        : [];
+      setLiveMatches(liveOnly);
+      
+      const tournamentsData = tournamentsRes.data?.tournaments || tournamentsRes.data || [];
+      setFeaturedTournaments(Array.isArray(tournamentsData) ? tournamentsData.slice(0, 5) : []);
+    } catch (error) {
+      console.error('Failed to load live data');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-light-bg dark:bg-dark-bg text-text dark:text-text-dark">
@@ -39,29 +66,122 @@ const Frontpage = () => {
       </header>
 
 
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-light-primary via-light-secondary to-light-accent dark:from-dark-bg dark:via-dark-primary dark:to-dark-secondary py-20 px-6 flex items-center justify-center">
-        <div className="text-center max-w-4xl">
-          <h2 className="text-6xl font-bold mb-6 leading-tight text-white drop-shadow-lg">ScoreX</h2>
-          <p className="text-xl mb-8 leading-relaxed text-white/90">
-            The ultimate platform for cricket tournament management and live streaming.
-            Create tournaments, manage teams, generate brackets, and produce professional
-            overlays for YouTube and streaming platforms. Perfect for organizers, streamers,
-            and cricket enthusiasts worldwide.
-          </p>
-          <p className="text-lg mb-8 text-white/80">
-            Join thousands of users who trust ScoreX for seamless cricket management and
-            stunning live overlays.
-          </p>
-          <button
-            onClick={() => navigate('/login')}
-            className="px-8 py-3 bg-white text-light-primary rounded-lg font-medium"
-          >
-            Get Started
-          </button>
-
-        </div>
+      {/* Hero Carousel Section */}
+      <section className="relative">
+        <Carousel
+          items={[
+            {
+              id: 'hero-1',
+              bgGradient: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)',
+              content: (
+                <div className="py-20 px-6 flex items-center justify-center">
+                  <div className="text-center max-w-4xl">
+                    <h2 className="text-6xl font-bold mb-6 leading-tight text-white drop-shadow-lg">ScoreX</h2>
+                    <p className="text-xl mb-8 leading-relaxed text-white/90">
+                      The ultimate platform for cricket tournament management and live streaming.
+                      Create tournaments, manage teams, generate brackets, and produce professional
+                      overlays for YouTube and streaming platforms.
+                    </p>
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="px-8 py-3 bg-white text-light-primary rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                    >
+                      Get Started
+                    </button>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              id: 'hero-2',
+              bgGradient: 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)',
+              content: (
+                <div className="py-20 px-6 flex items-center justify-center">
+                  <div className="text-center max-w-4xl">
+                    <Trophy className="w-20 h-20 mx-auto mb-6 text-white" />
+                    <h2 className="text-5xl font-bold mb-6 text-white">Organize Tournaments</h2>
+                    <p className="text-xl mb-8 text-white/90">
+                      Create and manage professional cricket tournaments with ease.
+                      Auto-generate brackets, track scores, and manage teams all in one place.
+                    </p>
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="px-8 py-3 bg-white text-green-600 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                    >
+                      Start Organizing
+                    </button>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              id: 'hero-3',
+              bgGradient: 'linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%)',
+              content: (
+                <div className="py-20 px-6 flex items-center justify-center">
+                  <div className="text-center max-w-4xl">
+                    <Radio className="w-20 h-20 mx-auto mb-6 text-white animate-pulse" />
+                    <h2 className="text-5xl font-bold mb-6 text-white">Watch Live Matches</h2>
+                    <p className="text-xl mb-8 text-white/90">
+                      Follow live cricket action with real-time score updates.
+                      Never miss a moment of your favorite tournaments.
+                    </p>
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="px-8 py-3 bg-white text-red-600 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                    >
+                      Watch Now
+                    </button>
+                  </div>
+                </div>
+              ),
+            },
+          ]}
+          autoPlayInterval={6000}
+          className="min-h-[500px]"
+        />
       </section>
+
+      {/* Live Matches Carousel */}
+      {liveMatches.length > 0 && (
+        <section className="py-12 px-6 bg-light-bg-alt dark:bg-dark-bg-alt">
+          <h3 className="text-3xl font-bold text-center mb-8 text-light-dark dark:text-dark-light flex items-center justify-center">
+            <Radio className="w-8 h-8 mr-3 text-red-500 animate-pulse" />
+            Live Matches Now
+          </h3>
+          <Carousel
+            items={liveMatches.map((match) => ({
+              id: match._id,
+              bgColor: 'bg-gradient-to-r from-red-500 to-orange-500',
+              content: (
+                <div className="py-12 px-6 text-center">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 max-w-md mx-auto">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-white">
+                        <p className="text-xl font-bold">{match.team1?.name || 'Team 1'}</p>
+                        <p className="text-3xl font-bold">{match.score1 || 0}/{match.wickets1 || 0}</p>
+                        <p className="text-sm opacity-80">({match.overs1 || 0} overs)</p>
+                      </div>
+                      <div className="text-white text-2xl font-bold">VS</div>
+                      <div className="text-white">
+                        <p className="text-xl font-bold">{match.team2?.name || 'Team 2'}</p>
+                        <p className="text-3xl font-bold">{match.score2 || 0}/{match.wickets2 || 0}</p>
+                        <p className="text-sm opacity-80">({match.overs2 || 0} overs)</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-white">
+                      <span className="w-2 h-2 bg-red-300 rounded-full animate-pulse"></span>
+                      <span className="text-sm font-medium">LIVE</span>
+                    </div>
+                  </div>
+                </div>
+              ),
+            }))}
+            autoPlayInterval={4000}
+            className="min-h-[250px]"
+          />
+        </section>
+      )}
 
       {/* Services Section */}
       <section className="py-20 px-6 bg-light-bg-alt dark:bg-dark-bg-alt">

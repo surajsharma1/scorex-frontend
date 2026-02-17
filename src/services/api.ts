@@ -134,8 +134,33 @@ export const notificationAPI = {
   getNotifications: () => api.get('/notifications'),
   markAsRead: (id: string) => api.put(`/notifications/${id}/read`),
 };
+
 export const statsAPI = {
   getTournamentStats: () => api.get('/tournaments/stats'),
   getUserStats: () => api.get('/users/stats'),
 };
+
+export const messageAPI = {
+  getConversations: () => api.get('/messages/conversations'),
+  getMessages: (userId: string) => api.get(`/messages/${userId}`),
+  sendMessage: (toUserId: string, content: string) => api.post('/messages', { toUserId, content }),
+  markAsRead: (conversationId: string) => api.put(`/messages/${conversationId}/read`),
+  deleteMessage: (messageId: string) => api.delete(`/messages/${messageId}`),
+};
+
+export const leaderboardAPI = {
+  getPlayerLeaderboard: (tournamentId?: string) => api.get('/leaderboard/players', { params: { tournament: tournamentId } }),
+  getTeamLeaderboard: (tournamentId?: string) => api.get('/leaderboard/teams', { params: { tournament: tournamentId } }),
+  getBattingLeaderboard: (tournamentId?: string) => api.get('/leaderboard/batting', { params: { tournament: tournamentId } }),
+  getBowlingLeaderboard: (tournamentId?: string) => api.get('/leaderboard/bowling', { params: { tournament: tournamentId } }),
+};
+
+export const liveMatchAPI = {
+  getLiveMatches: () => api.get('/matches/live'),
+  getLiveMatch: (matchId: string) => api.get(`/matches/${matchId}/live`),
+  goLive: (matchId: string, liveStreamUrl?: string) => api.post(`/matches/${matchId}/go-live`, { liveStreamUrl }),
+  endLive: (matchId: string) => api.post(`/matches/${matchId}/end-live`),
+  updateStreamUrl: (matchId: string, liveStreamUrl: string) => api.put(`/matches/${matchId}/stream-url`, { liveStreamUrl }),
+};
+
 export default api;

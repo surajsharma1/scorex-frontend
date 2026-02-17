@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Trophy, Users, Settings, Eye, BarChart3, User, Crown, UserPlus, Users2, Zap, X, Sun, Moon } from 'lucide-react';
+import { Trophy, Users, Settings, Eye, BarChart3, User, Crown, UserPlus, Users2, Zap, X, Sun, Moon, Radio } from 'lucide-react';
 import { useState } from 'react';
 import { useTheme } from './ThemeProvider';
 
@@ -16,6 +16,8 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const menuItems = [
     { path: '/', icon: BarChart3, label: 'Dashboard' },
     { path: '/tournaments', icon: Trophy, label: 'Tournaments' },
+    { path: '/live-matches', icon: Radio, label: 'Live Matches' },
+    { path: '/leaderboard', icon: Trophy, label: 'Leaderboard' },
     { path: '/friends', icon: UserPlus, label: 'Friends' },
     { path: '/clubs', icon: Users2, label: 'Clubs' },
     { path: '/membership', icon: Crown, label: 'Membership' },

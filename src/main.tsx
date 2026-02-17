@@ -21,6 +21,9 @@ import './index.css';
 import './i18n';
 import ClubManagement from './components/ClubManagement';
 import FriendList from './components/FriendList';
+import Leaderboard from './components/Leaderboard';
+import LiveMatches from './components/LiveMatches';
+import LiveTournament from './components/LiveTournament';
 
 // Register service worker for PWA functionality
 if ('serviceWorker' in navigator) {
@@ -50,6 +53,9 @@ const router = createBrowserRouter([
       { path: "teams", element: <TeamManagement /> },
       { path: "friends", element: <FriendList /> },
       { path: "clubs", element: <ClubManagement /> },
+      { path: "leaderboard", element: <Leaderboard /> },
+      { path: "live-matches", element: <LiveMatches /> },
+      { path: "live-tournament/:id", element: <LiveTournament /> },
       { path: "overlays", element: <OverlayEditor /> },
       { path: "overlays/new", element: <OverlayForm /> },
       { path: "overlays/:id/edit", element: <OverlayEditor /> },

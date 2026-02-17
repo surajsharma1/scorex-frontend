@@ -19,6 +19,7 @@ export interface Tournament {
   numberOfTeams: number;
   status: 'upcoming' | 'active' | 'completed';
   isLive: boolean;
+  liveStreamUrl?: string;
   liveScores?: {
     team1: { name: string; score: number; wickets: number; overs: number; balls?: number };
     team2: { name: string; score: number; wickets: number; overs: number; balls?: number };
@@ -27,7 +28,6 @@ export interface Tournament {
     target: number;
     lastFiveOvers: string;
   };
-
   createdBy: string;
 }
 
@@ -139,6 +139,61 @@ export interface Club {
   description?: string;
   members: string[];
   createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Message {
+  _id: string;
+  from: string;
+  to: string;
+  content: string;
+  read: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Conversation {
+  _id: string;
+  participants: User[];
+  lastMessage?: Message;
+  unreadCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LeaderboardEntry {
+  _id: string;
+  rank: number;
+  user?: User;
+  team?: Team;
+  player?: Player;
+  stats: {
+    matches: number;
+    wins: number;
+    losses: number;
+    runs?: number;
+    wickets?: number;
+    average?: number;
+    strikeRate?: number;
+    economy?: number;
+  };
+}
+
+export interface LiveMatch {
+  _id: string;
+  tournament: Tournament;
+  team1: Team;
+  team2: Team;
+  score1: number;
+  score2: number;
+  wickets1: number;
+  wickets2: number;
+  overs1: number;
+  overs2: number;
+  status: 'ongoing' | 'completed';
+  liveStreamUrl?: string;
+  viewers?: number;
   createdAt: string;
   updatedAt: string;
 }

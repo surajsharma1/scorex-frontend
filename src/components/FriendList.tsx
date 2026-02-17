@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User, Friend } from './types';
 import { friendAPI, userAPI } from '../services/api';
-import { Users, UserPlus, UserCheck, UserX, Loader, Search, UserMinus } from 'lucide-react';
+import { Users, UserPlus, UserCheck, UserX, Loader, Search, UserMinus, MessageCircle } from 'lucide-react';
+import MessageChat from './MessageChat';
 
 type TabType = 'friends' | 'requests' | 'find';
 
@@ -20,6 +21,7 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [searching, setSearching] = useState(false);
+  const [selectedFriendForChat, setSelectedFriendForChat] = useState<User | null>(null);
 
   useEffect(() => {
     loadFriends();
@@ -220,16 +222,28 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
                         )}
                       </div>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveFriend(friend._id);
-                      }}
-                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                      aria-label={`Remove ${friend.username} from friends`}
-                    >
-                      <UserX className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFriendForChat(friend);
+                        }}
+                        className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                        aria-label={`Message ${friend.username}`}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveFriend(friend._id);
+                        }}
+                        className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                        aria-label={`Remove ${friend.username} from friends`}
+                      >
+                        <UserX className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -349,6 +363,14 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
           </div>
         )}
       </div>
+
+      {/* Message Chat Modal */}
+      {selectedFriendForChat && (
+        <MessageChat
+          friend={selectedFriendForChat}
+          onClose={() => setSelectedFriendForChat(null)}
+        />
+      )}
     </div>
   );
 };

@@ -101,6 +101,8 @@ function App() {
     try {
       await matchAPI.updateMatchScore(matchId, { status: 'ongoing' });
       fetchDashboardData();
+      // Navigate to the live tournament view
+      navigate(`/live-tournament/${matchId}`);
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to start match');
     }
