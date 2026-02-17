@@ -603,6 +603,12 @@ export default function TournamentDetail() {
                         >
                           Update Score
                         </button>
+                        <button
+                          onClick={() => handleDeleteMatch(match._id)}
+                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm transition-colors"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   </div>
