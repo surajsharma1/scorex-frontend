@@ -1,7 +1,7 @@
 /**
  * Email Utility for Frontend
  * Provides functions to send emails using EmailJS
- * This file handles OTP emails, password reset emails, and other email communications
+ * This file handles password reset emails, welcome emails, and other email communications
  */
 
 import emailjs from '@emailjs/browser';
@@ -13,7 +13,6 @@ const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'iAe2zwL5r
 
 // Email template IDs for different email types
 const TEMPLATES = {
-  OTP: import.meta.env.VITE_EMAILJS_OTP_TEMPLATE_ID || 'template_m83jjye',
   PASSWORD_RESET: import.meta.env.VITE_EMAILJS_PASSWORD_RESET_TEMPLATE_ID || 'template_password_reset',
   WELCOME: import.meta.env.VITE_EMAILJS_WELCOME_TEMPLATE_ID || 'template_welcome',
   NOTIFICATION: import.meta.env.VITE_EMAILJS_NOTIFICATION_TEMPLATE_ID || 'template_notification',
@@ -23,8 +22,6 @@ const TEMPLATES = {
 export interface EmailParams {
   to_email: string;
   to_name?: string;
-  passcode?: string;
-  otp?: string;
   reset_url?: string;
   resetToken?: string;
   verificationUrl?: string;
@@ -33,6 +30,7 @@ export interface EmailParams {
   from_name?: string;
   from_email?: string;
   timestamp?: string;
+  username?: string;
   [key: string]: string | undefined;
 }
 
@@ -40,12 +38,6 @@ export interface EmailResult {
   success: boolean;
   message: string;
   data?: unknown;
-}
-
-export interface OtpEmailParams {
-  email: string;
-  otp: string;
-  purpose?: 'registration' | 'login' | 'verification';
 }
 
 export interface PasswordResetEmailParams {
@@ -60,79 +52,6 @@ export interface PasswordResetEmailParams {
  */
 export const initEmailJS = (): void => {
   emailjs.init(EMAILJS_PUBLIC_KEY);
-};
-
-/**
- * Send OTP email using EmailJS
- * @param email - Recipient email address
- * @param otp - One-time password to send
- * @param purpose - Purpose of the OTP (registration, login, verification)
- * @returns Promise<EmailResult>
- */
-export const sendOtpEmail = async (
-  email: string, 
-  otp: string, 
-  purpose: 'registration' | 'login' | 'verification' = 'registration'
-): Promise<EmailResult> => {
-  try {
-    console.log(`Sending OTP email to ${email} for ${purpose}...`);
-    console.log('EmailJS Configuration:', {
-      serviceId: EMAILJS_SERVICE_ID,
-      templateId: TEMPLATES.OTP,
-      publicKey: EMAILJS_PUBLIC_KEY ? 'set' : 'not set',
-    });
-
-    // Check if EmailJS is properly configured
-    if (!EMAILJS_SERVICE_ID || !EMAILJS_PUBLIC_KEY) {
-      console.warn('EmailJS is not properly configured. Returning mock success for development.');
-      return {
-        success: true,
-        message: `OTP for ${email} is: ${otp} (Development mode - email not actually sent)`,
-      };
-    }
-
-    // Prepare template parameters
-    const templateParams: EmailParams = {
-      to_email: email,
-      passcode: otp,
-      otp: otp,
-      to_name: email.split('@')[0],
-      timestamp: new Date().toLocaleString(),
-      purpose: purpose,
-    };
-
-    // Send email using EmailJS
-    const result = await emailjs.send(
-      EMAILJS_SERVICE_ID,
-      TEMPLATES.OTP,
-      templateParams,
-      EMAILJS_PUBLIC_KEY
-    );
-
-    console.log('OTP email sent successfully:', result);
-
-    return {
-      success: true,
-      message: 'OTP email sent successfully',
-      data: result,
-    };
-  } catch (error) {
-    console.error('Failed to send OTP email:', error);
-    
-    // In development, return a success with warning instead of failing
-    if (import.meta.env.DEV) {
-      console.warn(`Development mode: OTP for ${email} is ${otp}`);
-      return {
-        success: true,
-        message: `OTP email failed to send (Development mode). OTP: ${otp}`,
-      };
-    }
-    
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'Failed to send OTP email',
-    };
-  }
 };
 
 /**
@@ -311,7 +230,7 @@ export const sendNotificationEmail = async (
 export const verifyEmailConfig = (): { isConfigured: boolean; config: Record<string, boolean> } => {
   const config = {
     serviceId: !!EMAILJS_SERVICE_ID && EMAILJS_SERVICE_ID !== 'your_service_id',
-    templateId: !!TEMPLATES.OTP,
+    templateId: !!TEMPLATES.PASSWORD_RESET,
     publicKey: !!EMAILJS_PUBLIC_KEY,
   };
 
@@ -323,7 +242,6 @@ export const verifyEmailConfig = (): { isConfigured: boolean; config: Record<str
 
 // Export all email functions as a single object for convenience
 export const emailService = {
-  sendOtpEmail,
   sendPasswordResetEmail,
   sendWelcomeEmail,
   sendNotificationEmail,
