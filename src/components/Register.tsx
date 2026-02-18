@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { sendOtpEmail } from '../utils/email';
 
 export default function Register() {
   const [searchParams] = useSearchParams();
@@ -55,6 +56,19 @@ export default function Register() {
       
       const response = await authAPI.register(registrationData);
       console.log('Registration response:', response.data);
+      
+      // Get OTP from response and send email using EmailJS
+      const otpFromResponse = response.data.otp;
+      if (otpFromResponse) {
+        // Send OTP email using EmailJS from frontend
+        console.log('Sending OTP email via EmailJS...');
+        const emailSent = await sendOtpEmail(formData.email.trim(), otpFromResponse);
+        if (emailSent) {
+          console.log('OTP email sent successfully via EmailJS');
+        } else {
+          console.log('Failed to send OTP email via EmailJS, showing OTP for manual entry');
+        }
+      }
       
       // Only show OTP screen on successful registration
       if (response.data.message) {
