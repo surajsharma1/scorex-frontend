@@ -41,8 +41,6 @@ export default {
           800: '#18303f',
           900: '#0f1a20',
         },
-        // Add bg-primary as a simple color
-        'bg-primary': '#34729c',
         secondary: {
           DEFAULT: '#6ec1d1',
           light: '#cbeaec',
