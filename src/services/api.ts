@@ -94,6 +94,7 @@ export const bracketAPI = {
 export const overlayAPI = {
   getOverlays: () => api.get('/overlays'),
   getOverlay: (id: string) => api.get(`/overlays/${id}`),
+  getOverlayPublic: (publicId: string) => api.get(`/overlays/public/${publicId}`, { responseType: 'text' }),
   createOverlay: (data: any) => api.post('/overlays', data),
   updateOverlay: (id: string, data: any) => api.put(`/overlays/${id}`, data),
   deleteOverlay: (id: string) => api.delete(`/overlays/${id}`),

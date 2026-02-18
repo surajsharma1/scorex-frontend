@@ -63,11 +63,10 @@ export interface Bracket {
 }
 
 export interface Overlay {
-  match: any;
-  match: any;
   _id: string;
   name: string;
   tournament: Tournament;
+  match?: Match;
   template: string;
   config: any;
   elements: any[];
