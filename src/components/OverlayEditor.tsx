@@ -886,6 +886,25 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
         )}
       </div>
 
+      {showCreateForm && (
+        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-4">
+          <h2 className="text-xl font-bold text-white mb-4">{editingOverlay ? ' Update' : 'Create'} Overlay</h2>
+          <form onSubmit={handleSubmitForm}>
+            <input type="text" name="name" value={formData.name} onChange={handleFormChange} 
+              className="w-full p-2 mb-2 bg-gray-700 text-white rounded" placeholder="Name" required />
+            <select name="template" value={formData.template} onChange={handleFormChange}
+              className="w-full p-2 mb-2 bg-gray-700 text-white rounded">
+              {PRE_DESIGNED_OVERLAYS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+            <button type="submit" disabled={formLoading}
+              className="w-full bg-green-600 text-white p-2 rounded">
+              {formLoading ? 'Saving...' : (editingOverlay ? ' Update Overlay' : 'Create Overlay')}
+            </button>
+          </form>
+          <button onClick={handleCloseForm} className="mt-2 w-full bg-gray-600 text-white p-2 rounded">Cancel</button>
+        </div>
+      )}
+
       {selectedOverlay && (
         <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
           <div className="flex justify-between items-center mb-4">
