@@ -1,14 +1,101 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Payment from './Payment';
+import { Clock, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+
+interface CountdownTimerProps {
+  expiryDate: Date;
+  onExpired: () => void;
+}
+
+function CountdownTimer({ expiryDate, onExpired }: CountdownTimerProps) {
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    total: number;
+  }>({ days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const expiry = expiryDate.getTime();
+      const difference = expiry - now;
+
+      if (difference <= 0) {
+        return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 };
+      }
+
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((difference % (1000 * 60)) / 1000),
+        total: difference
+      };
+    };
+
+    // Initial calculation
+    const initialTime = calculateTimeLeft();
+    setTimeLeft(initialTime);
+
+    if (initialTime.total <= 0) {
+      onExpired();
+      return;
+    }
+
+    // Update every second
+    const timer = setInterval(() => {
+      const newTime = calculateTimeLeft();
+      setTimeLeft(newTime);
+
+      if (newTime.total <= 0) {
+        clearInterval(timer);
+        onExpired();
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [expiryDate, onExpired]);
+
+  if (timeLeft.total <= 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4">
+      <p className="text-sm text-gray-600 dark:text-dark-accent mb-2">Time Remaining:</p>
+      <div className="flex flex-wrap gap-3">
+        <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 text-center min-w-[70px]">
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{timeLeft.days}</div>
+          <div className="text-xs text-blue-600 dark:text-blue-400">Days</div>
+        </div>
+        <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 text-center min-w-[70px]">
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{timeLeft.hours}</div>
+          <div className="text-xs text-blue-600 dark:text-blue-400">Hours</div>
+        </div>
+        <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 text-center min-w-[70px]">
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{timeLeft.minutes}</div>
+          <div className="text-xs text-blue-600 dark:text-blue-400">Minutes</div>
+        </div>
+        <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 text-center min-w-[70px]">
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{timeLeft.seconds}</div>
+          <div className="text-xs text-blue-600 dark:text-blue-400">Seconds</div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Membership() {
   const [showPayment, setShowPayment] = useState(true);
   const [currentMembership, setCurrentMembership] = useState<string>('free');
   const [membershipExpiresAt, setMembershipExpiresAt] = useState<Date | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isExpired, setIsExpired] = useState(false);
 
-  useEffect(() => {
-    // Read current membership from token
+  const fetchMembershipFromToken = useCallback(() => {
     const token = localStorage.getItem('token');
     if (token) {
       try {
@@ -19,10 +106,17 @@ export default function Membership() {
         if (payload.membershipExpiresAt) {
           const expiryDate = new Date(payload.membershipExpiresAt);
           setMembershipExpiresAt(expiryDate);
+          
           if (expiryDate < new Date()) {
-            // Membership has expired, reset to free
+            // Membership has expired
             membership = 'free';
+            setIsExpired(true);
+          } else {
+            setIsExpired(false);
           }
+        } else {
+          setMembershipExpiresAt(null);
+          setIsExpired(false);
         }
         
         setCurrentMembership(membership);
@@ -32,24 +126,84 @@ export default function Membership() {
     }
   }, []);
 
+  useEffect(() => {
+    fetchMembershipFromToken();
+  }, [fetchMembershipFromToken]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Fetch fresh data from server
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/v1/users/me`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        // Update localStorage with fresh token if available
+        if (userData.token) {
+          localStorage.setItem('token', userData.token);
+        }
+      }
+      
+      // Refresh from token
+      fetchMembershipFromToken();
+      
+      setSuccessMessage('Membership refreshed!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error('Error refreshing membership:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleClose = () => {
     setShowPayment(false);
   };
 
-  const handleSuccess = (plan: string) => {
+  const handleSuccess = (plan: string, expiryDate?: Date) => {
     console.log('Membership upgraded to:', plan);
     setShowPayment(false);
     setCurrentMembership(plan);
+    if (expiryDate) {
+      setMembershipExpiresAt(expiryDate);
+      setIsExpired(false);
+    }
     setSuccessMessage(`Successfully upgraded to ${plan}!`);
     
-    // The payment confirmation endpoint now returns a new token
-    // which is already saved by the Payment component
-    // Just update the local state to reflect the change
     setTimeout(() => {
       setSuccessMessage('');
     }, 5000);
   };
 
+  const handleExpired = useCallback(() => {
+    setIsExpired(true);
+    setCurrentMembership('free');
+    setMembershipExpiresAt(null);
+  }, []);
+
+  const getMembershipColor = (membership: string) => {
+    if (membership === 'free') {
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+    }
+    if (membership.includes('level1')) {
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+    }
+    if (membership.includes('level2')) {
+      return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
+    }
+    return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+  };
+
+  const getMembershipName = (membership: string) => {
+    if (membership === 'free') return 'Free Plan';
+    if (membership === 'premium-level1') return 'Premium Level 1';
+    if (membership === 'premium-level2') return 'Premium Level 2';
+    return membership.charAt(0).toUpperCase() + membership.slice(1);
+  };
 
   return (
     <div className="space-y-8 bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-dark-light min-h-screen p-6">
@@ -66,24 +220,55 @@ export default function Membership() {
 
       {/* Current Membership Status */}
       <div className="bg-white dark:bg-dark-bg-alt rounded-xl shadow-sm border border-gray-200 dark:border-dark-primary/30 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-light mb-4">Current Plan</h2>
-        <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${
-          currentMembership === 'free' ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' :
-          currentMembership.includes('level1') ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
-          'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300'
-        }`}>
-          {currentMembership === 'free' ? 'Free Plan' :
-           currentMembership === 'premium-level1' ? 'Premium Level 1' :
-           currentMembership === 'premium-level2' ? 'Premium Level 2' :
-           currentMembership.charAt(0).toUpperCase() + currentMembership.slice(1)}
+        <div className="flex justify-between items-start mb-4">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-light">Current Plan</h2>
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </button>
         </div>
+        
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${getMembershipColor(currentMembership)}`}>
+            {currentMembership !== 'free' && <CheckCircle className="w-4 h-4" />}
+            {getMembershipName(currentMembership)}
+          </div>
+          
+          {isExpired && (
+            <div className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-sm">
+              <AlertCircle className="w-4 h-4" />
+              Expired
+            </div>
+          )}
+        </div>
+
+        {/* Countdown Timer */}
+        {membershipExpiresAt && currentMembership !== 'free' && !isExpired && (
+          <CountdownTimer expiryDate={membershipExpiresAt} onExpired={handleExpired} />
+        )}
+
+        {/* Expiry Date Display */}
         {membershipExpiresAt && currentMembership !== 'free' && (
-          <p className="mt-3 text-sm text-gray-600 dark:text-dark-accent">
-            {membershipExpiresAt > new Date() ? (
-              <span>Expires on: <strong>{membershipExpiresAt.toLocaleDateString()}</strong></span>
-            ) : (
+          <p className="mt-4 text-sm text-gray-600 dark:text-dark-accent">
+            {isExpired ? (
               <span className="text-red-500">Expired on: {membershipExpiresAt.toLocaleDateString()}</span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                Expires on: <strong>{membershipExpiresAt.toLocaleDateString()}</strong> at{' '}
+                <strong>{membershipExpiresAt.toLocaleTimeString()}</strong>
+              </span>
             )}
+          </p>
+        )}
+
+        {!membershipExpiresAt && currentMembership === 'free' && (
+          <p className="mt-4 text-sm text-gray-500 dark:text-dark-accent/70">
+            You are on the free plan with no expiration.
           </p>
         )}
       </div>
