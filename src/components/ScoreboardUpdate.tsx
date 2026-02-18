@@ -147,11 +147,11 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     setLiveScores(prev => {
       const team = currentBattingTeam;
       const currentTeam = prev[team];
-      
-      let newBalls = currentTeam.balls + 1;
-      let newOvers = currentTeam.overs;
-      let newWickets = currentTeam.wickets + 1;
-      
+
+      let newBalls = (currentTeam.balls || 0) + 1;
+      let newOvers = currentTeam.overs || 0;
+      let newWickets = (currentTeam.wickets || 0) + 1
+     
       // Calculate overs (6 balls = 1 over)
       if (newBalls >= 6) {
         newOvers = Math.floor(newOvers) + 1;
