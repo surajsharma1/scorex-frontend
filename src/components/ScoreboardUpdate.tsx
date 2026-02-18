@@ -38,6 +38,7 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
   // Scoring popup state
   const [activeScoringButton, setActiveScoringButton] = useState<ScoringButtonType>(null);
   const [showScoringPopup, setShowScoringPopup] = useState(false);
+  const [showTeams, setShowTeams] = useState(false);
 
 
   useEffect(() => {
@@ -230,9 +231,21 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
 
   return (
     <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+      {/* Top Section - Team Button */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-white">Live Scoreboard Update</h2>
         <div className="flex space-x-2">
+          <button
+            onClick={() => setShowTeams(!showTeams)}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-semibold transition-colors ${
+              showTeams
+                ? 'bg-yellow-600 text-white'
+                : 'bg-gray-600 hover:bg-gray-500 text-white'
+            }}`}
+          >
+            <span>👥</span>
+            <span>{showTeams ? 'Hide Teams' : 'Show Teams'}</span>
+          </button>
           <button
             onClick={handleGoLive}
             disabled={loading || tournament.isLive}
@@ -255,6 +268,116 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
           </button>
         </div>
       </div>
+
+      {/* Teams Panel - Visible when Show Teams is clicked */}
+      {showTeams && (
+        <div className="bg-gray-700 rounded-lg p-4 mb-6 border border-gray-600">
+          <h3 className="text-lg font-bold text-white mb-4">Team Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Team 1 Players */}
+            <div>
+              <h4 className="text-md font-semibold text-blue-400 mb-2">{liveScores.team1.name || 'Team 1'} - Playing XI</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">1. Player Name</span>
+                  <span className="text-gray-300 text-sm">Batsman</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">2. Player Name</span>
+                  <span className="text-gray-300 text-sm">Batsman</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">3. Player Name</span>
+                  <span className="text-gray-300 text-sm">Batsman</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">4. Player Name</span>
+                  <span className="text-gray-300 text-sm">WK-Batsman</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">5. Player Name</span>
+                  <span className="text-gray-300 text-sm">All-rounder</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">6. Player Name</span>
+                  <span className="text-gray-300 text-sm">All-rounder</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">7. Player Name</span>
+                  <span className="text-gray-300 text-sm">All-rounder</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">8. Player Name</span>
+                  <span className="text-gray-300 text-sm">Bowler</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">9. Player Name</span>
+                  <span className="text-gray-300 text-sm">Bowler</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">10. Player Name</span>
+                  <span className="text-gray-300 text-sm">Bowler</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">11. Player Name</span>
+                  <span className="text-gray-300 text-sm">Bowler</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Team 2 Players */}
+            <div>
+              <h4 className="text-md font-semibold text-green-400 mb-2">{liveScores.team2.name || 'Team 2'} - Playing XI</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">1. Player Name</span>
+                  <span className="text-gray-300 text-sm">Batsman</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">2. Player Name</span>
+                  <span className="text-gray-300 text-sm">Batsman</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">3. Player Name</span>
+                  <span className="text-gray-300 text-sm">Batsman</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">4. Player Name</span>
+                  <span className="text-gray-300 text-sm">WK-Batsman</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">5. Player Name</span>
+                  <span className="text-gray-300 text-sm">All-rounder</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">6. Player Name</span>
+                  <span className="text-gray-300 text-sm">All-rounder</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">7. Player Name</span>
+                  <span className="text-gray-300 text-sm">All-rounder</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">8. Player Name</span>
+                  <span className="text-gray-300 text-sm">Bowler</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">9. Player Name</span>
+                  <span className="text-gray-300 text-sm">Bowler</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">10. Player Name</span>
+                  <span className="text-gray-300 text-sm">Bowler</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-600 px-3 py-2 rounded">
+                  <span className="text-white">11. Player Name</span>
+                  <span className="text-gray-300 text-sm">Bowler</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded mb-4">

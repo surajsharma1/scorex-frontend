@@ -178,22 +178,9 @@ body {
   background: rgba(255,255,255,0.1);
 }
 
-/* Toggle Button */
+/* Toggle Button - Hidden by default, team button moved to scoreboard */
 .toggle-teams-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 25px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  z-index: 999;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: none !important;
 }
 
 .toggle-teams-btn:hover {
