@@ -409,6 +409,12 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
 
   const handleEditOverlay = (overlay: Overlay) => {
     setEditingOverlay(overlay);
+    setShowCreateForm(true);
+    setFormData({
+      name: overlay.name,
+      template: overlay.template,
+      config: overlay.config || {},
+    });
     setFormData({
       name: overlay.name || '',
       template: overlay.template || 'modern',
