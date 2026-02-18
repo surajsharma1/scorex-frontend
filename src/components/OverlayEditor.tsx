@@ -419,18 +419,28 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
     }
   };
 
-  const handlePreview = (overlay: Overlay) => {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
-    // Use the template HTML from public/overlays folder with match data via query params
-    const templateUrl = `/overlays/${overlay.template}.html`;
-    const matchId = overlay.match?._id || '';
-    window.open(`${templateUrl}?matchId=${matchId}&apiBaseUrl=${encodeURIComponent(apiBaseUrl)}`, '_blank');
+  const handlePreview = async (overlay: Overlay) => {
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      // Use the backend's serveOverlay endpoint which properly handles the overlay
+      const overlayUrl = `${backendUrl}/api/overlays/public/${overlay.publicId}`;
+      window.open(overlayUrl, '_blank');
+    } catch (error) {
+      console.error('Error previewing overlay:', error);
+      // Fallback to direct template access if backend fails
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+      const templateUrl = `/overlays/${overlay.template}.html`;
+      const matchId = overlay.match?._id || '';
+      window.open(`${templateUrl}?matchId=${matchId}&apiBaseUrl=${encodeURIComponent(apiBaseUrl)}`, '_blank');
+    }
   };
 
   const handleDownload = (overlay: Overlay) => {
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-    navigator.clipboard.writeText(`${backendUrl}/api/overlays/public/${overlay.publicId}`);
-    alert('Overlay URL copied to clipboard!');
+    const overlayUrl = `${backendUrl}/api/overlays/public/${overlay.publicId}`;
+    navigator.clipboard.writeText(overlayUrl);
+    setSuccess('Overlay URL copied to clipboard!');
+    setTimeout(() => setSuccess(''), 3000);
   };
 
   const renderOverlayPreview = (overlay: Overlay) => {
