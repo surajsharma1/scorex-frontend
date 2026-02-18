@@ -271,8 +271,21 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingOverlay, setEditingOverlay] = useState<Overlay | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    template: 'modern',
+    config: {
+      backgroundColor: '#16a34a',
+      opacity: 90,
+      fontFamily: 'Inter',
+      position: 'top',
+      showAnimations: true,
+      autoUpdate: true,
+    },
+  });
   const [loading, setLoading] = useState(false);
   const [creatingOverlay, setCreatingOverlay] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [userMembership, setUserMembership] = useState('free');
@@ -396,7 +409,94 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
 
   const handleEditOverlay = (overlay: Overlay) => {
     setEditingOverlay(overlay);
+    setFormData({
+      name: overlay.name || '',
+      template: overlay.template || 'modern',
+      config: overlay.config || {
+        backgroundColor: '#16a34a',
+        opacity: 90,
+        fontFamily: 'Inter',
+        position: 'top',
+        showAnimations: true,
+        autoUpdate: true,
+      },
+    });
     setShowCreateForm(true);
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    if (name.startsWith('config.')) {
+      const configKey = name.replace('config.', '');
+      setFormData({
+        ...formData,
+        config: {
+          ...formData.config,
+          [configKey]: value,
+        },
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
+  };
+
+  const handleSubmitForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormLoading(true);
+    setError('');
+    
+    try {
+      if (editingOverlay) {
+        // Update existing overlay
+        await overlayAPI.updateOverlay(editingOverlay._id, formData);
+        setSuccess('Overlay updated successfully!');
+        setEditingOverlay(null);
+        setShowCreateForm(false);
+      } else {
+        // Create new overlay - need a match selected
+        if (!selectedMatch) {
+          setError('Please select a match first');
+          setFormLoading(false);
+          return;
+        }
+        const overlayData = {
+          ...formData,
+          match: selectedMatch._id,
+          tournament: selectedMatch.tournament,
+          elements: [],
+        };
+        await overlayAPI.createOverlay(overlayData);
+        setSuccess('Overlay created successfully!');
+        setShowCreateForm(false);
+      }
+      setTimeout(() => setSuccess(''), 3000);
+      fetchData();
+    } catch (error: any) {
+      console.error('Error saving overlay:', error);
+      setError(error.response?.data?.message || 'Failed to save overlay');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleCloseForm = () => {
+    setShowCreateForm(false);
+    setEditingOverlay(null);
+    setFormData({
+      name: '',
+      template: 'modern',
+      config: {
+        backgroundColor: '#16a34a',
+        opacity: 90,
+        fontFamily: 'Inter',
+        position: 'top',
+        showAnimations: true,
+        autoUpdate: true,
+      },
+    });
   };
 
   const handleDeleteOverlay = async (id: string) => {
