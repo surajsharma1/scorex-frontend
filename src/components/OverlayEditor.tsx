@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Eye, Download, Settings, Crown, Edit, Trash2 } from 'lucide-react';
+import { Eye, Download, Settings, Crown, Edit, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 import { overlayAPI, matchAPI } from '../services/api';
 import { Overlay, Match } from './types';
 
@@ -272,16 +272,20 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingOverlay, setEditingOverlay] = useState<Overlay | null>(null);
   const [loading, setLoading] = useState(false);
+  const [creatingOverlay, setCreatingOverlay] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [userMembership, setUserMembership] = useState('free');
   const [userRole, setUserRole] = useState('viewer');
   const [showPayment, setShowPayment] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     fetchData();
     // Get user info from localStorage or API
     const token = localStorage.getItem('token');
     if (token) {
+      setIsLoggedIn(true);
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         setUserRole(payload.role || 'viewer');
@@ -304,6 +308,8 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
       } catch (error) {
         console.error('Error parsing token:', error);
       }
+    } else {
+      setIsLoggedIn(false);
     }
   }, []);
 
@@ -325,6 +331,7 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
       setOverlays(filteredOverlays);
       setMatches(Array.isArray(matchesData) ? matchesData : []);
     } catch (error: any) {
+      console.error('Error fetching overlays:', error);
       setError(error.response?.data?.message || 'Failed to fetch data');
       setOverlays([]);
       setMatches([]);
@@ -333,17 +340,25 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
 
 
   const handleSelectOverlay = async (overlayTemplate: any) => {
+    // Check if user is logged in first
+    if (!isLoggedIn) {
+      setError('Please log in to create overlays');
+      return;
+    }
+
     if (!selectedMatch) {
-      setError('Please select a match first');
+      setError('Please select a match first from the dropdown above');
       return;
     }
 
     if (overlayTemplate.membership !== 'free' && userMembership === 'free') {
-      setError(`This overlay requires a ${overlayTemplate.membership} membership`);
+      setError(`This overlay requires a premium membership. Please upgrade to create this overlay.`);
+      setShowPayment(true);
       return;
     }
 
-    setLoading(true);
+    setCreatingOverlay(true);
+    setError('');
     try {
       const overlayData = {
         name: `${selectedMatch.team1?.name || 'Team 1'} vs ${selectedMatch.team2?.name || 'Team 2'} - ${overlayTemplate.name}`,
@@ -363,11 +378,18 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
 
       const response = await overlayAPI.createOverlay(overlayData);
       setSelectedOverlay(response.data);
+      setSuccess('Overlay created successfully!');
+      setTimeout(() => setSuccess(''), 3000);
       fetchData();
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to create overlay');
+      console.error('Error creating overlay:', error);
+      if (error.response?.status === 401) {
+        setError('Please log in to create overlays');
+      } else {
+        setError(error.response?.data?.message || 'Failed to create overlay. Please try again.');
+      }
     } finally {
-      setLoading(false);
+      setCreatingOverlay(false);
     }
   };
 
@@ -380,13 +402,19 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
   const handleDeleteOverlay = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this overlay?')) {
       try {
+        setLoading(true);
         await overlayAPI.deleteOverlay(id);
+        setSuccess('Overlay deleted successfully!');
+        setTimeout(() => setSuccess(''), 3000);
         fetchData();
         if (selectedOverlay && selectedOverlay._id === id) {
           setSelectedOverlay(null);
         }
       } catch (error: any) {
+        console.error('Error deleting overlay:', error);
         setError(error.response?.data?.message || 'Failed to delete overlay');
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -482,36 +510,77 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
       </div>
 
       {error && (
-        <div className="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded">
+        <div className="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded flex items-center gap-2">
+          <AlertCircle className="w-5 h-5" />
           {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-900 border border-green-700 text-green-300 px-4 py-3 rounded flex items-center gap-2">
+          <CheckCircle className="w-5 h-5" />
+          {success}
+        </div>
+      )}
+
+      {/* Login Warning */}
+      {!isLoggedIn && (
+        <div className="bg-yellow-900 border border-yellow-700 text-yellow-300 px-4 py-3 rounded flex items-center gap-2">
+          <AlertCircle className="w-5 h-5" />
+          <span>You are not logged in. Please log in to create and manage overlays.</span>
         </div>
       )}
 
       {/* Match Selector */}
       <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Select Match</h3>
-        <select
-          value={selectedMatch?._id || ''}
-          onChange={(e) => {
-            const match = matches.find(m => m._id === e.target.value);
-            setSelectedMatch(match || null);
-          }}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-        >
-          <option value="">Select a match</option>
-          {matches.map((match) => (
-            <option key={match._id} value={match._id}>
-              {match.team1?.name || 'Team 1'} vs {match.team2?.name || 'Team 2'} - {new Date(match.date).toLocaleDateString()}
-            </option>
-          ))}
-        </select>
-        {selectedMatch && (
-          <p className="text-sm text-gray-400 mt-2">
-            Selected: {selectedMatch.team1?.name || 'Team 1'} vs {selectedMatch.team2?.name || 'Team 2'}
-          </p>
+        <h3 className="text-lg font-semibold text-white mb-4">Select a Match</h3>
+        {matches.length === 0 ? (
+          <p className="text-gray-400">No matches available. Please create a match first.</p>
+        ) : (
+          <>
+            <select
+              value={selectedMatch?._id || ''}
+              onChange={(e) => {
+                const match = matches.find(m => m._id === e.target.value);
+                setSelectedMatch(match || null);
+                setError('');
+              }}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+            >
+              <option value="">-- Select a match --</option>
+              {matches.map((match) => (
+                <option key={match._id} value={match._id}>
+                  {match.team1?.name || 'Team 1'} vs {match.team2?.name || 'Team 2'} - {new Date(match.date).toLocaleDateString()}
+                </option>
+              ))}
+            </select>
+            {selectedMatch && (
+              <p className="text-sm text-green-400 mt-2 flex items-center gap-1">
+                <CheckCircle className="w-4 h-4" />
+                Selected: {selectedMatch.team1?.name || 'Team 1'} vs {selectedMatch.team2?.name || 'Team 2'}
+              </p>
+            )}
+            {!selectedMatch && (
+              <p className="text-sm text-yellow-400 mt-2 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                Please select a match to create an overlay
+              </p>
+            )}
+          </>
         )}
       </div>
 
+      {/* Instructions */}
+      <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">How to Create an Overlay</h3>
+        <ol className="list-decimal list-inside text-gray-300 space-y-2">
+          <li>Select a match from the dropdown above</li>
+          <li>Choose an overlay template from the options below</li>
+          <li>Click "Create" to generate the overlay</li>
+          <li>Use the Preview, Edit, and Delete buttons to manage your overlays</li>
+          <li>Copy the overlay link to use in OBS or YouTube</li>
+        </ol>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {PRE_DESIGNED_OVERLAYS.map((overlayTemplate) => (
@@ -554,6 +623,12 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
                 </span>
                 <button
                   onClick={() => {
+                    // Check if user is logged in
+                    if (!isLoggedIn) {
+                      setError('Please log in to create overlays');
+                      return;
+                    }
+                    
                     // Check if user has the required membership
                     const hasBasicAccess = userMembership !== 'free' && 
                       (userMembership === 'premium' || userMembership === 'pro' || 
@@ -568,6 +643,7 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
                       if (hasDesignerAccess) {
                         handleSelectOverlay(overlayTemplate);
                       } else {
+                        setError('This designer overlay requires Premium Level 2 membership');
                         setShowPayment(true);
                       }
                     } else {
@@ -575,29 +651,37 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
                       if (hasBasicAccess) {
                         handleSelectOverlay(overlayTemplate);
                       } else {
+                        setError('This overlay requires a premium membership');
                         setShowPayment(true);
                       }
                     }
                   }}
-                  disabled={!selectedMatch}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!selectedMatch || creatingOverlay}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  {(() => {
-                    // Determine button text based on access
-                    const hasBasicAccess = userMembership !== 'free' && 
-                      (userMembership === 'premium' || userMembership === 'pro' || 
-                       userMembership === 'premium-level1' || userMembership === 'premium-level2');
-                    const hasDesignerAccess = userMembership === 'premium-level2' || 
-                      userMembership === 'pro' || userRole === 'admin';
-                    
-                    if (overlayTemplate.membership === 'free') {
-                      return 'Create';
-                    } else if (overlayTemplate.level === 'designer') {
-                      return hasDesignerAccess ? 'Create' : 'Upgrade';
-                    } else {
-                      return hasBasicAccess ? 'Create' : 'Upgrade';
-                    }
-                  })()}
+                  {creatingOverlay ? (
+                    <>
+                      <span className="animate-spin">⏳</span>
+                      Creating...
+                    </>
+                  ) : (
+                    (() => {
+                      // Determine button text based on access
+                      const hasBasicAccess = userMembership !== 'free' && 
+                        (userMembership === 'premium' || userMembership === 'pro' || 
+                         userMembership === 'premium-level1' || userMembership === 'premium-level2');
+                      const hasDesignerAccess = userMembership === 'premium-level2' || 
+                        userMembership === 'pro' || userRole === 'admin';
+                      
+                      if (overlayTemplate.membership === 'free') {
+                        return 'Create';
+                      } else if (overlayTemplate.level === 'designer') {
+                        return hasDesignerAccess ? 'Create' : 'Upgrade';
+                      } else {
+                        return hasBasicAccess ? 'Create' : 'Upgrade';
+                      }
+                    })()
+                  )}
                 </button>
               </div>
             </div>
@@ -605,70 +689,86 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch }: Over
         ))}
       </div>
 
-      {overlays.length > 0 && (
-        <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Your Overlays</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {overlays.map((overlay) => (
-              <div
-                key={overlay._id}
-                className={`border border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${
-                  selectedOverlay && selectedOverlay._id === overlay._id
-                    ? 'border-green-500 bg-gray-700'
-                    : 'bg-gray-800'
-                }`}
-                onClick={() => setSelectedOverlay(overlay)}
-              >
-                <h3 className="font-bold text-white mb-2">{overlay.name}</h3>
-                <p className="text-sm text-gray-300 mb-3">
-                  {overlay.match ? `${overlay.match.team1?.name || 'Team 1'} vs ${overlay.match.team2?.name || 'Team 2'}` : 'No match'} - {overlay.template}
-                </p>
+      {/* Your Overlays Section - Always show if user is logged in, even if empty */}
+      <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
+        <h2 className="text-xl font-bold text-white mb-4">Your Overlays</h2>
+        
+        {isLoggedIn ? (
+          overlays.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {overlays.map((overlay) => (
+                <div
+                  key={overlay._id}
+                  className={`border border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${
+                    selectedOverlay && selectedOverlay._id === overlay._id
+                      ? 'border-green-500 bg-gray-700'
+                      : 'bg-gray-800'
+                  }`}
+                  onClick={() => setSelectedOverlay(overlay)}
+                >
+                  <h3 className="font-bold text-white mb-2">{overlay.name}</h3>
+                  <p className="text-sm text-gray-300 mb-3">
+                    {overlay.match ? `${overlay.match.team1?.name || 'Team 1'} vs ${overlay.match.team2?.name || 'Team 2'}` : 'No match'} - {overlay.template}
+                  </p>
 
-                <div className="flex space-x-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePreview(overlay);
-                    }}
-                    className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span>Preview</span>
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDownload(overlay);
-                    }}
-                    className="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-1"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Link</span>
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditOverlay(overlay);
-                    }}
-                    className="bg-yellow-600 text-white px-3 py-2 rounded-lg font-semibold hover:bg-yellow-700 transition-colors flex items-center justify-center"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteOverlay(overlay._id);
-                    }}
-                    className="bg-red-600 text-white px-3 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePreview(overlay);
+                      }}
+                      className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>Preview</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(overlay);
+                      }}
+                      className="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-1"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Link</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditOverlay(overlay);
+                      }}
+                      className="bg-yellow-600 text-white px-3 py-2 rounded-lg font-semibold hover:bg-yellow-700 transition-colors flex items-center justify-center"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteOverlay(overlay._id);
+                      }}
+                      className="bg-red-600 text-white px-3 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Settings className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-400 mb-4">You haven't created any overlays yet.</p>
+              <p className="text-gray-500 text-sm">Select a match and click "Create" on any template above to get started!</p>
+            </div>
+          )
+        ) : (
+          <div className="text-center py-8">
+            <AlertCircle className="w-16 h-16 text-yellow-600 mx-auto mb-4" />
+            <p className="text-yellow-400 mb-2">Please log in to view your overlays.</p>
+            <p className="text-gray-500 text-sm">You need to be logged in to create and manage overlays.</p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {selectedOverlay && (
         <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
