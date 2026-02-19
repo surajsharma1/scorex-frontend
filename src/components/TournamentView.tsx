@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { Tournament, Match, Team } from './types';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import TeamManagement from './TeamManagement';
@@ -17,6 +17,7 @@ export default function TournamentView() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [showMatchForm, setShowMatchForm] = useState(false);
   const [showTournamentForm, setShowTournamentForm] = useState(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [scoreHistory, setScoreHistory] = useState<ScoreForm[]>([]);
   
   const [matchForm, setMatchForm] = useState({
@@ -81,6 +82,7 @@ export default function TournamentView() {
 
   useEffect(() => {
     const newSocket = io(import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000');
+    setSocket(newSocket);
 
     newSocket.on('scoreUpdate', (data: { matchId: string; match: Match }) => {
       setMatches((prevMatches) => {
