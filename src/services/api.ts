@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://scorex-backend.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://scorex-backend.onrender.com/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -58,58 +58,58 @@ export const authAPI = {
 };
 
 export const tournamentAPI = {
-  getTournaments: (page: number = 1, limit: number = 10) => api.get('/api/v1/tournaments', { params: { page, limit } }),
-  getTournament: (id: string) => api.get(`/api/v1/tournaments/${id}`),
-  createTournament: (data: any) => api.post('/api/v1/tournaments', data),
-  updateTournament: (id: string, data: any) => api.put(`/api/v1/tournaments/${id}`, data),
-  deleteTournament: (id: string) => api.delete(`/api/v1/tournaments/${id}`),
-  goLive: (id: string) => api.post(`/api/v1/tournaments/${id}/live`),
-  updateLiveScores: (id: string, scores: any) => api.put(`/api/v1/tournaments/${id}/scores`, { scores }),
+  getTournaments: (page: number = 1, limit: number = 10) => api.get('/tournaments', { params: { page, limit } }),
+  getTournament: (id: string) => api.get(`/tournaments/${id}`),
+  createTournament: (data: any) => api.post('/tournaments', data),
+  updateTournament: (id: string, data: any) => api.put(`/tournaments/${id}`, data),
+  deleteTournament: (id: string) => api.delete(`/tournaments/${id}`),
+  goLive: (id: string) => api.post(`/tournaments/${id}/live`),
+  updateLiveScores: (id: string, scores: any) => api.put(`/tournaments/${id}/scores`, { scores }),
 };
 
 export const matchAPI = {
-  getMatches: (tournamentId?: string) => api.get('/api/v1/matches', { params: { tournament: tournamentId } }),
-  getAllMatches: () => api.get('/api/v1/matches'),
-  createMatch: (data: any) => api.post('/api/v1/matches', data),
-  updateMatch: (id: string, data: any) => api.put(`/api/v1/matches/${id}`, data),
-  updateMatchScore: (id: string, data: any) => api.put(`/api/v1/matches/${id}/score`, data),
-  deleteMatch: (id: string) => api.delete(`/api/v1/matches/${id}`),
+  getMatches: (tournamentId?: string) => api.get('/matches', { params: { tournament: tournamentId } }),
+  getAllMatches: () => api.get('/matches'),
+  createMatch: (data: any) => api.post('/matches', data),
+  updateMatch: (id: string, data: any) => api.put(`/matches/${id}`, data),
+  updateMatchScore: (id: string, data: any) => api.put(`/matches/${id}/score`, data),
+  deleteMatch: (id: string) => api.delete(`/matches/${id}`),
 };
 
 export const teamAPI = {
-  getTeams: (tournamentId?: string, page: number = 1, limit: number = 10) => api.get('/api/v1/teams', { params: { tournament: tournamentId, page, limit } }),
-  createTeam: (data: FormData) => api.post('/api/v1/teams', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  updateTeam: (id: string, data: FormData) => api.put(`/api/v1/teams/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  deleteTeam: (id: string) => api.delete(`/api/v1/teams/${id}`),
-  addPlayer: (teamId: string, data: FormData) => api.post(`/api/v1/teams/${teamId}/players`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  addPlayerByUsername: (teamId: string, userId: string) => api.post(`/api/v1/teams/${teamId}/players`, { userId }),
+  getTeams: (tournamentId?: string, page: number = 1, limit: number = 10) => api.get('/teams', { params: { tournament: tournamentId, page, limit } }),
+  createTeam: (data: FormData) => api.post('/teams', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  updateTeam: (id: string, data: FormData) => api.put(`/teams/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  deleteTeam: (id: string) => api.delete(`/teams/${id}`),
+  addPlayer: (teamId: string, data: FormData) => api.post(`/teams/${teamId}/players`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  addPlayerByUsername: (teamId: string, userId: string) => api.post(`/teams/${teamId}/players`, { userId }),
 };
 
 export const bracketAPI = {
-  getBrackets: () => api.get('/api/v1/brackets'),
-  createBracket: (data: any) => api.post('/api/v1/brackets', data),
-  updateBracket: (id: string, data: any) => api.put(`/api/v1/brackets/${id}`, data),
-  generateBracket: (id: string, data: any) => api.post(`/api/v1/brackets/${id}/generate`, data),
+  getBrackets: () => api.get('/brackets'),
+  createBracket: (data: any) => api.post('/brackets', data),
+  updateBracket: (id: string, data: any) => api.put(`/brackets/${id}`, data),
+  generateBracket: (id: string, data: any) => api.post(`/brackets/${id}/generate`, data),
 };
 
 export const overlayAPI = {
-  getOverlays: () => api.get('/api/v1/overlays'),
-  getOverlay: (id: string) => api.get(`/api/v1/overlays/${id}`),
-  getOverlayPublic: (publicId: string) => api.get(`/api/v1/overlays/public/${publicId}`, { responseType: 'text' }),
-  createOverlay: (data: any) => api.post('/api/v1/overlays', data),
-  updateOverlay: (id: string, data: any) => api.put(`/api/v1/overlays/${id}`, data),
-  deleteOverlay: (id: string) => api.delete(`/api/v1/overlays/${id}`),
+  getOverlays: () => api.get('/overlays'),
+  getOverlay: (id: string) => api.get(`/overlays/${id}`),
+  getOverlayPublic: (publicId: string) => api.get(`/overlays/public/${publicId}`, { responseType: 'text' }),
+  createOverlay: (data: any) => api.post('/overlays', data),
+  updateOverlay: (id: string, data: any) => api.put(`/overlays/${id}`, data),
+  deleteOverlay: (id: string) => api.delete(`/overlays/${id}`),
 };
 
 export const userAPI = {
-  getUsers: () => api.get('/api/v1/users'),
-  updateUserRole: (id: string, role: string) => api.put(`/api/v1/users/${id}`, { role }),
-  updateMembership: (membership: string) => api.put('/api/v1/users/membership', { membership }),
-  getNotificationPreferences: () => api.get('/api/v1/users/notifications/preferences'),
-  updateNotificationPreferences: (preferences: any) => api.put('/api/v1/users/notifications/preferences', preferences),
-  getProfile: () => api.get('/api/v1/users/profile'),
-  updateProfile: (data: { username: string; email: string; profilePicture?: string; bio?: string; fullName?: string; dob?: string }) => api.put('/api/v1/users/profile', data),
-  searchUsers: (query: string) => api.get('/api/v1/users/search', { params: { query } }),
+  getUsers: () => api.get('/users'),
+  updateUserRole: (id: string, role: string) => api.put(`/users/${id}`, { role }),
+  updateMembership: (membership: string) => api.put('/users/membership', { membership }),
+  getNotificationPreferences: () => api.get('/users/notifications/preferences'),
+  updateNotificationPreferences: (preferences: any) => api.put('/users/notifications/preferences', preferences),
+  getProfile: () => api.get('/users/profile'),
+  updateProfile: (data: { username: string; email: string; profilePicture?: string; bio?: string; fullName?: string; dob?: string }) => api.put('/users/profile', data),
+  searchUsers: (query: string) => api.get('/users/search', { params: { query } }),
 };
 
 export const friendAPI = {
