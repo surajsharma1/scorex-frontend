@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useState, useEffect } from 'react';
 import { Eye, Download, Settings, Crown, Edit, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 import { overlayAPI, matchAPI } from '../services/api';
 import { Overlay, Match, Tournament } from './types';
