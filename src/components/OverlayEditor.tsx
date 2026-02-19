@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, Download, Settings, Crown, Edit, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 import { overlayAPI, matchAPI } from '../services/api';
 import { Overlay, Match, Tournament } from './types';
@@ -7,20 +8,12 @@ import Payment from './Payment';
 
 // Dynamic overlay list based on files in public/overlays folder
 const PRE_DESIGNED_OVERLAYS = [
-  // Basic Level Overlays (Level 1)
-  {
-    id: 'classic',
-    name: 'Classic Score',
-    description: 'Traditional cricket scoreboard with green background and gold accents',
-    membership: 'premium',
-    level: 'basic',
-    preview: '/overlays/classic.html',
-  },
+  // Free Level Overlays - Available to all users
   {
     id: 'modern',
     name: 'Modern Minimal',
     description: 'Clean, modern design with white glass effect and blue accents',
-    membership: 'premium',
+    membership: 'free',
     level: 'basic',
     preview: '/overlays/modern.html',
   },
@@ -28,18 +21,27 @@ const PRE_DESIGNED_OVERLAYS = [
     id: 'dark',
     name: 'Dark Theme',
     description: 'Sleek dark overlay with vibrant accents for night streaming',
-    membership: 'premium',
+    membership: 'free',
     level: 'basic',
     preview: '/overlays/dark.html',
+  },
+  {
+    id: 'classic',
+    name: 'Classic Score',
+    description: 'Traditional cricket scoreboard with green background and gold accents',
+    membership: 'free',
+    level: 'basic',
+    preview: '/overlays/classic.html',
   },
   {
     id: 'minimalist',
     name: 'Minimalist',
     description: 'Ultra-clean design focusing on essential score information',
-    membership: 'premium',
+    membership: 'free',
     level: 'basic',
     preview: '/overlays/minimalist.html',
   },
+  // Basic Level Overlays (Level 1) - Premium
   {
     id: 'retro',
     name: 'Retro Style',
