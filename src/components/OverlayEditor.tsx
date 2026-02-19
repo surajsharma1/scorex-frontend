@@ -340,8 +340,20 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
         matchAPI.getAllMatches(),
       ]);
       
-      const overlaysData = overlaysRes.data;
-      const matchesData = matchesRes.data;
+      // Handle both response formats: direct array or { data: [...] }
+      let overlaysData = overlaysRes.data;
+      let matchesData = matchesRes.data;
+      
+      // If response has nested data structure, extract it
+      if (overlaysData && overlaysData.data) {
+        overlaysData = overlaysData.data;
+      }
+      if (matchesData && matchesData.data) {
+        matchesData = matchesData.data;
+      }
+      
+      console.log('Overlays data:', overlaysData);
+      console.log('Matches data:', matchesData);
       
       // Set the overlays and matches in state - THIS IS THE FIX!
       setOverlays(Array.isArray(overlaysData) ? overlaysData : []);
