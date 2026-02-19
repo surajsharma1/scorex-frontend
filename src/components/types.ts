@@ -71,6 +71,7 @@ export interface Overlay {
   config: any;
   elements: any[];
   publicId: string;
+  publicUrl?: string;
   createdBy: string;
 }
 export interface Match {

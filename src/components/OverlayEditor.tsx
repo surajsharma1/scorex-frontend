@@ -554,11 +554,20 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
     return currentHost;
   };
 
+  // Helper to get the overlay URL - use publicUrl from backend if available, otherwise generate
+  const getOverlayUrl = (overlay: Overlay): string => {
+    // Use the publicUrl from the overlay if available (returned by backend)
+    if (overlay.publicUrl) {
+      return overlay.publicUrl;
+    }
+    // Fallback to generating URL using getBackendUrl
+    return `${getBackendUrl()}/api/overlays/public/${overlay.publicId}`;
+  };
+
   const handlePreview = async (overlay: Overlay) => {
     try {
-      const backendUrl = getBackendUrl();
-      // Use the backend's serveOverlay endpoint which properly handles the overlay
-      const overlayUrl = `${backendUrl}/api/overlays/public/${overlay.publicId}`;
+      // Use the publicUrl from backend or generate one
+      const overlayUrl = getOverlayUrl(overlay);
       window.open(overlayUrl, '_blank');
     } catch (error) {
       console.error('Error previewing overlay:', error);
@@ -571,8 +580,8 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
   };
 
   const handleDownload = (overlay: Overlay) => {
-    const backendUrl = getBackendUrl();
-    const overlayUrl = `${backendUrl}/api/overlays/public/${overlay.publicId}`;
+    // Use the publicUrl from backend or generate one
+    const overlayUrl = getOverlayUrl(overlay);
     navigator.clipboard.writeText(overlayUrl);
     setSuccess('Overlay URL copied to clipboard!');
     setTimeout(() => setSuccess(''), 3000);
@@ -955,12 +964,12 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
           <div className="mt-2 flex space-x-2">
               <input
                 type="text"
-                value={`${getBackendUrl()}/api/overlays/public/${selectedOverlay.publicId}`}
+                value={getOverlayUrl(selectedOverlay)}
                 readOnly
                 className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-sm text-white"
               />
               <button
-                onClick={() => navigator.clipboard.writeText(`${getBackendUrl()}/api/overlays/public/${selectedOverlay.publicId}`)}
+                onClick={() => navigator.clipboard.writeText(getOverlayUrl(selectedOverlay))}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors text-sm"
               >
                 Copy
