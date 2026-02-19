@@ -540,9 +540,22 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
     }
   };
 
+  // Helper function to get the backend URL dynamically based on current environment
+  const getBackendUrl = (): string => {
+    // First check if explicitly set in environment variable
+    if (import.meta.env.VITE_BACKEND_URL) {
+      return import.meta.env.VITE_BACKEND_URL;
+    }
+    // If running in production (different hostname), use the current window location
+    const currentHost = window.location.origin;
+    // If frontend is on a different port than 3000/5173, it's likely production
+    // So use the same origin for backend
+    return currentHost;
+  };
+
   const handlePreview = async (overlay: Overlay) => {
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      const backendUrl = getBackendUrl();
       // Use the backend's serveOverlay endpoint which properly handles the overlay
       const overlayUrl = `${backendUrl}/api/overlays/public/${overlay.publicId}`;
       window.open(overlayUrl, '_blank');
@@ -557,7 +570,7 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
   };
 
   const handleDownload = (overlay: Overlay) => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = getBackendUrl();
     const overlayUrl = `${backendUrl}/api/overlays/public/${overlay.publicId}`;
     navigator.clipboard.writeText(overlayUrl);
     setSuccess('Overlay URL copied to clipboard!');
@@ -938,15 +951,15 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
             <p className="text-sm text-gray-300">
               <strong>YouTube Overlay Link:</strong> This overlay can be used as a browser source in OBS or directly embedded in YouTube streams.
             </p>
-            <div className="mt-2 flex space-x-2">
+          <div className="mt-2 flex space-x-2">
               <input
                 type="text"
-                value={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/overlays/public/${selectedOverlay.publicId}`}
+                value={`${getBackendUrl()}/api/overlays/public/${selectedOverlay.publicId}`}
                 readOnly
                 className="flex-1 px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-sm text-white"
               />
               <button
-                onClick={() => navigator.clipboard.writeText(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/overlays/public/${selectedOverlay.publicId}`)}
+                onClick={() => navigator.clipboard.writeText(`${getBackendUrl()}/api/overlays/public/${selectedOverlay.publicId}`)}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors text-sm"
               >
                 Copy
