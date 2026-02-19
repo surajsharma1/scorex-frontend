@@ -330,20 +330,21 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
 
   const fetchData = async () => {
     try {
+      console.log('Fetching data...');
+      
+      // First clear existing data to show loading state better
+      setError('');
+      
       const [overlaysRes, matchesRes] = await Promise.all([
         overlayAPI.getOverlays(),
         matchAPI.getAllMatches(),
       ]);
-      const overlaysData = overlaysRes.data || [];
-      const matchesData = matchesRes.data?.matches || matchesRes.data || [];
-      let filteredOverlays = Array.isArray(overlaysData) ? overlaysData : [];
-
-      // If selectedMatch is passed as prop, filter overlays by that match
-      if (propSelectedMatch) {
-        filteredOverlays = filteredOverlays.filter(overlay => overlay.match?._id === propSelectedMatch._id);
-      }
-
-      setOverlays(filteredOverlays);
+      
+      const overlaysData = overlaysRes.data;
+      const matchesData = matchesRes.data;
+      
+      // Set the overlays and matches in state - THIS IS THE FIX!
+      setOverlays(Array.isArray(overlaysData) ? overlaysData : []);
       setMatches(Array.isArray(matchesData) ? matchesData : []);
     } catch (error: any) {
       console.error('Error fetching overlays:', error);
@@ -430,19 +431,6 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
       template: overlay.template,
       config: overlay.config || {},
     });
-    setFormData({
-      name: overlay.name || '',
-      template: overlay.template || 'modern',
-      config: overlay.config || {
-        backgroundColor: '#16a34a',
-        opacity: 90,
-        fontFamily: 'Inter',
-        position: 'top',
-        showAnimations: true,
-        autoUpdate: true,
-      },
-    });
-    setShowCreateForm(true);
   };
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -581,11 +569,11 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
     return (
       <div className="aspect-video bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg relative overflow-hidden shadow-lg">
         <div className="absolute top-6 left-6 right-6">
-                  <div
+          <div
             className="rounded-lg p-4 shadow-xl"
             style={{
-              backgroundColor: overlay.config.backgroundColor,
-              opacity: overlay.config.opacity / 100,
+              backgroundColor: overlay.config?.backgroundColor || '#16a34a',
+              opacity: (overlay.config?.opacity || 90) / 100,
             }}
           >
             <div className="grid grid-cols-3 gap-4">
