@@ -665,21 +665,21 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
       {/* Match Selector */}
       <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Select a Match</h3>
-        {matches.length === 0 ? (
+        {filteredMatches.length === 0 ? (
           <p className="text-gray-400">No matches available. Please create a match first.</p>
         ) : (
           <>
             <select
               value={selectedMatch?._id || ''}
               onChange={(e) => {
-                const match = matches.find(m => m._id === e.target.value);
+                const match = filteredMatches.find(m => m._id === e.target.value);
                 setSelectedMatch(match || null);
                 setError('');
               }}
               className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
             >
               <option value="">-- Select a match --</option>
-              {matches.map((match) => (
+              {filteredMatches.map((match) => (
                 <option key={match._id} value={match._id}>
                   {match.team1?.name || 'Team 1'} vs {match.team2?.name || 'Team 2'} - {new Date(match.date).toLocaleDateString()}
                 </option>
