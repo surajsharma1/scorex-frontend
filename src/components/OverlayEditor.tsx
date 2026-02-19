@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Eye, Download, Settings, Crown, Edit, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 import { overlayAPI, matchAPI } from '../services/api';
-import { Overlay, Match } from './types';
+import { Overlay, Match, Tournament } from './types';
 
 import Payment from './Payment';
 
@@ -261,9 +261,10 @@ const PRE_DESIGNED_OVERLAYS = [
 
 interface OverlayEditorProps {
   selectedMatch?: Match | null;
+  selectedTournament?: Tournament | null;
 }
 
-export default function OverlayEditor({ selectedMatch: propSelectedMatch }: OverlayEditorProps) {
+export default function OverlayEditor({ selectedMatch: propSelectedMatch, selectedTournament }: OverlayEditorProps) {
   const [overlays, setOverlays] = useState<Overlay[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedOverlay, setSelectedOverlay] = useState<Overlay | null>(null);
