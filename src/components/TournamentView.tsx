@@ -84,6 +84,11 @@ export default function TournamentView() {
     const newSocket = io(import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000');
     setSocket(newSocket);
 
+    // Log socket connection status for debugging
+    newSocket.on('connect', () => {
+      console.log('Socket connected:', socket?.connected);
+    });
+
     newSocket.on('scoreUpdate', (data: { matchId: string; match: Match }) => {
       setMatches((prevMatches) => {
         if (!Array.isArray(prevMatches)) return [];
@@ -97,6 +102,18 @@ export default function TournamentView() {
       newSocket.close();
     };
   }, []);
+
+  // Helper function to check socket connection status
+  const getSocketStatus = () => {
+    return socket?.connected ? 'Connected' : 'Disconnected';
+  };
+
+  // Log socket status on mount and when socket changes
+  useEffect(() => {
+    if (socket) {
+      console.log('Socket status:', getSocketStatus());
+    }
+  }, [socket]);
 
 const undoLastAction = () => {
   if (scoreHistory.length > 0) {
