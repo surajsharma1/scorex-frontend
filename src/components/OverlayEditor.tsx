@@ -554,14 +554,16 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
     return currentHost;
   };
 
-  // Helper to get the overlay URL - use publicUrl from backend if available, otherwise generate
+  // Helper to get the overlay URL - point directly to Vercel to avoid CORS issues
   const getOverlayUrl = (overlay: Overlay): string => {
-    // Use the publicUrl from the overlay if available (returned by backend)
-    if (overlay.publicUrl) {
-      return overlay.publicUrl;
-    }
-    // Fallback to generating URL using getBackendUrl
-    return `${getBackendUrl()}/api/overlays/public/${overlay.publicId}`;
+    // Use direct Vercel URL format to avoid cross-origin issues
+    // URL format: https://scorex-live.vercel.app/overlays/{template}.html?matchId={matchId}&apiBaseUrl={apiBaseUrl}
+    const frontendUrl = 'https://scorex-live.vercel.app';
+    const templateName = overlay.template || 'modern';
+    const matchId = overlay.match?._id || overlay.match || '';
+    const apiBaseUrl = 'https://scorex-backend.onrender.com/api/v1';
+    
+    return `${frontendUrl}/overlays/${templateName}.html?matchId=${matchId}&apiBaseUrl=${encodeURIComponent(apiBaseUrl)}`;
   };
 
   const handlePreview = async (overlay: Overlay) => {
