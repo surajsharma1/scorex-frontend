@@ -267,6 +267,7 @@ interface OverlayEditorProps {
 export default function OverlayEditor({ selectedMatch: propSelectedMatch, selectedTournament }: OverlayEditorProps) {
   const [overlays, setOverlays] = useState<Overlay[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [filteredMatches, setFilteredMatches] = useState<Match[]>([]);
   const [selectedOverlay, setSelectedOverlay] = useState<Overlay | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(propSelectedMatch || null);
 
@@ -351,6 +352,19 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
       setMatches([]);
     }
   };
+
+  // Filter matches based on selectedTournament
+  useEffect(() => {
+    if (selectedTournament && selectedTournament._id) {
+      const filtered = matches.filter(match => 
+        match.tournament === selectedTournament._id
+      );
+      setFilteredMatches(filtered);
+    } else {
+      // If no tournament selected, show all matches
+      setFilteredMatches(matches);
+    }
+  }, [selectedTournament, matches]);
 
 
   const handleSelectOverlay = async (overlayTemplate: any) => {
