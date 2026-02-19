@@ -113,57 +113,57 @@ export const userAPI = {
 };
 
 export const friendAPI = {
-  sendFriendRequest: (toUserId: string) => api.post('/api/v1/friends/request', { toUserId }),
-  acceptFriendRequest: (requestId: string) => api.put(`/api/v1/friends/request/${requestId}/accept`),
-  rejectFriendRequest: (requestId: string) => api.delete(`/api/v1/friends/request/${requestId}/reject`),
-  getFriends: () => api.get('/api/v1/friends'),
-  getFriendRequests: () => api.get('/api/v1/friends/requests'),
-  removeFriend: (friendId: string) => api.delete(`/api/v1/friends/${friendId}`),
+  sendFriendRequest: (toUserId: string) => api.post('/friends/request', { toUserId }),
+  acceptFriendRequest: (requestId: string) => api.put(`/friends/request/${requestId}/accept`),
+  rejectFriendRequest: (requestId: string) => api.delete(`/friends/request/${requestId}/reject`),
+  getFriends: () => api.get('/friends'),
+  getFriendRequests: () => api.get('/friends/requests'),
+  removeFriend: (friendId: string) => api.delete(`/friends/${friendId}`),
 };
 
 export const clubAPI = {
-  getClubs: () => api.get('/api/v1/clubs'),
-  getClub: (clubId: string) => api.get(`/api/v1/clubs/${clubId}`),
-  createClub: (data: { name: string; description?: string }) => api.post('/api/v1/clubs', data),
-  joinClub: (clubId: string) => api.post(`/api/v1/clubs/${clubId}/join`),
-  leaveClub: (clubId: string) => api.post(`/api/v1/clubs/${clubId}/leave`),
-  updateClub: (clubId: string, data: { name?: string; description?: string }) => api.put(`/api/v1/clubs/${clubId}`, data),
-  deleteClub: (clubId: string) => api.delete(`/api/v1/clubs/${clubId}`),
-  addMember: (clubId: string, userId: string) => api.post(`/api/v1/clubs/${clubId}/members`, { userId }),
-  removeMember: (clubId: string, userId: string) => api.delete(`/api/v1/clubs/${clubId}/members/${userId}`),
+  getClubs: () => api.get('/clubs'),
+  getClub: (clubId: string) => api.get(`/clubs/${clubId}`),
+  createClub: (data: { name: string; description?: string }) => api.post('/clubs', data),
+  joinClub: (clubId: string) => api.post(`/clubs/${clubId}/join`),
+  leaveClub: (clubId: string) => api.post(`/clubs/${clubId}/leave`),
+  updateClub: (clubId: string, data: { name?: string; description?: string }) => api.put(`/clubs/${clubId}`, data),
+  deleteClub: (clubId: string) => api.delete(`/clubs/${clubId}`),
+  addMember: (clubId: string, userId: string) => api.post(`/clubs/${clubId}/members`, { userId }),
+  removeMember: (clubId: string, userId: string) => api.delete(`/clubs/${clubId}/members/${userId}`),
 };
 
 export const notificationAPI = {
-  getNotifications: () => api.get('/api/v1/notifications'),
-  markAsRead: (id: string) => api.put(`/api/v1/notifications/${id}/read`),
+  getNotifications: () => api.get('/notifications'),
+  markAsRead: (id: string) => api.put(`/notifications/${id}/read`),
 };
 
 export const statsAPI = {
-  getTournamentStats: () => api.get('/api/v1/tournaments/stats'),
-  getUserStats: () => api.get('/api/v1/users/stats'),
+  getTournamentStats: () => api.get('/tournaments/stats'),
+  getUserStats: () => api.get('/users/stats'),
 };
 
 export const messageAPI = {
-  getConversations: () => api.get('/api/v1/messages/conversations'),
-  getMessages: (userId: string) => api.get(`/api/v1/messages/${userId}`),
-  sendMessage: (toUserId: string, content: string) => api.post('/api/v1/messages', { toUserId, content }),
-  markAsRead: (conversationId: string) => api.put(`/api/v1/messages/${conversationId}/read`),
-  deleteMessage: (messageId: string) => api.delete(`/api/v1/messages/${messageId}`),
+  getConversations: () => api.get('/messages/conversations'),
+  getMessages: (userId: string) => api.get(`/messages/${userId}`),
+  sendMessage: (toUserId: string, content: string) => api.post('/messages', { toUserId, content }),
+  markAsRead: (conversationId: string) => api.put(`/messages/${conversationId}/read`),
+  deleteMessage: (messageId: string) => api.delete(`/messages/${messageId}`),
 };
 
 export const leaderboardAPI = {
-  getPlayerLeaderboard: (tournamentId?: string) => api.get('/api/v1/leaderboard/players', { params: { tournament: tournamentId } }),
-  getTeamLeaderboard: (tournamentId?: string) => api.get('/api/v1/leaderboard/teams', { params: { tournament: tournamentId } }),
-  getBattingLeaderboard: (tournamentId?: string) => api.get('/api/v1/leaderboard/batting', { params: { tournament: tournamentId } }),
-  getBowlingLeaderboard: (tournamentId?: string) => api.get('/api/v1/leaderboard/bowling', { params: { tournament: tournamentId } }),
+  getPlayerLeaderboard: (tournamentId?: string) => api.get('/leaderboard/players', { params: { tournament: tournamentId } }),
+  getTeamLeaderboard: (tournamentId?: string) => api.get('/leaderboard/teams', { params: { tournament: tournamentId } }),
+  getBattingLeaderboard: (tournamentId?: string) => api.get('/leaderboard/batting', { params: { tournament: tournamentId } }),
+  getBowlingLeaderboard: (tournamentId?: string) => api.get('/leaderboard/bowling', { params: { tournament: tournamentId } }),
 };
 
 export const liveMatchAPI = {
-  getLiveMatches: () => api.get('/api/v1/matches/live'),
-  getLiveMatch: (matchId: string) => api.get(`/api/v1/matches/${matchId}/live`),
-  goLive: (matchId: string, liveStreamUrl?: string) => api.post(`/api/v1/matches/${matchId}/go-live`, { liveStreamUrl }),
-  endLive: (matchId: string) => api.post(`/api/v1/matches/${matchId}/end-live`),
-  updateStreamUrl: (matchId: string, liveStreamUrl: string) => api.put(`/api/v1/matches/${matchId}/stream-url`, { liveStreamUrl }),
+  getLiveMatches: () => api.get('/matches/live'),
+  getLiveMatch: (matchId: string) => api.get(`/matches/${matchId}/live`),
+  goLive: (matchId: string, liveStreamUrl?: string) => api.post(`/matches/${matchId}/go-live`, { liveStreamUrl }),
+  endLive: (matchId: string) => api.post(`/matches/${matchId}/end-live`),
+  updateStreamUrl: (matchId: string, liveStreamUrl: string) => api.put(`/matches/${matchId}/stream-url`, { liveStreamUrl }),
 };
 
 export default api;
