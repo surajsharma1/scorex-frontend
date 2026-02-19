@@ -221,12 +221,25 @@ function startAutoRefresh(matchId, apiBaseUrl, intervalMs = 5000) {
   return setInterval(() => fetchLiveData(matchId, apiBaseUrl), intervalMs);
 }
 
-// Get URL parameters
+// Get URL parameters and OVERLAY_CONFIG
 function getUrlParams() {
+  // First check if we have OVERLAY_CONFIG from backend injection
+  if (window.OVERLAY_CONFIG) {
+    return {
+      matchId: window.OVERLAY_CONFIG.matchId || null,
+      apiBaseUrl: window.OVERLAY_CONFIG.apiBaseUrl || null,
+      publicId: window.OVERLAY_CONFIG.publicId || null,
+      overlayName: window.OVERLAY_CONFIG.overlayName || null
+    };
+  }
+  
+  // Otherwise check URL parameters
   const params = new URLSearchParams(window.location.search);
   return {
     matchId: params.get('matchId'),
-    apiBaseUrl: params.get('apiBaseUrl') || params.get('apiUrl') || 'http://localhost:5000/api/v1'
+    apiBaseUrl: params.get('apiBaseUrl') || params.get('apiUrl') || 'https://scorex-backend.onrender.com/api/v1',
+    publicId: null,
+    overlayName: null
   };
 }
 
@@ -235,8 +248,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const { matchId, apiBaseUrl } = getUrlParams();
   
   if (matchId) {
+    console.log('Starting auto-refresh with matchId:', matchId, 'apiBaseUrl:', apiBaseUrl);
     startAutoRefresh(matchId, apiBaseUrl);
   } else {
+    console.log('No matchId found, using sample data');
     initOverlay();
   }
 });
