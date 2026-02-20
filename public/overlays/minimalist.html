@@ -17,11 +17,23 @@
     <div id="event-toast">BOWLED!</div>
     <div class="bottom-left-bar">
         <div style="font-size:0.8rem; color:#f9cd05">TOURNAMENT: ASHES SERIES</div>
-        <div style="font-size:2rem; font-weight:900">ENG: 312/6 (88.4)</div>
+        <div style="font-size:2rem; font-weight:900">
+            <span id="team1-short">ENG</span>: <span id="team1-score">312</span>/<span id="team1-wickets">6</span> (<span id="team1-overs">88.4</span>)
+        </div>
     </div>
     <div class="bottom-right-bar">
-        <div style="font-size:1.5rem">BEN STOKES: 102*</div>
-        <div style="font-size:0.8rem; opacity:0.6">JOE ROOT: 45</div>
+        <div id="striker-name" style="font-size:1.5rem">BEN STOKES: 102*</div>
+        <div id="nonstriker-name" style="font-size:0.8rem; opacity:0.6">JOE ROOT: 45</div>
     </div>
+
+    <script src="overlay-utils.js"></script>
+    <script>
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
+    </script>
 </body>
 </html>
