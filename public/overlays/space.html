@@ -1,216 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Space Theme Overlay</title>
-  <link rel="stylesheet" href="base.css">
-  <style>
-    body { background: transparent; overflow: hidden; }
-    .overlay-container { font-family: 'Orbitron', sans-serif; }
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: #fff; }
+        
+        .top-news { position: absolute; top: 0; width: 100%; height: 70px; background: #d31027; display: flex; align-items: center; padding: 0 60px; border-bottom: 5px solid #000; box-sizing: border-box; }
+        
+        .bottom-news { position: absolute; bottom: 0; width: 100%; height: 130px; display: flex; flex-direction: column; }
+        .news-score-row { height: 90px; background: #000; display: flex; align-items: center; padding: 0 60px; justify-content: space-between; }
+        .news-ticker-row { height: 40px; background: #fff; color: #000; display: flex; align-items: center; font-weight: 900; font-size: 1.2rem; overflow: hidden; }
 
-    #stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
-
-    .score-card {
-      background: linear-gradient(135deg, rgba(10, 10, 40, 0.9) 0%, rgba(30, 0, 50, 0.9) 50%, rgba(10, 10, 40, 0.9) 100%);
-      border: 2px solid rgba(138, 43, 226, 0.5);
-      border-radius: 20px;
-      box-shadow: 0 0 40px rgba(138, 43, 226, 0.3), 0 0 80px rgba(75, 0, 130, 0.2);
-      animation: slideInDown 0.6s ease;
-      position: relative;
-      z-index: 10;
-    }
-
-    .team-section { padding: 20px 30px; }
-    .team-label { font-size: 0.6rem; color: #9d4edd; margin-bottom: 8px; letter-spacing: 4px; }
-    .team-name { color: #e0aaff; font-size: 1.3rem; text-shadow: 0 0 15px rgba(224, 170, 255, 0.5); }
-    .team-score { 
-      color: #c77dff; 
-      font-size: 2.8rem;
-      text-shadow: 0 0 30px #c77dff, 0 0 60px #9d4edd;
-      animation: cosmicPulse 3s ease-in-out infinite;
-    }
-    @keyframes cosmicPulse {
-      0%, 100% { text-shadow: 0 0 30px #c77dff, 0 0 60px #9d4edd; }
-      50% { text-shadow: 0 0 50px #c77dff, 0 0 100px #9d4edd, 0 0 150px #7b2cbf; }
-    }
-    .team-overs { color: #7b2cbf; font-size: 0.8rem; }
-
-    .vs-section { 
-      background: linear-gradient(135deg, rgba(157, 78, 221, 0.3), rgba(123, 44, 191, 0.3));
-      padding: 20px 30px;
-      border-radius: 15px;
-      border: 1px solid rgba(157, 78, 221, 0.3);
-    }
-    .vs-text { color: #e0aaff; font-size: 1.3rem; }
-    .tournament-name { color: #c77dff; font-size: 0.8rem; }
-
-    .stats-bar {
-      background: rgba(10, 10, 40, 0.9);
-      border: 2px solid rgba(138, 43, 226, 0.4);
-      border-radius: 15px;
-      animation: slideInUp 0.6s ease 0.2s both;
-      position: relative;
-      z-index: 10;
-    }
-    .stat-label { color: #7b2cbf; font-size: 0.55rem; letter-spacing: 2px; }
-    .stat-value { color: #e0aaff; font-size: 1.3rem; }
-    .stat-value.highlight { color: #c77dff; text-shadow: 0 0 15px #c77dff; }
-
-    /* Cosmic Warp Push */
-    .push-message {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 2000;
-      text-align: center;
-      opacity: 0;
-      pointer-events: none;
-    }
-    .push-message.show { animation: warpIn 3s ease forwards; }
-    .push-message .main-text {
-      font-size: 4rem;
-      font-weight: 900;
-      color: #c77dff;
-      text-shadow: 0 0 50px #c77dff, 0 0 100px #9d4edd;
-      letter-spacing: 15px;
-    }
-    .push-message .sub-text {
-      font-size: 1.2rem;
-      color: #e0aaff;
-      margin-top: 15px;
-      letter-spacing: 8px;
-    }
-    .push-message .orbit-ring {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 400px;
-      height: 400px;
-      border: 2px solid rgba(157, 78, 221, 0.3);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      animation: orbitSpin 4s linear infinite;
-    }
-    .push-message .orbit-ring::before {
-      content: '✦';
-      position: absolute;
-      top: -10px;
-      left: 50%;
-      color: #c77dff;
-      font-size: 1.5rem;
-      text-shadow: 0 0 20px #c77dff;
-    }
-    @keyframes warpIn {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(3); filter: blur(20px); }
-      20% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
-      80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); filter: blur(10px); }
-    }
-    @keyframes orbitSpin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
-
-    .teams-panel { background: rgba(10, 10, 40, 0.98); }
-    .teams-content { background: linear-gradient(135deg, rgba(30, 0, 50, 0.95), rgba(10, 10, 40, 0.95)); border: 2px solid rgba(138, 43, 226, 0.5); border-radius: 20px; }
-    .teams-header h2 { color: #c77dff; }
-    .teams-header p { color: #9d4edd; }
-    .team-roster { background: rgba(157, 78, 221, 0.1); border: 1px solid rgba(157, 78, 221, 0.2); border-radius: 15px; }
-    .team-roster h3 { color: #e0aaff; border-color: rgba(224, 170, 255, 0.2); }
-    .player-name { color: #e0aaff; }
-    .player-role { color: #9d4edd; background: rgba(157, 78, 221, 0.1); }
-
-    .toggle-teams-btn { background: linear-gradient(135deg, #9d4edd, #c77dff); color: #0a0a28; }
-    .close-panel-btn { background: #9d4edd; color: #0a0a28; }
-  </style>
+        #push-news { position: absolute; bottom: 130px; left: 0; width: 100%; background: #fff; color: #d31027; padding: 20px 0; text-align: center; font-size: 5rem; font-weight: 900; transform: translateY(100%); transition: 0.3s; }
+        #push-news.active { transform: translateY(0); }
+    </style>
 </head>
 <body>
-  <canvas id="stars"></canvas>
-  <div class="overlay-container">
-    <div class="score-card">
-      <div class="team-section">
-        <div class="team-label">BATTING</div>
-        <div class="team-name" id="team1-name">Mumbai Warriors</div>
-        <div class="team-score" id="team1-score">185/4</div>
-        <div class="team-overs" id="team1-overs">20.0 Overs</div>
-      </div>
-      <div class="vs-section">
-        <div class="vs-text">VS</div>
-        <div class="tournament-name" id="tournament-name">Premier League T20</div>
-      </div>
-      <div class="team-section">
-        <div class="team-label">BOWLING</div>
-        <div class="team-name" id="team2-name">Chennai Kings</div>
-        <div class="team-score" id="team2-score">142/7</div>
-        <div class="team-overs" id="team2-overs">16.2 Overs</div>
-      </div>
+    <div class="top-news">
+        <span style="font-size: 3rem; font-weight: 900;">LIVE: ICC TEST CHAMPIONSHIP FINAL</span>
     </div>
-    <div class="stats-bar">
-      <div class="stat-item"><div class="stat-label">CRR</div><div class="stat-value" id="current-rr">8.75</div></div>
-      <div class="stat-item"><div class="stat-label">RRR</div><div class="stat-value highlight" id="required-rr">12.30</div></div>
-      <div class="stat-item"><div class="stat-label">Last 5</div><div class="stat-value" id="last-5">48/2</div></div>
-      <div class="stat-item"><div class="stat-label">Target</div><div class="stat-value highlight" id="target">186</div></div>
+
+    <div id="push-news">WICKET: STUMPED!</div>
+
+    <div class="bottom-news">
+        <div class="news-score-row">
+            <div style="font-size: 5rem; font-weight: 900;">AUS 112/2 <small style="font-size: 2rem; opacity: 0.5;">(32.4 OV)</small></div>
+            <div style="font-size: 2.2rem; text-align: right;"><b>SMITH</b> 42* | <b>LABUSCHAGNE</b> 28</div>
+        </div>
+        <div class="news-ticker-row">
+            <div style="padding-left: 60px;">BREAKING: NEXT MATCH STARTS IN 24 HOURS • WEATHER REPORT: SUNNY IN LONDON • </div>
+        </div>
     </div>
-  </div>
 
-  <div class="push-message" id="push-message">
-    <div class="orbit-ring"></div>
-    <div class="main-text">SIX!</div>
-    <div class="sub-text">INTO ORBIT</div>
-  </div>
-
-  <div class="teams-panel" id="teams-panel">
-    <div class="teams-content">
-      <button class="close-panel-btn" onclick="closeTeamsPanel()">&times;</button>
-      <div class="teams-header"><h2>Playing XI</h2><p id="tournament-name-panel">Premier League T20</p></div>
-      <div class="teams-grid">
-        <div class="team-roster"><h3 id="team1-roster-title">Mumbai Warriors</h3><ul class="player-list" id="team1-roster"></ul></div>
-        <div class="team-roster"><h3 id="team2-roster-title">Chennai Kings</h3><ul class="player-list" id="team2-roster"></ul></div>
-      </div>
-    </div>
-  </div>
-  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">Show Teams</button>
-
-  <script src="overlay-utils.js"></script>
-  <script>
-    const canvas = document.getElementById('stars');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const stars = [];
-    for (let i = 0; i < 200; i++) {
-      stars.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 2,
-        speed: Math.random() * 0.5 + 0.1,
-        opacity: Math.random()
-      });
-    }
-
-    function animateStars() {
-      ctx.fillStyle = 'rgba(10, 10, 40, 0.1)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      stars.forEach(s => {
-        s.x -= s.speed;
-        if (s.x < 0) { s.x = canvas.width; s.y = Math.random() * canvas.height; }
-        s.opacity = Math.sin(Date.now() * 0.002 + s.x) * 0.5 + 0.5;
-        ctx.fillStyle = `rgba(199, 125, 255, ${s.opacity})`;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      requestAnimationFrame(animateStars);
-    }
-    animateStars();
-
-    function showPushMessage(main, sub) {
-      const msg = document.getElementById('push-message');
-      msg.querySelector('.main-text').textContent = main;
-      msg.querySelector('.sub-text').textContent = sub;
-      msg.classList.add('show');
-      setTimeout(() => msg.classList.remove('show'), 3000);
-    }
-  </script>
+    <script>
+        function triggerPush(msg) {
+            const n = document.getElementById('push-news');
+            n.innerText = msg; n.classList.add('active');
+            setTimeout(() => n.classList.remove('active'), 3500);
+        }
+    </script>
 </body>
 </html>

@@ -1,256 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minimalist Overlay</title>
-  <link rel="stylesheet" href="base.css">
-  <style>
-    body {
-      background: transparent;
-    }
-
-    .overlay-container {
-      font-family: 'Inter', sans-serif;
-    }
-
-    /* Minimalist Score Card */
-    .score-card {
-      background: #ffffff;
-      border: none;
-      border-radius: 0;
-      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
-      padding: 30px 50px;
-      animation: fadeIn 0.8s ease;
-    }
-
-    .team-section {
-      padding: 0 40px;
-    }
-
-    .team-label {
-      display: none;
-    }
-
-    .team-name {
-      color: #000000;
-      font-size: 1.1rem;
-      font-weight: 400;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .team-score {
-      color: #000000;
-      font-size: 4rem;
-      font-weight: 200;
-      letter-spacing: -2px;
-      line-height: 1;
-    }
-
-    .team-overs {
-      color: #999999;
-      font-size: 0.85rem;
-      font-weight: 300;
-      margin-top: 10px;
-    }
-
-    .vs-section {
-      background: transparent;
-      padding: 0 40px;
-    }
-
-    .vs-text {
-      color: #cccccc;
-      font-size: 0.9rem;
-      font-weight: 300;
-      letter-spacing: 8px;
-    }
-
-    .tournament-name {
-      color: #666666;
-      font-size: 0.75rem;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-top: 10px;
-    }
-
-    /* Stats Bar */
-    .stats-bar {
-      background: #fafafa;
-      border: none;
-      border-radius: 0;
-      border-top: 1px solid #eeeeee;
-      animation: fadeIn 0.8s ease 0.3s both;
-    }
-
-    .stat-label {
-      color: #999999;
-      text-transform: uppercase;
-      font-size: 0.55rem;
-      letter-spacing: 2px;
-      font-weight: 400;
-    }
-
-    .stat-value {
-      color: #000000;
-      font-size: 1.5rem;
-      font-weight: 300;
-    }
-
-    .stat-value.highlight {
-      color: #000000;
-      font-weight: 500;
-    }
-
-    /* Teams Panel */
-    .teams-panel {
-      background: rgba(255, 255, 255, 0.98);
-    }
-
-    .teams-content {
-      background: #ffffff;
-      border: none;
-      box-shadow: 0 10px 60px rgba(0, 0, 0, 0.1);
-      border-radius: 0;
-    }
-
-    .teams-header h2 {
-      color: #000000;
-      font-weight: 300;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-    }
-
-    .teams-header p {
-      color: #999999;
-      letter-spacing: 2px;
-    }
-
-    .team-roster {
-      background: #fafafa;
-      border: none;
-      border-radius: 0;
-    }
-
-    .team-roster h3 {
-      color: #000000;
-      border-color: #eeeeee;
-      font-weight: 400;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      font-size: 1rem;
-    }
-
-    .player-name {
-      color: #333333;
-      font-weight: 400;
-    }
-
-    .player-role {
-      color: #999999;
-      background: transparent;
-      font-size: 0.7rem;
-      letter-spacing: 1px;
-    }
-
-    .player-item {
-      border-color: #eeeeee;
-    }
-
-    /* Toggle Button */
-    .toggle-teams-btn {
-      background: #000000;
-      color: #ffffff;
-      box-shadow: none;
-      border-radius: 0;
-      font-weight: 400;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      font-size: 0.75rem;
-    }
-
-    .toggle-teams-btn:hover {
-      background: #333333;
-    }
-
-    .close-panel-btn {
-      background: transparent;
-      color: #000000;
-      border: 1px solid #000000;
-      border-radius: 0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; background: transparent; font-family: 'Barlow Condensed', sans-serif; width: 1920px; height: 1080px; overflow: hidden; color: white; }
+        .mode-tag { position: absolute; top: 40px; right: 40px; background: #000; padding: 5px 20px; border: 1px solid #fff; font-weight: 900; }
+        .bottom-left-bar { position: absolute; bottom: 0; left: 0; background: #111; padding: 10px 60px; clip-path: polygon(0 0, 90% 0, 100% 100%, 0% 100%); border-top: 4px solid #f9cd05; }
+        .bottom-right-bar { position: absolute; bottom: 0; right: 0; background: #111; padding: 10px 60px; clip-path: polygon(10% 0, 100% 0, 100% 100%, 0% 100%); border-top: 4px solid #00f2ff; text-align: right; }
+        #event-toast { position: absolute; bottom: 80px; right: 40px; background: #00f2ff; color: #000; padding: 10px 40px; font-weight: 900; font-size: 2rem; transform: translateX(200%); transition: 0.4s; }
+        #event-toast.active { transform: translateX(0); }
+    </style>
 </head>
 <body>
-  <div class="overlay-container">
-    <div class="score-card">
-      <div class="team-section">
-        <div class="team-name" id="team1-name">Mumbai Warriors</div>
-        <div class="team-score" id="team1-score">185/4</div>
-        <div class="team-overs" id="team1-overs">20.0 Overs</div>
-      </div>
-
-      <div class="vs-section">
-        <div class="vs-text">VS</div>
-        <div class="tournament-name" id="tournament-name">Premier League T20</div>
-      </div>
-
-      <div class="team-section">
-        <div class="team-name" id="team2-name">Chennai Kings</div>
-        <div class="team-score" id="team2-score">142/7</div>
-        <div class="team-overs" id="team2-overs">16.2 Overs</div>
-      </div>
+    <div class="mode-tag">LIVE - REPLAY</div>
+    <div id="event-toast">BOWLED!</div>
+    <div class="bottom-left-bar">
+        <div style="font-size:0.8rem; color:#f9cd05">TOURNAMENT: ASHES SERIES</div>
+        <div style="font-size:2rem; font-weight:900">ENG: 312/6 (88.4)</div>
     </div>
-
-    <div class="stats-bar">
-      <div class="stat-item">
-        <div class="stat-label">Run Rate</div>
-        <div class="stat-value" id="current-rr">8.75</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">Required</div>
-        <div class="stat-value highlight" id="required-rr">12.30</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">Last 5</div>
-        <div class="stat-value" id="last-5">48/2</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">Target</div>
-        <div class="stat-value highlight" id="target">186</div>
-      </div>
+    <div class="bottom-right-bar">
+        <div style="font-size:1.5rem">BEN STOKES: 102*</div>
+        <div style="font-size:0.8rem; opacity:0.6">JOE ROOT: 45</div>
     </div>
-  </div>
-
-  <div class="teams-panel" id="teams-panel">
-    <div class="teams-content">
-      <button class="close-panel-btn" onclick="closeTeamsPanel()">&times;</button>
-      <div class="teams-header">
-        <h2>Playing XI</h2>
-        <p id="tournament-name-panel">Premier League T20</p>
-      </div>
-      <div class="teams-grid">
-        <div class="team-roster">
-          <h3 id="team1-roster-title">Mumbai Warriors</h3>
-          <ul class="player-list" id="team1-roster"></ul>
-        </div>
-        <div class="team-roster">
-          <h3 id="team2-roster-title">Chennai Kings</h3>
-          <ul class="player-list" id="team2-roster"></ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-    </svg>
-    Teams
-  </button>
-
-  <script src="overlay-utils.js"></script>
 </body>
 </html>

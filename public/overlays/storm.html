@@ -1,195 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Storm Clouds Overlay</title>
-  <link rel="stylesheet" href="base.css">
-  <style>
-    body { background: transparent; overflow: hidden; }
-    .overlay-container { font-family: 'Bebas Neue', sans-serif; }
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
+    <style>
+        :root { --flare: #00ffcc; --deep: #050a10; }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
 
-    .lightning { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; background: #fff; opacity: 0; }
-    .lightning.flash { animation: lightningFlash 0.2s ease; }
-    @keyframes lightningFlash {
-      0%, 100% { opacity: 0; }
-      10%, 30% { opacity: 0.8; }
-      20% { opacity: 0; }
-    }
+        /* TOP BORDER: LIGHT RAIL */
+        .top-rail { position: absolute; top: 0; width: 100%; height: 40px; background: var(--deep); border-bottom: 2px solid var(--flare); display: flex; align-items: center; padding: 0 60px; box-shadow: 0 0 15px var(--flare); }
+        
+        /* BOTTOM BORDER: FLARE PODS */
+        .bottom-rail { position: absolute; bottom: 0; width: 100%; height: 100px; display: flex; align-items: flex-end; }
+        .pod-left { background: var(--flare); color: #000; width: 30%; height: 80px; clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%); display: flex; align-items: center; padding-left: 60px; font-size: 3.5rem; font-weight: 900; }
+        .pod-right { background: rgba(0,0,0,0.8); flex-grow: 1; height: 60px; border-top: 2px solid var(--flare); display: flex; align-items: center; padding: 0 60px; justify-content: flex-end; gap: 40px; }
 
-    .score-card {
-      background: linear-gradient(180deg, #1a1a2e 0%, #2d2d44 30%, #16213e 70%, #0f0f1a 100%);
-      border: 2px solid #4a4a6a;
-      border-radius: 10px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 0 50px rgba(74, 74, 106, 0.2);
-      animation: slideInDown 0.5s ease, stormPulse 4s ease-in-out infinite;
-      position: relative;
-      z-index: 10;
-    }
-    @keyframes stormPulse {
-      0%, 100% { box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
-      50% { box-shadow: 0 20px 80px rgba(74, 74, 106, 0.4), 0 0 100px rgba(100, 149, 237, 0.2); }
-    }
-
-    .team-section { padding: 20px 30px; }
-    .team-label { font-size: 0.9rem; color: #6495ed; margin-bottom: 8px; letter-spacing: 4px; }
-    .team-name { color: #c0c0c0; font-size: 1.8rem; letter-spacing: 3px; text-shadow: 0 0 10px rgba(192, 192, 192, 0.3); }
-    .team-score { 
-      color: #ffffff; 
-      font-size: 3.5rem;
-      text-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(100, 149, 237, 0.3);
-      letter-spacing: 5px;
-    }
-    .team-overs { color: #7b7b9a; font-size: 1rem; }
-
-    .vs-section { 
-      background: linear-gradient(180deg, #4a4a6a, #6495ed);
-      padding: 20px 30px;
-      border-radius: 8px;
-    }
-    .vs-text { color: #0f0f1a; font-size: 1.8rem; font-weight: 900; letter-spacing: 5px; }
-    .tournament-name { color: #1a1a2e; font-size: 1rem; }
-
-    .stats-bar {
-      background: linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 100%);
-      border: 2px solid #4a4a6a;
-      border-radius: 8px;
-      animation: slideInUp 0.5s ease 0.2s both;
-      position: relative;
-      z-index: 10;
-    }
-    .stat-label { color: #6495ed; font-size: 0.8rem; letter-spacing: 2px; }
-    .stat-value { color: #c0c0c0; font-size: 1.5rem; letter-spacing: 2px; }
-    .stat-value.highlight { color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
-
-    /* Thunder Push */
-    .push-message {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 2000;
-      text-align: center;
-      opacity: 0;
-      pointer-events: none;
-    }
-    .push-message.show { animation: thunderStrike 2.5s ease forwards; }
-    .push-message .main-text {
-      font-size: 5rem;
-      font-weight: 900;
-      color: #ffffff;
-      text-shadow: 0 0 50px #ffffff, 0 0 100px #6495ed, 0 0 150px #4a4a6a;
-      letter-spacing: 15px;
-    }
-    .push-message .sub-text {
-      font-size: 1.5rem;
-      color: #6495ed;
-      margin-top: 20px;
-      letter-spacing: 10px;
-      text-shadow: 0 0 20px #6495ed;
-    }
-    .push-message .lightning-bolt {
-      font-size: 4rem;
-      margin: 0 20px;
-      animation: boltFlash 0.3s ease-in-out infinite;
-    }
-    @keyframes thunderStrike {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
-      5% { opacity: 1; }
-      15% { transform: translate(-50%, -50%) scale(0.95); }
-      20% { transform: translate(-50%, -50%) scale(1); }
-      75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-    }
-    @keyframes boltFlash {
-      0%, 100% { opacity: 1; color: #ffffff; }
-      50% { opacity: 0.5; color: #6495ed; }
-    }
-
-    .teams-panel { background: rgba(15, 15, 26, 0.98); }
-    .teams-content { background: linear-gradient(180deg, #1a1a2e, #0f0f1a); border: 2px solid #4a4a6a; border-radius: 10px; }
-    .teams-header h2 { color: #ffffff; text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); letter-spacing: 4px; }
-    .teams-header p { color: #6495ed; }
-    .team-roster { background: rgba(74, 74, 106, 0.1); border: 1px solid rgba(74, 74, 106, 0.3); border-radius: 8px; }
-    .team-roster h3 { color: #6495ed; border-color: rgba(100, 149, 237, 0.3); letter-spacing: 3px; }
-    .player-name { color: #c0c0c0; }
-    .player-role { color: #7b7b9a; background: rgba(74, 74, 106, 0.2); }
-
-    .toggle-teams-btn { background: linear-gradient(180deg, #4a4a6a, #6495ed); color: #0f0f1a; font-weight: 700; letter-spacing: 2px; }
-    .close-panel-btn { background: #6495ed; color: #0f0f1a; }
-  </style>
+        /* PUSH ENGINE: BEAM SLIDE */
+        #push-flare { position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: var(--flare); transform: scaleX(0); transition: 0.4s; z-index: 1000; }
+        #push-flare.active { transform: scaleX(1); }
+        #push-txt-flare { position: absolute; top: 15px; left: 50%; transform: translateX(-50%) translateY(-50px); transition: 0.3s 0.2s; font-size: 4rem; font-weight: 900; color: var(--flare); text-shadow: 0 0 10px var(--flare); }
+        #push-txt-flare.active { transform: translateX(-50%) translateY(0); }
+    </style>
 </head>
 <body>
-  <div class="lightning" id="lightning"></div>
-  <div class="overlay-container">
-    <div class="score-card">
-      <div class="team-section">
-        <div class="team-label">BATTING</div>
-        <div class="team-name" id="team1-name">MUMBAI WARRIORS</div>
-        <div class="team-score" id="team1-score">185/4</div>
-        <div class="team-overs" id="team1-overs">20.0 Overs</div>
-      </div>
-      <div class="vs-section">
-        <div class="vs-text">VS</div>
-        <div class="tournament-name" id="tournament-name">PREMIER LEAGUE</div>
-      </div>
-      <div class="team-section">
-        <div class="team-label">BOWLING</div>
-        <div class="team-name" id="team2-name">CHENNAI KINGS</div>
-        <div class="team-score" id="team2-score">142/7</div>
-        <div class="team-overs" id="team2-overs">16.2 Overs</div>
-      </div>
+    <div class="top-rail">T20 BLAST • LIVE FROM EDGBASTON</div>
+    <div id="push-flare"></div>
+    <div id="push-txt-flare">6 • MASSIVE HIT</div>
+
+    <div class="bottom-rail">
+        <div class="pod-left">BIR 192/4</div>
+        <div class="pod-right">
+            <span><b>MAXWELL:</b> 52(21)*</span>
+            <span style="opacity: 0.5;"><b>MOEEN:</b> 10(4)</span>
+            <span style="color: var(--flare); font-weight: 900; margin-left: 20px;">16.4 OV</span>
+        </div>
     </div>
-    <div class="stats-bar">
-      <div class="stat-item"><div class="stat-label">CRR</div><div class="stat-value" id="current-rr">8.75</div></div>
-      <div class="stat-item"><div class="stat-label">RRR</div><div class="stat-value highlight" id="required-rr">12.30</div></div>
-      <div class="stat-item"><div class="stat-label">LAST 5</div><div class="stat-value" id="last-5">48/2</div></div>
-      <div class="stat-item"><div class="stat-label">TARGET</div><div class="stat-value highlight" id="target">186</div></div>
-    </div>
-  </div>
 
-  <div class="push-message" id="push-message">
-    <div><span class="lightning-bolt">⚡</span><span class="main-text">SIX!</span><span class="lightning-bolt">⚡</span></div>
-    <div class="sub-text">THUNDEROUS HIT!</div>
-  </div>
-
-  <div class="teams-panel" id="teams-panel">
-    <div class="teams-content">
-      <button class="close-panel-btn" onclick="closeTeamsPanel()">&times;</button>
-      <div class="teams-header"><h2>PLAYING XI</h2><p id="tournament-name-panel">Premier League T20</p></div>
-      <div class="teams-grid">
-        <div class="team-roster"><h3 id="team1-roster-title">MUMBAI WARRIORS</h3><ul class="player-list" id="team1-roster"></ul></div>
-        <div class="team-roster"><h3 id="team2-roster-title">CHENNAI KINGS</h3><ul class="player-list" id="team2-roster"></ul></div>
-      </div>
-    </div>
-  </div>
-  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">VIEW TEAMS</button>
-
-  <script src="overlay-utils.js"></script>
-  <script>
-    // Random lightning flashes
-    const lightning = document.getElementById('lightning');
-    setInterval(() => {
-      if (Math.random() > 0.7) {
-        lightning.classList.add('flash');
-        setTimeout(() => lightning.classList.remove('flash'), 200);
-      }
-    }, 3000);
-
-    function showPushMessage(main, sub) {
-      const msg = document.getElementById('push-message');
-      msg.querySelector('.main-text').textContent = main;
-      msg.querySelector('.sub-text').textContent = sub;
-      msg.classList.add('show');
-      // Trigger lightning
-      lightning.classList.add('flash');
-      setTimeout(() => lightning.classList.remove('flash'), 200);
-      setTimeout(() => {
-        lightning.classList.add('flash');
-        setTimeout(() => lightning.classList.remove('flash'), 200);
-      }, 300);
-      setTimeout(() => msg.classList.remove('show'), 2500);
-    }
-  </script>
+    <script>
+        function triggerPush(msg) {
+            const f = document.getElementById('push-flare');
+            const t = document.getElementById('push-txt-flare');
+            t.innerText = msg;
+            f.classList.add('active'); t.classList.add('active');
+            setTimeout(() => { f.classList.remove('active'); t.classList.remove('active'); }, 3000);
+        }
+    </script>
 </body>
 </html>

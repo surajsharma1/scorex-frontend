@@ -1,94 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minimal Dark Overlay</title>
-  <link rel="stylesheet" href="base.css">
-  <style>
-    body { background: transparent; }
-    .overlay-container { font-family: 'Inter', sans-serif; }
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: #fff; }
+        
+        .g-top { position: absolute; top: 0; width: 100%; height: 65px; background: linear-gradient(180deg, #333, #000); border-bottom: 5px solid #d31027; display: flex; align-items: center; padding: 0 60px; }
+        
+        .g-bottom { position: absolute; bottom: 0; width: 100%; height: 95px; background: #000; display: flex; border-top: 2px solid #555; }
+        .pillar { width: 15px; background: #d31027; height: 100%; }
+        .g-score-area { width: 400px; display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 900; background: #111; }
+        .g-stats-area { flex-grow: 1; display: flex; align-items: center; padding: 0 40px; justify-content: space-between; font-size: 1.8rem; }
 
-    .score-card {
-      background: #0a0a0a;
-      border: 1px solid #1a1a1a;
-      border-radius: 4px;
-      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
-      padding: 30px 50px;
-      animation: fadeIn 0.8s ease;
-    }
-
-    .team-section { padding: 0 30px; }
-    .team-label { display: none; }
-    .team-name { color: #666666; font-size: 0.85rem; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
-    .team-score { color: #ffffff; font-size: 3.5rem; font-weight: 200; letter-spacing: -2px; line-height: 1; }
-    .team-overs { color: #444444; font-size: 0.8rem; font-weight: 400; margin-top: 10px; }
-
-    .vs-section { background: transparent; padding: 0 30px; }
-    .vs-text { color: #333333; font-size: 0.75rem; font-weight: 300; letter-spacing: 6px; }
-    .tournament-name { color: #555555; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; margin-top: 8px; }
-
-    .stats-bar {
-      background: #0a0a0a;
-      border: 1px solid #1a1a1a;
-      border-radius: 4px;
-      animation: fadeIn 0.8s ease 0.3s both;
-    }
-    .stat-label { color: #444444; text-transform: uppercase; font-size: 0.55rem; letter-spacing: 2px; font-weight: 500; }
-    .stat-value { color: #ffffff; font-size: 1.4rem; font-weight: 300; }
-    .stat-value.highlight { color: #ffffff; font-weight: 500; }
-
-    .teams-panel { background: rgba(10, 10, 10, 0.98); }
-    .teams-content { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 4px; }
-    .teams-header h2 { color: #ffffff; font-weight: 200; letter-spacing: 4px; text-transform: uppercase; }
-    .teams-header p { color: #555555; letter-spacing: 2px; }
-    .team-roster { background: #111111; border: 1px solid #1a1a1a; border-radius: 4px; }
-    .team-roster h3 { color: #666666; border-color: #1a1a1a; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; font-size: 0.9rem; }
-    .player-name { color: #cccccc; font-weight: 400; }
-    .player-role { color: #555555; background: transparent; font-size: 0.7rem; }
-    .player-item { border-color: #1a1a1a; }
-
-    .toggle-teams-btn { background: #ffffff; color: #0a0a0a; box-shadow: none; border-radius: 4px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; font-size: 0.7rem; }
-    .toggle-teams-btn:hover { background: #eeeeee; }
-    .close-panel-btn { background: #1a1a1a; color: #666666; border-radius: 4px; }
-  </style>
+        #push-gate { position: absolute; bottom: 110px; left: 60px; background: #fff; color: #000; padding: 10px 40px; font-size: 3rem; font-weight: 900; border-left: 10px solid #d31027; opacity: 0; transform: translateX(-50px); transition: 0.3s; }
+        #push-gate.active { opacity: 1; transform: translateX(0); }
+    </style>
 </head>
 <body>
-  <div class="overlay-container">
-    <div class="score-card">
-      <div class="team-section">
-        <div class="team-name" id="team1-name">Mumbai Warriors</div>
-        <div class="team-score" id="team1-score">185/4</div>
-        <div class="team-overs" id="team1-overs">20.0 Overs</div>
-      </div>
-      <div class="vs-section">
-        <div class="vs-text">VS</div>
-        <div class="tournament-name" id="tournament-name">Premier League T20</div>
-      </div>
-      <div class="team-section">
-        <div class="team-name" id="team2-name">Chennai Kings</div>
-        <div class="team-score" id="team2-score">142/7</div>
-        <div class="team-overs" id="team2-overs">16.2 Overs</div>
-      </div>
+    <div class="g-top">
+        <span style="font-size: 2.5rem; font-weight: 900;">BASH LEAGUE FINAL</span>
+        <span style="margin-left: auto; background: #d31027; padding: 2px 20px;">LIVE</span>
     </div>
-    <div class="stats-bar">
-      <div class="stat-item"><div class="stat-label">Run Rate</div><div class="stat-value" id="current-rr">8.75</div></div>
-      <div class="stat-item"><div class="stat-label">Required</div><div class="stat-value highlight" id="required-rr">12.30</div></div>
-      <div class="stat-item"><div class="stat-label">Last 5</div><div class="stat-value" id="last-5">48/2</div></div>
-      <div class="stat-item"><div class="stat-label">Target</div><div class="stat-value highlight" id="target">186</div></div>
+
+    <div id="push-gate">WICKET: CAUGHT</div>
+
+    <div class="g-bottom">
+        <div class="pillar"></div>
+        <div class="g-score-area">210/4</div>
+        <div class="pillar"></div>
+        <div class="g-stats-area">
+            <div><b>STR:</b> MAXWELL 82(30)*</div>
+            <div style="opacity: 0.5;"><b>NON:</b> STOINIS 12(4)</div>
+            <div style="font-weight: 900;">19.4 OV</div>
+        </div>
     </div>
-  </div>
-  <div class="teams-panel" id="teams-panel">
-    <div class="teams-content">
-      <button class="close-panel-btn" onclick="closeTeamsPanel()">&times;</button>
-      <div class="teams-header"><h2>Playing XI</h2><p id="tournament-name-panel">Premier League T20</p></div>
-      <div class="teams-grid">
-        <div class="team-roster"><h3 id="team1-roster-title">Mumbai Warriors</h3><ul class="player-list" id="team1-roster"></ul></div>
-        <div class="team-roster"><h3 id="team2-roster-title">Chennai Kings</h3><ul class="player-list" id="team2-roster"></ul></div>
-      </div>
-    </div>
-  </div>
-  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">Teams</button>
-  <script src="overlay-utils.js"></script>
+
+    <script>
+        function triggerPush(msg) {
+            const g = document.getElementById('push-gate');
+            g.innerText = msg; g.classList.add('active');
+            setTimeout(() => g.classList.remove('active'), 3000);
+        }
+    </script>
 </body>
 </html>

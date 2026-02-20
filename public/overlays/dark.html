@@ -1,248 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dark Theme Overlay</title>
-  <link rel="stylesheet" href="base.css">
-  <style>
-    body {
-      background: transparent;
-    }
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --titanium: #e0e0e0; 
+            --neon-orange: #ff6600; 
+            --deep-base: #0a0a0a; 
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+        
+        body { 
+            margin: 0; 
+            width: 1920px; 
+            height: 1080px; 
+            background: transparent; 
+            font-family: 'Barlow Condensed', sans-serif; 
+            color: white; 
+            overflow: hidden; 
+        }
 
-    .overlay-container {
-      font-family: 'Inter', sans-serif;
-    }
+        /* TOP BORDER: STRUCTURAL RIBBON */
+        .top-perimeter { 
+            position: absolute; 
+            top: 0; 
+            width: 100%; 
+            height: 60px; 
+            background: var(--deep-base); 
+            border-bottom: 4px solid var(--titanium);
+            display: flex; 
+            align-items: center; 
+            padding: 0 50px; 
+            box-sizing: border-box;
+            z-index: 10;
+        }
+        .tourney-tag { 
+            font-size: 2.2rem; 
+            font-weight: 900; 
+            letter-spacing: 2px; 
+            color: var(--titanium);
+        }
+        .mode-status { 
+            margin-left: auto; 
+            background: var(--neon-orange); 
+            color: #000; 
+            padding: 2px 25px; 
+            font-weight: 900; 
+            transform: skewX(-15deg); 
+        }
 
-    /* Dark Theme Score Card */
-    .score-card {
-      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%);
-      border: 1px solid rgba(0, 212, 255, 0.3);
-      box-shadow: 0 0 40px rgba(0, 212, 255, 0.15), inset 0 0 60px rgba(0, 0, 0, 0.5);
-      animation: slideInDown 0.5s ease, borderGlow 3s infinite;
-    }
+        /* BOTTOM BORDER: COMMAND DECK */
+        .bottom-perimeter { 
+            position: absolute; 
+            bottom: 0; 
+            width: 100%; 
+            height: 110px; 
+            background: linear-gradient(to top, #000 80%, var(--deep-base)); 
+            border-top: 2px solid rgba(255,255,255,0.1);
+            display: flex; 
+            align-items: center; 
+            padding: 0 60px; 
+            box-sizing: border-box;
+        }
 
-    .score-card::before {
-      content: '';
-      position: absolute;
-      top: -2px;
-      left: -2px;
-      right: -2px;
-      bottom: -2px;
-      background: linear-gradient(45deg, #00d4ff, #0099ff, #00d4ff);
-      border-radius: 14px;
-      z-index: -1;
-      opacity: 0.3;
-      animation: gradientShift 4s ease infinite;
-      background-size: 200% 200%;
-    }
+        .score-section { 
+            display: flex; 
+            align-items: baseline; 
+            gap: 15px;
+            border-right: 2px solid var(--neon-orange);
+            padding-right: 40px;
+        }
+        .main-score { font-size: 5.5rem; font-weight: 900; line-height: 1; }
+        .overs { font-size: 1.8rem; color: var(--neon-orange); opacity: 0.8; }
 
-    .team-section {
-      padding: 15px 25px;
-    }
+        .player-hub { 
+            flex-grow: 1; 
+            display: flex; 
+            justify-content: space-around; 
+            padding-left: 40px;
+        }
+        .player-card { display: flex; flex-direction: column; }
+        .p-label { font-size: 1rem; color: var(--neon-orange); letter-spacing: 2px; }
+        .p-data { font-size: 2.5rem; font-weight: 900; }
 
-    .team-label {
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      color: #00d4ff;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
+        /* PUSH ENGINE: SHOCKWAVE REVEAL */
+        #push-engine {
+            position: absolute;
+            bottom: 110px; /* Sits exactly on top of the bottom bar */
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: var(--neon-orange);
+            overflow: hidden;
+            transition: height 0.3s cubic-bezier(0.17, 0.84, 0.44, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+        #push-engine.active { height: 100px; }
+        .push-text { 
+            font-size: 6rem; 
+            font-weight: 900; 
+            color: #000; 
+            font-style: italic;
+            transform: translateY(100px);
+            transition: transform 0.4s 0.1s;
+        }
+        #push-engine.active .push-text { transform: translateY(0); }
 
-    .team-name {
-      color: #ffffff;
-      font-size: 1.3rem;
-      font-weight: 700;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-    }
-
-    .team-score {
-      color: #00d4ff;
-      font-size: 2.6rem;
-      font-weight: 800;
-      text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
-      animation: textGlow 2s ease-in-out infinite;
-    }
-
-    .team-overs {
-      color: #64748b;
-      font-size: 0.85rem;
-    }
-
-    .vs-section {
-      background: rgba(0, 212, 255, 0.1);
-      padding: 20px 30px;
-      border-radius: 12px;
-      border: 1px solid rgba(0, 212, 255, 0.2);
-    }
-
-    .vs-text {
-      color: #00d4ff;
-      font-size: 1.3rem;
-      font-weight: 800;
-      letter-spacing: 3px;
-    }
-
-    .tournament-name {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 0.85rem;
-    }
-
-    /* Stats Bar */
-    .stats-bar {
-      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);
-      border: 1px solid rgba(0, 212, 255, 0.2);
-      box-shadow: 0 0 30px rgba(0, 212, 255, 0.1);
-      animation: slideInUp 0.5s ease 0.2s both;
-    }
-
-    .stat-label {
-      color: #64748b;
-      text-transform: uppercase;
-      font-size: 0.6rem;
-      letter-spacing: 1.5px;
-    }
-
-    .stat-value {
-      color: #ffffff;
-      font-size: 1.3rem;
-    }
-
-    .stat-value.highlight {
-      color: #00d4ff;
-      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
-    }
-
-    /* Teams Panel */
-    .teams-panel {
-      background: rgba(15, 15, 15, 0.98);
-    }
-
-    .teams-content {
-      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);
-      border: 1px solid rgba(0, 212, 255, 0.3);
-      box-shadow: 0 0 50px rgba(0, 212, 255, 0.2);
-    }
-
-    .teams-header h2 {
-      color: #00d4ff;
-    }
-
-    .teams-header p {
-      color: #64748b;
-    }
-
-    .team-roster {
-      background: rgba(0, 212, 255, 0.05);
-      border: 1px solid rgba(0, 212, 255, 0.1);
-    }
-
-    .team-roster h3 {
-      color: #00d4ff;
-      border-color: rgba(0, 212, 255, 0.2);
-    }
-
-    .player-name {
-      color: #ffffff;
-    }
-
-    .player-role {
-      color: #00d4ff;
-      background: rgba(0, 212, 255, 0.1);
-    }
-
-    .player-item {
-      border-color: rgba(0, 212, 255, 0.1);
-    }
-
-    /* Toggle Button */
-    .toggle-teams-btn {
-      background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
-      color: #0f0f0f;
-      box-shadow: 0 0 25px rgba(0, 212, 255, 0.4);
-    }
-
-    .toggle-teams-btn:hover {
-      box-shadow: 0 0 40px rgba(0, 212, 255, 0.6);
-    }
-
-    .close-panel-btn {
-      background: rgba(0, 212, 255, 0.2);
-      color: #00d4ff;
-    }
-  </style>
+    </style>
 </head>
 <body>
-  <div class="overlay-container">
-    <div class="score-card">
-      <div class="team-section">
-        <div class="team-label">Batting</div>
-        <div class="team-name" id="team1-name">Mumbai Warriors</div>
-        <div class="team-score" id="team1-score">185/4</div>
-        <div class="team-overs" id="team1-overs">20.0 Overs</div>
-      </div>
 
-      <div class="vs-section">
-        <div class="vs-text">VS</div>
-        <div class="tournament-name" id="tournament-name">Premier League T20</div>
-      </div>
-
-      <div class="team-section">
-        <div class="team-label">Bowling</div>
-        <div class="team-name" id="team2-name">Chennai Kings</div>
-        <div class="team-score" id="team2-score">142/7</div>
-        <div class="team-overs" id="team2-overs">16.2 Overs</div>
-      </div>
+    <div class="top-perimeter">
+        <div class="tourney-tag">BIG BASH LEAGUE // KNOCKOUT STAGE</div>
+        <div class="mode-status">LIVE REPLAY</div>
     </div>
 
-    <div class="stats-bar">
-      <div class="stat-item">
-        <div class="stat-label">Current RR</div>
-        <div class="stat-value" id="current-rr">8.75</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">Required RR</div>
-        <div class="stat-value highlight" id="required-rr">12.30</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">Last 5 Overs</div>
-        <div class="stat-value" id="last-5">48/2</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">Target</div>
-        <div class="stat-value highlight" id="target">186</div>
-      </div>
+    <div id="push-engine">
+        <div class="push-text" id="push-val">MAXIMUM SIX!</div>
     </div>
-  </div>
 
-  <div class="teams-panel" id="teams-panel">
-    <div class="teams-content">
-      <button class="close-panel-btn" onclick="closeTeamsPanel()">&times;</button>
-      <div class="teams-header">
-        <h2>Playing XI</h2>
-        <p id="tournament-name-panel">Premier League T20</p>
-      </div>
-      <div class="teams-grid">
-        <div class="team-roster">
-          <h3 id="team1-roster-title">Mumbai Warriors</h3>
-          <ul class="player-list" id="team1-roster"></ul>
+    <div class="bottom-perimeter">
+        <div class="score-section">
+            <div class="main-score">SYD 214/4</div>
+            <div class="overs">18.4 OVERS</div>
         </div>
-        <div class="team-roster">
-          <h3 id="team2-roster-title">Chennai Kings</h3>
-          <ul class="player-list" id="team2-roster"></ul>
+
+        <div class="player-hub">
+            <div class="player-card">
+                <span class="p-label">STRIKER</span>
+                <span class="p-data">GLENN MAXWELL <span style="color:var(--neon-orange)">84*</span></span>
+            </div>
+            <div class="player-card" style="opacity: 0.5;">
+                <span class="p-label">NON-STRIKER</span>
+                <span class="p-data">MARCUS STOINIS 12</span>
+            </div>
         </div>
-      </div>
+
+        <div style="margin-left: auto; text-align: right;">
+            <div class="p-label">TARGET</div>
+            <div style="font-size: 2.5rem; font-weight: 900;">215</div>
+        </div>
     </div>
-  </div>
 
-  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-    </svg>
-    Show Teams
-  </button>
+    <script>
+        /**
+         * Trigger the Shockwave Push Animation
+         * @param {string} msg - The text to show
+         * @param {string} type - '6' (Green), 'W' (Red), '4' (Orange)
+         */
+        function triggerPush(msg, type) {
+            const engine = document.getElementById('push-engine');
+            const text = document.getElementById('push-val');
+            
+            text.innerText = msg;
+            
+            // Dynamic Color Logic
+            if (type === 'W') {
+                engine.style.background = '#ff0000';
+                text.style.color = '#fff';
+            } else if (type === '6') {
+                engine.style.background = '#00ff66';
+                text.style.color = '#000';
+            } else {
+                engine.style.background = '#ff6600';
+                text.style.color = '#000';
+            }
 
-  <script src="overlay-utils.js"></script>
+            engine.classList.add('active');
+            
+            // Auto-hide after 3.5 seconds
+            setTimeout(() => {
+                engine.classList.remove('active');
+            }, 3500);
+        }
+
+        // Example: triggerPush('WICKET - CAUGHT!', 'W');
+    </script>
 </body>
 </html>

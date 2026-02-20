@@ -1,106 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ocean Waves Overlay</title>
-  <link rel="stylesheet" href="base.css">
-  <style>
-    body { background: transparent; }
-    .overlay-container { font-family: 'Inter', sans-serif; }
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: #fff; }
+        
+        /* DOUBLE TOP RAIL */
+        .rail-top { position: absolute; top: 0; width: 100%; }
+        .rail-1 { height: 30px; background: #ff0055; font-size: 1rem; font-weight: 900; display: flex; align-items: center; padding: 0 50px; }
+        .rail-2 { height: 40px; background: rgba(0,0,0,0.8); border-bottom: 2px solid #ff0055; display: flex; align-items: center; padding: 0 50px; font-size: 1.5rem; }
 
-    .score-card {
-      background: linear-gradient(135deg, #0077b6 0%, #00b4d8 30%, #0096c7 70%, #023e8a 100%);
-      border: none;
-      border-radius: 20px;
-      box-shadow: 0 15px 50px rgba(0, 119, 182, 0.4), inset 0 0 30px rgba(255,255,255,0.1);
-      animation: slideInDown 0.5s ease, float 4s ease-in-out infinite;
-      position: relative;
-      overflow: hidden;
-    }
-    .score-card::before {
-      content: '';
-      position: absolute;
-      bottom: -50%;
-      left: -50%;
-      right: -50%;
-      height: 100%;
-      background: radial-gradient(ellipse at center, rgba(255,255,255,0.15) 0%, transparent 70%);
-      animation: float 3s ease-in-out infinite reverse;
-    }
+        /* DOUBLE BOTTOM RAIL */
+        .rail-bottom { position: absolute; bottom: 0; width: 100%; }
+        .rail-3 { height: 80px; background: #000; display: flex; align-items: center; padding: 0 50px; border-top: 4px solid #fff; }
+        .rail-4 { height: 25px; background: #ff0055; width: 100%; }
 
-    .team-section { padding: 15px 25px; position: relative; z-index: 1; }
-    .team-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 3px; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
-    .team-name { color: #ffffff; font-size: 1.4rem; font-weight: 700; }
-    .team-score { color: #caf0f8; font-size: 2.8rem; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-    .team-overs { color: rgba(255,255,255,0.8); font-size: 0.85rem; }
-
-    .vs-section { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); padding: 20px 30px; border-radius: 15px; position: relative; z-index: 1; }
-    .vs-text { color: #caf0f8; font-size: 1.3rem; font-weight: 800; }
-    .tournament-name { color: rgba(255,255,255,0.9); font-size: 0.85rem; }
-
-    .stats-bar {
-      background: linear-gradient(135deg, #023e8a 0%, #0077b6 100%);
-      border: none;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(2, 62, 138, 0.4);
-      animation: slideInUp 0.5s ease 0.2s both;
-    }
-    .stat-label { color: rgba(202, 240, 248, 0.7); text-transform: uppercase; font-size: 0.6rem; letter-spacing: 1.5px; }
-    .stat-value { color: #ffffff; font-size: 1.4rem; }
-    .stat-value.highlight { color: #90e0ef; }
-
-    .teams-panel { background: rgba(0, 119, 182, 0.95); }
-    .teams-content { background: linear-gradient(135deg, #0077b6, #00b4d8); border: none; border-radius: 20px; }
-    .teams-header h2 { color: #caf0f8; }
-    .teams-header p { color: rgba(255,255,255,0.8); }
-    .team-roster { background: rgba(255,255,255,0.1); border: none; border-radius: 15px; }
-    .team-roster h3 { color: #90e0ef; border-color: rgba(255,255,255,0.2); }
-    .player-name { color: #ffffff; }
-    .player-role { color: #90e0ef; background: rgba(255,255,255,0.1); }
-
-    .toggle-teams-btn { background: linear-gradient(135deg, #00b4d8, #90e0ef); color: #023e8a; box-shadow: 0 8px 25px rgba(0, 180, 216, 0.4); }
-    .close-panel-btn { background: rgba(255,255,255,0.2); color: #fff; }
-  </style>
+        #push-rail { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); font-size: 4rem; font-weight: 900; background: #fff; color: #000; padding: 5px 60px; clip-path: polygon(5% 0, 95% 0, 100% 100%, 0% 100%); opacity: 0; transition: 0.3s; }
+        #push-rail.active { opacity: 1; }
+    </style>
 </head>
 <body>
-  <div class="overlay-container">
-    <div class="score-card">
-      <div class="team-section">
-        <div class="team-label">Batting</div>
-        <div class="team-name" id="team1-name">Mumbai Warriors</div>
-        <div class="team-score" id="team1-score">185/4</div>
-        <div class="team-overs" id="team1-overs">20.0 Overs</div>
-      </div>
-      <div class="vs-section">
-        <div class="vs-text">VS</div>
-        <div class="tournament-name" id="tournament-name">Premier League T20</div>
-      </div>
-      <div class="team-section">
-        <div class="team-label">Bowling</div>
-        <div class="team-name" id="team2-name">Chennai Kings</div>
-        <div class="team-score" id="team2-score">142/7</div>
-        <div class="team-overs" id="team2-overs">16.2 Overs</div>
-      </div>
+    <div class="rail-top">
+        <div class="rail-1">WORLD BROADCAST • FEED A</div>
+        <div class="rail-2">TATA IPL 2026 • ELIMINATOR 2</div>
     </div>
-    <div class="stats-bar">
-      <div class="stat-item"><div class="stat-label">Current RR</div><div class="stat-value" id="current-rr">8.75</div></div>
-      <div class="stat-item"><div class="stat-label">Required RR</div><div class="stat-value highlight" id="required-rr">12.30</div></div>
-      <div class="stat-item"><div class="stat-label">Last 5 Overs</div><div class="stat-value" id="last-5">48/2</div></div>
-      <div class="stat-item"><div class="stat-label">Target</div><div class="stat-value highlight" id="target">186</div></div>
+
+    <div id="push-rail">WICKET!</div>
+
+    <div class="rail-bottom">
+        <div class="rail-3">
+            <span style="font-size: 4rem; font-weight: 900; color: #ff0055;">Kolkata 156/2</span>
+            <span style="margin-left: 40px; font-size: 2rem;">S. Iyer 45* • R. Singh 12</span>
+            <span style="margin-left: auto; font-size: 2rem; opacity: 0.5;">14.2 OVERS</span>
+        </div>
+        <div class="rail-4"></div>
     </div>
-  </div>
-  <div class="teams-panel" id="teams-panel">
-    <div class="teams-content">
-      <button class="close-panel-btn" onclick="closeTeamsPanel()">&times;</button>
-      <div class="teams-header"><h2>Playing XI</h2><p id="tournament-name-panel">Premier League T20</p></div>
-      <div class="teams-grid">
-        <div class="team-roster"><h3 id="team1-roster-title">Mumbai Warriors</h3><ul class="player-list" id="team1-roster"></ul></div>
-        <div class="team-roster"><h3 id="team2-roster-title">Chennai Kings</h3><ul class="player-list" id="team2-roster"></ul></div>
-      </div>
-    </div>
-  </div>
-  <button class="toggle-teams-btn" onclick="toggleTeamsPanel()">Show Teams</button>
-  <script src="overlay-utils.js"></script>
+
+    <script>
+        function triggerPush(msg) {
+            const r = document.getElementById('push-rail');
+            r.innerText = msg; r.classList.add('active');
+            setTimeout(() => r.classList.remove('active'), 3000);
+        }
+    </script>
 </body>
 </html>
