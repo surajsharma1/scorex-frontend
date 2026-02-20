@@ -104,15 +104,15 @@
 
     <div id="score-bug">
         <div class="main-bar">
-            <div id="team">INDIA</div>
+            <div id="team1-name">INDIA</div>
             <div class="score-row">
-                <span id="runs">142</span>/<span id="wickets">3</span>
-                <span class="overs-text">(<span id="overs">18.2</span>)</span>
+                <span id="team1-score">142</span>/<span id="team1-wickets">3</span>
+                <span class="overs-text">(<span id="team1-overs">18.2</span>)</span>
             </div>
         </div>
         <div class="batter-box">
-            <div id="striker">K. Lokesh: 73(48)*</div>
-            <div id="non-striker" style="opacity: 0.7;">R. Jadeja: 12(7)</div>
+            <div id="striker-name">K. Lokesh: 73(48)*</div>
+            <div id="nonstriker-name" style="opacity: 0.7;">R. Jadeja: 12(7)</div>
         </div>
     </div>
 
@@ -128,12 +128,20 @@
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
+
         function updateScore() {
-            document.getElementById('runs').innerText = document.getElementById('in-runs').value;
-            document.getElementById('wickets').innerText = document.getElementById('in-wickets').value;
-            document.getElementById('overs').innerText = document.getElementById('in-overs').value;
-            document.getElementById('striker').innerText = document.getElementById('in-striker').value;
+            document.getElementById('team1-score').innerText = document.getElementById('in-runs').value;
+            document.getElementById('team1-wickets').innerText = document.getElementById('in-wickets').value;
+            document.getElementById('team1-overs').innerText = document.getElementById('in-overs').value;
+            document.getElementById('striker-name').innerText = document.getElementById('in-striker').value;
         }
 
         function triggerWicket() {

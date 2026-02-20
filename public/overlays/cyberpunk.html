@@ -22,16 +22,33 @@
 
     <div class="bottom-shield">
         <div class="score-side">
-            <div style="font-size: 1.2rem; font-weight: 900;">JOBURG SUPER KINGS</div>
-            <div style="font-size: 3.5rem; font-weight: 900; line-height: 0.8;">167/4 <small style="font-size: 1.2rem;">(17.2)</small></div>
+            <div id="team1-name" style="font-size: 1.2rem; font-weight: 900;">JOBURG SUPER KINGS</div>
+            <div style="font-size: 3.5rem; font-weight: 900; line-height: 0.8;">
+                <span id="team1-score">167</span>/<span id="team1-wickets">4</span> 
+                <small style="font-size: 1.2rem;">(<span id="team1-overs">17.2</span>)</small>
+            </div>
         </div>
         <div class="player-side">
-            <div><div style="color:#c6ff00; font-size: 0.8rem;">BATTER</div><div style="font-size: 1.8rem; font-weight: 900;">F. DU PLESSIS 82*</div></div>
-            <div><div style="color:#c6ff00; font-size: 0.8rem;">BATTER</div><div style="font-size: 1.8rem; font-weight: 900;">M. WADE 14</div></div>
+            <div>
+                <div style="color:#c6ff00; font-size: 0.8rem;">BATTER</div>
+                <div id="striker-name" style="font-size: 1.8rem; font-weight: 900;">F. DU PLESSIS 82*</div>
+            </div>
+            <div>
+                <div style="color:#c6ff00; font-size: 0.8rem;">BATTER</div>
+                <div id="nonstriker-name" style="font-size: 1.8rem; font-weight: 900;">M. WADE 14</div>
+            </div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
+
         function triggerPush(msg) {
             const s = document.getElementById('push-shield');
             s.innerText = msg; s.classList.add('active');

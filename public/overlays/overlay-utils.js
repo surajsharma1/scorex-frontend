@@ -267,3 +267,214 @@ window.OverlayUtils = {
   getMatchData: () => matchData,
   setMatchData: (data) => { matchData = data; updateScoreDisplay(); setupTeamsPanel(); }
 };
+
+/**
+ * Universal Score Update Function for all overlays
+ * Updates all score-related elements with proper ID naming conventions
+ * @param {Object} data - Match data object containing team scores, players, etc.
+ */
+window.updateScore = function(data) {
+  if (!data) return;
+  
+  // Team 1 elements
+  const team1Name = document.getElementById('team1-name');
+  const team1Short = document.getElementById('team1-short');
+  const team1Score = document.getElementById('team1-score');
+  const team1Wickets = document.getElementById('team1-wickets');
+  const team1Overs = document.getElementById('team1-overs');
+  
+  if (team1Name) team1Name.textContent = data.team1?.name || '';
+  if (team1Short) team1Short.textContent = data.team1?.shortName || '';
+  if (team1Score) team1Score.textContent = data.team1?.score || '0';
+  if (team1Wickets) team1Wickets.textContent = data.team1?.wickets || '0';
+  if (team1Overs) team1Overs.textContent = data.team1?.overs || '0.0';
+  
+  // Team 2 elements
+  const team2Name = document.getElementById('team2-name');
+  const team2Short = document.getElementById('team2-short');
+  const team2Score = document.getElementById('team2-score');
+  const team2Wickets = document.getElementById('team2-wickets');
+  const team2Overs = document.getElementById('team2-overs');
+  
+  if (team2Name) team2Name.textContent = data.team2?.name || '';
+  if (team2Short) team2Short.textContent = data.team2?.shortName || '';
+  if (team2Score) team2Score.textContent = data.team2?.score || '0';
+  if (team2Wickets) team2Wickets.textContent = data.team2?.wickets || '0';
+  if (team2Overs) team2Overs.textContent = data.team2?.overs || '0.0';
+  
+  // Striker elements
+  const strikerName = document.getElementById('striker-name');
+  const strikerRuns = document.getElementById('striker-runs');
+  const strikerBalls = document.getElementById('striker-balls');
+  const strikerStatus = document.getElementById('striker-status');
+  
+  if (strikerName) strikerName.textContent = data.striker?.name || '';
+  if (strikerRuns) strikerRuns.textContent = data.striker?.runs || '0';
+  if (strikerBalls) strikerBalls.textContent = data.striker?.balls || '0';
+  if (strikerStatus) strikerStatus.textContent = data.striker?.status || '';
+  
+  // Non-striker elements
+  const nonStrikerName = document.getElementById('nonstriker-name');
+  const nonStrikerRuns = document.getElementById('nonstriker-runs');
+  const nonStrikerBalls = document.getElementById('nonstriker-balls');
+  
+  if (nonStrikerName) nonStrikerName.textContent = data.nonStriker?.name || '';
+  if (nonStrikerRuns) nonStrikerRuns.textContent = data.nonStriker?.runs || '0';
+  if (nonStrikerBalls) nonStrikerBalls.textContent = data.nonStriker?.balls || '0';
+  
+  // Stats elements
+  const crr = document.getElementById('current-rr');
+  const rrr = document.getElementById('required-rr');
+  const target = document.getElementById('target');
+  const last5 = document.getElementById('last-5');
+  const tournament = document.getElementById('tournament-name');
+  const status = document.getElementById('match-status');
+  const result = document.getElementById('match-result');
+  
+  if (crr) crr.textContent = data.stats?.currentRunRate || '0.00';
+  if (rrr) rrr.textContent = data.stats?.requiredRunRate || '0.00';
+  if (target) target.textContent = data.stats?.target || '';
+  if (last5) last5.textContent = data.stats?.last5Overs || '';
+  if (tournament) tournament.textContent = data.tournament?.name || '';
+  if (status) status.textContent = data.status || '';
+  if (result) result.textContent = data.result || '';
+  
+  // Dispatch event for custom handling
+  window.dispatchEvent(new CustomEvent('scoreUpdated', { detail: data }));
+};
+
+/**
+ * Trigger push notification with animation
+ * @param {string} msg - Message to display
+ * @param {string} type - Type: '6' (six), '4' (four), 'W' (wicket), default (single/dot)
+ */
+window.triggerPush = function(msg, type) {
+  // Try multiple common push element IDs
+  const pushElements = [
+    'push-engine', 'push-val', 'push-monolith', 'push-s', 'push-overlay',
+    'push-txt', 'wicket-alert', 'push-text', 'notification-push'
+  ];
+  
+  let pushEl = null;
+  for (const id of pushElements) {
+    pushEl = document.getElementById(id);
+    if (pushEl) break;
+  }
+  
+  if (!pushEl) return;
+  
+  // Update message
+  if (pushEl.innerText !== undefined) {
+    pushEl.innerText = msg;
+  }
+  
+  // Apply type-specific styling
+  const parent = pushEl.parentElement;
+  if (type === '6') {
+    pushEl.style.background = '#00ff66';
+    pushEl.style.color = '#000';
+    if (parent) parent.style.background = '#00ff66';
+  } else if (type === '4') {
+    pushEl.style.background = '#00f2ff';
+    pushEl.style.color = '#000';
+    if (parent) parent.style.background = '#00f2ff';
+  } else if (type === 'W') {
+    pushEl.style.background = '#ff0000';
+    pushEl.style.color = '#fff';
+    if (parent) parent.style.background = '#ff0000';
+  }
+  
+  // Activate animation
+  pushEl.classList.add('active');
+  
+  // Auto-hide after 3.5 seconds
+  setTimeout(() => {
+    pushEl.classList.remove('active');
+  }, 3500);
+};
+
+/**
+ * Initialize auto-refresh for live scores
+ * @param {string} matchId - Match ID to fetch
+ * @param {string} apiBaseUrl - API base URL (optional)
+ * @param {number} interval - Refresh interval in ms (default 5000)
+ */
+window.initLiveScore = function(matchId, apiBaseUrl, interval = 5000) {
+  if (!matchId) {
+    console.log('No matchId provided, using sample data');
+    return;
+  }
+  
+  const baseUrl = apiBaseUrl || 'https://scorex-backend.onrender.com/api/v1';
+  
+  async function fetchAndUpdate() {
+    try {
+      const response = await fetch(`${baseUrl}/matches/${matchId}`);
+      const data = await response.json();
+      
+      if (data) {
+        // Transform API data to overlay format
+        const overlayData = {
+          team1: {
+            name: data.team1?.name || 'Team 1',
+            shortName: data.team1?.shortName || 'T1',
+            score: data.score1?.toString() || '0',
+            wickets: data.wickets1?.toString() || '0',
+            overs: data.overs1?.toString() || '0.0'
+          },
+          team2: {
+            name: data.team2?.name || 'Team 2',
+            shortName: data.team2?.shortName || 'T2',
+            score: data.score2?.toString() || '0',
+            wickets: data.wickets2?.toString() || '0',
+            overs: data.overs2?.toString() || '0.0'
+          },
+          striker: {
+            name: data.striker?.name || '',
+            runs: data.striker?.runs?.toString() || '0',
+            balls: data.striker?.balls?.toString() || '0',
+            status: data.striker?.status || ''
+          },
+          nonStriker: {
+            name: data.nonStriker?.name || '',
+            runs: data.nonStriker?.runs?.toString() || '0',
+            balls: data.nonStriker?.balls?.toString() || '0'
+          },
+          stats: {
+            currentRunRate: data.currentRunRate || '0.00',
+            requiredRunRate: data.requiredRunRate || '0.00',
+            target: data.target?.toString() || '',
+            last5Overs: data.last5Overs || ''
+          },
+          tournament: {
+            name: data.tournament?.name || ''
+          },
+          status: data.status || '',
+          result: data.result || ''
+        };
+        
+        window.updateScore(overlayData);
+      }
+    } catch (error) {
+      console.error('Error fetching live score:', error);
+    }
+  }
+  
+  // Initial fetch
+  fetchAndUpdate();
+  
+  // Set up interval
+  return setInterval(fetchAndUpdate, interval);
+};
+
+// Auto-initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const matchId = params.get('matchId');
+  const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+  
+  if (matchId) {
+    console.log('Initializing live score for match:', matchId);
+    window.initLiveScore(matchId, apiBaseUrl);
+  }
+});

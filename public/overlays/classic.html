@@ -33,15 +33,35 @@
     <div id="push-overlay"><div class="push-content" id="push-txt">OUT</div></div>
 
     <div class="bottom-edge">
-        <div class="team-block"><div>RCB</div><div style="font-size: 1rem; margin-top: -10px;">TARGET 215</div></div>
-        <div class="score-main">184/3 <span style="font-size: 1.5rem; opacity: 0.5;">(18.2)</span></div>
+        <div class="team-block">
+            <div id="team1-short">RCB</div>
+            <div id="target" style="font-size: 1rem; margin-top: -10px;">TARGET 215</div>
+        </div>
+        <div class="score-main">
+            <span id="team1-score">184</span>/<span id="team1-wickets">3</span> 
+            <span style="font-size: 1.5rem; opacity: 0.5;">(<span id="team1-overs">18.2</span>)</span>
+        </div>
         <div class="player-info">
-            <div style="text-align: right;"><div style="font-size: 2rem; font-weight: 900;">V. KOHLI</div><div style="color: var(--accent)">84(44)*</div></div>
-            <div style="text-align: right; opacity: 0.6;"><div style="font-size: 2rem; font-weight: 900;">S. GILL</div><div>12(7)</div></div>
+            <div style="text-align: right;">
+                <div id="striker-name" style="font-size: 2rem; font-weight: 900;">V. KOHLI</div>
+                <div id="striker-runs" style="color: var(--accent)">84(44)*</div>
+            </div>
+            <div style="text-align: right; opacity: 0.6;">
+                <div id="nonstriker-name" style="font-size: 2rem; font-weight: 900;">S. GILL</div>
+                <div id="nonstriker-runs">12(7)</div>
+            </div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
+
         function triggerPush(msg, type) {
             const overlay = document.getElementById('push-overlay');
             const content = document.querySelector('.push-content');

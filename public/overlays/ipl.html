@@ -22,16 +22,29 @@
 
     <div class="s-bottom">
         <div class="s-row" style="background: rgba(255,255,255,0.05);">
-            <div style="font-size: 3rem; font-weight: 900;">AUS 345/7</div>
-            <div style="font-size: 1.5rem; color: var(--gold);">88.2 OVERS</div>
+            <div style="font-size: 3rem; font-weight: 900;">
+                <span id="team1-short">AUS</span> <span id="team1-score">345</span>/<span id="team1-wickets">7</span>
+            </div>
+            <div style="font-size: 1.5rem; color: var(--gold);"><span id="team1-overs">88.2</span> OVERS</div>
         </div>
         <div class="s-row">
-            <div><b>SMITH:</b> 102* | <b>LYON:</b> 4</div>
-            <div style="opacity: 0.5;">TARGET: N/A • 1ST INNINGS</div>
+            <div>
+                <b id="striker-name">SMITH:</b> <span id="striker-runs">102*</span> | 
+                <b id="nonstriker-name">LYON:</b> <span id="nonstriker-runs">4</span>
+            </div>
+            <div id="target" style="opacity: 0.5;">TARGET: N/A • 1ST INNINGS</div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
+
         function triggerPush(msg) {
             const s = document.getElementById('push-s');
             s.innerText = msg; s.classList.add('active');
