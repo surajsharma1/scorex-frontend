@@ -28,19 +28,27 @@
     <div id="push-vel">BOWLED!</div>
 
     <div class="v-spine">
-        <div style="font-weight: 900; color: var(--red-accent);">IND</div>
-        <div class="v-score">284/5</div>
+        <div id="team1-short" style="font-weight: 900; color: var(--red-accent);">IND</div>
+        <div id="team1-score" class="v-score">284/5</div>
     </div>
 
     <div class="v-bottom">
         <div class="v-players">
-            <span>R. PANT <span style="color: var(--red-accent)">104*</span></span>
-            <span style="opacity: 0.4;">K. YADAV 15</span>
+            <span><span id="striker-name">R. PANT</span> <span style="color: var(--red-accent)">104*</span></span>
+            <span id="nonstriker-name" style="opacity: 0.4;">K. YADAV 15</span>
         </div>
-        <div style="margin-left: auto; font-size: 2rem;">OVER: 48.2</div>
+        <div style="margin-left: auto; font-size: 2rem;">OVER: <span id="team1-overs">48.2</span></div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
+
         function triggerPush(msg) {
             const v = document.getElementById('push-vel');
             v.innerText = msg; v.classList.add('active');

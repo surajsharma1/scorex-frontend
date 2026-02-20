@@ -29,16 +29,26 @@
 
     <div class="bottom-wings">
         <div class="wing-score">
-            <span style="font-size: 4rem; font-weight: 900;">WI 142/6</span>
-            <span style="margin-left: 20px; font-size: 1.5rem; color: var(--highlight);">18.2 OV</span>
+            <span style="font-size: 4rem; font-weight: 900;">
+                <span id="team1-short">WI</span> <span id="team1-score">142</span>/<span id="team1-wickets">6</span>
+            </span>
+            <span id="team1-overs" style="margin-left: 20px; font-size: 1.5rem; color: var(--highlight);">18.2 OV</span>
         </div>
         <div class="wing-players">
-            <div style="text-align: right;"><b>POORAN</b> <span style="color: var(--highlight);">82*</span></div>
-            <div style="text-align: right; opacity: 0.5;"><b>RUSSELL</b> 14</div>
+            <div style="text-align: right;"><b id="striker-name">POORAN</b> <span style="color: var(--highlight);">82*</span></div>
+            <div id="nonstriker-name" style="text-align: right; opacity: 0.5;"><b>RUSSELL</b> 14</div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
+
         function triggerPush(msg) {
             const e = document.getElementById('push-eclipse');
             document.getElementById('p-msg').innerText = msg;

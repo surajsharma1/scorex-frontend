@@ -27,16 +27,26 @@
 
     <div class="g-bottom">
         <div class="pillar"></div>
-        <div class="g-score-area">210/4</div>
+        <div class="g-score-area">
+            <span id="team1-score">210</span>/<span id="team1-wickets">4</span>
+        </div>
         <div class="pillar"></div>
         <div class="g-stats-area">
-            <div><b>STR:</b> MAXWELL 82(30)*</div>
-            <div style="opacity: 0.5;"><b>NON:</b> STOINIS 12(4)</div>
-            <div style="font-weight: 900;">19.4 OV</div>
+            <div><b>STR:</b> <span id="striker-name">MAXWELL</span> 82(30)*</div>
+            <div style="opacity: 0.5;"><b>NON:</b> <span id="nonstriker-name">STOINIS</span> 12(4)</div>
+            <div id="team1-overs" style="font-weight: 900;">19.4 OV</div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
+
         function triggerPush(msg) {
             const g = document.getElementById('push-gate');
             g.innerText = msg; g.classList.add('active');

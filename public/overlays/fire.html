@@ -160,18 +160,27 @@
 
     <div class="bottom-border-wrap">
         <div class="main-slab">
-            <div class="seg-team">IND</div>
+            <div id="team1-short" class="seg-team">IND</div>
             <div class="seg-score">
-                <span class="score-val">192/4</span>
-                <span class="over-val">18.4</span>
+                <span id="team1-score" class="score-val">192</span>/<span id="team1-wickets">4</span>
+                <span id="team1-overs" class="over-val">18.4</span>
             </div>
             <div class="seg-players">
-                <div class="p-unit"><span class="p-n">V. KOHLI</span><span class="p-s">82(44)*</span></div>
-                <div class="p-unit" style="opacity:0.5"><span class="p-n">S. GILL</span><span class="p-s">14(10)</span></div>
+                <div class="p-unit"><span id="striker-name" class="p-n">V. KOHLI</span><span class="p-s">82(44)*</span></div>
+                <div id="nonstriker-name" class="p-unit" style="opacity:0.5"><span class="p-n">S. GILL</span><span class="p-s">14(10)</span></div>
             </div>
             <div class="seg-status">NEED 24 FROM 8 BALLS</div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
+    <script>
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
+    </script>
 </body>
 </html>

@@ -32,15 +32,26 @@
     <div id="push-prism"><div class="push-box" id="p-msg">WICKET!</div></div>
 
     <div class="prism-bottom">
-        <div class="p-team">GT</div>
-        <div class="p-score">156/4 <small style="font-size: 1.5rem; color: var(--prism-cyan);">(14.2)</small></div>
+        <div id="team1-short" class="p-team">GT</div>
+        <div class="p-score">
+            <span id="team1-score">156</span>/<span id="team1-wickets">4</span> 
+            <small style="font-size: 1.5rem; color: var(--prism-cyan);">(<span id="team1-overs">14.2</span>)</small>
+        </div>
         <div class="p-stats">
-            <div style="font-size: 1.8rem;">S. GILL <span style="color: var(--prism-cyan)">74*(42)</span></div>
-            <div style="font-size: 1.8rem; opacity: 0.5;">D. MILLER 12(9)</div>
+            <div style="font-size: 1.8rem;"><span id="striker-name">S. GILL</span> <span style="color: var(--prism-cyan)">74*(42)</span></div>
+            <div id="nonstriker-name" style="font-size: 1.8rem; opacity: 0.5;">D. MILLER 12(9)</div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
+
         function triggerPush(msg) {
             const el = document.getElementById('push-prism');
             document.getElementById('p-msg').innerText = msg;
