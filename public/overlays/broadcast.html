@@ -21,7 +21,26 @@
             background: transparent;
         }
 
-        /* --- SCORE BUG (Bottom Left) --- */
+        /* Tournament Header */
+        .tournament-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-dark);
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            border-bottom: 3px solid var(--accent-blue);
+        }
+        .tournament-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            letter-spacing: 2px;
+        }
+
+        /* SCORE BUG */
         #score-bug {
             position: absolute;
             bottom: 50px;
@@ -52,7 +71,7 @@
             backdrop-filter: blur(5px);
         }
 
-        /* --- BALL TRACKER (Bottom Right) --- */
+        /* BALL TRACKER */
         #performance-ribbon {
             position: absolute;
             bottom: 50px;
@@ -80,7 +99,7 @@
         .six { background: #2ecc71; color: white; }
         .out { background: var(--wicket-red); color: white; }
 
-        /* --- WICKET OVERLAY (Center) --- */
+        /* WICKET OVERLAY */
         #wicket-alert {
             position: absolute;
             top: 40%;
@@ -100,11 +119,16 @@
 </head>
 <body>
 
-    <div id="wicket-alert">WICKET!</div>
+    <!-- Tournament Header -->
+    <div class="tournament-header">
+        <div class="tournament-name" id="tournament-name">INDIAN PREMIER LEAGUE 2024</div>
+    </div>
+
+    <div id="wicket-alert" id="push-engine">WICKET!</div>
 
     <div id="score-bug">
         <div class="main-bar">
-            <div id="team1-name">INDIA</div>
+            <div class="team-name" id="team1-name">INDIA</div>
             <div class="score-row">
                 <span id="team1-score">142</span>/<span id="team1-wickets">3</span>
                 <span class="overs-text">(<span id="team1-overs">18.2</span>)</span>

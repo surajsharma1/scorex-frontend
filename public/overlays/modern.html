@@ -23,25 +23,33 @@
 </head>
 <body>
     <div class="top-slab">
-        <div class="tournament-pill">ICC CHAMPIONS TROPHY</div>
+        <div class="tournament-pill" id="tournament-name">ICC CHAMPIONS TROPHY</div>
         <span style="margin-left: auto; font-size: 1.5rem; letter-spacing: 5px;">LIVE FROM THE OVAL</span>
     </div>
 
-    <div id="push-monolith">CAUGHT OUT</div>
+    <div id="push-monolith" id="push-engine">CAUGHT OUT</div>
 
     <div class="bottom-monolith">
         <div class="score-block">
-            <div style="font-size: 1.5rem; font-weight: 700;">SOUTH AFRICA</div>
-            <div style="font-size: 4.5rem; font-weight: 900; line-height: 1;">184/3</div>
+            <div style="font-size: 1.5rem; font-weight: 700;" id="team1-name">SOUTH AFRICA</div>
+            <div style="font-size: 4.5rem; font-weight: 900; line-height: 1;" id="team1-score">184/3</div>
         </div>
         <div class="stats-area">
-            <div><span style="color:var(--accent)">Q. DE KOCK</span> 84(44)*</div>
-            <div style="opacity: 0.5;">D. MILLER 12(7)</div>
-            <div style="font-weight: 900; border-left: 2px solid #333; padding-left: 30px;">18.4 OV</div>
+            <div><span style="color:var(--accent)" id="striker-name">Q. DE KOCK</span> <span id="striker-runs">84</span>(<span id="striker-balls">44</span>)*</div>
+            <div style="opacity: 0.5;" id="nonstriker-name">D. MILLER 12(7)</div>
+            <div style="font-weight: 900; border-left: 2px solid #333; padding-left: 30px;" id="team1-overs">18.4 OV</div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
+
         function triggerPush(msg) {
             const el = document.getElementById('push-monolith');
             el.innerText = msg; el.classList.add('active');
