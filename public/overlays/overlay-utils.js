@@ -543,3 +543,22 @@ window.postWicketEvent = function(message) {
   channel.postMessage({ type: 'WICKET', message: message || 'OUT!' });
   channel.close();
 };
+
+// Auto-initialize BroadcastChannel when overlay-utils.js loads
+// This ensures all overlays get real-time updates without needing explicit init
+(function() {
+  // Wait for DOM to be ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBC);
+  } else {
+    initBC();
+  }
+  
+  function initBC() {
+    // Small delay to ensure other scripts are loaded
+    setTimeout(function() {
+      window.initBroadcastChannel();
+      console.log('Auto-initialized BroadcastChannel for real-time score updates');
+    }, 100);
+  }
+})();

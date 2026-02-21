@@ -45,8 +45,19 @@ const outTypes: { type: OutType; label: string; short: string }[] = [
   { type: 'timedOut', label: 'Timed Out', short: 'TIMED OUT' },
 ];
 
-// Scoring options for extras modal
-const extraRunOptions = [1, 2, 3, 4, 5, 6];
+// Scoring options for extras modal (0 to 6)
+const extraRunOptions = [0, 1, 2, 3, 4, 5, 6];
+
+// Labels for extra run options
+const extraRunLabels: Record<number, string> = {
+  0: 'Dot',
+  1: 'Single',
+  2: 'Double',
+  3: 'Triple',
+  4: 'Four',
+  5: 'Five',
+  6: 'Six',
+};
 
 // Helper to format overs display (e.g., 10.2)
 const formatOvers = (overs: number, balls: number) => `${overs}.${balls}`;
@@ -517,25 +528,25 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
         onClick={() => handleExtra('wide')}
         className="py-3 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-semibold text-white"
       >
-        Wide (+1)
+        Wide
       </button>
       <button
         onClick={() => handleExtra('noBall')}
         className="py-3 bg-orange-600 hover:bg-orange-500 rounded-lg font-semibold text-white"
       >
-        No Ball (+1)
+        No Ball
       </button>
       <button
         onClick={() => handleExtra('bye')}
         className="py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-semibold text-white"
       >
-        Bye (+1)
+        Bye
       </button>
       <button
         onClick={() => handleExtra('legBye')}
         className="py-3 bg-pink-600 hover:bg-pink-500 rounded-lg font-semibold text-white"
       >
-        Leg Bye (+1)
+        Leg Bye
       </button>
     </div>
   );
@@ -597,9 +608,10 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
               <button
                 key={run}
                 onClick={() => addExtraRuns(run)}
-                className="py-4 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-bold text-xl text-white"
+                className="py-4 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-bold text-xl text-white flex flex-col items-center"
               >
-                +{run}
+                <span>+{run}</span>
+                <span className="text-xs font-normal">{extraRunLabels[run]}</span>
               </button>
             ))}
           </div>

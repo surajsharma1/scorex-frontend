@@ -20,18 +20,26 @@
     </style>
 </head>
 <body>
-    <div class="top-hex">ICC T20 WORLD CUP • BARBADOS</div>
-    <div id="push-ev">SIXER!</div>
+    <div class="top-hex" id="tournament-name">ICC T20 WORLD CUP • BARBADOS</div>
+    <div id="push-ev" id="push-txt">SIXER!</div>
 
     <div class="bottom-full">
-        <div class="hex-score">WI 145/4</div>
+        <div class="hex-score">
+            <span id="team1-name">WI</span> <span id="team1-score">145/4</span>
+        </div>
         <div class="hex-data">
-            <div style="font-size: 1.5rem;"><b>POORAN:</b> 54(30)* | <b>RUSSELL:</b> 12(4)</div>
-            <div style="font-size: 1.8rem; color: var(--sub);">OVERS: 14.2</div>
+            <div style="font-size: 1.5rem;">
+                <b id="striker-name">POORAN:</b> 54(30)* | <b id="nonstriker-name">RUSSELL:</b> 12(4)
+            </div>
+            <div style="font-size: 1.8rem; color: var(--sub);">OVERS: <span id="team1-overs">14.2</span></div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Initialize BroadcastChannel for real-time score updates from ScoreboardUpdate
+        window.initBroadcastChannel();
+
         function triggerPush(msg) {
             const e = document.getElementById('push-ev');
             e.innerText = msg; e.classList.add('active');

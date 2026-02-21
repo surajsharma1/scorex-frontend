@@ -23,21 +23,28 @@
 </head>
 <body>
     <div class="top-wing">
-        <div class="tw-left">BIG BASH LEAGUE 2026 | FINAL</div>
+        <div class="tw-left" id="tournament-name">BIG BASH LEAGUE 2026 | FINAL</div>
         <div class="tw-right">LIVE REPLAY</div>
     </div>
 
     <div id="push-wrap"><div class="push-box" id="p-txt">BOWLED!</div></div>
 
     <div class="bottom-wing">
-        <div class="bw-score">AUS 212/5 <small style="font-size: 1.5rem; margin-left: 10px;">18.4</small></div>
+        <div class="bw-score">
+            <span id="team1-name">AUS</span> <span id="team1-score">212/5</span> 
+            <small style="font-size: 1.5rem; margin-left: 10px;" id="team1-overs">18.4</small>
+        </div>
         <div class="bw-players">
-            <span>STRIKER: <b>T. HEAD 82*</b></span>
-            <span style="opacity: 0.5;">NON: <b>G. MAXWELL 14</b></span>
+            <span>STRIKER: <b id="striker-name">T. HEAD 82*</b></span>
+            <span style="opacity: 0.5;">NON: <b id="nonstriker-name">G. MAXWELL 14</b></span>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Initialize BroadcastChannel for real-time score updates from ScoreboardUpdate
+        window.initBroadcastChannel();
+
         function triggerPush(msg) {
             const w = document.getElementById('push-wrap');
             document.getElementById('p-txt').innerText = msg;
