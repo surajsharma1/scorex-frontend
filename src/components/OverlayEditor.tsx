@@ -559,11 +559,15 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
     // Use direct Vercel URL format to avoid cross-origin issues
     // URL format: https://scorex-live.vercel.app/overlays/{template}.html?matchId={matchId}&apiBaseUrl={apiBaseUrl}
     const frontendUrl = 'https://scorex-live.vercel.app';
-    const templateName = overlay.template || 'modern';
+    // Make sure template has .html extension
+    let templateName = overlay.template || 'vintage';
+    if (!templateName.endsWith('.html')) {
+      templateName = templateName + '.html';
+    }
     const matchId = overlay.match?._id || overlay.match || '';
     const apiBaseUrl = 'https://scorex-backend.onrender.com/api/v1';
     
-    return `${frontendUrl}/overlays/${templateName}.html?matchId=${matchId}&apiBaseUrl=${encodeURIComponent(apiBaseUrl)}`;
+    return `${frontendUrl}/overlays/${templateName}?matchId=${matchId}&apiBaseUrl=${encodeURIComponent(apiBaseUrl)}`;
   };
 
   const handlePreview = async (overlay: Overlay) => {
