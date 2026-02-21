@@ -91,36 +91,40 @@ export default function OverlayForm() {
               required
             >
               <option value="">Select Template</option>
-              <option value="modern">Modern</option>
-              <option value="classic">Classic</option>
-              <option value="dark">Dark</option>
-              <option value="neon">Neon</option>
-              <option value="cyberpunk">Cyberpunk</option>
-              <option value="minimalist">Minimalist</option>
-              <option value="glass2">Glass</option>
-              <option value="animated">Animated</option>
-              <option value="aurora">Aurora</option>
-              <option value="broadcast">Broadcast</option>
-              <option value="chalkboard">Chalkboard</option>
-              <option value="crystal">Crystal</option>
-              <option value="desert">Desert</option>
-              <option value="fire">Fire</option>
-              <option value="forest">Forest</option>
-              <option value="gradient">Gradient</option>
-              <option value="holographic">Holographic</option>
-              <option value="ipl">IPL</option>
-              <option value="metallic">Metallic</option>
-              <option value="metallic2">Metallic 2</option>
-              <option value="minimal-dark">Minimal Dark</option>
-              <option value="neon2">Neon 2</option>
-              <option value="ocean">Ocean</option>
-              <option value="particle">Particle</option>
-              <option value="retro">Retro</option>
-              <option value="space">Space</option>
-              <option value="storm">Storm</option>
-              <option value="sunset">Sunset</option>
-              <option value="vintage">Vintage</option>
-              <option value="wooden2">Wooden</option>
+              {/* Free Templates */}
+              <option value="vintage.html">Vintage Cricket</option>
+              <option value="gate-minimal-dark.html">Minimal Dark</option>
+              <option value="slate-gold-ashes.html">Slate Gold</option>
+              <option value="minimalist-split-bar.html">Minimalist Split</option>
+              {/* Premium Basic */}
+              <option value="gradient-monolith.html">Gradient Monolith</option>
+              <option value="neon-vector-replay.html">Neon Vector</option>
+              <option value="circuit-node-neon.html">Circuit Node</option>
+              <option value="cyber-shield.html">Cyber Shield</option>
+              <option value="hex-perimeter.html">Hex Perimeter</option>
+              <option value="grid-sunset-red.html">Grid Sunset</option>
+              <option value="titan-perimeter.html">Titan Perimeter</option>
+              <option value="prism-pop-desert.html">Prism Pop</option>
+              <option value="modern-monolith-slab.html">Modern Monolith</option>
+              {/* Premium Designer */}
+              <option value="apex-cradle-gold.html">Apex Cradle Gold</option>
+              <option value="aurora-glass-bbl.html">Aurora Glass BBL</option>
+              <option value="mono-cyberpunk.html">Mono Cyberpunk</option>
+              <option value="storm-flare-rail.html">Storm Flare</option>
+              <option value="titanium-dark-ribbon.html">Titanium Dark</option>
+              <option value="retro-glitch-hud.html">Retro Glitch HUD</option>
+              <option value="wooden2.html">Wooden Board</option>
+              <option value="interceptor-orange.html">Interceptor Orange</option>
+              <option value="metallic-eclipse-lens.html">Metallic Eclipse</option>
+              <option value="red-spine-replay.html">Red Spine Replay</option>
+              <option value="Double-Rail-Broadcast.html">Double Rail Broadcast</option>
+              <option value="rail-world-broadcast.html">Rail World</option>
+              <option value="news-ticker-broadcast.html">News Ticker Broadcast</option>
+              <option value="vertical-slice-ashes.html">Vertical Slice Ashes</option>
+              <option value="velocity-frame-v2.html">Velocity Frame V2</option>
+              <option value="velocity-frame.html">Velocity Frame</option>
+              <option value="fire-win-predictor.html">Fire Win Predictor</option>
+              <option value="broadcast-score-bug.html">Broadcast Score Bug</option>
             </select>
           </div>
           <div>

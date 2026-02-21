@@ -579,8 +579,13 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
       console.error('Error previewing overlay:', error);
       // Fallback to direct template access if backend fails
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
-      const templateUrl = `/overlays/${overlay.template}.html`;
-      const matchId = overlay.match?._id || '';
+      // Ensure template has .html extension
+      let templateName = overlay.template || 'vintage';
+      if (!templateName.endsWith('.html')) {
+        templateName = templateName + '.html';
+      }
+      const templateUrl = `/overlays/${templateName}`;
+      const matchId = overlay.match?._id || overlay.match || '';
       window.open(`${templateUrl}?matchId=${matchId}&apiBaseUrl=${encodeURIComponent(apiBaseUrl)}`, '_blank');
     }
   };
