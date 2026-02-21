@@ -107,6 +107,16 @@ export default function TournamentDetail() {
     };
   }
 
+  // Safe array length check helper
+  const safeLength = (arr: any[] | undefined | null): number => {
+    return Array.isArray(arr) ? arr.length : 0;
+  };
+
+  // Safe array access helper
+  const safeAccess = <T,>(arr: T[] | undefined | null, index: number): T | undefined => {
+    return Array.isArray(arr) ? arr[index] : undefined;
+  };
+
   // ============================================
   // CRICKET ENGINE CORE LOGIC
   // ============================================
@@ -258,13 +268,24 @@ export default function TournamentDetail() {
     }
   };
 
+  // Helper function to safely extract array from API response
+  const extractArray = (response: any): any[] => {
+    if (!response) return [];
+    if (Array.isArray(response.data)) return response.data;
+    if (Array.isArray(response.data?.matches)) return response.data.matches;
+    if (Array.isArray(response.data?.teams)) return response.data.teams;
+    if (Array.isArray(response)) return response;
+    return [];
+  };
+
   const fetchMatches = async () => {
     if (!id) return;
     try {
       const response = await matchAPI.getMatches(id);
-      const matchesArray = Array.isArray(response.data) ? response.data : [];
+      const matchesArray = extractArray(response);
       setMatches(matchesArray);
     } catch (error) {
+      console.error('Failed to fetch matches:', error);
       setError('Failed to fetch matches');
       setMatches([]);
     }
@@ -274,9 +295,10 @@ export default function TournamentDetail() {
     if (!id) return;
     try {
       const response = await teamAPI.getTeams(id);
-      const teamsArray = Array.isArray(response.data) ? response.data : [];
+      const teamsArray = extractArray(response);
       setTeams(teamsArray);
     } catch (error) {
+      console.error('Failed to fetch teams:', error);
       setError('Failed to fetch teams');
       setTeams([]);
     }
@@ -582,11 +604,11 @@ export default function TournamentDetail() {
             <div className="mb-4">
               <h4 className="text-sm font-medium text-gray-400 mb-2">LEG BYE</h4>
               <div className="grid grid-cols-6 gap-2">
-                <button onClick={() => processDelivery(0, 'legBye')} class="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+0</button>
-                <button onClick={() => processDelivery(1, 'legBye')} class="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+1</button>
-                <button onClick={() => processDelivery(2, 'legBye')} class="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+2</button>
-                <button onClick={() => processDelivery(3, 'legBye')} class="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+3</button>
-                <button onClick={() => processDelivery(4, 'legBye')} class="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+4</button>
+                <button onClick={() => processDelivery(0, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+0</button>
+                <button onClick={() => processDelivery(1, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+1</button>
+                <button onClick={() => processDelivery(2, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+2</button>
+                <button onClick={() => processDelivery(3, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+3</button>
+                <button onClick={() => processDelivery(4, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+4</button>
                 <button onClick={() => openWicketModal('runOut', false)} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">LB+Wkt</button>
               </div>
             </div>
