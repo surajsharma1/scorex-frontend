@@ -15,6 +15,10 @@
       "destination": "https://scorex-backend.onrender.com/api/v1/$1"
     },
     {
+      "source": "/overlays/(.*)",
+      "destination": "/overlays/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
