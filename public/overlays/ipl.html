@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <script src="overlay-utils.js"></script>
     <style>
         :root { --slate: linear-gradient(180deg, #444, #222); --gold: #d4af37; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: #fff; }
@@ -17,37 +18,47 @@
     </style>
 </head>
 <body>
-    <div class="s-top">THE ASHES • LIVE FROM LORD'S</div>
+    <!-- Dynamic Tournament Name -->
+    <div class="s-top" id="tournament-name">THE ASHES • LIVE FROM LORD'S</div>
     <div id="push-s">OUT - LBW</div>
 
     <div class="s-bottom">
         <div class="s-row" style="background: rgba(255,255,255,0.05);">
             <div style="font-size: 3rem; font-weight: 900;">
+                <!-- Dynamic Team 1 -->
                 <span id="team1-short">AUS</span> <span id="team1-score">345</span>/<span id="team1-wickets">7</span>
             </div>
+            <!-- Dynamic Overs -->
             <div style="font-size: 1.5rem; color: var(--gold);"><span id="team1-overs">88.2</span> OVERS</div>
         </div>
         <div class="s-row">
+            <!-- Dynamic Striker and Non-Striker -->
             <div>
-                <b id="striker-name">SMITH:</b> <span id="striker-runs">102*</span> | 
+                <b id="striker-name">SMITH:</b> <span id="striker-runs">102</span>* | 
                 <b id="nonstriker-name">LYON:</b> <span id="nonstriker-runs">4</span>
             </div>
+            <!-- Dynamic Target -->
             <div id="target" style="opacity: 0.5;">TARGET: N/A • 1ST INNINGS</div>
         </div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
         // Auto-initialize with matchId from URL
-        const params = new URLSearchParams(window.location.search);
-        const matchId = params.get('matchId');
-        if (matchId) {
-            window.initLiveScore(matchId);
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const matchId = params.get('matchId');
+            const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+            
+            if (matchId) {
+                console.log('Initializing live score for match:', matchId);
+                window.initLiveScore(matchId, apiBaseUrl);
+            }
+        });
 
-        function triggerPush(msg) {
+        function triggerPush(msg, type) {
             const s = document.getElementById('push-s');
-            s.innerText = msg; s.classList.add('active');
+            s.innerText = msg; 
+            s.classList.add('active');
             setTimeout(() => s.classList.remove('active'), 3000);
         }
     </script>

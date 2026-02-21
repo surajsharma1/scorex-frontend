@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Design 1 - Titan Perimeter</title>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,900&display=swap" rel="stylesheet">
+    <script src="overlay-utils.js"></script>
     <style>
         :root { --primary: #001f3f; --accent: #f9cd05; --out-red: #d31027; --six: #2ecc71; --four: #00f2ff; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
@@ -25,22 +26,26 @@
     </style>
 </head>
 <body>
+    <!-- Dynamic Tournament Name -->
     <div class="top-edge">
-        <span style="font-size: 2rem; font-weight: 900; letter-spacing: 5px;">TATA IPL 2026</span>
+        <span style="font-size: 2rem; font-weight: 900; letter-spacing: 5px;" id="tournament-name">TATA IPL 2026</span>
         <span class="mode-live">LIVE</span>
     </div>
 
     <div id="push-overlay"><div class="push-content" id="push-txt">OUT</div></div>
 
     <div class="bottom-edge">
+        <!-- Dynamic Team -->
         <div class="team-block">
             <div id="team1-short">RCB</div>
             <div id="target" style="font-size: 1rem; margin-top: -10px;">TARGET 215</div>
         </div>
+        <!-- Dynamic Score -->
         <div class="score-main">
             <span id="team1-score">184</span>/<span id="team1-wickets">3</span> 
             <span style="font-size: 1.5rem; opacity: 0.5;">(<span id="team1-overs">18.2</span>)</span>
         </div>
+        <!-- Dynamic Players -->
         <div class="player-info">
             <div style="text-align: right;">
                 <div id="striker-name" style="font-size: 2rem; font-weight: 900;">V. KOHLI</div>
@@ -53,14 +58,18 @@
         </div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
         // Auto-initialize with matchId from URL
-        const params = new URLSearchParams(window.location.search);
-        const matchId = params.get('matchId');
-        if (matchId) {
-            window.initLiveScore(matchId);
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const matchId = params.get('matchId');
+            const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+            
+            if (matchId) {
+                console.log('Initializing live score for match:', matchId);
+                window.initLiveScore(matchId, apiBaseUrl);
+            }
+        });
 
         function triggerPush(msg, type) {
             const overlay = document.getElementById('push-overlay');

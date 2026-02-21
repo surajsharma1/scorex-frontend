@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <script src="overlay-utils.js"></script>
     <style>
         :root { --vector: #00ff88; --bg: #0d0d0d; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; }
@@ -21,18 +22,22 @@
     </style>
 </head>
 <body>
-    <div class="top-vector">SYDNEY SIXERS vs PERTH SCORCHERS • REPLAY MODE</div>
+    <!-- Dynamic Tournament Name -->
+    <div class="top-vector" id="tournament-name">SYDNEY SIXERS vs PERTH SCORCHERS • REPLAY MODE</div>
     <div id="push-vector">SIXER!</div>
 
     <div class="bottom-vector">
+        <!-- Dynamic Team 1 -->
         <div class="v-left">
             <span id="team1-short">PER</span> <span id="team1-score">210</span>/<span id="team1-wickets">4</span>
         </div>
         <div class="v-right">
+            <!-- Dynamic Striker -->
             <div style="text-align: right;">
                 <div style="font-size: 1rem; color: var(--vector);">BATTER</div>
                 <div id="striker-name" style="font-size: 2rem;">J. INGLIS 54*</div>
             </div>
+            <!-- Dynamic Overs -->
             <div style="text-align: right;">
                 <div style="font-size: 1rem; color: var(--vector);">OVER</div>
                 <div id="team1-overs" style="font-size: 2rem;">19.2</div>
@@ -40,18 +45,23 @@
         </div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
         // Auto-initialize with matchId from URL
-        const params = new URLSearchParams(window.location.search);
-        const matchId = params.get('matchId');
-        if (matchId) {
-            window.initLiveScore(matchId);
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const matchId = params.get('matchId');
+            const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+            
+            if (matchId) {
+                console.log('Initializing live score for match:', matchId);
+                window.initLiveScore(matchId, apiBaseUrl);
+            }
+        });
 
-        function triggerPush(msg) {
+        function triggerPush(msg, type) {
             const v = document.getElementById('push-vector');
-            v.innerText = msg; v.classList.add('active');
+            v.innerText = msg; 
+            v.classList.add('active');
             setTimeout(() => v.classList.remove('active'), 3000);
         }
     </script>

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
+    <script src="overlay-utils.js"></script>
     <style>
         :root { --aurora: linear-gradient(90deg, #ff00cc, #3333ff); --bg: rgba(10, 10, 15, 0.9); }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
@@ -21,27 +22,39 @@
     </style>
 </head>
 <body>
+    <!-- Dynamic Tournament Name -->
     <div class="top-edge">
-        <span style="letter-spacing: 5px; font-weight: 900;">BBL 2026 | THE FINAL</span>
+        <span style="letter-spacing: 5px; font-weight: 900;" id="tournament-name">BBL 2026 | THE FINAL</span>
         <span style="background: white; color: black; padding: 0 15px; font-weight: 900;">LIVE</span>
     </div>
 
     <div id="push-aura"><div class="push-txt" id="p-msg">SIX!</div></div>
 
     <div class="bottom-edge">
+        <!-- Dynamic Score -->
         <div id="team1-score" class="score-display">SYD 184/3</div>
+        <!-- Dynamic Overs -->
         <div style="margin-left: 30px; font-size: 1.5rem; opacity: 0.7;"><span id="team1-overs">18.4</span> OVERS</div>
+        <!-- Dynamic Players -->
         <div style="margin-left: auto; text-align: right; display: flex; gap: 50px;">
             <div><div id="striker-name" style="font-size: 2rem; font-weight: 900;">SMITH</div><div style="color:#3333ff">78*(40)</div></div>
             <div id="nonstriker-name" style="opacity: 0.5;"><div style="font-size: 2rem; font-weight: 900;">HEAD</div><div>12(5)</div></div>
         </div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('matchId')) { window.initLiveScore(params.get('matchId')); }
-        function triggerPush(msg) {
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const matchId = params.get('matchId');
+            const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+            
+            if (matchId) {
+                console.log('Initializing live score for match:', matchId);
+                window.initLiveScore(matchId, apiBaseUrl);
+            }
+        });
+
+        function triggerPush(msg, type) {
             const a = document.getElementById('push-aura');
             document.getElementById('p-msg').innerText = msg;
             a.classList.add('active'); setTimeout(() => a.classList.remove('active'), 3000);

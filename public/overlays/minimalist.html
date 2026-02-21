@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <script src="overlay-utils.js"></script>
     <style>
         body { margin: 0; background: transparent; font-family: 'Barlow Condensed', sans-serif; width: 1920px; height: 1080px; overflow: hidden; color: white; }
         .mode-tag { position: absolute; top: 40px; right: 40px; background: #000; padding: 5px 20px; border: 1px solid #fff; font-weight: 900; }
@@ -15,25 +16,32 @@
 <body>
     <div class="mode-tag">LIVE - REPLAY</div>
     <div id="event-toast">BOWLED!</div>
+    <!-- Dynamic Tournament Name -->
     <div class="bottom-left-bar">
-        <div style="font-size:0.8rem; color:#f9cd05">TOURNAMENT: ASHES SERIES</div>
+        <div style="font-size:0.8rem; color:#f9cd05" id="tournament-name">TOURNAMENT: ASHES SERIES</div>
         <div style="font-size:2rem; font-weight:900">
+            <!-- Dynamic Team 1 -->
             <span id="team1-short">ENG</span>: <span id="team1-score">312</span>/<span id="team1-wickets">6</span> (<span id="team1-overs">88.4</span>)
         </div>
     </div>
+    <!-- Dynamic Striker and Non-Striker -->
     <div class="bottom-right-bar">
         <div id="striker-name" style="font-size:1.5rem">BEN STOKES: 102*</div>
         <div id="nonstriker-name" style="font-size:0.8rem; opacity:0.6">JOE ROOT: 45</div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
         // Auto-initialize with matchId from URL
-        const params = new URLSearchParams(window.location.search);
-        const matchId = params.get('matchId');
-        if (matchId) {
-            window.initLiveScore(matchId);
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const matchId = params.get('matchId');
+            const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+            
+            if (matchId) {
+                console.log('Initializing live score for match:', matchId);
+                window.initLiveScore(matchId, apiBaseUrl);
+            }
+        });
     </script>
 </body>
 </html>

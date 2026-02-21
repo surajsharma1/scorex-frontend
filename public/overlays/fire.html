@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,900&display=swap" rel="stylesheet">
+    <script src="overlay-utils.js"></script>
     <style>
         :root {
             --ipl-blue: #001f3f;
@@ -121,50 +122,28 @@
         .phase-title { font-size: 0.8rem; opacity: 0.7; letter-spacing: 1px; }
         .phase-val { font-size: 1.5rem; font-weight: 900; color: var(--accent); }
 
-        /* --- 4. TOP-RIGHT WIN PROBABILITY --- */
-        #win-prob {
-            position: absolute;
-            top: 40px;
-            right: 40px;
-            width: 250px;
-            height: 10px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 5px;
-            overflow: hidden;
-            display: flex;
-        }
-        .prob-team1 { width: 65%; background: var(--ipl-gold); height: 100%; transition: 1s; }
-        .prob-team2 { width: 35%; background: var(--accent); height: 100%; transition: 1s; }
-        .prob-label {
-            position: absolute; top: -25px; right: 0; font-size: 0.9rem; color: #fff; font-weight: 700;
-        }
-
     </style>
 </head>
 <body>
 
-    <div id="top-info">1ST T20I • CHENNAI • LIVE</div>
+    <!-- Dynamic Tournament Name -->
+    <div id="top-info" id="tournament-name">1ST T20I • CHENNAI • LIVE</div>
 
     <div id="phase-box">
         <div class="phase-title">MATCH PHASE</div>
         <div class="phase-val">POWERPLAY 1</div>
     </div>
 
-    <div style="position:absolute; top:40px; right:40px;">
-        <div class="prob-label">WIN PREDICTOR: IND 65% | AUS 35%</div>
-        <div id="win-prob">
-            <div class="prob-team1"></div>
-            <div class="prob-team2"></div>
-        </div>
-    </div>
-
     <div class="bottom-border-wrap">
         <div class="main-slab">
+            <!-- Dynamic Team -->
             <div id="team1-short" class="seg-team">IND</div>
+            <!-- Dynamic Score -->
             <div class="seg-score">
                 <span id="team1-score" class="score-val">192</span>/<span id="team1-wickets">4</span>
                 <span id="team1-overs" class="over-val">18.4</span>
             </div>
+            <!-- Dynamic Players -->
             <div class="seg-players">
                 <div class="p-unit"><span id="striker-name" class="p-n">V. KOHLI</span><span class="p-s">82(44)*</span></div>
                 <div id="nonstriker-name" class="p-unit" style="opacity:0.5"><span class="p-n">S. GILL</span><span class="p-s">14(10)</span></div>
@@ -173,14 +152,18 @@
         </div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
         // Auto-initialize with matchId from URL
-        const params = new URLSearchParams(window.location.search);
-        const matchId = params.get('matchId');
-        if (matchId) {
-            window.initLiveScore(matchId);
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const matchId = params.get('matchId');
+            const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+            
+            if (matchId) {
+                console.log('Initializing live score for match:', matchId);
+                window.initLiveScore(matchId, apiBaseUrl);
+            }
+        });
     </script>
 </body>
 </html>

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
+    <script src="overlay-utils.js"></script>
     <style>
         :root { --apex-gold: #f9cd05; --apex-navy: #001f3f; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
@@ -23,26 +24,37 @@
     </style>
 </head>
 <body>
-    <div class="top-apex"><div class="tournament-title">T20 WORLD CHAMPIONSHIP</div></div>
+    <!-- Dynamic Tournament Name -->
+    <div class="top-apex"><div class="tournament-title" id="tournament-name">T20 WORLD CHAMPIONSHIP</div></div>
 
     <div id="push-apex"><div class="push-box" id="p-msg">OUT!</div></div>
 
     <div class="bottom-cradle">
+        <!-- Dynamic Score -->
         <div class="cradle-left">
             <span style="font-size: 4rem; font-weight: 900; color: var(--apex-gold);"><span id="team1-score">IND 242</span>/<span id="team1-wickets">4</span></span>
             <span style="margin-left: 20px; font-size: 1.5rem; opacity: 0.6;">(<span id="team1-overs">19.2</span>)</span>
         </div>
+        <!-- Dynamic Players -->
         <div class="cradle-right">
             <div style="text-align: right; margin-right: 40px;"><b id="striker-name">SKY</b><br>104(48)*</div>
             <div id="nonstriker-name" style="text-align: right;"><b>HARDIK</b><br>15(6)</div>
         </div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('matchId')) { window.initLiveScore(params.get('matchId')); }
-        function triggerPush(msg) {
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const matchId = params.get('matchId');
+            const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+            
+            if (matchId) {
+                console.log('Initializing live score for match:', matchId);
+                window.initLiveScore(matchId, apiBaseUrl);
+            }
+        });
+
+        function triggerPush(msg, type) {
             const a = document.getElementById('push-apex');
             document.getElementById('p-msg').innerText = msg;
             a.classList.add('active'); setTimeout(() => a.classList.remove('active'), 3000);

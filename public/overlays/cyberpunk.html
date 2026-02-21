@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <script src="overlay-utils.js"></script>
     <style>
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: #fff; }
         
@@ -17,10 +18,12 @@
     </style>
 </head>
 <body>
-    <div class="top-shield">SA20 LEAGUE | CAPE TOWN | REPLAY</div>
+    <!-- Dynamic Tournament Name -->
+    <div class="top-shield" id="tournament-name">SA20 LEAGUE | CAPE TOWN | REPLAY</div>
     <div id="push-shield">WICKET!</div>
 
     <div class="bottom-shield">
+        <!-- Dynamic Team -->
         <div class="score-side">
             <div id="team1-name" style="font-size: 1.2rem; font-weight: 900;">JOBURG SUPER KINGS</div>
             <div style="font-size: 3.5rem; font-weight: 900; line-height: 0.8;">
@@ -28,6 +31,7 @@
                 <small style="font-size: 1.2rem;">(<span id="team1-overs">17.2</span>)</small>
             </div>
         </div>
+        <!-- Dynamic Players -->
         <div class="player-side">
             <div>
                 <div style="color:#c6ff00; font-size: 0.8rem;">BATTER</div>
@@ -40,18 +44,23 @@
         </div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
         // Auto-initialize with matchId from URL
-        const params = new URLSearchParams(window.location.search);
-        const matchId = params.get('matchId');
-        if (matchId) {
-            window.initLiveScore(matchId);
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const matchId = params.get('matchId');
+            const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+            
+            if (matchId) {
+                console.log('Initializing live score for match:', matchId);
+                window.initLiveScore(matchId, apiBaseUrl);
+            }
+        });
 
-        function triggerPush(msg) {
+        function triggerPush(msg, type) {
             const s = document.getElementById('push-shield');
-            s.innerText = msg; s.classList.add('active');
+            s.innerText = msg; 
+            s.classList.add('active');
             setTimeout(() => s.classList.remove('active'), 3000);
         }
     </script>

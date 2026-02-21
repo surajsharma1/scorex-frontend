@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <script src="overlay-utils.js"></script>
     <style>
         :root { --red-accent: #ff0044; --slate: #1e1e1e; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; }
@@ -24,34 +25,44 @@
     </style>
 </head>
 <body>
-    <div class="v-top">ICC CHAMPIONS TROPHY | REPLAY MODE</div>
+    <!-- Dynamic Tournament Name -->
+    <div class="v-top" id="tournament-name">ICC CHAMPIONS TROPHY | REPLAY MODE</div>
     <div id="push-vel">BOWLED!</div>
 
     <div class="v-spine">
+        <!-- Dynamic Team -->
         <div id="team1-short" style="font-weight: 900; color: var(--red-accent);">IND</div>
+        <!-- Dynamic Score -->
         <div id="team1-score" class="v-score">284/5</div>
     </div>
 
     <div class="v-bottom">
+        <!-- Dynamic Players -->
         <div class="v-players">
             <span><span id="striker-name">R. PANT</span> <span style="color: var(--red-accent)">104*</span></span>
             <span id="nonstriker-name" style="opacity: 0.4;">K. YADAV 15</span>
         </div>
+        <!-- Dynamic Overs -->
         <div style="margin-left: auto; font-size: 2rem;">OVER: <span id="team1-overs">48.2</span></div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
         // Auto-initialize with matchId from URL
-        const params = new URLSearchParams(window.location.search);
-        const matchId = params.get('matchId');
-        if (matchId) {
-            window.initLiveScore(matchId);
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const matchId = params.get('matchId');
+            const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+            
+            if (matchId) {
+                console.log('Initializing live score for match:', matchId);
+                window.initLiveScore(matchId, apiBaseUrl);
+            }
+        });
 
-        function triggerPush(msg) {
+        function triggerPush(msg, type) {
             const v = document.getElementById('push-vel');
-            v.innerText = msg; v.classList.add('active');
+            v.innerText = msg; 
+            v.classList.add('active');
             setTimeout(() => v.classList.remove('active'), 3000);
         }
     </script>
