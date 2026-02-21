@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react()],
@@ -13,51 +14,46 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true, // Enable sourcemap for better debugging
+    sourcemap: true,
     minify: 'esbuild',
     chunkSizeWarningLimit: 500,
+    // Asset optimization
+    assetsInlineLimit: 4096,
+    target: 'esnext',
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vendor chunks for node_modules
           if (id.includes('node_modules')) {
-            // React core
             if (id.includes('react-dom') || id.includes('react-router-dom')) {
               return 'react-vendor';
-                      }
-            // Charts
+            }
             if (id.includes('chart.js') || id.includes('react-chartjs-2')) {
               return 'chart-vendor';
             }
-            // Icons
             if (id.includes('lucide-react')) {
               return 'lucide-vendor';
             }
-            // i18n
             if (id.includes('i18next') || id.includes('react-i18next')) {
               return 'i18n-vendor';
             }
-            // Drag and drop
             if (id.includes('@dnd-kit')) {
               return 'dnd-vendor';
             }
-            // WebSocket
             if (id.includes('socket.io-client')) {
               return 'socket-vendor';
             }
-            // PWA/Workbox
             if (id.includes('workbox')) {
               return 'workbox-vendor';
             }
-            // Analytics
             if (id.includes('@vercel/analytics')) {
               return 'analytics-vendor';
             }
-            // Axios and other HTTP
             if (id.includes('axios')) {
               return 'http-vendor';
             }
-            // Other vendor code
+            if (id.includes('@tanstack') || id.includes('react-query')) {
+              return 'query-vendor';
+            }
             return 'vendor';
           }
         }
@@ -70,4 +66,24 @@ export default defineConfig({
   css: {
     devSourcemap: false,
   },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+      '@components': resolve(__dirname, 'src/components'),
+      '@utils': resolve(__dirname, 'src/utils'),
+      '@services': resolve(__dirname, 'src/services'),
+    }
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      'socket.io-client',
+      'axios',
+      'i18next',
+      'react-i18next'
+    ],
+    exclude: ['@tanstack/react-query']
+  }
 });

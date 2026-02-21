@@ -121,6 +121,27 @@ export default function TournamentDetail() {
   // CRICKET ENGINE CORE LOGIC
   // ============================================
   
+  // Auto-save score to backend after each delivery
+  const autoSaveScore = async (inningsData: Innings, teamKey: 'team1' | 'team2') => {
+    if (!selectedMatch) return;
+    
+    try {
+      const overs = Math.floor(inningsData.totalBalls / 6) + (inningsData.totalBalls % 6) / 10;
+      await matchAPI.updateMatchScore(selectedMatch._id, {
+        score1: teamKey === 'team1' ? inningsData.totalRuns : 0,
+        score2: teamKey === 'team2' ? inningsData.totalRuns : 0,
+        wickets1: teamKey === 'team1' ? inningsData.wickets : 0,
+        wickets2: teamKey === 'team2' ? inningsData.wickets : 0,
+        overs1: teamKey === 'team1' ? parseFloat(overs.toFixed(1)) : 0,
+        overs2: teamKey === 'team2' ? parseFloat(overs.toFixed(1)) : 0,
+        status: 'ongoing'
+      });
+      console.log('Score auto-saved successfully');
+    } catch (error) {
+      console.error('Failed to auto-save score:', error);
+    }
+  };
+
   const processDelivery = (runs: number, deliveryType: 'normal' | 'wide' | 'noBall' | 'bye' | 'legBye', wicket: Dismissal = null) => {
     setScoreHistory([...scoreHistory, { ...innings }]);
     
@@ -183,6 +204,9 @@ export default function TournamentDetail() {
     }
 
     setInnings(newInnings);
+    
+    // Auto-save score after each delivery
+    autoSaveScore(newInnings, selectedTeamForUpdate);
   };
 
   // Handle wicket with selection
