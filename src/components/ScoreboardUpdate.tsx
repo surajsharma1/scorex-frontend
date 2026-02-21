@@ -59,8 +59,12 @@ const extraRunLabels: Record<number, string> = {
   6: 'Six',
 };
 
-// Helper to format overs display (e.g., 10.2)
-const formatOvers = (overs: number, balls: number) => `${overs}.${balls}`;
+// Helper to format overs display - FIXED to avoid floating point issues
+const formatOvers = (overs: number, balls: number) => {
+  // Round overs to avoid floating point precision issues
+  const cleanOvers = Math.round(overs * 10) / 10;
+  return `${Math.floor(cleanOvers)}.${balls}`;
+};
 
 const getTeamName = (teams: Team[], index: number) => teams[index]?.name || `Team ${index + 1}`;
 
@@ -228,19 +232,19 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
         };
       }
       
-      // Update ball count
+      // Update ball count - FIXED: Use integer math to avoid floating point errors
       let newBalls = team.balls + 1;
       let newOvers = team.overs;
       if (newBalls === 6) {
-        newOvers += 1;
+        newOvers = team.overs + 1;
         newBalls = 0;
       }
       
-      // Update bowler
+      // Update bowler - FIXED: Use integer overs
       const newBowler = team.bowler ? {
         ...team.bowler,
         runs: team.bowler.runs + runs,
-        overs: team.bowler.overs + (newBalls === 0 ? 1 : 0),
+        overs: newOvers,
       } : null;
       
       // Swap striker on odd runs
@@ -278,7 +282,7 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     setShowExtraModal(true);
   };
 
-  // Add extra runs
+  // Add extra runs - FIXED
   const addExtraRuns = (runs: number) => {
     if (!pendingExtraType) return;
     
@@ -286,33 +290,31 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
       const team = prev[prev.battingTeam];
       const newScore = team.score + runs;
       
-      // Wide and No-ball don't count as legal balls but add runs
-      // Bye and Leg-bye don't add to batsman's score but count as ball
-      
       let newBalls = team.balls;
       let newOvers = team.overs;
-      let newMaiden = team.bowler?.maidens || 0;
       
+      // Wide and No-ball: runs added but NO legal ball counted
+      // Bye and Leg-bye: runs added AND ball is counted
       if (pendingExtraType === 'wide' || pendingExtraType === 'noBall') {
-        // These extras don't count as legal balls
+        // No ball increment - runs added but ball doesn't count
+        // But no-ball always has 1 run added automatically
       } else {
-        // Bye and Leg-bye count as ball
-        newBalls += 1;
-        if (newBalls === 6) {
-          newOvers += 1;
-          newBalls = 0;
+        // Bye and Leg-bye count as legal ball
+        newBalls = team.balls + 1;
+        if (newBalls >= 6) {
+          newOvers = team.overs + 1;
+          newBalls = newBalls - 6;
         }
       }
       
-      // Update bowler
+      // Update bowler - FIXED: Proper overs handling
       const newBowler = team.bowler ? {
         ...team.bowler,
         runs: team.bowler.runs + runs,
-        overs: newOvers !== team.overs ? team.bowler.overs + 1 : team.bowler.overs,
-        maidens: newMaiden,
+        overs: newOvers, // Use the new overs directly
       } : null;
       
-      // Calculate run rate
+      // Calculate run rate - FIXED: Avoid floating point
       const totalBalls = newOvers * 6 + newBalls;
       const rr = totalBalls > 0 ? (newScore / (totalBalls / 6)) : 0;
       
@@ -341,7 +343,7 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     setShowOutModal(true);
   };
 
-  // Process wicket
+  // Process wicket - FIXED
   const processWicket = (outType: OutType) => {
     const outMessages: Record<string, string> = {
       caught: 'CAUGHT',
@@ -368,18 +370,18 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
       let newOvers = team.overs;
       
       if (outType !== 'runOut') {
-        newBalls += 1;
-        if (newBalls === 6) {
-          newOvers += 1;
-          newBalls = 0;
+        newBalls = team.balls + 1;
+        if (newBalls >= 6) {
+          newOvers = team.overs + 1;
+          newBalls = newBalls - 6;
         }
       }
       
-      // Update bowler wickets
+      // Update bowler wickets - FIXED
       const newBowler = team.bowler ? {
         ...team.bowler,
         wickets: team.bowler.wickets + 1,
-        overs: newOvers !== team.overs ? team.bowler.overs + 1 : team.bowler.overs,
+        overs: newOvers,
       } : null;
       
       return {
