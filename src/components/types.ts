@@ -20,15 +20,48 @@ export interface Tournament {
   status: 'upcoming' | 'active' | 'completed';
   isLive: boolean;
   liveStreamUrl?: string;
-  liveScores?: {
-    team1: { name: string; score: number; wickets: number; overs: number; balls?: number };
-    team2: { name: string; score: number; wickets: number; overs: number; balls?: number };
-    currentRunRate: number;
-    requiredRunRate: number;
-    target: number;
-    lastFiveOvers: string;
-  };
+  liveScores?: LiveScores;
   createdBy: string;
+}
+
+// Extended live scores interface for enhanced scoreboard
+export interface LiveScores {
+  team1: TeamScore;
+  team2: TeamScore;
+  battingTeam: 'team1' | 'team2';
+  currentRunRate: number;
+  requiredRunRate: number;
+  target: number;
+  lastFiveOvers: string;
+  innings?: number;
+  isChasing?: boolean;
+}
+
+export interface TeamScore {
+  name: string;
+  score: number;
+  wickets: number;
+  overs: number;
+  balls: number;
+  batsmen: Batsman[];
+  bowler: Bowler | null;
+}
+
+export interface Batsman {
+  name: string;
+  runs: number;
+  balls: number;
+  fours: number;
+  sixes: number;
+  isStriker: boolean;
+}
+
+export interface Bowler {
+  name: string;
+  overs: number;
+  maidens: number;
+  runs: number;
+  wickets: number;
 }
 
 export interface Team {

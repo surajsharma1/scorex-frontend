@@ -1,26 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Save, Coins, RotateCcw } from 'lucide-react';
+import { Save, Coins, RotateCcw, X, Target } from 'lucide-react';
 import { tournamentAPI } from '../services/api';
-import { Tournament, Team } from './types';
+import { Tournament, Team, LiveScores, Batsman, Bowler, TeamScore } from './types';
 
-type ScoringButtonType = 'wide' | 'noBall' | 'bye' | 'legBye' | null;
+// Types for cricket scoring
+type ExtraType = 'wide' | 'noBall' | 'bye' | 'legBye' | null;
+type OutType = 'caught' | 'bowled' | 'lbw' | 'stumped' | 'runOut' | 'hitWicket' | 'handledBall' | 'timedOut' | null;
 
-interface TeamScore {
+interface Player {
+  id: string;
   name: string;
-  score: number;
-  wickets: number;
-  overs: number;
-  balls: number;
-}
-
-interface LiveScores {
-  team1: TeamScore;
-  team2: TeamScore;
-  battingTeam: 'team1' | 'team2';
-  currentRunRate: number;
-  requiredRunRate: number;
-  target: number;
-  lastFiveOvers: string;
+  role: string;
 }
 
 interface ScoreboardUpdateProps {
@@ -28,17 +18,53 @@ interface ScoreboardUpdateProps {
   onUpdate: () => void;
 }
 
-const scoringOptions = [
-  { label: 'Wide', runs: 1, extraType: 'wide' },
-  { label: 'No Ball', runs: 1, extraType: 'noBall' },
-  { label: 'Bye', runs: 1, extraType: 'bye' },
-  { label: 'Leg Bye', runs: 1, extraType: 'legBye' },
+// Default players for demo (in real app, would come from team data)
+const defaultPlayers: Player[] = [
+  { id: '1', name: 'Player 1', role: 'Batsman' },
+  { id: '2', name: 'Player 2', role: 'Batsman' },
+  { id: '3', name: 'Player 3', role: 'All-rounder' },
+  { id: '4', name: 'Player 4', role: 'Batsman' },
+  { id: '5', name: 'Player 5', role: 'WK-Batsman' },
+  { id: '6', name: 'Player 6', role: 'All-rounder' },
+  { id: '7', name: 'Player 7', role: 'All-rounder' },
+  { id: '8', name: 'Player 8', role: 'Bowler' },
+  { id: '9', name: 'Player 9', role: 'Bowler' },
+  { id: '10', name: 'Player 10', role: 'Bowler' },
+  { id: '11', name: 'Player 11', role: 'Bowler' },
 ];
+
+// Out type labels
+const outTypes: { type: OutType; label: string; short: string }[] = [
+  { type: 'caught', label: 'Caught', short: 'CAUGHT' },
+  { type: 'bowled', label: 'Bowled', short: 'BOWLED' },
+  { type: 'lbw', label: 'LBW', short: 'LBW' },
+  { type: 'stumped', label: 'Stumped', short: 'STUMPED' },
+  { type: 'runOut', label: 'Run Out', short: 'RUN OUT' },
+  { type: 'hitWicket', label: 'Hit Wicket', short: 'HIT WICKET' },
+  { type: 'handledBall', label: 'Handled Ball', short: 'HANDLED' },
+  { type: 'timedOut', label: 'Timed Out', short: 'TIMED OUT' },
+];
+
+// Scoring options for extras modal
+const extraRunOptions = [1, 2, 3, 4, 5, 6];
 
 // Helper to format overs display (e.g., 10.2)
 const formatOvers = (overs: number, balls: number) => `${overs}.${balls}`;
 
 const getTeamName = (teams: Team[], index: number) => teams[index]?.name || `Team ${index + 1}`;
+
+const createDefaultBatsmen = (): Batsman[] => [
+  { name: 'Striker', runs: 0, balls: 0, fours: 0, sixes: 0, isStriker: true },
+  { name: 'Non-Striker', runs: 0, balls: 0, fours: 0, sixes: 0, isStriker: false },
+];
+
+const createDefaultBowler = (): Bowler => ({
+  name: 'Bowler',
+  overs: 0,
+  maidens: 0,
+  runs: 0,
+  wickets: 0,
+});
 
 export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpdateProps) {
   const teams = tournament.teams as unknown as Team[];
@@ -51,55 +77,376 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
         score: existing?.team1?.score || 0, 
         wickets: existing?.team1?.wickets || 0, 
         overs: existing?.team1?.overs || 0, 
-        balls: existing?.team1?.balls || 0 
+        balls: existing?.team1?.balls || 0,
+        batsmen: existing?.team1?.batsmen || createDefaultBatsmen(),
+        bowler: existing?.team1?.bowler || createDefaultBowler(),
       },
       team2: { 
         name: getTeamName(teams, 1), 
         score: existing?.team2?.score || 0, 
         wickets: existing?.team2?.wickets || 0, 
         overs: existing?.team2?.overs || 0, 
-        balls: existing?.team2?.balls || 0 
+        balls: existing?.team2?.balls || 0,
+        batsmen: existing?.team2?.batsmen || createDefaultBatsmen(),
+        bowler: existing?.team2?.bowler || createDefaultBowler(),
       },
       battingTeam: 'team1',
       currentRunRate: existing?.currentRunRate || 0,
       requiredRunRate: existing?.requiredRunRate || 0,
       target: existing?.target || 0,
       lastFiveOvers: existing?.lastFiveOvers || '',
+      innings: existing?.innings || 1,
+      isChasing: existing?.isChasing || false,
     };
   });
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Toss and match type states
+  // Toss states
   const [tossWinner, setTossWinner] = useState<'team1' | 'team2' | null>(null);
   const [tossChoice, setTossChoice] = useState<'bat' | 'bowl' | null>(null);
+
+  // Player selection states
+  const [availablePlayers, setAvailablePlayers] = useState<Player[]>(defaultPlayers);
+  const [strikerIndex, setStrikerIndex] = useState(0);
+  const [nonStrikerIndex, setNonStrikerIndex] = useState(1);
+  const [bowlerIndex, setBowlerIndex] = useState(7);
+
+  // Modal states
+  const [showExtraModal, setShowExtraModal] = useState(false);
+  const [showOutModal, setShowOutModal] = useState(false);
+  const [pendingExtraType, setPendingExtraType] = useState<ExtraType>(null);
+  const [showTeamSelect, setShowTeamSelect] = useState(false);
 
   // Broadcast Channel for Overlay Communication
   const channel = new BroadcastChannel('cricket_score_updates');
 
+  // Get current batting team
+  const currentTeam = liveScores[liveScores.battingTeam];
+  const bowlingTeam = liveScores[liveScores.battingTeam === 'team1' ? 'team2' : 'team1'];
+
+  // Update Overlay UI
+  const updateOverlayUI = (scores: LiveScores) => {
+    if (!scores) return;
+    setLiveScores(prev => ({
+      ...prev,
+      team1: scores.team1 || prev.team1,
+      team2: scores.team2 || prev.team2,
+      battingTeam: scores.battingTeam || prev.battingTeam,
+      currentRunRate: scores.currentRunRate ?? prev.currentRunRate,
+      requiredRunRate: scores.requiredRunRate ?? prev.requiredRunRate,
+      target: scores.target ?? prev.target,
+      lastFiveOvers: scores.lastFiveOvers || prev.lastFiveOvers,
+    }));
+  };
+
+  // Trigger Wicket Animation
+  const triggerWicketAnimation = (message: string) => {
+    channel.postMessage({ type: 'WICKET', message });
+  };
+
   useEffect(() => {
-    // Broadcast updates to all listening overlays whenever liveScores changes
+    channel.onmessage = (event) => {
+      const data = event.data;
+      if (data.type === 'WICKET') {
+        triggerWicketAnimation(data.message);
+      } else {
+        updateOverlayUI(data);
+      }
+    };
+    return () => channel.close();
+  }, []);
+
+  useEffect(() => {
     channel.postMessage(liveScores);
   }, [liveScores]);
 
   const updateStats = (field: string, value: unknown) => {
-    setLiveScores(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setLiveScores(prev => ({ ...prev, [field]: value }));
   };
 
   const updateTeamStats = (team: 'team1' | 'team2', field: string, value: unknown) => {
     setLiveScores(prev => ({
       ...prev,
-      [team]: {
-        ...prev[team],
-        [field]: value
+      [team]: { ...prev[team], [field]: value }
+    }));
+  };
+
+  // Swap striker after odd runs
+  const swapStriker = () => {
+    setLiveScores(prev => {
+      const team = prev[prev.battingTeam];
+      const newBatsmen = [...team.batsmen];
+      newBatsmen[0] = { ...newBatsmen[0], isStriker: false };
+      newBatsmen[1] = { ...newBatsmen[1], isStriker: true };
+      
+      // Swap the batsmen array positions
+      const temp = newBatsmen[0];
+      newBatsmen[0] = newBatsmen[1];
+      newBatsmen[1] = temp;
+      
+      return {
+        ...prev,
+        [prev.battingTeam]: { ...team, batsmen: newBatsmen }
+      };
+    });
+    
+    // Swap striker/non-striker indices
+    const tempIdx = strikerIndex;
+    setStrikerIndex(nonStrikerIndex);
+    setNonStrikerIndex(tempIdx);
+  };
+
+  // Add runs (0, 1, 2, 3, 4, 6)
+  const addRuns = (runs: number) => {
+    setLiveScores(prev => {
+      const team = prev[prev.battingTeam];
+      const newScore = team.score + runs;
+      
+      // Update batsmen
+      const newBatsmen = [...team.batsmen];
+      const strikerIdx = newBatsmen.findIndex(b => b.isStriker);
+      if (strikerIdx !== -1) {
+        newBatsmen[strikerIdx] = {
+          ...newBatsmen[strikerIdx],
+          runs: newBatsmen[strikerIdx].runs + runs,
+          balls: newBatsmen[strikerIdx].balls + 1,
+          fours: runs === 4 ? newBatsmen[strikerIdx].fours + 1 : newBatsmen[strikerIdx].fours,
+          sixes: runs === 6 ? newBatsmen[strikerIdx].sixes + 1 : newBatsmen[strikerIdx].sixes,
+        };
+      }
+      
+      // Update ball count
+      let newBalls = team.balls + 1;
+      let newOvers = team.overs;
+      if (newBalls === 6) {
+        newOvers += 1;
+        newBalls = 0;
+      }
+      
+      // Update bowler
+      const newBowler = team.bowler ? {
+        ...team.bowler,
+        runs: team.bowler.runs + runs,
+        overs: team.bowler.overs + (newBalls === 0 ? 1 : 0),
+      } : null;
+      
+      // Swap striker on odd runs
+      if (runs % 2 === 1) {
+        const temp = newBatsmen[0];
+        newBatsmen[0] = newBatsmen[1];
+        newBatsmen[1] = temp;
+      }
+      
+      // Calculate run rate
+      const totalBalls = newOvers * 6 + newBalls;
+      const rr = totalBalls > 0 ? (newScore / (totalBalls / 6)) : 0;
+      
+      return {
+        ...prev,
+        [prev.battingTeam]: {
+          ...team,
+          score: newScore,
+          balls: newBalls,
+          overs: newOvers,
+          batsmen: newBatsmen,
+          bowler: newBowler,
+        },
+        currentRunRate: parseFloat(rr.toFixed(2)),
+      };
+    });
+    
+    // Trigger overlay update
+    channel.postMessage({ type: 'RUN', runs, team: liveScores.battingTeam });
+  };
+
+  // Handle extra (Wide, No-ball, Bye, Leg-bye)
+  const handleExtra = (extraType: ExtraType) => {
+    setPendingExtraType(extraType);
+    setShowExtraModal(true);
+  };
+
+  // Add extra runs
+  const addExtraRuns = (runs: number) => {
+    if (!pendingExtraType) return;
+    
+    setLiveScores(prev => {
+      const team = prev[prev.battingTeam];
+      const newScore = team.score + runs;
+      
+      // Wide and No-ball don't count as legal balls but add runs
+      // Bye and Leg-bye don't add to batsman's score but count as ball
+      
+      let newBalls = team.balls;
+      let newOvers = team.overs;
+      let newMaiden = team.bowler?.maidens || 0;
+      
+      if (pendingExtraType === 'wide' || pendingExtraType === 'noBall') {
+        // These extras don't count as legal balls
+      } else {
+        // Bye and Leg-bye count as ball
+        newBalls += 1;
+        if (newBalls === 6) {
+          newOvers += 1;
+          newBalls = 0;
+        }
+      }
+      
+      // Update bowler
+      const newBowler = team.bowler ? {
+        ...team.bowler,
+        runs: team.bowler.runs + runs,
+        overs: newOvers !== team.overs ? team.bowler.overs + 1 : team.bowler.overs,
+        maidens: newMaiden,
+      } : null;
+      
+      // Calculate run rate
+      const totalBalls = newOvers * 6 + newBalls;
+      const rr = totalBalls > 0 ? (newScore / (totalBalls / 6)) : 0;
+      
+      return {
+        ...prev,
+        [prev.battingTeam]: {
+          ...team,
+          score: newScore,
+          balls: newBalls,
+          overs: newOvers,
+          bowler: newBowler,
+        },
+        currentRunRate: parseFloat(rr.toFixed(2)),
+      };
+    });
+    
+    // Trigger overlay update
+    channel.postMessage({ type: 'EXTRA', extraType: pendingExtraType, runs, team: liveScores.battingTeam });
+    
+    setShowExtraModal(false);
+    setPendingExtraType(null);
+  };
+
+  // Handle OUT
+  const handleOut = () => {
+    setShowOutModal(true);
+  };
+
+  // Process wicket
+  const processWicket = (outType: OutType) => {
+    const outMessages: Record<string, string> = {
+      caught: 'CAUGHT',
+      bowled: 'BOWLED',
+      lbw: 'LBW',
+      stumped: 'STUMPED',
+      runOut: 'RUN OUT',
+      hitWicket: 'HIT WICKET',
+      handledBall: 'HANDLED BALL',
+      timedOut: 'TIMED OUT',
+    };
+    
+    const message = outMessages[outType || 'caught'] || 'OUT!';
+    
+    setLiveScores(prev => {
+      const team = prev[prev.battingTeam];
+      const newWickets = team.wickets + 1;
+      
+      // Remove striker from batsmen list
+      const newBatsmen = team.batsmen.filter(b => b.isStriker);
+      
+      // If wickets fall, update ball count (except for run out)
+      let newBalls = team.balls;
+      let newOvers = team.overs;
+      
+      if (outType !== 'runOut') {
+        newBalls += 1;
+        if (newBalls === 6) {
+          newOvers += 1;
+          newBalls = 0;
+        }
+      }
+      
+      // Update bowler wickets
+      const newBowler = team.bowler ? {
+        ...team.bowler,
+        wickets: team.bowler.wickets + 1,
+        overs: newOvers !== team.overs ? team.bowler.overs + 1 : team.bowler.overs,
+      } : null;
+      
+      return {
+        ...prev,
+        [prev.battingTeam]: {
+          ...team,
+          wickets: newWickets,
+          balls: newBalls,
+          overs: newOvers,
+          batsmen: newBatsmen,
+          bowler: newBowler,
+        },
+      };
+    });
+    
+    // Trigger wicket animation
+    triggerWicketAnimation(message);
+    
+    setShowOutModal(false);
+  };
+
+  // Handle toss
+  const handleToss = (winner: 'team1' | 'team2', choice: 'bat' | 'bowl') => {
+    setTossWinner(winner);
+    setTossChoice(choice);
+    const battingTeam = choice === 'bat' ? winner : (winner === 'team1' ? 'team2' : 'team1');
+    updateStats('battingTeam', battingTeam);
+    updateStats('isChasing', choice === 'bowl');
+  };
+
+  // Switch batting team
+  const switchBatting = () => {
+    updateStats('battingTeam', liveScores.battingTeam === 'team1' ? 'team2' : 'team1');
+    // Reset batsmen for new innings
+    setLiveScores(prev => ({
+      ...prev,
+      [prev.battingTeam === 'team1' ? 'team2' : 'team1']: {
+        ...prev[prev.battingTeam === 'team1' ? 'team2' : 'team1'],
+        batsmen: createDefaultBatsmen(),
       }
     }));
   };
 
+  // Reset innings
+  const resetInnings = (team?: 'team1' | 'team2') => {
+    const teamName = team 
+      ? (team === 'team1' ? getTeamName(teams, 0) : getTeamName(teams, 1))
+      : 'all';
+      
+    if (window.confirm(`Are you sure you want to reset ${teamName} scores?`)) {
+      if (team) {
+        setLiveScores(prev => ({
+          ...prev,
+          [team]: { 
+            ...prev[team], 
+            score: 0, 
+            wickets: 0, 
+            overs: 0, 
+            balls: 0,
+            batsmen: createDefaultBatsmen(),
+            bowler: createDefaultBowler(),
+          }
+        }));
+      } else {
+        setLiveScores(prev => ({
+          ...prev,
+          team1: { ...prev.team1, score: 0, wickets: 0, overs: 0, balls: 0, batsmen: createDefaultBatsmen(), bowler: createDefaultBowler() },
+          team2: { ...prev.team2, score: 0, wickets: 0, overs: 0, balls: 0, batsmen: createDefaultBatsmen(), bowler: createDefaultBowler() },
+          currentRunRate: 0,
+          requiredRunRate: 0,
+          target: 0,
+          lastFiveOvers: '',
+        }));
+      }
+    }
+  };
+
+  // Save scores
   const handleScoreUpdate = async () => {
     try {
       setLoading(true);
@@ -114,141 +461,179 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     }
   };
 
-  const handleToss = (winner: 'team1' | 'team2', choice: 'bat' | 'bowl') => {
-    setTossWinner(winner);
-    setTossChoice(choice);
-    // Logic to set which team is currently batting based on toss
-    const battingTeam = choice === 'bat' ? winner : (winner === 'team1' ? 'team2' : 'team1');
-    updateStats('battingTeam', battingTeam);
-  };
-
-  const addRuns = (team: 'team1' | 'team2', runs: number, isExtra: boolean = false, extraType: ScoringButtonType = null) => {
-    const currentTeam = liveScores[team];
-    let newScore = currentTeam.score + runs;
-    let newBalls = currentTeam.balls;
-    let newOvers = currentTeam.overs;
-
-    // Extras like Wide and No Ball don't count as legal balls
-    if (!isExtra || (extraType !== 'wide' && extraType !== 'noBall')) {
-      newBalls += 1;
-      if (newBalls === 6) {
-        newOvers += 1;
-        newBalls = 0;
+  // Update player at crease
+  const updateBatsman = (index: number, name: string) => {
+    setLiveScores(prev => {
+      const team = prev[prev.battingTeam];
+      const newBatsmen = [...team.batsmen];
+      if (newBatsmen[index]) {
+        newBatsmen[index] = { ...newBatsmen[index], name };
       }
-    }
-
-    setLiveScores(prev => ({
-      ...prev,
-      [team]: {
-        ...prev[team],
-        score: newScore,
-        balls: newBalls,
-        overs: newOvers
-      }
-    }));
-
-    // Broadcast score update to overlays
-    channel.postMessage({ type: 'SCORE_UPDATE', team, score: newScore, overs: formatOvers(newOvers, newBalls) });
+      return {
+        ...prev,
+        [prev.battingTeam]: { ...team, batsmen: newBatsmen }
+      };
+    });
   };
 
-  const addWicket = (team: 'team1' | 'team2') => {
-    const currentTeam = liveScores[team];
-    if (currentTeam.wickets < 10) {
-      updateTeamStats(team, 'wickets', currentTeam.wickets + 1);
-      
-      // Update balls/overs for the wicket ball
-      let newBalls = currentTeam.balls + 1;
-      let newOvers = currentTeam.overs;
-      if (newBalls === 6) {
-        newOvers += 1;
-        newBalls = 0;
-      }
-      updateTeamStats(team, 'balls', newBalls);
-      updateTeamStats(team, 'overs', newOvers);
-      
-      // Trigger Wicket Animation on Overlay
-      channel.postMessage({ type: 'WICKET', message: 'OUT!' });
-    }
+  // Update bowler
+  const updateBowlerName = (name: string) => {
+    setLiveScores(prev => {
+      const team = prev[prev.battingTeam];
+      return {
+        ...prev,
+        [prev.battingTeam]: { 
+          ...team, 
+          bowler: team.bowler ? { ...team.bowler, name } : { name, overs: 0, maidens: 0, runs: 0, wickets: 0 }
+        }
+      };
+    });
   };
 
-  const resetInnings = (team?: 'team1' | 'team2') => {
-    const teamName = team 
-      ? (team === 'team1' ? getTeamName(teams, 0) : getTeamName(teams, 1))
-      : 'all';
-      
-    if (window.confirm(`Are you sure you want to reset ${teamName} scores?`)) {
-      if (team) {
-        setLiveScores(prev => ({
-          ...prev,
-          [team]: { ...prev[team], score: 0, wickets: 0, overs: 0, balls: 0 }
-        }));
-      } else {
-        setLiveScores(prev => ({
-          ...prev,
-          team1: { ...prev.team1, score: 0, wickets: 0, overs: 0, balls: 0 },
-          team2: { ...prev.team2, score: 0, wickets: 0, overs: 0, balls: 0 },
-          currentRunRate: 0,
-          requiredRunRate: 0,
-          target: 0,
-          lastFiveOvers: '',
-        }));
-      }
-    }
-  };
-
-  const switchBatting = () => {
-    updateStats('battingTeam', liveScores.battingTeam === 'team1' ? 'team2' : 'team1');
-  };
-
-  const renderTeamScoreCard = (team: 'team1' | 'team2', isBatting: boolean) => {
-    const teamData = liveScores[team];
-    const teamName = team === 'team1' ? getTeamName(teams, 0) : getTeamName(teams, 1);
-    
-    return (
-      <div className="bg-gray-700 p-6 rounded-xl border border-gray-600 shadow-xl">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-blue-400">{teamName}</h2>
-            {isBatting && <span className="px-2 py-1 bg-green-600 text-xs rounded-full">BATting</span>}
-          </div>
-          <div className="text-3xl font-mono font-bold">
-            {teamData.score}/{teamData.wickets}
-            <span className="text-sm text-gray-400 ml-2">
-              ({formatOvers(teamData.overs, teamData.balls)})
-            </span>
-          </div>
-        </div>
-        
-        {/* Scoring Buttons (0, 1, 2, 3, 4, 6, Wicket) */}
-        <div className="grid grid-cols-4 gap-2">
-          {[0, 1, 2, 3, 4, 6].map((run) => (
-            <button
-              key={run}
-              onClick={() => addRuns(team, run)}
-              className="py-4 bg-gray-600 hover:bg-blue-500 rounded-lg font-bold text-xl transition-colors"
-            >
-              {run === 4 || run === 6 ? <span className="text-yellow-400">{run}</span> : run}
-            </button>
-          ))}
-          <button
-            onClick={() => addWicket(team)}
-            className="py-4 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-xl col-span-2"
-          >
-            WICKET
-          </button>
-        </div>
-
-        {/* Reset Team Button */}
+  // Render scoring buttons
+  const renderScoringButtons = () => (
+    <div className="grid grid-cols-7 gap-2">
+      {[0, 1, 2, 3, 4, 6].map((run) => (
         <button
-          onClick={() => resetInnings(team)}
-          className="mt-3 w-full py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors"
+          key={run}
+          onClick={() => addRuns(run)}
+          className={`py-4 rounded-lg font-bold text-xl transition-all transform hover:scale-105 ${
+            run === 0 ? 'bg-gray-500 hover:bg-gray-400 text-white' :
+            run === 4 ? 'bg-blue-600 hover:bg-blue-500 text-white' :
+            run === 6 ? 'bg-green-600 hover:bg-green-500 text-white' :
+            'bg-gray-600 hover:bg-gray-500 text-white'
+          }`}
         >
-          <RotateCcw className="w-4 h-4" /> Reset {teamName}
+          {run}
         </button>
-      </div>
-    );
-  };
+      ))}
+    </div>
+  );
 
+  // Render extra buttons
+  const renderExtraButtons = () => (
+    <div className="grid grid-cols-2 gap-2 mt-2">
+      <button
+        onClick={() => handleExtra('wide')}
+        className="py-3 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-semibold text-white"
+      >
+        Wide (+1)
+      </button>
+      <button
+        onClick={() => handleExtra('noBall')}
+        className="py-3 bg-orange-600 hover:bg-orange-500 rounded-lg font-semibold text-white"
+      >
+        No Ball (+1)
+      </button>
+      <button
+        onClick={() => handleExtra('bye')}
+        className="py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-semibold text-white"
+      >
+        Bye (+1)
+      </button>
+      <button
+        onClick={() => handleExtra('legBye')}
+        className="py-3 bg-pink-600 hover:bg-pink-500 rounded-lg font-semibold text-white"
+      >
+        Leg Bye (+1)
+      </button>
+    </div>
+  );
+
+  // Render OUT button and modal
+  const renderOutButton = () => (
+    <>
+      <button
+        onClick={handleOut}
+        className="mt-2 py-4 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-xl text-white w-full"
+      >
+        OUT!
+      </button>
+
+      {/* OUT Modal */}
+      {showOutModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-gray-800 p-6 rounded-xl w-full max-w-md border border-red-500">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-red-400">Select OUT Type</h3>
+              <button onClick={() => setShowOutModal(false)} className="text-gray-400 hover:text-white">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {outTypes.map((out) => (
+                <button
+                  key={out.type}
+                  onClick={() => processWicket(out.type)}
+                  className="py-3 bg-red-700 hover:bg-red-600 rounded-lg font-semibold text-white transition"
+                >
+                  {out.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
+  // Render extra runs modal
+  const renderExtraModal = () => (
+    showExtraModal && (
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div className="bg-gray-800 p-6 rounded-xl w-full max-w-md border border-yellow-500">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-yellow-400">
+              {pendingExtraType === 'wide' ? 'Wide' : 
+               pendingExtraType === 'noBall' ? 'No Ball' : 
+               pendingExtraType === 'bye' ? 'Bye' : 'Leg Bye'} - Select Runs
+            </h3>
+            <button onClick={() => { setShowExtraModal(false); setPendingExtraType(null); }} className="text-gray-400 hover:text-white">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {extraRunOptions.map((run) => (
+              <button
+                key={run}
+                onClick={() => addExtraRuns(run)}
+                className="py-4 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-bold text-xl text-white"
+              >
+                +{run}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  );
+
+  // Render player selection dropdown
+  const renderPlayerDropdown = (
+    label: string,
+    value: number,
+    onChange: (idx: number) => void,
+    excludeIdx?: number
+  ) => (
+    <div className="flex flex-col gap-1">
+      <label className="text-xs text-gray-400 uppercase">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value))}
+        className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+      >
+        {availablePlayers.map((player, idx) => (
+          idx !== excludeIdx && (
+            <option key={player.id} value={idx}>
+              {player.name}
+            </option>
+          )
+        ))}
+      </select>
+    </div>
+  );
+
+  // Main render
   return (
     <div className="space-y-6">
       {/* Toss Section */}
@@ -270,84 +655,187 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
             >
               {getTeamName(teams, 1)} won & Batting
             </button>
+            <button 
+              onClick={() => handleToss('team1', 'bowl')}
+              className="p-3 bg-red-600 hover:bg-red-700 rounded-lg transition"
+            >
+              {getTeamName(teams, 0)} won & Bowling
+            </button>
+            <button 
+              onClick={() => handleToss('team2', 'bowl')}
+              className="p-3 bg-red-600 hover:bg-red-700 rounded-lg transition"
+            >
+              {getTeamName(teams, 1)} won & Bowling
+            </button>
           </div>
         </div>
       )}
 
-      {/* Main Scoring Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {renderTeamScoreCard('team1', liveScores.battingTeam === 'team1')}
-        {renderTeamScoreCard('team2', liveScores.battingTeam === 'team2')}
-      </div>
-
-      {/* Switch Batting Team Button */}
+      {/* Team Selection Buttons */}
       {tossWinner && (
-        <button
-          onClick={switchBatting}
-          className="w-full py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition-colors"
-        >
-          Switch Batting
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => updateStats('battingTeam', 'team1')}
+            className={`flex-1 py-3 rounded-lg font-bold transition ${
+              liveScores.battingTeam === 'team1' 
+                ? 'bg-green-600 text-white' 
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            {getTeamName(teams, 0)}
+          </button>
+          <button
+            onClick={() => updateStats('battingTeam', 'team2')}
+            className={`flex-1 py-3 rounded-lg font-bold transition ${
+              liveScores.battingTeam === 'team2' 
+                ? 'bg-green-600 text-white' 
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            {getTeamName(teams, 1)}
+          </button>
+        </div>
       )}
 
-      {/* Extras & Special Scoring */}
-      <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-        <h3 className="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">Extras</h3>
-        <div className="flex flex-wrap gap-2">
-          {scoringOptions.map((opt) => (
-            <button
-              key={opt.label}
-              onClick={() => addRuns(liveScores.battingTeam, opt.runs, true, opt.extraType as ScoringButtonType)}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-md text-sm font-semibold transition"
-            >
-              +{opt.label}
-            </button>
-          ))}
+      {/* Score Display */}
+      <div className="bg-gradient-to-r from-gray-800 to-gray-900 p-6 rounded-xl border border-gray-700">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-3xl font-bold text-white">{currentTeam.name}</h2>
+            <span className="text-green-400 text-sm">Batting</span>
+          </div>
+          <div className="text-right">
+            <div className="text-5xl font-bold text-white">
+              {currentTeam.score}/{currentTeam.wickets}
+            </div>
+            <div className="text-xl text-gray-400">
+              ({formatOvers(currentTeam.overs, currentTeam.balls)})
+            </div>
+          </div>
+        </div>
+
+        {/* Batsmen Info */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-gray-700/50 p-3 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="text-yellow-400 font-bold">Striker</span>
+              <span className="text-green-400 text-xs">ON STRIKE</span>
+            </div>
+            <div className="text-lg font-semibold text-white">{currentTeam.batsmen[0]?.name || 'Not Selected'}</div>
+            <div className="text-sm text-gray-400">
+              {currentTeam.batsmen[0]?.runs || 0} ({currentTeam.batsmen[0]?.balls || 0})
+              {currentTeam.batsmen[0]?.fours > 0 && ` | ${currentTeam.batsmen[0].fours}f`}
+              {currentTeam.batsmen[0]?.sixes > 0 && ` ${currentTeam.batsmen[0].sixes}s`}
+            </div>
+          </div>
+          <div className="bg-gray-700/50 p-3 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="text-blue-400 font-bold">Non-Striker</span>
+            </div>
+            <div className="text-lg font-semibold text-white">{currentTeam.batsmen[1]?.name || 'Not Selected'}</div>
+            <div className="text-sm text-gray-400">
+              {currentTeam.batsmen[1]?.runs || 0} ({currentTeam.batsmen[1]?.balls || 0})
+            </div>
+          </div>
+        </div>
+
+        {/* Bowler Info */}
+        <div className="bg-gray-700/50 p-3 rounded-lg">
+          <div className="flex justify-between items-center">
+            <span className="text-red-400 font-bold">Bowler</span>
+            <span className="text-gray-400 text-sm">{currentTeam.bowler?.name || 'Not Selected'}</span>
+          </div>
+          <div className="text-sm text-gray-400">
+            {currentTeam.bowler?.overs || 0}-{currentTeam.bowler?.maidens || 0}-{currentTeam.bowler?.runs || 0}-{currentTeam.bowler?.wickets || 0}
+          </div>
+        </div>
+
+        {/* Run Rate */}
+        <div className="flex gap-6 mt-4 pt-4 border-t border-gray-600">
+          <div>
+            <span className="text-gray-400 text-sm">CRR</span>
+            <div className="text-2xl font-bold text-white">{liveScores.currentRunRate.toFixed(2)}</div>
+          </div>
+          {liveScores.target > 0 && (
+            <>
+              <div>
+                <span className="text-gray-400 text-sm">Target</span>
+                <div className="text-2xl font-bold text-yellow-400">{liveScores.target}</div>
+              </div>
+              <div>
+                <span className="text-gray-400 text-sm">Req RRR</span>
+                <div className="text-2xl font-bold text-green-400">{liveScores.requiredRunRate.toFixed(2)}</div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Match Stats Form */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-gray-800 p-6 rounded-xl border border-gray-700">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Current Run Rate</label>
-          <input
-            type="number"
-            step="0.01"
-            value={liveScores.currentRunRate}
-            onChange={(e) => updateStats('currentRunRate', parseFloat(e.target.value) || 0)}
-            className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none"
-          />
+      {/* Player Selection */}
+      {tossWinner && (
+        <div className="grid grid-cols-3 gap-4 bg-gray-800 p-4 rounded-lg border border-gray-700">
+          {renderPlayerDropdown('Striker', strikerIndex, setStrikerIndex, nonStrikerIndex)}
+          {renderPlayerDropdown('Non-Striker', nonStrikerIndex, setNonStrikerIndex, strikerIndex)}
+          {renderPlayerDropdown('Bowler', bowlerIndex, setBowlerIndex)}
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Required Run Rate</label>
-          <input
-            type="number"
-            step="0.01"
-            value={liveScores.requiredRunRate}
-            onChange={(e) => updateStats('requiredRunRate', parseFloat(e.target.value) || 0)}
-            className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none"
-          />
+      )}
+
+      {/* Scoring Controls */}
+      {tossWinner && (
+        <div className="space-y-4">
+          {/* Main Run Buttons */}
+          <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+            <h3 className="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">Runs</h3>
+            {renderScoringButtons()}
+          </div>
+
+          {/* Extra Buttons */}
+          <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+            <h3 className="text-sm font-medium text-gray-400 mb-3 uppercase tracking-wider">Extras</h3>
+            {renderExtraButtons()}
+          </div>
+
+          {/* OUT Button */}
+          <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+            {renderOutButton()}
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Target</label>
-          <input
-            type="number"
-            value={liveScores.target}
-            onChange={(e) => updateStats('target', parseInt(e.target.value) || 0)}
-            className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none"
-          />
+      )}
+
+      {/* Match Stats */}
+      {tossWinner && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-800 p-4 rounded-lg border border-gray-700">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Target</label>
+            <input
+              type="number"
+              value={liveScores.target}
+              onChange={(e) => updateStats('target', parseInt(e.target.value) || 0)}
+              className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Required Run Rate</label>
+            <input
+              type="number"
+              step="0.01"
+              value={liveScores.requiredRunRate}
+              onChange={(e) => updateStats('requiredRunRate', parseFloat(e.target.value) || 0)}
+              className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Last 5 Overs</label>
+            <input
+              type="text"
+              placeholder="e.g., 1 4 W 0 6 1"
+              value={liveScores.lastFiveOvers}
+              onChange={(e) => updateStats('lastFiveOvers', e.target.value)}
+              className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white"
+            />
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Last 5 Overs</label>
-          <input
-            type="text"
-            placeholder="e.g., 1 4 W 0 6 1"
-            value={liveScores.lastFiveOvers}
-            onChange={(e) => updateStats('lastFiveOvers', e.target.value)}
-            className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-        </div>
-      </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex justify-end gap-4 pt-4">
@@ -358,14 +846,25 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
         >
           <RotateCcw className="w-5 h-5" /> Reset All
         </button>
+        {tossWinner && (
+          <button
+            onClick={switchBatting}
+            className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold text-white transition-all"
+          >
+            <Target className="w-5 h-5" /> Switch Innings
+          </button>
+        )}
         <button
           onClick={handleScoreUpdate}
           disabled={loading}
-          className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 rounded-lg font-bold text-white transition-all shadow-lg hover:shadow-green-900/20"
+          className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 rounded-lg font-bold text-white transition-all shadow-lg"
         >
           {loading ? 'Saving...' : <><Save className="w-5 h-5" /> UPDATE LIVE SCORE</>}
         </button>
       </div>
+
+      {/* Modals */}
+      {renderExtraModal()}
     </div>
   );
 }

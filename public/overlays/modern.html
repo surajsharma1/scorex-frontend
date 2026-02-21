@@ -41,7 +41,12 @@
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Initialize BroadcastChannel for real-time score updates
+        // This listens for messages from ScoreboardUpdate component
+        window.initBroadcastChannel();
+
         function triggerPush(msg) {
             const el = document.getElementById('push-monolith');
             el.innerText = msg; el.classList.add('active');

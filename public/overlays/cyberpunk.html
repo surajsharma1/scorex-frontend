@@ -49,6 +49,10 @@
             window.initLiveScore(matchId);
         }
 
+        // Initialize BroadcastChannel for real-time score updates
+        // This listens for messages from ScoreboardUpdate component
+        window.initBroadcastChannel();
+
         function triggerPush(msg) {
             const s = document.getElementById('push-shield');
             s.innerText = msg; s.classList.add('active');

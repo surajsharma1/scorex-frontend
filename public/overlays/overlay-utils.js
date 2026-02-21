@@ -478,3 +478,68 @@ document.addEventListener('DOMContentLoaded', () => {
     window.initLiveScore(matchId, apiBaseUrl);
   }
 });
+
+// ============================================================
+// BroadcastChannel for Real-Time Score Updates
+// ============================================================
+
+/**
+ * Initialize BroadcastChannel listener for real-time score updates
+ * This enables overlays to receive instant updates from ScoreboardUpdate component
+ * @param {Function} onScoreUpdate - Callback for score updates
+ * @param {Function} onWicket - Callback for wicket events (optional)
+ * @returns {BroadcastChannel} The channel instance
+ */
+window.initBroadcastChannel = function(onScoreUpdate, onWicket) {
+  const channel = new BroadcastChannel('cricket_score_updates');
+  
+  channel.onmessage = (event) => {
+    const data = event.data;
+    
+    // Check if it's a wicket event
+    if (data.type === 'WICKET') {
+      // Trigger wicket animation
+      if (typeof window.triggerPush === 'function') {
+        window.triggerPush(data.message || 'OUT!', 'W');
+      }
+      
+      // Call custom wicket callback if provided
+      if (typeof onWicket === 'function') {
+        onWicket(data);
+      }
+    } else {
+      // Standard score update - use the updateScore function
+      if (data.team1 || data.team2) {
+        window.updateScore(data);
+      }
+      
+      // Call custom score update callback if provided
+      if (typeof onScoreUpdate === 'function') {
+        onScoreUpdate(data);
+      }
+    }
+  };
+  
+  console.log('BroadcastChannel initialized: listening for cricket_score_updates');
+  return channel;
+};
+
+/**
+ * Post a score update to all listening overlays
+ * @param {Object} scores - Score data object
+ */
+window.postScoreUpdate = function(scores) {
+  const channel = new BroadcastChannel('cricket_score_updates');
+  channel.postMessage(scores);
+  channel.close();
+};
+
+/**
+ * Post a wicket event to all listening overlays
+ * @param {string} message - Wicket message (default: 'OUT!')
+ */
+window.postWicketEvent = function(message) {
+  const channel = new BroadcastChannel('cricket_score_updates');
+  channel.postMessage({ type: 'WICKET', message: message || 'OUT!' });
+  channel.close();
+};

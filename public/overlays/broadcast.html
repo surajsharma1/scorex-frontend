@@ -137,6 +137,10 @@
             window.initLiveScore(matchId);
         }
 
+        // Initialize BroadcastChannel for real-time score updates
+        // This listens for messages from ScoreboardUpdate component
+        window.initBroadcastChannel();
+
         function updateScore() {
             document.getElementById('team1-score').innerText = document.getElementById('in-runs').value;
             document.getElementById('team1-wickets').innerText = document.getElementById('in-wickets').value;
