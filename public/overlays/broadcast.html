@@ -2,111 +2,155 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    
     <style>
-        :root { --accent: #00f2ff; --bg: rgba(0,0,0,0.9); }
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-
-        /* UNIVERSAL TOP (Floating Micro) */
-        .top-micro {
-            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
-            height: 28px; background: var(--bg); border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 50px; display: flex; align-items: center; padding: 0 25px;
-            font-size: 1rem; letter-spacing: 2px; font-weight: 700;
+        :root {
+            --bg-dark: rgba(10, 25, 47, 0.9);
+            --accent-blue: #00f2ff;
+            --accent-gold: #ffcc00;
+            --wicket-red: #ff4b2b;
         }
 
-        /* UNIVERSAL BOTTOM (Blade Architecture) */
-        .bottom-blade {
-            position: absolute; bottom: 0; width: 100%; height: 115px;
-            background: linear-gradient(to top, #000 0%, #111 100%);
-            border-top: 4px solid var(--accent); display: flex; align-items: center; padding: 0 60px; box-sizing: border-box;
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: white;
+            height: 1080px;
+            width: 1920px;
+            overflow: hidden;
+            background: transparent;
         }
 
-        /* Elements for Logic Mapping */
-        .match-type-box { width: 120px; border-right: 1px solid #333; margin-right: 30px; }
-        .score-box { display: flex; align-items: baseline; gap: 15px; min-width: 350px; }
-        .player-grid { flex-grow: 1; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 40px; padding-left: 40px; border-left: 1px solid #333; }
-        
-        #push-banner {
-            position: absolute; bottom: 130px; left: 60px; height: 80px; padding: 0 40px;
-            display: flex; align-items: center; font-size: 4rem; font-weight: 900;
-            transform: translateX(-150%); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* --- SCORE BUG (Bottom Left) --- */
+        #score-bug {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            display: flex;
+            align-items: flex-end;
         }
-        #push-banner.active { transform: translateX(0); }
+
+        .main-bar {
+            background: var(--bg-dark);
+            padding: 15px 40px;
+            border-left: 6px solid var(--accent-blue);
+            clip-path: polygon(0 0, 90% 0, 100% 100%, 0% 100%);
+            min-width: 300px;
+            box-shadow: 10px 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .team-name { font-size: 1.2rem; font-weight: 800; color: var(--accent-blue); letter-spacing: 2px; }
+        .score-row { font-size: 3.5rem; font-weight: 900; }
+        .overs-text { font-size: 1.5rem; color: #ccc; margin-left: 10px; font-weight: 400; }
+
+        .batter-box {
+            background: rgba(0, 0, 0, 0.6);
+            margin-left: -30px;
+            padding: 10px 30px;
+            border-bottom: 3px solid var(--accent-gold);
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        /* --- BALL TRACKER (Bottom Right) --- */
+        #performance-ribbon {
+            position: absolute;
+            bottom: 50px;
+            right: 50px;
+            background: var(--bg-dark);
+            padding: 15px 30px;
+            border-right: 6px solid var(--accent-gold);
+            clip-path: polygon(10% 0, 100% 0, 100% 100%, 0% 100%);
+            text-align: right;
+        }
+
+        .ball-circle {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #333;
+            margin-left: 8px;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .four { background: var(--accent-blue); color: black; }
+        .six { background: #2ecc71; color: white; }
+        .out { background: var(--wicket-red); color: white; }
+
+        /* --- WICKET OVERLAY (Center) --- */
+        #wicket-alert {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(45deg, #ff4b2b, #ff416c);
+            padding: 40px 100px;
+            font-size: 5rem;
+            font-weight: 900;
+            font-style: italic;
+            border: 10px solid white;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+        }
+
     </style>
 </head>
 <body>
-    <div class="top-micro">
-        <span id="tournament-name">TOURNAMENT</span>
-        <span style="margin: 0 15px; opacity: 0.3;">|</span>
-        <span id="match-status" style="color: var(--accent)">LIVE</span>
-    </div>
 
-    <div id="push-banner">OUT!</div>
+    <div id="wicket-alert">WICKET!</div>
 
-    <div class="bottom-blade">
-        <div class="match-type-box">
-            <div style="font-size: 0.7rem; opacity: 0.6;">FORMAT</div>
-            <div id="match-type" style="font-size: 1.8rem; font-weight: 900; color: var(--accent);">T20</div>
+    <div id="score-bug">
+        <div class="main-bar">
+            <div id="team1-name">INDIA</div>
+            <div class="score-row">
+                <span id="team1-score">142</span>/<span id="team1-wickets">3</span>
+                <span class="overs-text">(<span id="team1-overs">18.2</span>)</span>
+            </div>
         </div>
-
-        <div class="score-box">
-            <div id="team1-name" style="font-size: 2.2rem;">TEAM</div>
-            <div id="team1-score" style="font-size: 5.5rem; font-weight: 900;">0/0</div>
-            <div style="font-size: 1.5rem; color: var(--accent);">(<span id="team1-overs">0.0</span>)</div>
-        </div>
-
-        <div class="player-grid">
-            <div class="stat-unit">
-                <div style="font-size: 0.7rem; opacity: 0.6;">STRIKER</div>
-                <div id="striker-name" style="font-size: 2rem; font-weight: 700;">PLAYER</div>
-                <div id="striker-runs" style="font-size: 1.6rem; color: var(--accent);">0* (0)</div>
-            </div>
-            <div class="stat-unit" style="opacity: 0.6">
-                <div style="font-size: 0.7rem; opacity: 0.6;">NON-STRIKER</div>
-                <div id="nonstriker-name" style="font-size: 2rem; font-weight: 700;">PLAYER</div>
-                <div id="nonstriker-runs" style="font-size: 1.6rem;">0 (0)</div>
-            </div>
-            <div class="stat-unit">
-                <div style="font-size: 0.7rem; opacity: 0.6;">BOWLER</div>
-                <div id="bowler-name" style="font-size: 2rem; font-weight: 700;">BOWLER</div>
-                <div id="bowler-figures" style="font-size: 1.6rem;">0/0 (0.0)</div>
-            </div>
+        <div class="batter-box">
+            <div id="striker-name">K. Lokesh: 73(48)*</div>
+            <div id="nonstriker-name" style="opacity: 0.7;">R. Jadeja: 12(7)</div>
         </div>
     </div>
 
+    <div id="performance-ribbon">
+        <div style="color: var(--accent-gold); font-size: 0.8rem; margin-bottom: 5px;">LAST 6 BALLS</div>
+        <div id="recent-balls">
+            <span class="ball-circle">0</span>
+            <span class="ball-circle four">4</span>
+            <span class="ball-circle">1</span>
+            <span class="ball-circle out">W</span>
+            <span class="ball-circle six">6</span>
+            <span class="ball-circle">1</span>
+        </div>
+    </div>
+
+    <script src="overlay-utils.js"></script>
     <script>
-        /** * CORE LOGIC - DO NOT CHANGE 
-         * Connects to Match.ts and ScoreboardUpdate.tsx
-         */
-        window.triggerPush = function(msg, type) {
-            const banner = document.getElementById('push-banner');
-            banner.innerText = msg.toUpperCase();
-            
-            // Map types to colors from your config
-            const colors = { 'W': '#ff3e3e', '6': '#00ff66', '4': '#00f2ff' };
-            banner.style.background = colors[type] || '#00f2ff';
-            banner.style.color = (type === 'W') ? '#fff' : '#000';
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
 
-            banner.classList.add('active');
-            setTimeout(() => banner.classList.remove('active'), 4000);
-        };
+        function updateScore() {
+            document.getElementById('team1-score').innerText = document.getElementById('in-runs').value;
+            document.getElementById('team1-wickets').innerText = document.getElementById('in-wickets').value;
+            document.getElementById('team1-overs').innerText = document.getElementById('in-overs').value;
+            document.getElementById('striker-name').innerText = document.getElementById('in-striker').value;
+        }
 
-        // This function is called by your OverlayController.ts
-        window.updateData = function(data) {
-            document.getElementById('tournament-name').innerText = data.tournamentName || "TOURNAMENT";
-            document.getElementById('match-type').innerText = data.matchType || "T20";
-            document.getElementById('team1-name').innerText = data.team1Name || "TEAM";
-            document.getElementById('team1-score').innerText = `${data.score1}/${data.wickets1}`;
-            document.getElementById('team1-overs').innerText = data.overs1;
-            document.getElementById('striker-name').innerText = data.strikerName;
-            document.getElementById('striker-runs').innerText = `${data.strikerRuns}* (${data.strikerBalls})`;
-            document.getElementById('nonstriker-name').innerText = data.nonStrikerName;
-            document.getElementById('nonstriker-runs').innerText = `${data.nonStrikerRuns} (${data.nonStrikerBalls})`;
-            document.getElementById('bowler-name').innerText = data.bowlerName;
-            document.getElementById('bowler-figures').innerText = `${data.bowlerWickets}/${data.bowlerRuns} (${data.bowlerOvers})`;
-        };
-    </script>
+        function triggerWicket() {
+            const alert = document.getElementById('wicket-alert');
+            alert.style.transform = "translate(-50%, -50%) scale(1)";
+            setTimeout(() => {
+                alert.style.transform = "translate(-50%, -50%) scale(0)";
+            }, 3000);
+        }
+    </script> 
 </body>
 </html>

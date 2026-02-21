@@ -2,111 +2,75 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    
+    <title>Design 1 - Titan Perimeter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,900&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00f2ff; --bg: rgba(0,0,0,0.9); }
+        :root { --primary: #001f3f; --accent: #f9cd05; --out-red: #d31027; --six: #2ecc71; --four: #00f2ff; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
 
-        /* UNIVERSAL TOP (Floating Micro) */
-        .top-micro {
-            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
-            height: 28px; background: var(--bg); border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 50px; display: flex; align-items: center; padding: 0 25px;
-            font-size: 1rem; letter-spacing: 2px; font-weight: 700;
-        }
+        /* TOP BORDER: FULL WIDTH BLOCK */
+        .top-edge { position: absolute; top: 0; width: 100%; height: 55px; background: var(--primary); border-bottom: 5px solid var(--accent); display: flex; align-items: center; justify-content: space-between; padding: 0 60px; box-sizing: border-box; }
+        .mode-live { background: var(--out-red); padding: 2px 20px; font-weight: 900; font-style: italic; box-shadow: 0 0 15px var(--out-red); }
 
-        /* UNIVERSAL BOTTOM (Blade Architecture) */
-        .bottom-blade {
-            position: absolute; bottom: 0; width: 100%; height: 115px;
-            background: linear-gradient(to top, #000 0%, #111 100%);
-            border-top: 4px solid var(--accent); display: flex; align-items: center; padding: 0 60px; box-sizing: border-box;
-        }
+        /* BOTTOM BORDER: DOCKED COMMAND CENTER */
+        .bottom-edge { position: absolute; bottom: 0; width: 100%; height: 100px; background: #000; border-top: 2px solid #333; display: flex; align-items: center; box-sizing: border-box; }
+        .team-block { background: var(--accent); color: #000; height: 100%; width: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 3rem; font-weight: 900; }
+        .score-main { font-size: 5rem; font-weight: 900; padding: 0 50px; }
+        .player-info { flex-grow: 1; height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 60px; gap: 60px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05)); }
 
-        /* Elements for Logic Mapping */
-        .match-type-box { width: 120px; border-right: 1px solid #333; margin-right: 30px; }
-        .score-box { display: flex; align-items: baseline; gap: 15px; min-width: 350px; }
-        .player-grid { flex-grow: 1; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 40px; padding-left: 40px; border-left: 1px solid #333; }
-        
-        #push-banner {
-            position: absolute; bottom: 130px; left: 60px; height: 80px; padding: 0 40px;
-            display: flex; align-items: center; font-size: 4rem; font-weight: 900;
-            transform: translateX(-150%); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #push-banner.active { transform: translateX(0); }
+        /* PUSH ENGINE */
+        #push-overlay { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%) scale(0); transition: 0.4s cubic-bezier(0.17, 0.84, 0.44, 1); }
+        #push-overlay.active { transform: translateX(-50%) scale(1.2); }
+        .push-content { padding: 20px 100px; font-size: 5rem; font-weight: 900; background: var(--four); color: #000; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%); }
     </style>
 </head>
 <body>
-    <div class="top-micro">
-        <span id="tournament-name">TOURNAMENT</span>
-        <span style="margin: 0 15px; opacity: 0.3;">|</span>
-        <span id="match-status" style="color: var(--accent)">LIVE</span>
+    <div class="top-edge">
+        <span style="font-size: 2rem; font-weight: 900; letter-spacing: 5px;">TATA IPL 2026</span>
+        <span class="mode-live">LIVE</span>
     </div>
 
-    <div id="push-banner">OUT!</div>
+    <div id="push-overlay"><div class="push-content" id="push-txt">OUT</div></div>
 
-    <div class="bottom-blade">
-        <div class="match-type-box">
-            <div style="font-size: 0.7rem; opacity: 0.6;">FORMAT</div>
-            <div id="match-type" style="font-size: 1.8rem; font-weight: 900; color: var(--accent);">T20</div>
+    <div class="bottom-edge">
+        <div class="team-block">
+            <div id="team1-short">RCB</div>
+            <div id="target" style="font-size: 1rem; margin-top: -10px;">TARGET 215</div>
         </div>
-
-        <div class="score-box">
-            <div id="team1-name" style="font-size: 2.2rem;">TEAM</div>
-            <div id="team1-score" style="font-size: 5.5rem; font-weight: 900;">0/0</div>
-            <div style="font-size: 1.5rem; color: var(--accent);">(<span id="team1-overs">0.0</span>)</div>
+        <div class="score-main">
+            <span id="team1-score">184</span>/<span id="team1-wickets">3</span> 
+            <span style="font-size: 1.5rem; opacity: 0.5;">(<span id="team1-overs">18.2</span>)</span>
         </div>
-
-        <div class="player-grid">
-            <div class="stat-unit">
-                <div style="font-size: 0.7rem; opacity: 0.6;">STRIKER</div>
-                <div id="striker-name" style="font-size: 2rem; font-weight: 700;">PLAYER</div>
-                <div id="striker-runs" style="font-size: 1.6rem; color: var(--accent);">0* (0)</div>
+        <div class="player-info">
+            <div style="text-align: right;">
+                <div id="striker-name" style="font-size: 2rem; font-weight: 900;">V. KOHLI</div>
+                <div id="striker-runs" style="color: var(--accent)">84(44)*</div>
             </div>
-            <div class="stat-unit" style="opacity: 0.6">
-                <div style="font-size: 0.7rem; opacity: 0.6;">NON-STRIKER</div>
-                <div id="nonstriker-name" style="font-size: 2rem; font-weight: 700;">PLAYER</div>
-                <div id="nonstriker-runs" style="font-size: 1.6rem;">0 (0)</div>
-            </div>
-            <div class="stat-unit">
-                <div style="font-size: 0.7rem; opacity: 0.6;">BOWLER</div>
-                <div id="bowler-name" style="font-size: 2rem; font-weight: 700;">BOWLER</div>
-                <div id="bowler-figures" style="font-size: 1.6rem;">0/0 (0.0)</div>
+            <div style="text-align: right; opacity: 0.6;">
+                <div id="nonstriker-name" style="font-size: 2rem; font-weight: 900;">S. GILL</div>
+                <div id="nonstriker-runs">12(7)</div>
             </div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
-        /** * CORE LOGIC - DO NOT CHANGE 
-         * Connects to Match.ts and ScoreboardUpdate.tsx
-         */
-        window.triggerPush = function(msg, type) {
-            const banner = document.getElementById('push-banner');
-            banner.innerText = msg.toUpperCase();
-            
-            // Map types to colors from your config
-            const colors = { 'W': '#ff3e3e', '6': '#00ff66', '4': '#00f2ff' };
-            banner.style.background = colors[type] || '#00f2ff';
-            banner.style.color = (type === 'W') ? '#fff' : '#000';
+        // Auto-initialize with matchId from URL
+        const params = new URLSearchParams(window.location.search);
+        const matchId = params.get('matchId');
+        if (matchId) {
+            window.initLiveScore(matchId);
+        }
 
-            banner.classList.add('active');
-            setTimeout(() => banner.classList.remove('active'), 4000);
-        };
-
-        // This function is called by your OverlayController.ts
-        window.updateData = function(data) {
-            document.getElementById('tournament-name').innerText = data.tournamentName || "TOURNAMENT";
-            document.getElementById('match-type').innerText = data.matchType || "T20";
-            document.getElementById('team1-name').innerText = data.team1Name || "TEAM";
-            document.getElementById('team1-score').innerText = `${data.score1}/${data.wickets1}`;
-            document.getElementById('team1-overs').innerText = data.overs1;
-            document.getElementById('striker-name').innerText = data.strikerName;
-            document.getElementById('striker-runs').innerText = `${data.strikerRuns}* (${data.strikerBalls})`;
-            document.getElementById('nonstriker-name').innerText = data.nonStrikerName;
-            document.getElementById('nonstriker-runs').innerText = `${data.nonStrikerRuns} (${data.nonStrikerBalls})`;
-            document.getElementById('bowler-name').innerText = data.bowlerName;
-            document.getElementById('bowler-figures').innerText = `${data.bowlerWickets}/${data.bowlerRuns} (${data.bowlerOvers})`;
-        };
+        function triggerPush(msg, type) {
+            const overlay = document.getElementById('push-overlay');
+            const content = document.querySelector('.push-content');
+            document.getElementById('push-txt').innerText = msg;
+            if (type === '6') content.style.background = 'var(--six)';
+            else if (type === 'W') { content.style.background = 'var(--out-red)'; content.style.color = 'white'; }
+            else { content.style.background = 'var(--four)'; content.style.color = 'black'; }
+            overlay.classList.add('active'); setTimeout(() => overlay.classList.remove('active'), 3500);
+        }
     </script>
 </body>
 </html>

@@ -2,111 +2,94 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00f2ff; --bg: rgba(0,0,0,0.9); }
+        :root { --gold: #f9cd05; --dark: #050505; --accent: #00f2ff; --wicket: #ff0033; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
 
-        /* UNIVERSAL TOP (Floating Micro) */
-        .top-micro {
-            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
-            height: 28px; background: var(--bg); border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 50px; display: flex; align-items: center; padding: 0 25px;
-            font-size: 1rem; letter-spacing: 2px; font-weight: 700;
-        }
+        /* TOP BORDER: THE HEADER SLAB */
+        .top-slab { position: absolute; top: 0; width: 100%; height: 75px; background: linear-gradient(to bottom, var(--dark), transparent); display: flex; align-items: flex-start; padding: 15px 60px; box-sizing: border-box; }
+        .tournament-badge { background: var(--gold); color: #000; padding: 5px 30px; font-weight: 900; font-size: 1.8rem; clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%); }
+        .match-info { margin-left: auto; font-size: 1.5rem; letter-spacing: 4px; border-right: 4px solid var(--accent); padding-right: 20px; text-transform: uppercase; font-weight: 700; }
 
-        /* UNIVERSAL BOTTOM (Blade Architecture) */
-        .bottom-blade {
-            position: absolute; bottom: 0; width: 100%; height: 115px;
-            background: linear-gradient(to top, #000 0%, #111 100%);
-            border-top: 4px solid var(--accent); display: flex; align-items: center; padding: 0 60px; box-sizing: border-box;
-        }
-
-        /* Elements for Logic Mapping */
-        .match-type-box { width: 120px; border-right: 1px solid #333; margin-right: 30px; }
-        .score-box { display: flex; align-items: baseline; gap: 15px; min-width: 350px; }
-        .player-grid { flex-grow: 1; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 40px; padding-left: 40px; border-left: 1px solid #333; }
+        /* BOTTOM BORDER: THE COMMAND DECK */
+        .bottom-deck { position: absolute; bottom: 0; width: 100%; height: 130px; background: rgba(0,0,0,0.95); border-top: 4px solid var(--gold); display: flex; align-items: center; padding: 0 60px; box-sizing: border-box; }
+        .score-huge { font-size: 6.5rem; font-weight: 900; line-height: 1; margin-right: 40px; display: flex; align-items: baseline; }
+        .overs-pill { background: #222; padding: 5px 20px; font-size: 1.8rem; border-radius: 50px; color: var(--accent); margin-left: 15px; }
         
-        #push-banner {
-            position: absolute; bottom: 130px; left: 60px; height: 80px; padding: 0 40px;
-            display: flex; align-items: center; font-size: 4rem; font-weight: 900;
-            transform: translateX(-150%); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #push-banner.active { transform: translateX(0); }
+        .players-wrap { flex-grow: 1; display: flex; justify-content: flex-end; gap: 80px; }
+        .player-box { position: relative; padding-left: 20px; border-left: 2px solid rgba(255,255,255,0.2); }
+        .p-name { font-size: 2.2rem; font-weight: 900; color: #fff; }
+        .p-runs { font-size: 1.8rem; color: var(--gold); }
+
+        /* PUSH ENGINE: PERIPHERAL FLASH */
+        #push-lock { position: absolute; inset: 0; border: 0px solid var(--accent); transition: 0.2s; pointer-events: none; z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; }
+        #push-lock.active { border: 20px solid var(--accent); opacity: 1; background: rgba(0,0,0,0.4); }
+        
+        .push-content { transform: scale(0.5); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #push-lock.active .push-content { transform: scale(1.5); }
+        .push-msg { font-size: 12rem; font-weight: 900; font-style: italic; text-shadow: 10px 10px 0 #000; }
     </style>
 </head>
 <body>
-    <div class="top-micro">
-        <span id="tournament-name">TOURNAMENT</span>
-        <span style="margin: 0 15px; opacity: 0.3;">|</span>
-        <span id="match-status" style="color: var(--accent)">LIVE</span>
+    <div class="top-slab">
+        <div class="tournament-badge">ICC WORLD TEST CHAMPIONSHIP</div>
+        <div class="match-info">DAY 5 • SESSION 3 • FINAL</div>
     </div>
 
-    <div id="push-banner">OUT!</div>
-
-    <div class="bottom-blade">
-        <div class="match-type-box">
-            <div style="font-size: 0.7rem; opacity: 0.6;">FORMAT</div>
-            <div id="match-type" style="font-size: 1.8rem; font-weight: 900; color: var(--accent);">T20</div>
+    <div id="push-lock">
+        <div class="push-content">
+            <div class="push-msg" id="p-txt">WICKET!</div>
         </div>
+    </div>
 
-        <div class="score-box">
-            <div id="team1-name" style="font-size: 2.2rem;">TEAM</div>
-            <div id="team1-score" style="font-size: 5.5rem; font-weight: 900;">0/0</div>
-            <div style="font-size: 1.5rem; color: var(--accent);">(<span id="team1-overs">0.0</span>)</div>
+    <div class="bottom-deck">
+        <div class="score-huge">
+            <span>IND 442/8</span>
+            <span class="overs-pill">124.2 OV</span>
         </div>
-
-        <div class="player-grid">
-            <div class="stat-unit">
-                <div style="font-size: 0.7rem; opacity: 0.6;">STRIKER</div>
-                <div id="striker-name" style="font-size: 2rem; font-weight: 700;">PLAYER</div>
-                <div id="striker-runs" style="font-size: 1.6rem; color: var(--accent);">0* (0)</div>
+        
+        <div class="players-wrap">
+            <div class="player-box">
+                <div class="p-name">R. PANT</div>
+                <div class="p-runs">146 (122)*</div>
             </div>
-            <div class="stat-unit" style="opacity: 0.6">
-                <div style="font-size: 0.7rem; opacity: 0.6;">NON-STRIKER</div>
-                <div id="nonstriker-name" style="font-size: 2rem; font-weight: 700;">PLAYER</div>
-                <div id="nonstriker-runs" style="font-size: 1.6rem;">0 (0)</div>
-            </div>
-            <div class="stat-unit">
-                <div style="font-size: 0.7rem; opacity: 0.6;">BOWLER</div>
-                <div id="bowler-name" style="font-size: 2rem; font-weight: 700;">BOWLER</div>
-                <div id="bowler-figures" style="font-size: 1.6rem;">0/0 (0.0)</div>
+            <div class="player-box" style="opacity: 0.6;">
+                <div class="p-name">J. BUMRAH</div>
+                <div class="p-runs">12 (44)</div>
             </div>
         </div>
     </div>
 
     <script>
-        /** * CORE LOGIC - DO NOT CHANGE 
-         * Connects to Match.ts and ScoreboardUpdate.tsx
+        /**
+         * Dynamic Push Engine
+         * @param {string} msg - The text to display (e.g., 'SIX', 'OUT')
+         * @param {string} type - 'W' for Wicket, '6' for Six, '4' for Four
          */
-        window.triggerPush = function(msg, type) {
-            const banner = document.getElementById('push-banner');
-            banner.innerText = msg.toUpperCase();
+        function triggerPush(msg, type) {
+            const container = document.getElementById('push-lock');
+            const text = document.getElementById('p-txt');
             
-            // Map types to colors from your config
-            const colors = { 'W': '#ff3e3e', '6': '#00ff66', '4': '#00f2ff' };
-            banner.style.background = colors[type] || '#00f2ff';
-            banner.style.color = (type === 'W') ? '#fff' : '#000';
+            text.innerText = msg;
+            
+            // Set Color Theme based on event
+            if (type === 'W') {
+                container.style.setProperty('--accent', 'var(--wicket)');
+            } else if (type === '6') {
+                container.style.setProperty('--accent', '#2ecc71');
+            } else {
+                container.style.setProperty('--accent', '#00f2ff');
+            }
 
-            banner.classList.add('active');
-            setTimeout(() => banner.classList.remove('active'), 4000);
-        };
+            container.classList.add('active');
+            
+            setTimeout(() => {
+                container.classList.remove('active');
+            }, 3500);
+        }
 
-        // This function is called by your OverlayController.ts
-        window.updateData = function(data) {
-            document.getElementById('tournament-name').innerText = data.tournamentName || "TOURNAMENT";
-            document.getElementById('match-type').innerText = data.matchType || "T20";
-            document.getElementById('team1-name').innerText = data.team1Name || "TEAM";
-            document.getElementById('team1-score').innerText = `${data.score1}/${data.wickets1}`;
-            document.getElementById('team1-overs').innerText = data.overs1;
-            document.getElementById('striker-name').innerText = data.strikerName;
-            document.getElementById('striker-runs').innerText = `${data.strikerRuns}* (${data.strikerBalls})`;
-            document.getElementById('nonstriker-name').innerText = data.nonStrikerName;
-            document.getElementById('nonstriker-runs').innerText = `${data.nonStrikerRuns} (${data.nonStrikerBalls})`;
-            document.getElementById('bowler-name').innerText = data.bowlerName;
-            document.getElementById('bowler-figures').innerText = `${data.bowlerWickets}/${data.bowlerRuns} (${data.bowlerOvers})`;
-        };
+        // Example trigger: triggerPush('BOWLED!', 'W');
     </script>
 </body>
 </html>
