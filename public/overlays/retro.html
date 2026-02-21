@@ -2,46 +2,111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --cyber-pink: #ff00ff; --cyber-cyan: #00ffff; }
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; }
+        :root { --accent: #00f2ff; --bg: rgba(0,0,0,0.9); }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
 
-        /* TOP BORDER: SEGMENTED LINE */
-        .top-cyber { position: absolute; top: 0; width: 100%; height: 40px; background: #000; display: flex; align-items: center; padding: 0 40px; border-bottom: 2px solid var(--cyber-pink); box-shadow: 0 0 15px var(--cyber-pink); }
+        /* UNIVERSAL TOP (Floating Micro) */
+        .top-micro {
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            height: 28px; background: var(--bg); border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px; display: flex; align-items: center; padding: 0 25px;
+            font-size: 1rem; letter-spacing: 2px; font-weight: 700;
+        }
+
+        /* UNIVERSAL BOTTOM (Blade Architecture) */
+        .bottom-blade {
+            position: absolute; bottom: 0; width: 100%; height: 115px;
+            background: linear-gradient(to top, #000 0%, #111 100%);
+            border-top: 4px solid var(--accent); display: flex; align-items: center; padding: 0 60px; box-sizing: border-box;
+        }
+
+        /* Elements for Logic Mapping */
+        .match-type-box { width: 120px; border-right: 1px solid #333; margin-right: 30px; }
+        .score-box { display: flex; align-items: baseline; gap: 15px; min-width: 350px; }
+        .player-grid { flex-grow: 1; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 40px; padding-left: 40px; border-left: 1px solid #333; }
         
-        /* BOTTOM BORDER: HUD MODULES */
-        .bottom-cyber { position: absolute; bottom: 0; width: 100%; height: 100px; display: flex; gap: 10px; padding: 10px; box-sizing: border-box; }
-        .module { background: rgba(0,0,0,0.9); border: 1px solid var(--cyber-cyan); height: 100%; display: flex; align-items: center; justify-content: center; padding: 0 30px; }
-        .m-score { flex-grow: 1; font-size: 4rem; font-weight: 900; color: var(--cyber-cyan); }
-        .m-stats { width: 40%; font-size: 1.5rem; justify-content: space-between; }
-
-        /* PUSH ENGINE: GLITCH FLASH */
-        #push-cyber { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; transition: 0.1s; z-index: 10; font-size: 10rem; font-weight: 900; font-style: italic; color: #fff; text-shadow: 5px 0 var(--cyber-pink), -5px 0 var(--cyber-cyan); }
-        #push-cyber.active { opacity: 1; animation: glitch 0.3s infinite; }
-        @keyframes glitch { 0% { transform: translate(-50%, -52%); } 50% { transform: translate(-48%, -50%); } 100% { transform: translate(-50%, -48%); } }
+        #push-banner {
+            position: absolute; bottom: 130px; left: 60px; height: 80px; padding: 0 40px;
+            display: flex; align-items: center; font-size: 4rem; font-weight: 900;
+            transform: translateX(-150%); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #push-banner.active { transform: translateX(0); }
     </style>
 </head>
 <body>
-    <div class="top-cyber">SYSTEM.OVERLAY_v2.0 // LIVE_FEED // SESSION.2026</div>
-    <div id="push-cyber">SYSTEM ERROR: SIX!</div>
+    <div class="top-micro">
+        <span id="tournament-name">TOURNAMENT</span>
+        <span style="margin: 0 15px; opacity: 0.3;">|</span>
+        <span id="match-status" style="color: var(--accent)">LIVE</span>
+    </div>
 
-    <div class="bottom-cyber">
-        <div class="module" style="width: 150px; font-weight: 900;">ENG</div>
-        <div class="module m-score">345/7</div>
-        <div class="module m-stats">
-            <div><b>ROOT</b> 122*</div>
-            <div><b>BROOK</b> 54</div>
-            <div style="color: var(--cyber-pink);">88.4 OV</div>
+    <div id="push-banner">OUT!</div>
+
+    <div class="bottom-blade">
+        <div class="match-type-box">
+            <div style="font-size: 0.7rem; opacity: 0.6;">FORMAT</div>
+            <div id="match-type" style="font-size: 1.8rem; font-weight: 900; color: var(--accent);">T20</div>
+        </div>
+
+        <div class="score-box">
+            <div id="team1-name" style="font-size: 2.2rem;">TEAM</div>
+            <div id="team1-score" style="font-size: 5.5rem; font-weight: 900;">0/0</div>
+            <div style="font-size: 1.5rem; color: var(--accent);">(<span id="team1-overs">0.0</span>)</div>
+        </div>
+
+        <div class="player-grid">
+            <div class="stat-unit">
+                <div style="font-size: 0.7rem; opacity: 0.6;">STRIKER</div>
+                <div id="striker-name" style="font-size: 2rem; font-weight: 700;">PLAYER</div>
+                <div id="striker-runs" style="font-size: 1.6rem; color: var(--accent);">0* (0)</div>
+            </div>
+            <div class="stat-unit" style="opacity: 0.6">
+                <div style="font-size: 0.7rem; opacity: 0.6;">NON-STRIKER</div>
+                <div id="nonstriker-name" style="font-size: 2rem; font-weight: 700;">PLAYER</div>
+                <div id="nonstriker-runs" style="font-size: 1.6rem;">0 (0)</div>
+            </div>
+            <div class="stat-unit">
+                <div style="font-size: 0.7rem; opacity: 0.6;">BOWLER</div>
+                <div id="bowler-name" style="font-size: 2rem; font-weight: 700;">BOWLER</div>
+                <div id="bowler-figures" style="font-size: 1.6rem;">0/0 (0.0)</div>
+            </div>
         </div>
     </div>
 
     <script>
-        function triggerPush(msg) {
-            const c = document.getElementById('push-cyber');
-            c.innerText = msg; c.classList.add('active');
-            setTimeout(() => c.classList.remove('active'), 3000);
-        }
+        /** * CORE LOGIC - DO NOT CHANGE 
+         * Connects to Match.ts and ScoreboardUpdate.tsx
+         */
+        window.triggerPush = function(msg, type) {
+            const banner = document.getElementById('push-banner');
+            banner.innerText = msg.toUpperCase();
+            
+            // Map types to colors from your config
+            const colors = { 'W': '#ff3e3e', '6': '#00ff66', '4': '#00f2ff' };
+            banner.style.background = colors[type] || '#00f2ff';
+            banner.style.color = (type === 'W') ? '#fff' : '#000';
+
+            banner.classList.add('active');
+            setTimeout(() => banner.classList.remove('active'), 4000);
+        };
+
+        // This function is called by your OverlayController.ts
+        window.updateData = function(data) {
+            document.getElementById('tournament-name').innerText = data.tournamentName || "TOURNAMENT";
+            document.getElementById('match-type').innerText = data.matchType || "T20";
+            document.getElementById('team1-name').innerText = data.team1Name || "TEAM";
+            document.getElementById('team1-score').innerText = `${data.score1}/${data.wickets1}`;
+            document.getElementById('team1-overs').innerText = data.overs1;
+            document.getElementById('striker-name').innerText = data.strikerName;
+            document.getElementById('striker-runs').innerText = `${data.strikerRuns}* (${data.strikerBalls})`;
+            document.getElementById('nonstriker-name').innerText = data.nonStrikerName;
+            document.getElementById('nonstriker-runs').innerText = `${data.nonStrikerRuns} (${data.nonStrikerBalls})`;
+            document.getElementById('bowler-name').innerText = data.bowlerName;
+            document.getElementById('bowler-figures').innerText = `${data.bowlerWickets}/${data.bowlerRuns} (${data.bowlerOvers})`;
+        };
     </script>
 </body>
 </html>

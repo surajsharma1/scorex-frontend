@@ -2,68 +2,111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
-    <script src="overlay-utils.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: #fff; }
+        :root { --accent: #00f2ff; --bg: rgba(0,0,0,0.9); }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
+
+        /* UNIVERSAL TOP (Floating Micro) */
+        .top-micro {
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            height: 28px; background: var(--bg); border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px; display: flex; align-items: center; padding: 0 25px;
+            font-size: 1rem; letter-spacing: 2px; font-weight: 700;
+        }
+
+        /* UNIVERSAL BOTTOM (Blade Architecture) */
+        .bottom-blade {
+            position: absolute; bottom: 0; width: 100%; height: 115px;
+            background: linear-gradient(to top, #000 0%, #111 100%);
+            border-top: 4px solid var(--accent); display: flex; align-items: center; padding: 0 60px; box-sizing: border-box;
+        }
+
+        /* Elements for Logic Mapping */
+        .match-type-box { width: 120px; border-right: 1px solid #333; margin-right: 30px; }
+        .score-box { display: flex; align-items: baseline; gap: 15px; min-width: 350px; }
+        .player-grid { flex-grow: 1; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 40px; padding-left: 40px; border-left: 1px solid #333; }
         
-        /* DOUBLE TOP RAIL */
-        .rail-top { position: absolute; top: 0; width: 100%; }
-        .rail-1 { height: 30px; background: #ff0055; font-size: 1rem; font-weight: 900; display: flex; align-items: center; padding: 0 50px; }
-        .rail-2 { height: 40px; background: rgba(0,0,0,0.8); border-bottom: 2px solid #ff0055; display: flex; align-items: center; padding: 0 50px; font-size: 1.5rem; }
-
-        /* DOUBLE BOTTOM RAIL */
-        .rail-bottom { position: absolute; bottom: 0; width: 100%; }
-        .rail-3 { height: 80px; background: #000; display: flex; align-items: center; padding: 0 50px; border-top: 4px solid #fff; }
-        .rail-4 { height: 25px; background: #ff0055; width: 100%; }
-
-        #push-rail { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); font-size: 4rem; font-weight: 900; background: #fff; color: #000; padding: 5px 60px; clip-path: polygon(5% 0, 95% 0, 100% 100%, 0% 100%); opacity: 0; transition: 0.3s; }
-        #push-rail.active { opacity: 1; }
+        #push-banner {
+            position: absolute; bottom: 130px; left: 60px; height: 80px; padding: 0 40px;
+            display: flex; align-items: center; font-size: 4rem; font-weight: 900;
+            transform: translateX(-150%); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #push-banner.active { transform: translateX(0); }
     </style>
 </head>
 <body>
-    <div class="rail-top">
-        <div class="rail-1">WORLD BROADCAST • FEED A</div>
-        <!-- Dynamic Tournament Name -->
-        <div class="rail-2" id="tournament-name">TATA IPL 2026 • ELIMINATOR 2</div>
+    <div class="top-micro">
+        <span id="tournament-name">TOURNAMENT</span>
+        <span style="margin: 0 15px; opacity: 0.3;">|</span>
+        <span id="match-status" style="color: var(--accent)">LIVE</span>
     </div>
 
-    <div id="push-rail">WICKET!</div>
+    <div id="push-banner">OUT!</div>
 
-    <div class="rail-bottom">
-        <!-- Dynamic Team and Players -->
-        <div class="rail-3">
-            <span style="font-size: 4rem; font-weight: 900; color: #ff0055;">
-                <span id="team1-short">Kolkata</span> <span id="team1-score">156</span>/<span id="team1-wickets">2</span>
-            </span>
-            <span style="margin-left: 40px; font-size: 2rem;">
-                <span id="striker-name">S. Iyer</span> 45* • <span id="nonstriker-name">R. Singh</span> 12
-            </span>
-            <!-- Dynamic Overs -->
-            <span id="team1-overs" style="margin-left: auto; font-size: 2rem; opacity: 0.5;">14.2 OVERS</span>
+    <div class="bottom-blade">
+        <div class="match-type-box">
+            <div style="font-size: 0.7rem; opacity: 0.6;">FORMAT</div>
+            <div id="match-type" style="font-size: 1.8rem; font-weight: 900; color: var(--accent);">T20</div>
         </div>
-        <div class="rail-4"></div>
+
+        <div class="score-box">
+            <div id="team1-name" style="font-size: 2.2rem;">TEAM</div>
+            <div id="team1-score" style="font-size: 5.5rem; font-weight: 900;">0/0</div>
+            <div style="font-size: 1.5rem; color: var(--accent);">(<span id="team1-overs">0.0</span>)</div>
+        </div>
+
+        <div class="player-grid">
+            <div class="stat-unit">
+                <div style="font-size: 0.7rem; opacity: 0.6;">STRIKER</div>
+                <div id="striker-name" style="font-size: 2rem; font-weight: 700;">PLAYER</div>
+                <div id="striker-runs" style="font-size: 1.6rem; color: var(--accent);">0* (0)</div>
+            </div>
+            <div class="stat-unit" style="opacity: 0.6">
+                <div style="font-size: 0.7rem; opacity: 0.6;">NON-STRIKER</div>
+                <div id="nonstriker-name" style="font-size: 2rem; font-weight: 700;">PLAYER</div>
+                <div id="nonstriker-runs" style="font-size: 1.6rem;">0 (0)</div>
+            </div>
+            <div class="stat-unit">
+                <div style="font-size: 0.7rem; opacity: 0.6;">BOWLER</div>
+                <div id="bowler-name" style="font-size: 2rem; font-weight: 700;">BOWLER</div>
+                <div id="bowler-figures" style="font-size: 1.6rem;">0/0 (0.0)</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Auto-initialize with matchId from URL
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const matchId = params.get('matchId');
-            const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+        /** * CORE LOGIC - DO NOT CHANGE 
+         * Connects to Match.ts and ScoreboardUpdate.tsx
+         */
+        window.triggerPush = function(msg, type) {
+            const banner = document.getElementById('push-banner');
+            banner.innerText = msg.toUpperCase();
             
-            if (matchId) {
-                console.log('Initializing live score for match:', matchId);
-                window.initLiveScore(matchId, apiBaseUrl);
-            }
-        });
+            // Map types to colors from your config
+            const colors = { 'W': '#ff3e3e', '6': '#00ff66', '4': '#00f2ff' };
+            banner.style.background = colors[type] || '#00f2ff';
+            banner.style.color = (type === 'W') ? '#fff' : '#000';
 
-        function triggerPush(msg, type) {
-            const r = document.getElementById('push-rail');
-            r.innerText = msg; 
-            r.classList.add('active');
-            setTimeout(() => r.classList.remove('active'), 3000);
-        }
+            banner.classList.add('active');
+            setTimeout(() => banner.classList.remove('active'), 4000);
+        };
+
+        // This function is called by your OverlayController.ts
+        window.updateData = function(data) {
+            document.getElementById('tournament-name').innerText = data.tournamentName || "TOURNAMENT";
+            document.getElementById('match-type').innerText = data.matchType || "T20";
+            document.getElementById('team1-name').innerText = data.team1Name || "TEAM";
+            document.getElementById('team1-score').innerText = `${data.score1}/${data.wickets1}`;
+            document.getElementById('team1-overs').innerText = data.overs1;
+            document.getElementById('striker-name').innerText = data.strikerName;
+            document.getElementById('striker-runs').innerText = `${data.strikerRuns}* (${data.strikerBalls})`;
+            document.getElementById('nonstriker-name').innerText = data.nonStrikerName;
+            document.getElementById('nonstriker-runs').innerText = `${data.nonStrikerRuns} (${data.nonStrikerBalls})`;
+            document.getElementById('bowler-name').innerText = data.bowlerName;
+            document.getElementById('bowler-figures').innerText = `${data.bowlerWickets}/${data.bowlerRuns} (${data.bowlerOvers})`;
+        };
     </script>
 </body>
 </html>

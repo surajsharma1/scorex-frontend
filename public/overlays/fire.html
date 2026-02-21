@@ -2,168 +2,111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,900&display=swap" rel="stylesheet">
-    <script src="overlay-utils.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
-        :root {
-            --ipl-blue: #001f3f;
-            --ipl-gold: #f9cd05;
-            --white: #ffffff;
-            --accent: #00f2ff;
+        :root { --accent: #00f2ff; --bg: rgba(0,0,0,0.9); }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
+
+        /* UNIVERSAL TOP (Floating Micro) */
+        .top-micro {
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            height: 28px; background: var(--bg); border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px; display: flex; align-items: center; padding: 0 25px;
+            font-size: 1rem; letter-spacing: 2px; font-weight: 700;
         }
 
-        body {
-            margin: 0;
-            padding: 0;
-            width: 1920px;
-            height: 1080px;
-            font-family: 'Barlow Condensed', sans-serif;
-            background: transparent;
-            overflow: hidden;
+        /* UNIVERSAL BOTTOM (Blade Architecture) */
+        .bottom-blade {
+            position: absolute; bottom: 0; width: 100%; height: 115px;
+            background: linear-gradient(to top, #000 0%, #111 100%);
+            border-top: 4px solid var(--accent); display: flex; align-items: center; padding: 0 60px; box-sizing: border-box;
         }
 
-        /* --- 1. TOP MATCH INFO RIBBON --- */
-        #top-info {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--ipl-blue);
-            color: var(--white);
-            padding: 5px 60px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
-            border-bottom: 3px solid var(--ipl-gold);
-            letter-spacing: 2px;
+        /* Elements for Logic Mapping */
+        .match-type-box { width: 120px; border-right: 1px solid #333; margin-right: 30px; }
+        .score-box { display: flex; align-items: baseline; gap: 15px; min-width: 350px; }
+        .player-grid { flex-grow: 1; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 40px; padding-left: 40px; border-left: 1px solid #333; }
+        
+        #push-banner {
+            position: absolute; bottom: 130px; left: 60px; height: 80px; padding: 0 40px;
+            display: flex; align-items: center; font-size: 4rem; font-weight: 900;
+            transform: translateX(-150%); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
-        /* --- 2. BOTTOM MAIN SCORE SLAB (Full Width Logic) --- */
-        .bottom-border-wrap {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 70px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-        }
-
-        .main-slab {
-            display: flex;
-            height: 65px;
-            filter: drop-shadow(0 -5px 15px rgba(0,0,0,0.5));
-        }
-
-        .seg-team {
-            background: var(--ipl-blue);
-            color: var(--ipl-gold);
-            width: 160px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.8rem;
-            font-weight: 900;
-            clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
-            border-bottom: 5px solid var(--ipl-gold);
-        }
-
-        .seg-score {
-            background: #000;
-            padding: 0 50px;
-            margin-left: -25px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
-            border-bottom: 5px solid var(--white);
-        }
-        .score-val { color: var(--white); font-size: 3.5rem; font-weight: 900; }
-        .over-val { color: #888; font-size: 1.4rem; padding-top: 15px; }
-
-        .seg-players {
-            background: #fff;
-            color: #000;
-            margin-left: -25px;
-            padding: 0 60px;
-            display: flex;
-            align-items: center;
-            gap: 40px;
-            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
-        }
-        .p-unit { display: flex; flex-direction: column; line-height: 1; }
-        .p-n { font-size: 1.3rem; font-weight: 900; text-transform: uppercase; }
-        .p-s { font-size: 0.9rem; font-weight: 700; color: #555; }
-
-        .seg-status {
-            background: var(--ipl-gold);
-            color: #000;
-            margin-left: -25px;
-            padding: 0 50px;
-            display: flex;
-            align-items: center;
-            clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
-            font-weight: 900;
-            font-size: 1.6rem;
-            font-style: italic;
-        }
-
-        /* --- 3. TOP-LEFT LOGO/PHASE BOX --- */
-        #phase-box {
-            position: absolute;
-            top: 40px;
-            left: 40px;
-            background: rgba(0,0,0,0.7);
-            border-left: 5px solid var(--accent);
-            padding: 10px 20px;
-            color: var(--white);
-        }
-        .phase-title { font-size: 0.8rem; opacity: 0.7; letter-spacing: 1px; }
-        .phase-val { font-size: 1.5rem; font-weight: 900; color: var(--accent); }
-
+        #push-banner.active { transform: translateX(0); }
     </style>
 </head>
 <body>
-
-    <!-- Dynamic Tournament Name -->
-    <div id="top-info" id="tournament-name">1ST T20I • CHENNAI • LIVE</div>
-
-    <div id="phase-box">
-        <div class="phase-title">MATCH PHASE</div>
-        <div class="phase-val">POWERPLAY 1</div>
+    <div class="top-micro">
+        <span id="tournament-name">TOURNAMENT</span>
+        <span style="margin: 0 15px; opacity: 0.3;">|</span>
+        <span id="match-status" style="color: var(--accent)">LIVE</span>
     </div>
 
-    <div class="bottom-border-wrap">
-        <div class="main-slab">
-            <!-- Dynamic Team -->
-            <div id="team1-short" class="seg-team">IND</div>
-            <!-- Dynamic Score -->
-            <div class="seg-score">
-                <span id="team1-score" class="score-val">192</span>/<span id="team1-wickets">4</span>
-                <span id="team1-overs" class="over-val">18.4</span>
+    <div id="push-banner">OUT!</div>
+
+    <div class="bottom-blade">
+        <div class="match-type-box">
+            <div style="font-size: 0.7rem; opacity: 0.6;">FORMAT</div>
+            <div id="match-type" style="font-size: 1.8rem; font-weight: 900; color: var(--accent);">T20</div>
+        </div>
+
+        <div class="score-box">
+            <div id="team1-name" style="font-size: 2.2rem;">TEAM</div>
+            <div id="team1-score" style="font-size: 5.5rem; font-weight: 900;">0/0</div>
+            <div style="font-size: 1.5rem; color: var(--accent);">(<span id="team1-overs">0.0</span>)</div>
+        </div>
+
+        <div class="player-grid">
+            <div class="stat-unit">
+                <div style="font-size: 0.7rem; opacity: 0.6;">STRIKER</div>
+                <div id="striker-name" style="font-size: 2rem; font-weight: 700;">PLAYER</div>
+                <div id="striker-runs" style="font-size: 1.6rem; color: var(--accent);">0* (0)</div>
             </div>
-            <!-- Dynamic Players -->
-            <div class="seg-players">
-                <div class="p-unit"><span id="striker-name" class="p-n">V. KOHLI</span><span class="p-s">82(44)*</span></div>
-                <div id="nonstriker-name" class="p-unit" style="opacity:0.5"><span class="p-n">S. GILL</span><span class="p-s">14(10)</span></div>
+            <div class="stat-unit" style="opacity: 0.6">
+                <div style="font-size: 0.7rem; opacity: 0.6;">NON-STRIKER</div>
+                <div id="nonstriker-name" style="font-size: 2rem; font-weight: 700;">PLAYER</div>
+                <div id="nonstriker-runs" style="font-size: 1.6rem;">0 (0)</div>
             </div>
-            <div class="seg-status">NEED 24 FROM 8 BALLS</div>
+            <div class="stat-unit">
+                <div style="font-size: 0.7rem; opacity: 0.6;">BOWLER</div>
+                <div id="bowler-name" style="font-size: 2rem; font-weight: 700;">BOWLER</div>
+                <div id="bowler-figures" style="font-size: 1.6rem;">0/0 (0.0)</div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Auto-initialize with matchId from URL
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const matchId = params.get('matchId');
-            const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+        /** * CORE LOGIC - DO NOT CHANGE 
+         * Connects to Match.ts and ScoreboardUpdate.tsx
+         */
+        window.triggerPush = function(msg, type) {
+            const banner = document.getElementById('push-banner');
+            banner.innerText = msg.toUpperCase();
             
-            if (matchId) {
-                console.log('Initializing live score for match:', matchId);
-                window.initLiveScore(matchId, apiBaseUrl);
-            }
-        });
+            // Map types to colors from your config
+            const colors = { 'W': '#ff3e3e', '6': '#00ff66', '4': '#00f2ff' };
+            banner.style.background = colors[type] || '#00f2ff';
+            banner.style.color = (type === 'W') ? '#fff' : '#000';
+
+            banner.classList.add('active');
+            setTimeout(() => banner.classList.remove('active'), 4000);
+        };
+
+        // This function is called by your OverlayController.ts
+        window.updateData = function(data) {
+            document.getElementById('tournament-name').innerText = data.tournamentName || "TOURNAMENT";
+            document.getElementById('match-type').innerText = data.matchType || "T20";
+            document.getElementById('team1-name').innerText = data.team1Name || "TEAM";
+            document.getElementById('team1-score').innerText = `${data.score1}/${data.wickets1}`;
+            document.getElementById('team1-overs').innerText = data.overs1;
+            document.getElementById('striker-name').innerText = data.strikerName;
+            document.getElementById('striker-runs').innerText = `${data.strikerRuns}* (${data.strikerBalls})`;
+            document.getElementById('nonstriker-name').innerText = data.nonStrikerName;
+            document.getElementById('nonstriker-runs').innerText = `${data.nonStrikerRuns} (${data.nonStrikerBalls})`;
+            document.getElementById('bowler-name').innerText = data.bowlerName;
+            document.getElementById('bowler-figures').innerText = `${data.bowlerWickets}/${data.bowlerRuns} (${data.bowlerOvers})`;
+        };
     </script>
 </body>
 </html>
