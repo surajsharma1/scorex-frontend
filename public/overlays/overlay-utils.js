@@ -496,7 +496,46 @@ window.initBroadcastChannel = function(onScoreUpdate, onWicket) {
   channel.onmessage = (event) => {
     const data = event.data;
     
-    // Check if it's a wicket event
+    // Handle Score Updates
+    if (data.team1 || data.team2) {
+      // Use the updateScore function from overlay-utils
+      if (typeof window.updateScore === 'function') {
+        window.updateScore(data);
+      }
+      console.log("Scores Updated", data);
+      
+      // Call custom score update callback if provided
+      if (typeof onScoreUpdate === 'function') {
+        onScoreUpdate(data);
+      }
+    }
+    
+    // NEW: Handle Push Events (Animations)
+    if (data.type === 'PUSH_EVENT') {
+      const container = document.getElementById('push-container'); // Ensure this ID exists
+      const textEl = document.getElementById('p-msg');
+      
+      if (!container || !textEl) return;
+
+      textEl.innerText = data.message;
+      
+      // Dynamic Styling based on event
+      if (data.eventType === 'WICKET') {
+        container.style.setProperty('--accent', '#ff0033'); // Red
+      } else if (data.eventType === 'SIX') {
+        container.style.setProperty('--accent', '#a020f0'); // Purple
+      } else if (data.eventType === 'FOUR') {
+        container.style.setProperty('--accent', '#00ff66'); // Green
+      } else {
+        container.style.setProperty('--accent', '#00f2ff'); // Blue/Cyan
+      }
+
+      // Trigger CSS Animation
+      container.classList.add('active');
+      setTimeout(() => container.classList.remove('active'), 3500);
+    }
+    
+    // Check if it's a wicket event (legacy support)
     if (data.type === 'WICKET') {
       // Trigger wicket animation
       if (typeof window.triggerPush === 'function') {
@@ -506,16 +545,6 @@ window.initBroadcastChannel = function(onScoreUpdate, onWicket) {
       // Call custom wicket callback if provided
       if (typeof onWicket === 'function') {
         onWicket(data);
-      }
-    } else {
-      // Standard score update - use the updateScore function
-      if (data.team1 || data.team2) {
-        window.updateScore(data);
-      }
-      
-      // Call custom score update callback if provided
-      if (typeof onScoreUpdate === 'function') {
-        onScoreUpdate(data);
       }
     }
   };
@@ -541,6 +570,21 @@ window.postScoreUpdate = function(scores) {
 window.postWicketEvent = function(message) {
   const channel = new BroadcastChannel('cricket_score_updates');
   channel.postMessage({ type: 'WICKET', message: message || 'OUT!' });
+  channel.close();
+};
+
+/**
+ * Post a visual push event (4, 6, Wicket) to all overlays
+ * @param {string} type - 'FOUR', 'SIX', or 'WICKET'
+ * @param {string} message - Custom text to display
+ */
+window.postPushEvent = function(type, message) {
+  const channel = new BroadcastChannel('cricket_score_updates');
+  channel.postMessage({ 
+    type: 'PUSH_EVENT', 
+    eventType: type, 
+    message: message || type 
+  });
   channel.close();
 };
 

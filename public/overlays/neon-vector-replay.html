@@ -18,6 +18,11 @@
         /* PUSH ENGINE */
         #push-vector { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); transition: 0.3s; z-index: 10; font-size: 8rem; font-weight: 900; color: var(--vector); text-shadow: 0 0 30px rgba(0,255,136,0.6); }
         #push-vector.active { transform: translate(-50%, -50%) scale(1); }
+
+        /* NEW PUSH CONTAINER */
+        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
+        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
+        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
     </style>
 </head>
 <body>

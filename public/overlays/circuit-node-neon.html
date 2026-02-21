@@ -16,12 +16,22 @@
         #push-circuit { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotateY(90deg); transition: 0.4s; }
         #push-circuit.active { transform: translate(-50%, -50%) rotateY(0deg); }
         .push-circuit-box { background: var(--circuit); color: #000; padding: 20px 80px; font-size: 6rem; font-weight: 900; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+
+        /* NEW PUSH CONTAINER */
+        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
+        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
+        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
     </style>
 </head>
 <body>
     <div class="c-top"><span>SYDNEY THUNDER VS ADELAIDE STRIKERS</span><span style="margin-left:auto; color:var(--circuit)">LIVE NODE 01</span></div>
     
     <div id="push-circuit"><div class="push-circuit-box" id="p-txt">FOUR</div></div>
+
+    <!-- NEW PUSH CONTAINER -->
+    <div id="push-container">
+        <div class="push-box"><span id="p-msg">SIX!</span></div>
+    </div>
 
     <div class="c-bottom">
         <div class="c-score-node">185/2</div>
