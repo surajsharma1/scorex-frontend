@@ -54,13 +54,60 @@ export default function MatchDetails() {
   };
 
   const handleScoreUpdate = async () => {
-    // Refresh match data after score update
-    if (id) {
+    // Refresh tournament data and sync to match scores
+    if (id && tournament) {
       try {
-        const response = await matchAPI.getMatches(id);
-        setMatch(response.data);
+        // Get updated tournament with liveScores
+        const tournamentResponse = await tournamentAPI.getTournament(tournament._id);
+        const updatedTournament = tournamentResponse.data;
+        setTournament(updatedTournament);
+        
+        // Extract scores from tournament liveScores and update match
+        const liveScores = updatedTournament.liveScores;
+        if (liveScores) {
+          const battingTeam = liveScores.battingTeam || 'team1';
+          const team1Data = liveScores.team1 || {};
+          const team2Data = liveScores.team2 || {};
+          
+          let newScore1 = 0;
+          let newWickets1 = 0;
+          let newOvers1 = 0;
+          let newScore2 = 0;
+          let newWickets2 = 0;
+          let newOvers2 = 0;
+          
+          if (battingTeam === 'team1') {
+            newScore1 = team1Data.score || 0;
+            newWickets1 = team1Data.wickets || 0;
+            newOvers1 = team1Data.overs || 0;
+            newScore2 = team2Data.score || 0;
+            newWickets2 = team2Data.wickets || 0;
+            newOvers2 = team2Data.overs || 0;
+          } else {
+            newScore1 = team2Data.score || 0;
+            newWickets1 = team2Data.wickets || 0;
+            newOvers1 = team2Data.overs || 0;
+            newScore2 = team1Data.score || 0;
+            newWickets2 = team1Data.wickets || 0;
+            newOvers2 = team1Data.overs || 0;
+          }
+          
+          // Update match with new scores
+          await matchAPI.updateMatchScore(id, {
+            score1: newScore1,
+            wickets1: newWickets1,
+            overs1: newOvers1,
+            score2: newScore2,
+            wickets2: newWickets2,
+            overs2: newOvers2,
+          });
+          
+          // Refresh match data
+          const matchResponse = await matchAPI.getMatches(id);
+          setMatch(matchResponse.data);
+        }
       } catch (error) {
-        console.error('Failed to refresh match');
+        console.error('Failed to sync scores:', error);
       }
     }
   };
