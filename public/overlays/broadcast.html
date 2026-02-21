@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script src="overlay-utils.js"></script>
     <style>
         :root {
             --bg-dark: rgba(10, 25, 47, 0.9);
@@ -21,26 +22,26 @@
             background: transparent;
         }
 
-        /* Tournament Header */
-        .tournament-header {
+        /* TOP TOURNAMENT BAR */
+        #tournament-bar {
             position: absolute;
             top: 0;
             left: 0;
-            right: 0;
+            width: 100%;
             background: var(--bg-dark);
-            padding: 10px 40px;
+            padding: 10px 50px;
             display: flex;
             align-items: center;
             border-bottom: 3px solid var(--accent-blue);
         }
-        .tournament-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--accent-blue);
+        #tournament-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--accent-gold);
             letter-spacing: 2px;
         }
 
-        /* SCORE BUG */
+        /* --- SCORE BUG (Bottom Left) --- */
         #score-bug {
             position: absolute;
             bottom: 50px;
@@ -50,7 +51,7 @@
         }
 
         .main-bar {
-            background: var(--bg-dark);
+            background:var(--bg-dark);
             padding: 15px 40px;
             border-left: 6px solid var(--accent-blue);
             clip-path: polygon(0 0, 90% 0, 100% 100%, 0% 100%);
@@ -71,7 +72,7 @@
             backdrop-filter: blur(5px);
         }
 
-        /* BALL TRACKER */
+        /* --- BALL TRACKER (Bottom Right) --- */
         #performance-ribbon {
             position: absolute;
             bottom: 50px;
@@ -96,17 +97,18 @@
             font-size: 0.9rem;
         }
         .four { background: var(--accent-blue); color: black; }
-        .six { background: #2ecc71; color: white; }
+        .six { background: var(--accent-gold); color: black; }
         .out { background: var(--wicket-red); color: white; }
 
-        /* WICKET OVERLAY */
+        /* --- WICKET ALERT --- */
         #wicket-alert {
             position: absolute;
-            top: 40%;
+            top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            background: linear-gradient(45deg, #ff4b2b, #ff416c);
-            padding: 40px 100px;
+            background: var(--wicket-red);
+            color: white;
+            padding: 20px 60px;
             font-size: 5rem;
             font-weight: 900;
             font-style: italic;
@@ -119,15 +121,16 @@
 </head>
 <body>
 
-    <!-- Tournament Header -->
-    <div class="tournament-header">
-        <div class="tournament-name" id="tournament-name">INDIAN PREMIER LEAGUE 2024</div>
+    <!-- Tournament Name Bar -->
+    <div id="tournament-bar">
+        <div id="tournament-name">PREMIER LEAGUE T20</div>
     </div>
 
-    <div id="wicket-alert" id="push-engine">WICKET!</div>
+    <div id="wicket-alert">WICKET!</div>
 
     <div id="score-bug">
         <div class="main-bar">
+            <!-- Dynamic Team 1 Name -->
             <div class="team-name" id="team1-name">INDIA</div>
             <div class="score-row">
                 <span id="team1-score">142</span>/<span id="team1-wickets">3</span>
@@ -135,6 +138,7 @@
             </div>
         </div>
         <div class="batter-box">
+            <!-- Dynamic Striker and Non-Striker -->
             <div id="striker-name">K. Lokesh: 73(48)*</div>
             <div id="nonstriker-name" style="opacity: 0.7;">R. Jadeja: 12(7)</div>
         </div>
@@ -152,18 +156,22 @@
         </div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
         // Auto-initialize with matchId from URL
-        const params = new URLSearchParams(window.location.search);
-        const matchId = params.get('matchId');
-        if (matchId) {
-            window.initLiveScore(matchId);
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const matchId = params.get('matchId');
+            const apiBaseUrl = params.get('apiBaseUrl') || params.get('apiUrl');
+            
+            if (matchId) {
+                console.log('Initializing live score for match:', matchId);
+                window.initLiveScore(matchId, apiBaseUrl);
+            }
+        });
 
         function updateScore() {
             document.getElementById('team1-score').innerText = document.getElementById('in-runs').value;
-            document.getElementById('team1-wickets').innerText = document.getElementById('in-wickets').value;
+            document.getElementById('team1-wickets').innerTextById('in-wickets').value = document.getElement;
             document.getElementById('team1-overs').innerText = document.getElementById('in-overs').value;
             document.getElementById('striker-name').innerText = document.getElementById('in-striker').value;
         }
