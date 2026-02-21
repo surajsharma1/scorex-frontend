@@ -29,16 +29,19 @@
 
     <div class="bottom-cradle">
         <div class="cradle-left">
-            <span style="font-size: 4rem; font-weight: 900; color: var(--apex-gold);">IND 242/4</span>
-            <span style="margin-left: 20px; font-size: 1.5rem; opacity: 0.6;">(19.2)</span>
+            <span style="font-size: 4rem; font-weight: 900; color: var(--apex-gold);"><span id="team1-score">IND 242</span>/<span id="team1-wickets">4</span></span>
+            <span style="margin-left: 20px; font-size: 1.5rem; opacity: 0.6;">(<span id="team1-overs">19.2</span>)</span>
         </div>
         <div class="cradle-right">
-            <div style="text-align: right; margin-right: 40px;"><b>SKY</b><br>104(48)*</div>
-            <div style="text-align: right;"><b>HARDIK</b><br>15(6)</div>
+            <div style="text-align: right; margin-right: 40px;"><b id="striker-name">SKY</b><br>104(48)*</div>
+            <div id="nonstriker-name" style="text-align: right;"><b>HARDIK</b><br>15(6)</div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('matchId')) { window.initLiveScore(params.get('matchId')); }
         function triggerPush(msg) {
             const a = document.getElementById('push-apex');
             document.getElementById('p-msg').innerText = msg;

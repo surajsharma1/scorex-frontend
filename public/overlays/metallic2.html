@@ -24,15 +24,18 @@
     <div id="push-circuit"><div class="push-circuit-box" id="p-txt">FOUR</div></div>
 
     <div class="c-bottom">
-        <div class="c-score-node">185/2</div>
+        <div class="c-score-node"><span id="team1-score">185</span>/<span id="team1-wickets">2</span></div>
         <div class="c-data-node">
-            <div style="font-size: 1.5rem; color: var(--circuit); font-weight: 900;">ADELAIDE STRIKERS</div>
-            <div style="font-size: 2rem;">WARNER 44(20) • KHWAJA 102(58)*</div>
+            <div style="font-size: 1.5rem; color: var(--circuit); font-weight: 900;"><span id="team1-short">ADELAIDE STRIKERS</span></div>
+            <div><span id="striker-name">WARNER</span> 44(20) • <span id="nonstriker-name">KHWAJA</span> 102(58)*</div>
         </div>
-        <div style="font-size: 3rem; font-weight: 900;">18.4 <small style="font-size: 1rem; opacity: 0.5;">OV</small></div>
+        <div style="font-size: 3rem; font-weight: 900;"><span id="team1-overs">18.4</span> <small style="font-size: 1rem; opacity: 0.5;">OV</small></div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('matchId')) { window.initLiveScore(params.get('matchId')); }
         function triggerPush(msg) {
             const c = document.getElementById('push-circuit');
             document.getElementById('p-txt').innerText = msg;

@@ -28,15 +28,18 @@
     <div id="push-txt-flare">6 • MASSIVE HIT</div>
 
     <div class="bottom-rail">
-        <div class="pod-left">BIR 192/4</div>
+        <div class="pod-left"><span id="team1-score">BIR 192</span>/<span id="team1-wickets">4</span></div>
         <div class="pod-right">
-            <span><b>MAXWELL:</b> 52(21)*</span>
-            <span style="opacity: 0.5;"><b>MOEEN:</b> 10(4)</span>
-            <span style="color: var(--flare); font-weight: 900; margin-left: 20px;">16.4 OV</span>
+            <span><b id="striker-name">MAXWELL</b>: 52(21)*</span>
+            <span id="nonstriker-name" style="opacity: 0.5;"><b>MOEEN</b>: 10(4)</span>
+            <span style="color: var(--flare); font-weight: 900; margin-left: 20px;"><span id="team1-overs">16.4</span> OV</span>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('matchId')) { window.initLiveScore(params.get('matchId')); }
         function triggerPush(msg) {
             const f = document.getElementById('push-flare');
             const t = document.getElementById('push-txt-flare');

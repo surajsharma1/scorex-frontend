@@ -26,15 +26,18 @@
     <div id="push-i">CAUGHT!</div>
 
     <div class="bottom-interceptor">
-        <div class="i-team">CSK</div>
-        <div class="i-score">214/4 <span style="font-size: 1.5rem; opacity: 0.5; margin-left: 20px;">19.5 OV</span></div>
+        <div id="team1-short" class="i-team">CSK</div>
+        <div class="i-score"><span id="team1-score">214</span>/<span id="team1-wickets">4</span> <span style="font-size: 1.5rem; opacity: 0.5; margin-left: 20px;"><span id="team1-overs">19.5</span> OV</span></div>
         <div class="i-players" style="justify-content: flex-end; gap: 40px;">
-            <div style="text-align: right;"><b>GAIKWAD</b><br>52(28)*</div>
-            <div style="text-align: right; opacity: 0.5;"><b>DUBE</b><br>10(4)</div>
+            <div style="text-align: right;"><b id="striker-name">GAIKWAD</b><br>52(28)*</div>
+            <div id="nonstriker-name" style="text-align: right; opacity: 0.5;"><b>DUBE</b><br>10(4)</div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('matchId')) { window.initLiveScore(params.get('matchId')); }
         function triggerPush(msg) {
             const i = document.getElementById('push-i');
             i.innerText = msg; i.classList.add('active');

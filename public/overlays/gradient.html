@@ -26,15 +26,18 @@
 
     <div class="m-bottom">
         <div class="m-row-1">
-            <div style="font-size: 4rem; font-weight: 900;">PAK 152/0 <small style="font-size: 1.5rem; opacity: 0.5;">(14.5)</small></div>
-            <div style="font-size: 2rem;"><b>RIZWAN</b> 68* | <b>BABAR</b> 74*</div>
+            <div style="font-size: 4rem; font-weight: 900;"><span id="team1-score">PAK 152</span>/<span id="team1-wickets">0</span> <small style="font-size: 1.5rem; opacity: 0.5;">(<span id="team1-overs">14.5</span>)</small></div>
+            <div style="font-size: 2rem;"><b id="striker-name">RIZWAN</b> 68* | <b id="nonstriker-name">BABAR</b> 74*</div>
         </div>
         <div class="m-row-2">
             PARTNERSHIP: 152(89) • RUN RATE: 10.24 • TARGET: 153
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('matchId')) { window.initLiveScore(params.get('matchId')); }
         function triggerPush(msg) {
             const m = document.getElementById('push-m');
             m.innerText = msg; m.classList.add('active');
