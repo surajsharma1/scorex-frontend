@@ -45,6 +45,9 @@ const outTypes: { type: OutType; label: string; short: string }[] = [
   { type: 'timedOut', label: 'Timed Out', short: 'TIMED OUT' },
 ];
 
+// Wide run options (0 to 4)
+const wideRunOptions = [0, 1, 2, 3, 4];
+
 // Scoring options for extras modal (0 to 6)
 const extraRunOptions = [0, 1, 2, 3, 4, 5, 6];
 
@@ -122,14 +125,19 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
   const [tossWinner, setTossWinner] = useState<'team1' | 'team2' | null>(null);
   const [tossChoice, setTossChoice] = useState<'bat' | 'bowl' | null>(null);
 
-  // Player selection states
+// Player selection states
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>(defaultPlayers);
   const [strikerIndex, setStrikerIndex] = useState(0);
   const [nonStrikerIndex, setNonStrikerIndex] = useState(1);
   const [bowlerIndex, setBowlerIndex] = useState(7);
+  
+  // Selected batsman for scoring (0 = striker, 1 = non-striker)
+  const [selectedBatsmanIndex, setSelectedBatsmanIndex] = useState(0);
 
   // Modal states
   const [showExtraModal, setShowExtraModal] = useState(false);
+  const [showWideModal, setShowWideModal] = useState(false);
+  const [showExtrasModal, setShowExtrasModal] = useState(false);
   const [showOutModal, setShowOutModal] = useState(false);
   const [pendingExtraType, setPendingExtraType] = useState<ExtraType>(null);
   const [showTeamSelect, setShowTeamSelect] = useState(false);
@@ -503,53 +511,126 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     });
   };
 
-  // Render scoring buttons
+// Render scoring buttons with batsman selection
   const renderScoringButtons = () => (
-    <div className="grid grid-cols-7 gap-2">
-      {[0, 1, 2, 3, 4, 6].map((run) => (
-        <button
-          key={run}
-          onClick={() => addRuns(run)}
-          className={`py-4 rounded-lg font-bold text-xl transition-all transform hover:scale-105 ${
-            run === 0 ? 'bg-gray-500 hover:bg-gray-400 text-white' :
-            run === 4 ? 'bg-blue-600 hover:bg-blue-500 text-white' :
-            run === 6 ? 'bg-green-600 hover:bg-green-500 text-white' :
-            'bg-gray-600 hover:bg-gray-500 text-white'
-          }`}
-        >
-          {run}
-        </button>
-      ))}
+    <div className="space-y-3">
+      {/* Batsman Selection */}
+      <div className="flex gap-2 items-center">
+        <label className="text-sm text-gray-400">Scoring for:</label>
+        <div className="flex gap-1">
+          <button
+            onClick={() => setSelectedBatsmanIndex(0)}
+            className={`px-3 py-1 rounded-lg text-sm font-medium transition ${
+              selectedBatsmanIndex === 0 
+                ? 'bg-yellow-600 text-white' 
+                : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+            }`}
+          >
+            {currentTeam.batsmen[0]?.name || 'Striker'}
+          </button>
+          <button
+            onClick={() => setSelectedBatsmanIndex(1)}
+            className={`px-3 py-1 rounded-lg text-sm font-medium transition ${
+              selectedBatsmanIndex === 1 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+            }`}
+          >
+            {currentTeam.batsmen[1]?.name || 'Non-Striker'}
+          </button>
+        </div>
+      </div>
+      
+      {/* Run Buttons */}
+      <div className="grid grid-cols-7 gap-2">
+        {[0, 1, 2, 3, 4, 6].map((run) => (
+          <button
+            key={run}
+            onClick={() => addRuns(run)}
+            className={`py-4 rounded-lg font-bold text-xl transition-all transform hover:scale-105 ${
+              run === 0 ? 'bg-gray-500 hover:bg-gray-400 text-white' :
+              run === 4 ? 'bg-blue-600 hover:bg-blue-500 text-white' :
+              run === 6 ? 'bg-green-600 hover:bg-green-500 text-white' :
+              'bg-gray-600 hover:bg-gray-500 text-white'
+            }`}
+          >
+            {run}
+          </button>
+        ))}
+      </div>
     </div>
   );
 
-  // Render extra buttons
+// Render extra buttons - Wide with 0-4 + Combined extras dropdown
   const renderExtraButtons = () => (
-    <div className="grid grid-cols-2 gap-2 mt-2">
-      <button
-        onClick={() => handleExtra('wide')}
-        className="py-3 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-semibold text-white"
-      >
-        Wide
-      </button>
-      <button
-        onClick={() => handleExtra('noBall')}
-        className="py-3 bg-orange-600 hover:bg-orange-500 rounded-lg font-semibold text-white"
-      >
-        No Ball
-      </button>
-      <button
-        onClick={() => handleExtra('bye')}
-        className="py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-semibold text-white"
-      >
-        Bye
-      </button>
-      <button
-        onClick={() => handleExtra('legBye')}
-        className="py-3 bg-pink-600 hover:bg-pink-500 rounded-lg font-semibold text-white"
-      >
-        Leg Bye
-      </button>
+    <div className="space-y-2 mt-2">
+      {/* Wide + 0 to Wide + 4 buttons */}
+      <div>
+        <label className="text-xs text-gray-400 uppercase mb-1 block">Wide</label>
+        <div className="grid grid-cols-5 gap-1">
+          {wideRunOptions.map((run) => (
+            <button
+              key={`wide-${run}`}
+              onClick={() => {
+                setPendingExtraType('wide');
+                addExtraRuns(run);
+              }}
+              className="py-2 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-semibold text-white text-sm"
+            >
+              W+{run}
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      {/* Combined Extras Dropdown Button */}
+      <div className="flex gap-2 mt-2">
+        <div className="relative flex-1">
+          <button
+            onClick={() => setShowExtrasModal(!showExtrasModal)}
+            className="w-full py-3 bg-gradient-to-r from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 rounded-lg font-semibold text-white flex items-center justify-center gap-2"
+          >
+            <span>Extras</span>
+            <span className="text-xs">▼</span>
+          </button>
+          
+          {/* Extras Dropdown Modal */}
+          {showExtrasModal && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-800 rounded-lg border border-gray-600 p-2 shadow-xl z-10">
+              <button
+                onClick={() => {
+                  setPendingExtraType('noBall');
+                  setShowExtrasModal(false);
+                  setShowExtraModal(true);
+                }}
+                className="w-full py-2 bg-orange-600 hover:bg-orange-500 rounded-lg font-medium text-white mb-1"
+              >
+                No Ball (+0 to +6)
+              </button>
+              <button
+                onClick={() => {
+                  setPendingExtraType('bye');
+                  setShowExtrasModal(false);
+                  setShowExtraModal(true);
+                }}
+                className="w-full py-2 bg-purple-600 hover:bg-purple-500 rounded-lg font-medium text-white mb-1"
+              >
+                Bye (+0 to +6)
+              </button>
+              <button
+                onClick={() => {
+                  setPendingExtraType('legBye');
+                  setShowExtrasModal(false);
+                  setShowExtraModal(true);
+                }}
+                className="w-full py-2 bg-pink-600 hover:bg-pink-500 rounded-lg font-medium text-white"
+              >
+                Leg Bye (+0 to +6)
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 
