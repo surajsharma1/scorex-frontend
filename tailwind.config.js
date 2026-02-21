@@ -76,7 +76,12 @@ export default {
       fontFamily: {
         sans: ['Bierika', 'Inter', 'system-ui', 'sans-serif'],
       },
+      backgroundColor: {
+        'primary': '#34729c',
+        'primary-light': '#6cb1da',
+        'primary-dark': '#1e5470',
+      },
     },
   },
   plugins: [],
-};
+}
