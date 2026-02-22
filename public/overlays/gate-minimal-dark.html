@@ -4,32 +4,49 @@
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-        .gate-top { position: absolute; top: 0; width: 100%; height: 55px; background: #1a1a1a; display: flex; align-items: center; padding: 0 50px; }
-        .gate-title { font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; }
-        .gate-bottom { position: absolute; bottom: 0; width: 100%; height: 85px; background: #0a0a0a; display: flex; align-items: center; padding: 0 50px; }
-        .gate-score { font-size: 3.5rem; font-weight: 900; }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: #fff; }
+        
+        .g-top { position: absolute; top: 0; width: 100%; height: 65px; background: linear-gradient(180deg, #333, #000); border-bottom: 5px solid #d31027; display: flex; align-items: center; padding: 0 60px; }
+        
+        .g-bottom { position: absolute; bottom: 0; width: 100%; height: 95px; background: #000; display: flex; border-top: 2px solid #555; }
+        .pillar { width: 15px; background: #d31027; height: 100%; }
+        .g-score-area { width: 400px; display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 900; background: #111; }
+        .g-stats-area { flex-grow: 1; display: flex; align-items: center; padding: 0 40px; justify-content: space-between; font-size: 1.8rem; }
+
+        #push-gate { position: absolute; bottom: 110px; left: 60px; background: #fff; color: #000; padding: 10px 40px; font-size: 3rem; font-weight: 900; border-left: 10px solid #d31027; opacity: 0; transform: translateX(-50px); transition: 0.3s; }
+        #push-gate.active { opacity: 1; transform: translateX(0); }
+
+        /* NEW PUSH CONTAINER */
+        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
+        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
+        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
     </style>
 </head>
 <body>
-    <div class="gate-top"><div class="gate-title" id="tournament-name"></div></div>
-    <div class="gate-bottom">
-        <div class="gate-score"><span id="score">0/0</span></div>
-        <div style="margin-left: 35px;">
-            <div><span id="striker-name"></span> <span id="striker-stat" style="color:#fff"></span></div>
-            <div><span id="nonstriker-name"></span> <span id="nonstriker-stat"></span></div>
+    <div class="g-top">
+        <span style="font-size: 2.5rem; font-weight: 900;">BASH LEAGUE FINAL</span>
+        <span style="margin-left: auto; background: #d31027; padding: 2px 20px;">LIVE</span>
+    </div>
+
+    <div id="push-gate">WICKET: CAUGHT</div>
+
+    <div class="g-bottom">
+        <div class="pillar"></div>
+        <div class="g-score-area">210/4</div>
+        <div class="pillar"></div>
+        <div class="g-stats-area">
+            <div><b>STR:</b> MAXWELL 82(30)*</div>
+            <div style="opacity: 0.5;"><b>NON:</b> STOINIS 12(4)</div>
+            <div style="font-weight: 900;">19.4 OV</div>
         </div>
     </div>
-    <script src="overlay-utils.js"></script>
+
     <script>
-        window.onScoreUpdate = function(data) {
-            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-            let bt = data.team1?.isBatting ? data.team1 : data.team2;
-            if (bt) document.getElementById('score').textContent = (bt.score||0) + '/' + (bt.wickets||0);
-            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = (data.striker.runs||0) + '*(' + (data.striker.balls||0) + ')'; }
-            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = (data.nonStriker.runs||0) + '(' + (data.nonStriker.balls||0) + ')'; }
-        };
-        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
+        function triggerPush(msg) {
+            const g = document.getElementById('push-gate');
+            g.innerText = msg; g.classList.add('active');
+            setTimeout(() => g.classList.remove('active'), 3000);
+        }
     </script>
 </body>
 </html>

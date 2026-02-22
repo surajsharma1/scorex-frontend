@@ -4,32 +4,73 @@
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-        .grad-top { position: absolute; top: 0; width: 100%; height: 55px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; padding: 0 50px; }
-        .grad-title { font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; }
-        .grad-bottom { position: absolute; bottom: 0; width: 100%; height: 85px; background: linear-gradient(to top, #1a1a2e, transparent); display: flex; align-items: center; padding: 0 50px; }
-        .grad-score { font-size: 3.5rem; font-weight: 900; }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; }
+        
+        .m-top { position: absolute; top: 0; width: 100%; height: 80px; background: #fff; color: #000; border-bottom: 10px solid #f9cd05; display: flex; align-items: center; padding: 0 60px; box-sizing: border-box; }
+        
+        .m-bottom { position: absolute; bottom: 0; width: 100%; height: 130px; background: #000; display: flex; flex-direction: column; }
+        .m-row-1 { height: 80px; display: flex; align-items: center; padding: 0 60px; justify-content: space-between; border-bottom: 1px solid #333; }
+        .m-row-2 { height: 50px; background: #f9cd05; color: #000; display: flex; align-items: center; padding: 0 60px; font-weight: 900; font-style: italic; font-size: 1.2rem; }
+
+        #push-m { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(2); opacity: 0; transition: 0.3s; z-index: 100; font-size: 10rem; font-weight: 900; color: #f9cd05; text-shadow: 10px 10px 0 #000; }
+        #push-m.active { opacity: 1; scale: 1; }
+
+        /* NEW PUSH CONTAINER */
+        #push-container {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0) rotate(-5deg);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 999;
+        }
+        #push-container.active {
+            transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
+            opacity: 1;
+        }
+        .push-box {
+            background: var(--accent, #00f2ff);
+            color: #000;
+            padding: 20px 80px;
+            font-size: 5rem;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            box-shadow: 0 0 50px var(--accent);
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+        }
     </style>
 </head>
 <body>
-    <div class="grad-top"><div class="grad-title" id="tournament-name"></div></div>
-    <div class="grad-bottom">
-        <div class="grad-score"><span id="score">0/0</span></div>
-        <div style="margin-left: 35px;">
-            <div><span id="striker-name"></span> <span id="striker-stat" style="color:#667eea"></span></div>
-            <div><span id="nonstriker-name"></span> <span id="nonstriker-stat"></span></div>
+    <div class="m-top">
+        <span style="font-size: 3rem; font-weight: 900;">T20 WORLD CUP FINAL</span>
+        <span style="margin-left: auto; font-weight: 900; font-size: 1.5rem;">LIVE: KENSINGTON OVAL</span>
+    </div>
+
+    <div id="push-m">SIX!</div>
+
+    <!-- NEW PUSH CONTAINER -->
+    <div id="push-container">
+        <div class="push-box"><span id="p-msg">SIX!</span></div>
+    </div>
+
+    <div class="m-bottom">
+        <div class="m-row-1">
+            <div style="font-size: 4rem; font-weight: 900;">PAK 152/0 <small style="font-size: 1.5rem; opacity: 0.5;">(14.5)</small></div>
+            <div style="font-size: 2rem;"><b>RIZWAN</b> 68* | <b>BABAR</b> 74*</div>
+        </div>
+        <div class="m-row-2">
+            PARTNERSHIP: 152(89) • RUN RATE: 10.24 • TARGET: 153
         </div>
     </div>
-    <script src="overlay-utils.js"></script>
+
     <script>
-        window.onScoreUpdate = function(data) {
-            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-            let bt = data.team1?.isBatting ? data.team1 : data.team2;
-            if (bt) document.getElementById('score').textContent = (bt.score||0) + '/' + (bt.wickets||0);
-            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = (data.striker.runs||0) + '*(' + (data.striker.balls||0) + ')'; }
-            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = (data.nonStriker.runs||0) + '(' + (data.nonStriker.balls||0) + ')'; }
-        };
-        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
+        function triggerPush(msg) {
+            const m = document.getElementById('push-m');
+            m.innerText = msg; m.classList.add('active');
+            setTimeout(() => m.classList.remove('active'), 3500);
+        }
     </script>
 </body>
 </html>

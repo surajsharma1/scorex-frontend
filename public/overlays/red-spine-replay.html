@@ -4,31 +4,53 @@
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-        .spine-top { position: absolute; top: 0; width: 100%; height: 50px; background: linear-gradient(90deg, #c0392b, #e74c3c); display: flex; align-items: center; padding: 0 50px; }
-        .spine-title { font-size: 1.6rem; font-weight: 900; letter-spacing: 2px; }
-        .spine-bottom { position: absolute; bottom: 0; width: 100%; height: 85px; background: linear-gradient(to top, #1a1a1a, #2c3e50); display: flex; align-items: center; padding: 0 50px; }
-        .spine-score { font-size: 3.5rem; font-weight: 900; color: #e74c3c; }
+        :root { --red-accent: #ff0044; --slate: #1e1e1e; }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; }
+
+        /* TOP BORDER: THIN LINE */
+        .v-top { position: absolute; top: 0; width: 100%; height: 35px; background: rgba(0,0,0,0.9); border-bottom: 2px solid var(--red-accent); display: flex; align-items: center; padding: 0 40px; font-size: 1.2rem; font-weight: 900; }
+
+        /* LEFT SPINE */
+        .v-spine { position: absolute; left: 0; bottom: 85px; width: 100px; background: var(--slate); border-right: 5px solid var(--red-accent); display: flex; flex-direction: column; align-items: center; padding: 20px 0; }
+        .v-score { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 3rem; font-weight: 900; padding: 10px 0; }
+
+        /* BOTTOM BAR */
+        .v-bottom { position: absolute; bottom: 0; width: 100%; height: 85px; background: #000; display: flex; align-items: center; padding: 0 120px; box-sizing: border-box; }
+        .v-players { display: flex; gap: 100px; font-size: 2.2rem; font-weight: 900; }
+
+        /* PUSH ANIMATION: LEFT SLIDE */
+        #push-vel { position: absolute; left: 105px; bottom: 100px; background: var(--red-accent); color: white; padding: 10px 60px; font-size: 4rem; font-weight: 900; transform: translateX(-150%); transition: 0.4s; }
+        #push-vel.active { transform: translateX(0); }
+
+        /* NEW PUSH CONTAINER */
+        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
+        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
+        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
     </style>
 </head>
 <body>
-    <div class="spine-top"><div class="spine-title" id="tournament-name"></div></div>
-    <div class="spine-bottom">
-        <div class="spine-score"><span id="score">0/0</span></div>
-        <div style="margin-left: 40px;">
-            <div><span id="striker-name"></span> <span id="striker-stat" style="color:#e74c3c"></span></div>
-            <div><span id="nonstriker-name"></span> <span id="nonstriker-stat"></span></div>
-        </div>
+    <div class="v-top">ICC CHAMPIONS TROPHY | REPLAY MODE</div>
+    <div id="push-vel">BOWLED!</div>
+
+    <div class="v-spine">
+        <div style="font-weight: 900; color: var(--red-accent);">IND</div>
+        <div class="v-score">284/5</div>
     </div>
-    <script src="overlay-utils.js"></script>
+
+    <div class="v-bottom">
+        <div class="v-players">
+            <span>R. PANT <span style="color: var(--red-accent)">104*</span></span>
+            <span style="opacity: 0.4;">K. YADAV 15</span>
+        </div>
+        <div style="margin-left: auto; font-size: 2rem;">OVER: 48.2</div>
+    </div>
+
     <script>
-        window.onScoreUpdate = function(data) {
-            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-            if (data.team1 && data.team2) { const bt = data.team1.isBatting ? data.team1 : data.team2; document.getElementById('score').textContent = `${bt.score}/${bt.wickets}`; }
-            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = `${data.striker.runs || 0}*(${data.striker.balls || 0})`; }
-            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = `${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`; }
-        };
-        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
+        function triggerPush(msg) {
+            const v = document.getElementById('push-vel');
+            v.innerText = msg; v.classList.add('active');
+            setTimeout(() => v.classList.remove('active'), 3000);
+        }
     </script>
 </body>
 </html>

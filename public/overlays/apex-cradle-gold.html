@@ -2,34 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
     <style>
+        :root { --apex-gold: #f9cd05; --apex-navy: #001f3f; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-        .apex-top { position: absolute; top: 0; width: 100%; height: 55px; background: linear-gradient(90deg, #ffd700, #ff8c00); display: flex; align-items: center; padding: 0 50px; }
-        .apex-title { font-size: 1.8rem; font-weight: 900; color: #1a1a1a; letter-spacing: 2px; }
-        .apex-bottom { position: absolute; bottom: 0; width: 100%; height: 85px; background: linear-gradient(to top, #1a1a1a, #2d2d2d); display: flex; align-items: center; padding: 0 50px; border-top: 3px solid #ffd700; }
-        .apex-score { font-size: 3.5rem; font-weight: 900; color: #ffd700; }
+
+        /* TOP BORDER: APEX POINT */
+        .top-apex { position: absolute; top: 0; width: 100%; height: 60px; background: var(--apex-navy); clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%); border-bottom: 4px solid var(--apex-gold); display: flex; align-items: center; justify-content: center; }
+        .tournament-title { font-size: 2rem; font-weight: 900; letter-spacing: 10px; text-transform: uppercase; }
+
+        /* BOTTOM BORDER: DUAL CRADLE */
+        .bottom-cradle { position: absolute; bottom: 0; width: 100%; height: 110px; display: flex; align-items: flex-end; }
+        .cradle-left { background: #000; width: 45%; height: 90px; border-top: 5px solid var(--apex-gold); clip-path: polygon(0 0, 100% 0, 90% 100%, 0% 100%); display: flex; align-items: center; padding-left: 60px; }
+        .cradle-right { background: #fff; color: #000; width: 45%; height: 90px; border-top: 5px solid var(--apex-navy); clip-path: polygon(10% 0, 100% 0, 100% 100%, 0% 100%); margin-left: auto; display: flex; align-items: center; justify-content: flex-end; padding-right: 60px; }
+
+        /* PUSH ENGINE: CENTER EXPLOSION */
+        #push-apex { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); transition: 0.4s; z-index: 100; }
+        #push-apex.active { transform: translate(-50%, -50%) scale(1.5); }
+        .push-box { background: var(--apex-gold); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; box-shadow: 0 0 50px rgba(249, 205, 5, 0.5); }
+
+        /* NEW PUSH CONTAINER */
+        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
+        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
+        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
     </style>
 </head>
 <body>
-    <div class="apex-top"><div class="apex-title" id="tournament-name"></div></div>
-    <div class="apex-bottom">
-        <div class="apex-score"><span id="score">0/0</span></div>
-        <div style="margin-left: 35px;">
-            <div><span id="striker-name"></span> <span id="striker-stat" style="color:#ffd700"></span></div>
-            <div><span id="nonstriker-name"></span> <span id="nonstriker-stat"></span></div>
+    <div class="top-apex"><div class="tournament-title">T20 WORLD CHAMPIONSHIP</div></div>
+
+    <div id="push-apex"><div class="push-box" id="p-msg">OUT!</div></div>
+
+    <!-- NEW PUSH CONTAINER -->
+    <div id="push-container">
+        <div class="push-box"><span id="p-msg">SIX!</span></div>
+    </div>
+
+    <div class="bottom-cradle">
+        <div class="cradle-left">
+            <span style="font-size: 4rem; font-weight: 900; color: var(--apex-gold);">IND 242/4</span>
+            <span style="margin-left: 20px; font-size: 1.5rem; opacity: 0.6;">(19.2)</span>
+        </div>
+        <div class="cradle-right">
+            <div style="text-align: right; margin-right: 40px;"><b>SKY</b><br>104(48)*</div>
+            <div style="text-align: right;"><b>HARDIK</b><br>15(6)</div>
         </div>
     </div>
+
     <script src="overlay-utils.js"></script>
     <script>
-        window.onScoreUpdate = function(data) {
-            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-            let bt = data.team1?.isBatting ? data.team1 : data.team2;
-            if (bt) document.getElementById('score').textContent = (bt.score||0) + '/' + (bt.wickets||0);
-            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = (data.striker.runs||0) + '*(' + (data.striker.balls||0) + ')'; }
-            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = (data.nonStriker.runs||0) + '(' + (data.nonStriker.balls||0) + ')'; }
-        };
-        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
+        function triggerPush(msg) {
+            const a = document.getElementById('push-apex');
+            document.getElementById('p-msg').innerText = msg;
+            a.classList.add('active'); setTimeout(() => a.classList.remove('active'), 3000);
+        }
     </script>
 </body>
 </html>

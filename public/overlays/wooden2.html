@@ -10,66 +10,102 @@
         .top-slab { position: absolute; top: 0; width: 100%; height: 75px; background: linear-gradient(to bottom, var(--dark), transparent); display: flex; align-items: flex-start; padding: 15px 60px; box-sizing: border-box; }
         .tournament-badge { background: var(--gold); color: #000; padding: 5px 30px; font-weight: 900; font-size: 1.8rem; clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%); }
 
-        .bottom-deck { position: absolute; bottom: 0; width: 100%; height: 130px; background: rgba(0,0,0,0.95); border-top: 4px solid var(--gold); display: flex; align-items: center; padding: 0 60px; box-sizing: border-box; }
-        .score-huge { font-size: 6.5rem; font-weight: 900; line-height: 1; margin-right: 40px; display: flex; align-items: baseline; }
-        .overs-pill { background: #222; padding: 5px 20px; font-size: 1.8rem; border-radius: 50px; color: var(--accent); margin-left: 15px; }
-        
-        .players-wrap { flex-grow: 1; display: flex; justify-content: flex-end; gap: 80px; }
-        .player-box { position: relative; padding-left: 20px; border-left: 2px solid rgba(255,255,255,0.2); }
-        .p-name { font-size: 2.2rem; font-weight: 900; color: #fff; }
-        .p-runs { font-size: 1.8rem; color: var(--gold); }
+        /* PUSH NOTIFICATION LOCK */
+        #push-lock { position: absolute; top: 150px; right: 0; background: var(--accent); color: #000; padding: 10px 60px; font-size: 4rem; font-weight: 900; transform: translateX(100%); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 15px solid #fff; }
+        #push-lock.active { transform: translateX(0); }
 
-        #push-overlay { position: absolute; inset: 0; border: 0px solid var(--accent); transition: 0.2s; pointer-events: none; z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; }
-        #push-overlay.active { border: 20px solid var(--accent); opacity: 1; background: rgba(0,0,0,0.4); }
-        .push-content { transform: scale(0.5); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        #push-overlay.active .push-content { transform: scale(1.5); }
-        #push-txt { font-size: 12rem; font-weight: 900; font-style: italic; text-shadow: 10px 10px 0 #000; }
+        /* NEW PUSH CONTAINER */
+        #push-container {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0) rotate(-5deg);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 999;
+        }
+        #push-container.active {
+            transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
+            opacity: 1;
+        }
+        .push-box {
+            background: var(--accent, #00f2ff);
+            color: #000;
+            padding: 20px 80px;
+            font-size: 5rem;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            box-shadow: 0 0 50px var(--accent);
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+        }
+
+        .bottom-bar { position: absolute; bottom: 40px; left: 60px; width: 1800px; height: 120px; display: flex; align-items: center; }
+        .score-wrap { background: var(--dark); border-left: 8px solid var(--accent); padding: 10px 50px; display: flex; flex-direction: column; min-width: 350px; }
+        .players-wrap { flex-grow: 1; height: 80px; background: rgba(0,0,0,0.8); margin-left: 20px; display: flex; align-items: center; padding: 0 40px; gap: 60px; border-bottom: 4px solid var(--accent); }
+        .player-box { display: flex; flex-direction: column; }
+        .p-name { color: var(--accent); font-size: 1.2rem; font-weight: 700; }
+        .p-runs { font-size: 2.5rem; font-weight: 900; }
     </style>
 </head>
 <body>
     <div class="top-slab">
-        <div class="tournament-badge" id="tournament-name">CHAMPIONSHIP</div>
+        <div class="tournament-badge" id="tournament-name">CHAMPIONS TROPHY</div>
     </div>
 
-    <div id="push-overlay">
-        <div class="push-content"><div id="push-txt">EVENT!</div></div>
+    <div id="push-lock"><span id="p-txt">OUT!</span></div>
+
+    <!-- NEW PUSH CONTAINER -->
+    <div id="push-container">
+        <div class="push-box"><span id="p-msg">SIX!</span></div>
     </div>
 
-    <div class="bottom-deck">
-        <div class="score-huge">
-            <span id="team1-short">IND</span>&nbsp;<span id="team1-score">0</span>/<span id="team1-wickets">0</span>
-            <span class="overs-pill" id="team1-overs">0.0 OV</span>
+    <div class="bottom-bar">
+        <div class="score-wrap">
+            <div style="font-size: 1.5rem; color: var(--gold);" id="team-name">TEAM NAME</div>
+            <div style="font-size: 4rem; font-weight: 900; line-height: 1;">
+                <span id="score">0/0</span> <small style="font-size: 1.5rem; opacity: 0.5;" id="overs">(0.0)</small>
+            </div>
         </div>
         
         <div class="players-wrap">
             <div class="player-box">
-                <div class="p-name" id="striker-name">STRIKER</div>
-                <div class="p-runs"><span id="striker-runs">0</span> (<span id="striker-balls">0</span>)*</div>
+                <div class="p-name">STRIKER</div>
+                <div class="p-runs" id="striker-stat">0 (0)*</div>
             </div>
             <div class="player-box" style="opacity: 0.6;">
-                <div class="p-name" id="nonstriker-name">NON-STRIKER</div>
-                <div class="p-runs"><span id="nonstriker-runs">0</span> (<span id="nonstriker-balls">0</span>)</div>
+                <div class="p-name">NON-STRIKER</div>
+                <div class="p-runs" id="nonstriker-stat">0 (0)</div>
             </div>
         </div>
     </div>
 
     <script src="overlay-utils.js"></script>
     <script>
-        // Custom logic to handle color changes on the overlay border 
-        // using the CustomEvent dispatched by overlay-utils.js
-        window.addEventListener('scoreUpdated', (e) => {
-            const data = e.detail;
-            const container = document.getElementById('push-overlay');
-            
-            // This hook allows us to change CSS variables based on recent actions
-            // (Assumes backend sends an event type or status flag if needed, 
-            // though triggerPush in overlay-utils natively handles basic colors)
-            if(data.type === 'WICKET') {
-                container.style.setProperty('--accent', 'var(--wicket)');
-            } else if (data.type === 'SIX') {
-                container.style.setProperty('--accent', '#2ecc71');
+        window.onScoreUpdate = function(data) {
+            if (data.type === 'WICKET' || data.type === 'SIX' || data.type === 'FOUR') {
+                const lock = document.getElementById('push-lock');
+                document.getElementById('p-txt').innerText = data.message;
+                
+                // Dynamic styling
+                if (data.type === 'WICKET') lock.style.setProperty('--accent', 'var(--wicket)');
+                else if (data.type === 'SIX') lock.style.setProperty('--accent', '#2ecc71');
+                else lock.style.setProperty('--accent', '#00f2ff');
+
+                lock.classList.add('active');
+                setTimeout(() => lock.classList.remove('active'), 3500);
+                return;
             }
-        });
+
+            if (data.tournament) document.getElementById('tournament-name').innerText = data.tournament.name;
+            const team = data.battingTeam === 1 ? data.team1 : data.team2;
+            document.getElementById('team-name').innerText = team.name.toUpperCase();
+            document.getElementById('score').innerText = `${team.score}/${team.wickets}`;
+            document.getElementById('overs').innerText = `(${team.overs})`;
+            
+            if (data.striker) document.getElementById('striker-stat').innerText = `${data.striker.runs} (${data.striker.balls})*`;
+            if (data.nonstriker) document.getElementById('nonstriker-stat').innerText = `${data.nonstriker.runs} (${data.nonstriker.balls})`;
+        };
     </script>
 </body>
 </html>

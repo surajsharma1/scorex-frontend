@@ -2,58 +2,52 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --neon-cyan: #00f2ff; --bg-dark: rgba(5, 5, 10, 0.95); }
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Orbitron', sans-serif; color: white; overflow: hidden; }
+        :root { --circuit: #00ffaa; --node: #111; }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; }
+
+        .c-top { position: absolute; top: 0; width: 100%; height: 45px; background: var(--node); border-bottom: 2px solid var(--circuit); display: flex; align-items: center; padding: 0 50px; box-shadow: 0 0 20px var(--circuit); }
         
-        .circuit-bar { position: absolute; bottom: 40px; left: 40px; background: var(--bg-dark); border: 2px solid var(--neon-cyan); padding: 20px; box-shadow: 0 0 20px rgba(0, 242, 255, 0.3); display: flex; align-items: center; gap: 30px; }
-        .node-accent { width: 10px; height: 100%; position: absolute; left: -10px; top: 0; background: var(--neon-cyan); }
-        
-        .score-box { border-right: 1px solid rgba(0, 242, 255, 0.3); padding-right: 30px; }
-        #team1-name { color: var(--neon-cyan); font-weight: 900; font-size: 1.5rem; display: block; }
-        .score-text { font-size: 3.5rem; font-weight: 900; text-shadow: 0 0 10px var(--neon-cyan); }
-        
-        .player-info { font-size: 1.2rem; }
-        .striker-row { color: var(--neon-cyan); font-weight: 900; margin-bottom: 5px; }
-        
-        #push-circuit { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        #push-circuit.active { transform: translate(-50%, -50%) scale(1.2); }
-        .neon-alert { background: var(--neon-cyan); color: #000; padding: 15px 60px; font-size: 4rem; font-weight: 900; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%); }
+        .c-bottom { position: absolute; bottom: 0; width: 100%; height: 110px; background: var(--node); border-top: 4px solid var(--circuit); display: flex; align-items: center; padding: 0 60px; box-sizing: border-box; }
+        .c-score-node { background: #fff; color: #000; padding: 10px 40px; font-size: 3.5rem; font-weight: 900; border-radius: 5px; box-shadow: 0 0 15px #fff; }
+        .c-data-node { flex-grow: 1; margin-left: 40px; border-left: 2px solid var(--circuit); padding-left: 40px; display: flex; flex-direction: column; }
+
+        #push-circuit { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotateY(90deg); transition: 0.4s; }
+        #push-circuit.active { transform: translate(-50%, -50%) rotateY(0deg); }
+        .push-circuit-box { background: var(--circuit); color: #000; padding: 20px 80px; font-size: 6rem; font-weight: 900; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+
+        /* NEW PUSH CONTAINER */
+        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
+        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
+        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
     </style>
 </head>
 <body>
-    <div id="push-circuit"><div class="neon-alert" id="p-msg">BOUNDARY</div></div>
+    <div class="c-top"><span>SYDNEY THUNDER VS ADELAIDE STRIKERS</span><span style="margin-left:auto; color:var(--circuit)">LIVE NODE 01</span></div>
+    
+    <div id="push-circuit"><div class="push-circuit-box" id="p-txt">FOUR</div></div>
 
-    <div class="circuit-bar">
-        <div class="node-accent"></div>
-        <div class="score-box">
-            <span id="team1-name">TEAM NAME</span>
-            <div class="score-text"><span id="team1-score">0/0</span> <small style="font-size: 1.5rem; opacity: 0.6;" id="team1-overs">(0.0)</small></div>
-        </div>
-        <div class="player-info">
-            <div class="striker-row" id="striker-name">BATTER 1 0(0)*</div>
-            <div id="nonstriker-name" style="opacity: 0.7;">BATTER 2 0(0)</div>
-        </div>
+    <!-- NEW PUSH CONTAINER -->
+    <div id="push-container">
+        <div class="push-box"><span id="p-msg">SIX!</span></div>
     </div>
 
-    <script src="overlay-utils.js"></script>
+    <div class="c-bottom">
+        <div class="c-score-node">185/2</div>
+        <div class="c-data-node">
+            <div style="font-size: 1.5rem; color: var(--circuit); font-weight: 900;">ADELAIDE STRIKERS</div>
+            <div style="font-size: 2rem;">WARNER 44(20) • KHWAJA 102(58)*</div>
+        </div>
+        <div style="font-size: 3rem; font-weight: 900;">18.4 <small style="font-size: 1rem; opacity: 0.5;">OV</small></div>
+    </div>
+
     <script>
-        window.updateOverlayUI = (data) => {
-            const m = data.team1;
-            document.getElementById('team1-name').innerText = m.name;
-            document.getElementById('team1-score').innerText = `${m.score}/${m.wickets}`;
-            document.getElementById('team1-overs').innerText = `(${m.overs})`;
-            document.getElementById('striker-name').innerText = `${m.striker.name} ${m.striker.runs}(${m.striker.balls})*`;
-            document.getElementById('nonstriker-name').innerText = `${m.nonStriker.name} ${m.nonStriker.runs}(${m.nonStriker.balls})`;
-        };
-        window.triggerPush = (msg) => {
-            const el = document.getElementById('push-circuit');
-            document.getElementById('p-msg').innerText = msg;
-            el.classList.add('active');
-            setTimeout(() => el.classList.remove('active'), 3000);
-        };
-        window.initBroadcastChannel();
+        function triggerPush(msg) {
+            const c = document.getElementById('push-circuit');
+            document.getElementById('p-txt').innerText = msg;
+            c.classList.add('active'); setTimeout(() => c.classList.remove('active'), 3000);
+        }
     </script>
 </body>
 </html>

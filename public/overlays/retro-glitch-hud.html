@@ -2,49 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Press Start 2P', cursive; color: #0f0; overflow: hidden; }
-        .arcade-box { position: absolute; bottom: 50px; left: 50px; background: #000; border: 4px solid #0f0; padding: 20px; box-shadow: 10px 10px 0 #f0f; }
-        .pixel-header { font-size: 1rem; color: #f0f; margin-bottom: 15px; }
-        .pixel-score { font-size: 2.5rem; margin-bottom: 15px; }
-        .pixel-players { font-size: 0.8rem; line-height: 1.5; color: #0ff; }
+        :root { --cyber-pink: #ff00ff; --cyber-cyan: #00ffff; }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; }
 
-        #push-glitch { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); }
-        #push-glitch.active { transform: translate(-50%, -50%) scale(1.5); animation: glitch 0.2s infinite; }
-        .glitch-txt { background: #f0f; color: #fff; padding: 10px 40px; font-size: 3rem; }
-        @keyframes glitch { 0% { transform: translate(-50%, -50%) skew(5deg); } 50% { transform: translate(-52%, -48%) skew(-5deg); } 100% { transform: translate(-50%, -50%) skew(5deg); } }
+        /* TOP BORDER: SEGMENTED LINE */
+        .top-cyber { position: absolute; top: 0; width: 100%; height: 40px; background: #000; display: flex; align-items: center; padding: 0 40px; border-bottom: 2px solid var(--cyber-pink); box-shadow: 0 0 15px var(--cyber-pink); }
+        
+        /* BOTTOM BORDER: HUD MODULES */
+        .bottom-cyber { position: absolute; bottom: 0; width: 100%; height: 100px; display: flex; gap: 10px; padding: 10px; box-sizing: border-box; }
+        .module { background: rgba(0,0,0,0.9); border: 1px solid var(--cyber-cyan); height: 100%; display: flex; align-items: center; justify-content: center; padding: 0 30px; }
+        .m-score { flex-grow: 1; font-size: 4rem; font-weight: 900; color: var(--cyber-cyan); }
+        .m-stats { width: 40%; font-size: 1.5rem; justify-content: space-between; }
+
+        /* PUSH ENGINE: GLITCH FLASH */
+        #push-cyber { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; transition: 0.1s; z-index: 10; font-size: 10rem; font-weight: 900; font-style: italic; color: #fff; text-shadow: 5px 0 var(--cyber-pink), -5px 0 var(--cyber-cyan); }
+        #push-cyber.active { opacity: 1; animation: glitch 0.3s infinite; }
+        @keyframes glitch { 0% { transform: translate(-50%, -52%); } 50% { transform: translate(-48%, -50%); } 100% { transform: translate(-50%, -48%); } }
+
+        /* NEW PUSH CONTAINER */
+        #push-container {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0) rotate(-5deg);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 999;
+        }
+        #push-container.active {
+            transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
+            opacity: 1;
+        }
+        .push-box {
+            background: var(--accent, #00f2ff);
+            color: #000;
+            padding: 20px 80px;
+            font-size: 5rem;
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            box-shadow: 0 0 50px var(--accent);
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+        }
     </style>
 </head>
 <body>
-    <div id="push-glitch"><div class="glitch-txt" id="p-msg">OUT!</div></div>
+    <div class="top-cyber">SYSTEM.OVERLAY_v2.0 // LIVE_FEED // SESSION.2026</div>
+    <div id="push-cyber">SYSTEM ERROR: SIX!</div>
 
-    <div class="arcade-box">
-        <div class="pixel-header" id="tournament-name">CRICKET.EXE</div>
-        <div class="pixel-score">
-            <span id="team1-name">IND</span> <span id="team1-score">0/0</span>
-        </div>
-        <div class="pixel-players">
-            P1: <span id="striker-name">KOHLI 00*</span><br>
-            OV: <span id="team1-overs">0.0</span>
+    <!-- NEW PUSH CONTAINER -->
+    <div id="push-container">
+        <div class="push-box"><span id="p-msg">SIX!</span></div>
+    </div>
+
+    <div class="bottom-cyber">
+        <div class="module" style="width: 150px; font-weight: 900;">ENG</div>
+        <div class="module m-score">345/7</div>
+        <div class="module m-stats">
+            <div><b>ROOT</b> 122*</div>
+            <div><b>BROOK</b> 54</div>
+            <div style="color: var(--cyber-pink);">88.4 OV</div>
         </div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
-        window.updateOverlayUI = (data) => {
-            const m = data.team1;
-            document.getElementById('team1-name').innerText = m.name;
-            document.getElementById('team1-score').innerText = `${m.score}/${m.wickets}`;
-            document.getElementById('team1-overs').innerText = m.overs;
-            document.getElementById('striker-name').innerText = `${m.striker.name.substring(0,8)} ${m.striker.runs}*`;
-        };
-        window.triggerWicket = () => {
-            const el = document.getElementById('push-glitch');
-            el.classList.add('active');
-            setTimeout(() => el.classList.remove('active'), 2500);
-        };
-        window.initBroadcastChannel();
+        function triggerPush(msg) {
+            const c = document.getElementById('push-cyber');
+            c.innerText = msg; c.classList.add('active');
+            setTimeout(() => c.classList.remove('active'), 3000);
+        }
     </script>
 </body>
 </html>

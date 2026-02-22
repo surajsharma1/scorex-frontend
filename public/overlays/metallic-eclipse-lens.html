@@ -2,56 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
     <style>
-        :root { --metal-silver: #bdc3c7; --metal-dark: #2c3e50; }
+        :root { --eclipse: #0a0a1a; --highlight: #7000ff; --alert: #ff0055; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-        
-        .eclipse-container { position: absolute; bottom: 40px; left: 60px; display: flex; align-items: center; }
-        .lens-score { width: 180px; height: 180px; background: radial-gradient(circle, #444, #000); border: 8px solid var(--metal-silver); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(0,0,0,0.8); z-index: 2; }
-        .score-big { font-size: 4rem; font-weight: 900; line-height: 1; }
-        .wickets-small { font-size: 2rem; color: var(--metal-silver); }
 
-        .info-plate { background: linear-gradient(90deg, var(--metal-dark), transparent); padding: 20px 60px 20px 100px; margin-left: -80px; border-radius: 0 50px 50px 0; border-top: 2px solid rgba(255,255,255,0.2); }
-        #team1-name { font-size: 1.5rem; letter-spacing: 3px; color: var(--metal-silver); text-transform: uppercase; }
-        .player-row { font-size: 2rem; font-weight: 700; margin-top: 5px; }
+        /* FULL TOP BORDER: CURVED LENS */
+        .top-lens { position: absolute; top: 0; width: 100%; height: 60px; background: var(--eclipse); clip-path: ellipse(80% 60% at 50% 0%); display: flex; align-items: center; justify-content: center; border-bottom: 2px solid var(--highlight); box-sizing: border-box; }
+        .tournament-txt { font-size: 1.8rem; letter-spacing: 12px; font-weight: 900; background: linear-gradient(to bottom, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        #push-eclipse { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); transition: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-        #push-eclipse.active { transform: translate(-50%, -50%) scale(1); }
-        .eclipse-alert { background: #000; border: 4px solid var(--metal-silver); color: #fff; padding: 20px 100px; font-size: 5rem; font-weight: 900; border-radius: 100px; }
+        /* FULL BOTTOM BORDER: WING STRUCTURE */
+        .bottom-wings { position: absolute; bottom: 0; width: 100%; height: 100px; display: flex; align-items: flex-end; }
+        .wing-score { background: var(--eclipse); width: 35%; height: 90px; clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%); display: flex; align-items: center; padding-left: 60px; border-top: 5px solid var(--highlight); }
+        .wing-players { background: #000; flex-grow: 1; height: 75px; display: flex; align-items: center; padding: 0 60px; justify-content: flex-end; gap: 60px; border-top: 1px solid #444; }
+
+        /* PUSH ENGINE: ECLIPSE REVEAL */
+        #push-eclipse { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%) scale(0); transition: 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+        #push-eclipse.active { transform: translateX(-50%) scale(1); }
+        .push-inner { background: var(--alert); padding: 10px 100px; font-size: 5rem; font-weight: 900; clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%); }
+
+        /* NEW PUSH CONTAINER */
+        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
+        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
+        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
     </style>
 </head>
 <body>
-    <div id="push-eclipse"><div class="eclipse-alert" id="p-msg">OUT!</div></div>
+    <div class="top-lens"><div class="tournament-txt">ICC WORLD CUP 2026</div></div>
 
-    <div class="eclipse-container">
-        <div class="lens-score">
-            <div class="score-big" id="team1-score">0</div>
-            <div class="wickets-small">/ <span id="team1-wickets">0</span></div>
+    <div id="push-eclipse"><div class="push-inner" id="p-msg">SIX!</div></div>
+
+    <div class="bottom-wings">
+        <div class="wing-score">
+            <span style="font-size: 4rem; font-weight: 900;">WI 142/6</span>
+            <span style="margin-left: 20px; font-size: 1.5rem; color: var(--highlight);">18.2 OV</span>
         </div>
-        <div class="info-plate">
-            <div id="team1-name">TEAM NAME</div>
-            <div class="player-row"><span id="striker-name">BATTER 0*</span> <small style="opacity: 0.5;" id="team1-overs">0.0</small></div>
+        <div class="wing-players">
+            <div style="text-align: right;"><b>POORAN</b> <span style="color: var(--highlight);">82*</span></div>
+            <div style="text-align: right; opacity: 0.5;"><b>RUSSELL</b> 14</div>
         </div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
-        window.updateOverlayUI = (data) => {
-            const m = data.team1;
-            document.getElementById('team1-name').innerText = m.name;
-            document.getElementById('team1-score').innerText = m.score;
-            document.getElementById('team1-wickets').innerText = m.wickets;
-            document.getElementById('team1-overs').innerText = m.overs;
-            document.getElementById('striker-name').innerText = `${m.striker.name} ${m.striker.runs}*`;
-        };
-        window.triggerWicket = (msg) => {
-            const el = document.getElementById('push-eclipse');
+        function triggerPush(msg) {
+            const e = document.getElementById('push-eclipse');
             document.getElementById('p-msg').innerText = msg;
-            el.classList.add('active');
-            setTimeout(() => el.classList.remove('active'), 3500);
-        };
-        window.initBroadcastChannel();
+            e.classList.add('active'); setTimeout(() => e.classList.remove('active'), 3000);
+        }
     </script>
 </body>
 </html>

@@ -4,36 +4,46 @@
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-        .ticker-top { position: absolute; top: 0; width: 100%; height: 45px; background: #0066cc; display: flex; align-items: center; overflow: hidden; }
-        .ticker-label { background: #cc0000; padding: 0 15px; height: 45px; display: flex; align-items: center; font-weight: 900; font-size: 1.1rem; }
-        .ticker-content { flex-grow: 1; padding-left: 15px; font-size: 1.4rem; font-weight: 700; }
-        .news-bottom { position: absolute; bottom: 0; width: 100%; height: 85px; background: #fff; color: #000; display: flex; align-items: center; padding: 0 30px; }
-        .news-score { font-size: 3rem; font-weight: 900; color: #cc0000; border-right: 2px solid #ccc; padding-right: 15px; }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: #fff; }
+        
+        .top-news { position: absolute; top: 0; width: 100%; height: 70px; background: #d31027; display: flex; align-items: center; padding: 0 60px; border-bottom: 5px solid #000; box-sizing: border-box; }
+        
+        .bottom-news { position: absolute; bottom: 0; width: 100%; height: 130px; display: flex; flex-direction: column; }
+        .news-score-row { height: 90px; background: #000; display: flex; align-items: center; padding: 0 60px; justify-content: space-between; }
+        .news-ticker-row { height: 40px; background: #fff; color: #000; display: flex; align-items: center; font-weight: 900; font-size: 1.2rem; overflow: hidden; }
+
+        #push-news { position: absolute; bottom: 130px; left: 0; width: 100%; background: #fff; color: #d31027; padding: 20px 0; text-align: center; font-size: 5rem; font-weight: 900; transform: translateY(100%); transition: 0.3s; }
+        #push-news.active { transform: translateY(0); }
+
+        /* NEW PUSH CONTAINER */
+        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
+        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
+        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
     </style>
 </head>
 <body>
-    <div class="ticker-top">
-        <div class="ticker-label">LIVE</div>
-        <div class="ticker-content" id="tournament-name"></div>
+    <div class="top-news">
+        <span style="font-size: 3rem; font-weight: 900;">LIVE: ICC TEST CHAMPIONSHIP FINAL</span>
     </div>
-    <div class="news-bottom">
-        <div class="news-score"><span id="score">0/0</span></div>
-        <div style="margin-left: 15px; flex-grow: 1; display: flex; justify-content: space-around;">
-            <div><div style="font-size: 1.4rem; font-weight: 900;" id="striker-name"></div><div style="color:#0066cc" id="striker-stat"></div></div>
-            <div style="opacity: 0.5"><div style="font-size: 1.4rem; font-weight: 900;" id="nonstriker-name"></div><div id="nonstriker-stat"></div></div>
+
+    <div id="push-news">WICKET: STUMPED!</div>
+
+    <div class="bottom-news">
+        <div class="news-score-row">
+            <div style="font-size: 5rem; font-weight: 900;">AUS 112/2 <small style="font-size: 2rem; opacity: 0.5;">(32.4 OV)</small></div>
+            <div style="font-size: 2.2rem; text-align: right;"><b>SMITH</b> 42* | <b>LABUSCHAGNE</b> 28</div>
+        </div>
+        <div class="news-ticker-row">
+            <div style="padding-left: 60px;">BREAKING: NEXT MATCH STARTS IN 24 HOURS • WEATHER REPORT: SUNNY IN LONDON • </div>
         </div>
     </div>
-    <script src="overlay-utils.js"></script>
+
     <script>
-        window.onScoreUpdate = function(data) {
-            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-            let bt = data.team1 && data.team1.isBatting ? data.team1 : data.team2;
-            if (bt) document.getElementById('score').textContent = (bt.score||0) + '/' + (bt.wickets||0);
-            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = (data.striker.runs||0) + '*(' + (data.striker.balls||0) + ')'; }
-            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = (data.nonStriker.runs||0) + '(' + (data.nonStriker.balls||0) + ')'; }
-        };
-        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
+        function triggerPush(msg) {
+            const n = document.getElementById('push-news');
+            n.innerText = msg; n.classList.add('active');
+            setTimeout(() => n.classList.remove('active'), 3500);
+        }
     </script>
 </body>
 </html>
