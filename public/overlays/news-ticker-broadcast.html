@@ -2,45 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Helvetica Neue', Arial, sans-serif; color: white; overflow: hidden; }
-        .ticker-wrap { position: absolute; bottom: 0; width: 100%; height: 60px; background: #fff; display: flex; align-items: center; box-shadow: 0 -5px 20px rgba(0,0,0,0.3); }
-        .ticker-label { background: #c00; height: 100%; padding: 0 40px; display: flex; align-items: center; font-weight: 900; font-size: 1.5rem; letter-spacing: 1px; z-index: 2; }
-        .ticker-content { flex-grow: 1; background: #222; height: 100%; display: flex; align-items: center; padding: 0 40px; font-size: 1.8rem; font-weight: 700; overflow: hidden; }
-        .score-segment { color: #f1c40f; margin-right: 30px; }
-        .batter-segment { color: #fff; }
-
-        #push-news { position: absolute; bottom: 60px; left: 0; width: 100%; height: 50px; background: #f1c40f; color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; font-size: 2rem; transform: translateY(100%); transition: 0.3s; }
-        #push-news.active { transform: translateY(0); }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
+        .ticker-top { position: absolute; top: 0; width: 100%; height: 45px; background: #0066cc; display: flex; align-items: center; overflow: hidden; }
+        .ticker-label { background: #cc0000; padding: 0 15px; height: 45px; display: flex; align-items: center; font-weight: 900; font-size: 1.1rem; }
+        .ticker-content { flex-grow: 1; padding-left: 15px; font-size: 1.4rem; font-weight: 700; }
+        .news-bottom { position: absolute; bottom: 0; width: 100%; height: 85px; background: #fff; color: #000; display: flex; align-items: center; padding: 0 30px; }
+        .news-score { font-size: 3rem; font-weight: 900; color: #cc0000; border-right: 2px solid #ccc; padding-right: 15px; }
     </style>
 </head>
 <body>
-    <div id="push-news" id="p-msg">BREAKING: WICKET FALLS</div>
-
-    <div class="ticker-wrap">
-        <div class="ticker-label">LIVE SCORE</div>
-        <div class="ticker-content">
-            <div class="score-segment"><span id="team1-name">TEAM</span>: <span id="team1-score">0/0</span> (<span id="team1-overs">0.0</span>)</div>
-            <div class="batter-segment">ON STRIKE: <span id="striker-name">BATTER 1*</span></div>
+    <div class="ticker-top">
+        <div class="ticker-label">LIVE</div>
+        <div class="ticker-content" id="tournament-name"></div>
+    </div>
+    <div class="news-bottom">
+        <div class="news-score"><span id="score">0/0</span></div>
+        <div style="margin-left: 15px; flex-grow: 1; display: flex; justify-content: space-around;">
+            <div><div style="font-size: 1.4rem; font-weight: 900;" id="striker-name"></div><div style="color:#0066cc" id="striker-stat"></div></div>
+            <div style="opacity: 0.5"><div style="font-size: 1.4rem; font-weight: 900;" id="nonstriker-name"></div><div id="nonstriker-stat"></div></div>
         </div>
     </div>
-
     <script src="overlay-utils.js"></script>
     <script>
-        window.updateOverlayUI = (data) => {
-            const m = data.team1;
-            document.getElementById('team1-name').innerText = m.name;
-            document.getElementById('team1-score').innerText = `${m.score}/${m.wickets}`;
-            document.getElementById('team1-overs').innerText = m.overs;
-            document.getElementById('striker-name').innerText = `${m.striker.name} ${m.striker.runs}*`;
+        window.onScoreUpdate = function(data) {
+            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
+            let bt = data.team1 && data.team1.isBatting ? data.team1 : data.team2;
+            if (bt) document.getElementById('score').textContent = (bt.score||0) + '/' + (bt.wickets||0);
+            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = (data.striker.runs||0) + '*(' + (data.striker.balls||0) + ')'; }
+            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = (data.nonStriker.runs||0) + '(' + (data.nonStriker.balls||0) + ')'; }
         };
-        window.triggerPush = (msg) => {
-            const el = document.getElementById('push-news');
-            el.innerText = `BREAKING: ${msg}`;
-            el.classList.add('active');
-            setTimeout(() => el.classList.remove('active'), 3000);
-        };
-        window.initBroadcastChannel();
+        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
     </script>
 </body>
 </html>

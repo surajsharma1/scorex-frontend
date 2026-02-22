@@ -5,28 +5,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-        .replay-top { position: absolute; top: 0; width: 100%; height: 60px; background: #0a0a0f; border-bottom: 3px solid #00ffaa; display: flex; align-items: center; padding: 0 50px; }
-        .replay-title { font-size: 1.8rem; font-weight: 900; color: #00ffaa; letter-spacing: 3px; }
-        .replay-bottom { position: absolute; bottom: 0; width: 100%; height: 100px; background: #0a0a0f; border-top: 3px solid #00ffaa; display: flex; align-items: center; padding: 0 50px; }
-        .replay-score { font-size: 4rem; font-weight: 900; color: #00ffaa; text-shadow: 0 0 15px #00ffaa; }
+        .Neon-top { position: absolute; top: 0; width: 100%; height: 55px; background: #0a0a0f; border-bottom: 3px solid #00ffaa; display: flex; align-items: center; padding: 0 50px; }
+        .Neon-title { font-size: 1.8rem; font-weight: 900; color: #00ffaa; letter-spacing: 2px; }
+        .Neon-bottom { position: absolute; bottom: 0; width: 100%; height: 85px; background: #0a0a0f; border-top: 3px solid #00ffaa; display: flex; align-items: center; padding: 0 50px; }
+        .Neon-score { font-size: 3.5rem; font-weight: 900; color: #00ffaa; }
     </style>
 </head>
 <body>
-    <div class="replay-top"><div class="replay-title" id="tournament-name"></div></div>
-    <div class="replay-bottom">
-        <div class="replay-score"><span id="score">0/0</span></div>
-        <div style="margin-left: auto; display: flex; gap: 40px;">
-            <div><div style="font-size: 1.8rem; font-weight: 900;" id="striker-name"></div><div style="color:#00ffaa" id="striker-stat"></div></div>
-            <div style="opacity: 0.5;"><div style="font-size: 1.8rem; font-weight: 900;" id="nonstriker-name"></div><div id="nonstriker-stat"></div></div>
+    <div class="Neon-top"><div class="Neon-title" id="tournament-name"></div></div>
+    <div class="Neon-bottom">
+        <div class="Neon-score"><span id="score">0/0</span></div>
+        <div style="margin-left: 35px;">
+            <div><span id="striker-name"></span> <span id="striker-stat" style="color:#00ffaa"></span></div>
+            <div><span id="nonstriker-name"></span> <span id="nonstriker-stat"></span></div>
         </div>
     </div>
     <script src="overlay-utils.js"></script>
     <script>
         window.onScoreUpdate = function(data) {
             if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-            if (data.team1 && data.team2) { const bt = data.team1.isBatting ? data.team1 : data.team2; document.getElementById('score').textContent = `${bt.score}/${bt.wickets}`; }
-            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = `${data.striker.runs || 0}*(${data.striker.balls || 0})`; }
-            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = `${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`; }
+            let bt = data.team1?.isBatting ? data.team1 : data.team2;
+            if (bt) document.getElementById('score').textContent = (bt.score||0) + '/' + (bt.wickets||0);
+            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = (data.striker.runs||0) + '*(' + (data.striker.balls||0) + ')'; }
+            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = (data.nonStriker.runs||0) + '(' + (data.nonStriker.balls||0) + ')'; }
         };
         window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
     </script>

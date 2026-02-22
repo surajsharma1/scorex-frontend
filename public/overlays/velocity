@@ -24,7 +24,7 @@
     <script>
         window.onScoreUpdate = function(data) {
             if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-           .team1?.isBatting ? data let bt = data.team1 : data.team2;
+            let bt = data.team1 && data.team1.isBatting ? data.team1 : data.team2;
             if (bt) document.getElementById('score').textContent = (bt.score||0) + '/' + (bt.wickets||0);
             if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = (data.striker.runs||0) + '*(' + (data.striker.balls||0) + ')'; }
             if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = (data.nonStriker.runs||0) + '(' + (data.nonStriker.balls||0) + ')'; }
