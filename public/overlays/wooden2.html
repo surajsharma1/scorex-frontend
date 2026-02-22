@@ -10,41 +10,18 @@
         .top-slab { position: absolute; top: 0; width: 100%; height: 75px; background: linear-gradient(to bottom, var(--dark), transparent); display: flex; align-items: flex-start; padding: 15px 60px; box-sizing: border-box; }
         .tournament-badge { background: var(--gold); color: #000; padding: 5px 30px; font-weight: 900; font-size: 1.8rem; clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%); }
 
-        /* PUSH NOTIFICATION LOCK */
         #push-lock { position: absolute; top: 150px; right: 0; background: var(--accent); color: #000; padding: 10px 60px; font-size: 4rem; font-weight: 900; transform: translateX(100%); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 15px solid #fff; }
         #push-lock.active { transform: translateX(0); }
 
-        /* NEW PUSH CONTAINER */
-        #push-container {
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0) rotate(-5deg);
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 999;
-        }
-        #push-container.active {
-            transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
-            opacity: 1;
-        }
-        .push-box {
-            background: var(--accent, #00f2ff);
-            color: #000;
-            padding: 20px 80px;
-            font-size: 5rem;
-            font-weight: 900;
-            font-style: italic;
-            text-transform: uppercase;
-            box-shadow: 0 0 50px var(--accent);
-            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
-        }
+        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
+        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
+        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
 
         .bottom-bar { position: absolute; bottom: 40px; left: 60px; width: 1800px; height: 120px; display: flex; align-items: center; }
         .score-wrap { background: var(--dark); border-left: 8px solid var(--accent); padding: 10px 50px; display: flex; flex-direction: column; min-width: 350px; }
-        .players-wrap { flex-grow: 1; height: 80px; background: rgba(0,0,0,0.8); margin-left: 20px; display: flex; align-items: center; padding: 0 40px; gap: 60px; border-bottom: 4px solid var(--accent); }
-        .player-box { display: flex; flex-direction: column; }
-        .p-name { color: var(--accent); font-size: 1.2rem; font-weight: 700; }
+        .players-wrap { flex-grow: 1; height: 80px; background: rgba(0,0,0,0.8); margin-left: 20px; display: flex; align-items: center; justify-content: space-around; }
+        .player-box { text-align: center; }
+        .p-name { font-size: 1.5rem; font-weight: 900; color: var(--gold); }
         .p-runs { font-size: 2.5rem; font-weight: 900; }
     </style>
 </head>
@@ -53,21 +30,18 @@
         <div class="tournament-badge" id="tournament-name"></div>
     </div>
 
-    <div id="push-lock"><span id="p-txt">OUT!</span></div>
+    <div id="push-lock"><span id="p-txt"></span></div>
 
-    <!-- NEW PUSH CONTAINER -->
     <div id="push-container">
         <div class="push-box"><span id="p-msg">SIX!</span></div>
     </div>
 
     <div class="bottom-bar">
         <div class="score-wrap">
-            <div style="font-size: 1.5rem; color: var(--gold);" id="team-name"></div>
+            <div style="font-size: 1.5rem; color: var(--gold);" id="team-name">TEAM NAME</div>
             <div style="font-size: 4rem; font-weight: 900; line-height: 1;">
                 <span id="score">0/0</span> <small style="font-size: 1.5rem; opacity: 0.5;" id="overs">(0.0)</small>
             </div>
-            <!-- Bowler info -->
-            <div style="font-size: 1rem; color: var(--accent);" id="bowler-info"></div>
         </div>
         
         <div class="players-wrap">
@@ -84,20 +58,19 @@
 
     <script src="overlay-utils.js"></script>
     <script>
-        // Handle score updates from ScoreboardUpdate component
         window.onScoreUpdate = function(data) {
-            // Handle wicket/six/four events
+            // Handle push events (4, 6, Wicket)
             if (data.type === 'WICKET' || data.type === 'SIX' || data.type === 'FOUR') {
                 const lock = document.getElementById('push-lock');
                 const pTxt = document.getElementById('p-txt');
-                if (lock && pTxt) {
-                    pTxt.innerText = data.message || 'OUT!';
-                    
-                    // Dynamic styling
-                    if (data.type === 'WICKET') lock.style.setProperty('--accent', 'var(--wicket)');
-                    else if (data.type === 'SIX') lock.style.setProperty('--accent', '#2ecc71');
-                    else lock.style.setProperty('--accent', '#00f2ff');
+                if (pTxt) pTxt.innerText = data.message;
+                
+                // Dynamic styling
+                if (data.type === 'WICKET') lock.style.setProperty('--accent', 'var(--wicket)');
+                else if (data.type === 'SIX') lock.style.setProperty('--accent', '#2ecc71');
+                else lock.style.setProperty('--accent', '#00f2ff');
 
+                if (lock) {
                     lock.classList.add('active');
                     setTimeout(() => lock.classList.remove('active'), 3500);
                 }
@@ -110,15 +83,14 @@
                 if (tournamentEl) tournamentEl.textContent = data.tournament.name || '';
             }
             
-            // Update team name (batting team)
+            // Update team and score
             if (data.team1 && data.team2) {
                 const battingTeam = data.team1.isBatting ? data.team1 : data.team2;
                 const teamNameEl = document.getElementById('team-name');
-                if (teamNameEl) teamNameEl.textContent = battingTeam.name ? battingTeam.name.toUpperCase() : '';
-                
-                // Update score
                 const scoreEl = document.getElementById('score');
                 const oversEl = document.getElementById('overs');
+                
+                if (teamNameEl) teamNameEl.textContent = battingTeam.name?.toUpperCase() || '';
                 if (scoreEl) scoreEl.textContent = `${battingTeam.score}/${battingTeam.wickets}`;
                 if (oversEl) oversEl.textContent = `(${battingTeam.overs})`;
             }
@@ -126,33 +98,15 @@
             // Update striker
             if (data.striker) {
                 const strikerStatEl = document.getElementById('striker-stat');
-                if (strikerStatEl) {
-                    const status = data.striker.status || '*';
-                    strikerStatEl.textContent = `${data.striker.runs || 0} (${data.striker.balls || 0})${status}`;
-                }
+                if (strikerStatEl) strikerStatEl.textContent = `${data.striker.runs || 0} (${data.striker.balls || 0})*`;
             }
             
             // Update non-striker
             if (data.nonStriker) {
                 const nonStrikerStatEl = document.getElementById('nonstriker-stat');
-                if (nonStrikerStatEl) {
-                    nonStrikerStatEl.textContent = `${data.nonStriker.runs || 0} (${data.nonStriker.balls || 0})`;
-                }
-            }
-            
-            // Update bowler
-            if (data.bowler) {
-                const bowlerInfoEl = document.getElementById('bowler-info');
-                if (bowlerInfoEl) {
-                    bowlerInfoEl.textContent = `Bowler: ${data.bowler.name || ''} ${data.bowler.overs || 0}-${data.bowler.maidens || 0}-${data.bowler.runs || 0}-${data.bowler.wickets || 0}`;
-                }
+                if (nonStrikerStatEl) nonStrikerStatEl.textContent = `${data.nonStriker.runs || 0} (${data.nonStriker.balls || 0})`;
             }
         };
-
-        // Listen for scoreUpdated events from overlay-utils
-        window.addEventListener('scoreUpdated', (e) => {
-            window.onScoreUpdate(e.detail);
-        });
     </script>
 </body>
 </html>

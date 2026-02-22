@@ -46,8 +46,9 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
   const loadPendingRequests = async () => {
     try {
       const response = await friendAPI.getFriendRequests();
-      setPendingRequests(response.data.requests);
+      setPendingRequests(Array.isArray(response.data?.requests) ? response.data.requests : []);
     } catch (err) {
+      setPendingRequests([]);
       setError('Failed to load friend requests');
     } finally {
       setLoading(false);
@@ -268,14 +269,14 @@ const FriendList: React.FC<FriendListProps> = ({ onFriendSelect }) => {
                     <div className="flex items-center">
                       <div className="h-10 w-10 bg-gray-300 dark:bg-dark-secondary rounded-full flex items-center justify-center">
                         <span className="text-sm font-medium text-gray-700 dark:text-dark-accent">
-                          {request.from.username.charAt(0).toUpperCase()}
+                          {(request.from?.username || '?').charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div className="ml-3">
                         <span className="text-sm font-medium text-gray-900 dark:text-dark-light">
-                          {request.from.username}
+                          {request.from?.username || 'Unknown User'}
                         </span>
-                        {request.from.bio && (
+                        {request.from?.bio && (
                           <p className="text-xs text-gray-500 dark:text-dark-accent/70">{request.from.bio}</p>
                         )}
                       </div>
