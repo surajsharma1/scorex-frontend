@@ -5,30 +5,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-        .gate-top { position: absolute; top: 0; width: 100%; height: 45px; background: #000; display: flex; align-items: center; padding: 0 40px; border-bottom: 2px solid #fff; }
-        .gate-title { font-size: 1.5rem; font-weight: 700; letter-spacing: 2px; }
-        .gate-bottom { position: absolute; bottom: 0; width: 100%; height: 85px; background: #000; display: flex; align-items: center; padding: 0 40px; border-top: 2px solid #fff; }
-        .gate-score { font-size: 3.5rem; font-weight: 900; }
+        .gate-center { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+        .gate-top { background: #000; padding: 5px 30px; border-bottom: 3px solid #00f2ff; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; font-size: 1.2rem; }
+        .gate-main { background: rgba(0,0,0,0.85); display: flex; align-items: center; padding: 10px 40px; border-radius: 0 0 10px 10px; }
+        .g-team { font-size: 2.5rem; font-weight: 900; margin-right: 20px; }
+        .g-score { font-size: 4rem; font-weight: 900; color: #00f2ff; }
+        .g-overs { font-size: 1.5rem; opacity: 0.6; margin-left: 20px; }
+
+        #push-gate { position: absolute; top: -100px; transform: scale(0); transition: 0.4s; background: #00f2ff; color: #000; padding: 10px 50px; font-weight: 900; font-size: 2.5rem; }
+        #push-gate.active { transform: scale(1); }
     </style>
 </head>
 <body>
-    <div class="gate-top"><div class="gate-title" id="tournament-name"></div></div>
-    <div class="gate-bottom">
-        <div class="gate-score"><span id="score">0/0</span></div>
-        <div style="margin-left: 40px;" id="players">
-            <div><span id="striker-name"></span> <span id="striker-stat"></span></div>
-            <div><span id="nonstriker-name"></span> <span id="nonstriker-stat"></span></div>
+    <div class="gate-center">
+        <div id="push-gate"><span id="p-msg">OUT!</span></div>
+        <div class="gate-top" id="tournament-name">MATCH CENTER</div>
+        <div class="gate-main">
+            <div class="g-team" id="team1-name">TEAM</div>
+            <div class="g-score" id="team1-score">0/0</div>
+            <div class="g-overs" id="team1-overs">0.0</div>
         </div>
     </div>
+
     <script src="overlay-utils.js"></script>
     <script>
-        window.onScoreUpdate = function(data) {
-            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-            if (data.team1 && data.team2) { const bt = data.team1.isBatting ? data.team1 : data.team2; document.getElementById('score').textContent = `${bt.score}/${bt.wickets}`; }
-            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = `${data.striker.runs || 0}*(${data.striker.balls || 0})`; }
-            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = `${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`; }
+        window.updateOverlayUI = (data) => {
+            const m = data.team1;
+            document.getElementById('team1-name').innerText = m.name;
+            document.getElementById('team1-score').innerText = `${m.score}/${m.wickets}`;
+            document.getElementById('team1-overs').innerText = m.overs;
         };
-        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
+        window.triggerWicket = (msg) => {
+            const el = document.getElementById('push-gate');
+            document.getElementById('p-msg').innerText = msg || "OUT!";
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 3000);
+        };
+        window.initBroadcastChannel();
     </script>
 </body>
 </html>

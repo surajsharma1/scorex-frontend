@@ -4,31 +4,58 @@
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-        .prism-top { position: absolute; top: 0; width: 100%; height: 55px; background: linear-gradient(90deg, #e74c3c, #f39c12); display: flex; align-items: center; padding: 0 50px; }
-        .prism-title { font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; }
-        .prism-bottom { position: absolute; bottom: 0; width: 100%; height: 95px; background: linear-gradient(to top, #1a1a2e, #16213e); display: flex; align-items: center; padding: 0 50px; }
-        .prism-score { font-size: 3.8rem; font-weight: 900; color: #f39c12; }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: #fff; }
+        .prism-frame { position: absolute; inset: 0; border-top: 50px solid #001f3f; border-bottom: 100px solid #001f3f; box-sizing: border-box; }
+        .prism-header { position: absolute; top: -50px; width: 100%; height: 50px; display: flex; align-items: center; padding: 0 60px; font-weight: 900; font-size: 1.5rem; color: #00f2ff; text-transform: uppercase;}
+        .prism-footer { position: absolute; bottom: -100px; width: 100%; height: 100px; display: flex; align-items: center; padding: 0 60px; box-sizing: border-box; }
+        .p-score-main { font-size: 5rem; font-weight: 900; }
+        .p-player-grid { margin-left: auto; display: flex; gap: 60px; text-align: right; }
+        #push-prism { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(2); opacity: 0; transition: 0.4s; color: #00f2ff; font-size: 12rem; font-weight: 900; font-style: italic; -webkit-text-stroke: 3px black; z-index: 100; }
+        #push-prism.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     </style>
 </head>
 <body>
-    <div class="prism-top"><div class="prism-title" id="tournament-name"></div></div>
-    <div class="prism-bottom">
-        <div class="prism-score"><span id="score">0/0</span></div>
-        <div style="margin-left: 40px;">
-            <div><span id="striker-name"></span> <span id="striker-stat" style="color:#f39c12"></span></div>
-            <div><span id="nonstriker-name"></span> <span id="nonstriker-stat"></span></div>
+    <div class="prism-frame">
+        <div class="prism-header" id="tournament-name">INTERNATIONAL CRICKET SERIES</div>
+        <div id="push-prism">WICKET!</div>
+        <div class="prism-footer">
+            <div class="p-score-main">
+                <span id="team1-short">TEAM</span> <span id="team1-score">0</span>/<span id="team1-wickets">0</span> 
+                <span style="font-size: 1.5rem; opacity: 0.4;">(<span id="team1-overs">0.0</span> OV)</span>
+            </div>
+            <div class="p-player-grid">
+                <div>
+                    <div style="font-size: 1.8rem; font-weight: 900; color: #00f2ff;"><span id="striker-name">BATTER 1</span>*</div>
+                    <div style="font-size: 2.2rem;"><span id="striker-runs">0</span> (<span id="striker-balls">0</span>)</div>
+                </div>
+                <div style="opacity: 0.6;">
+                    <div style="font-size: 1.8rem; font-weight: 900;" id="nonstriker-name">BATTER 2</div>
+                    <div style="font-size: 2.2rem;"><span id="nonstriker-runs">0</span> (<span id="nonstriker-balls">0</span>)</div>
+                </div>
+            </div>
         </div>
     </div>
     <script src="overlay-utils.js"></script>
     <script>
-        window.onScoreUpdate = function(data) {
-            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-            if (data.team1 && data.team2) { const bt = data.team1.isBatting ? data.team1 : data.team2; document.getElementById('score').textContent = `${bt.score}/${bt.wickets}`; }
-            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = `${data.striker.runs || 0}*(${data.striker.balls || 0})`; }
-            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = `${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`; }
+        window.updateOverlayUI = (data) => {
+            const m = data.team1;
+            document.getElementById('team1-short').innerText = m.name;
+            document.getElementById('team1-score').innerText = m.score;
+            document.getElementById('team1-wickets').innerText = m.wickets;
+            document.getElementById('team1-overs').innerText = m.overs;
+            document.getElementById('striker-name').innerText = m.striker.name;
+            document.getElementById('striker-runs').innerText = m.striker.runs;
+            document.getElementById('striker-balls').innerText = m.striker.balls;
+            document.getElementById('nonstriker-name').innerText = m.nonStriker.name;
+            document.getElementById('nonstriker-runs').innerText = m.nonStriker.runs;
+            document.getElementById('nonstriker-balls').innerText = m.nonStriker.balls;
         };
-        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
+        window.triggerWicket = () => {
+            const el = document.getElementById('push-prism');
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 3000);
+        };
+        window.initBroadcastChannel();
     </script>
 </body>
 </html>

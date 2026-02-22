@@ -2,33 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-        .modern-top { position: absolute; top: 0; width: 100%; height: 55px; background: linear-gradient(90deg, #2c3e50, #34495e); display: flex; align-items: center; padding: 0 50px; }
-        .modern-title { font-size: 1.8rem; font-weight: 900; letter-spacing: 2px; }
-        .modern-bottom { position: absolute; bottom: 0; width: 100%; height: 90px; background: #1a252f; display: flex; align-items: center; padding: 0 50px; }
-        .modern-score { font-size: 3.8rem; font-weight: 900; color: #3498db; }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Arial Black', sans-serif; color: white; overflow: hidden; }
+        .monolith { position: absolute; bottom: 0; left: 0; display: flex; height: 120px; }
+        .m-accent { width: 20px; background: #e74c3c; height: 100%; }
+        .m-main { background: #1a1a1a; padding: 0 50px; display: flex; flex-direction: column; justify-content: center; }
+        .m-team { font-size: 1.5rem; color: #e74c3c; text-transform: uppercase; }
+        .m-score { font-size: 4.5rem; line-height: 1; }
+        .m-players { background: #000; padding: 0 40px; display: flex; align-items: center; gap: 40px; font-size: 1.2rem; }
+
+        #push-m { position: absolute; bottom: 120px; left: 0; height: 60px; background: #e74c3c; width: 0; overflow: hidden; transition: 0.4s; display: flex; align-items: center; padding-left: 0; }
+        #push-m.active { width: 400px; padding-left: 50px; }
     </style>
 </head>
 <body>
-    <div class="modern-top"><div class="modern-title" id="tournament-name"></div></div>
-    <div class="modern-bottom">
-        <div class="modern-score"><span id="score">0/0</span></div>
-        <div style="margin-left: 40px;">
-            <div><span id="striker-name"></span> <span id="striker-stat" style="color:#3498db"></span></div>
-            <div><span id="nonstriker-name"></span> <span id="nonstriker-stat"></span></div>
+    <div id="push-m"><span style="font-size: 2rem; font-weight: 900;" id="p-msg">WICKET</span></div>
+    
+    <div class="monolith">
+        <div class="m-accent"></div>
+        <div class="m-main">
+            <div class="m-team" id="team1-name">TEAM</div>
+            <div class="m-score"><span id="team1-score">0/0</span> <small style="font-size: 1.5rem; opacity: 0.4;" id="team1-overs">0.0</small></div>
+        </div>
+        <div class="m-players">
+            <div>STRIKER: <span id="striker-name" style="color:#e74c3c">00*</span></div>
+            <div style="opacity: 0.5">NON-STRIKER: <span id="nonstriker-name">00</span></div>
         </div>
     </div>
+
     <script src="overlay-utils.js"></script>
     <script>
-        window.onScoreUpdate = function(data) {
-            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-            if (data.team1 && data.team2) { const bt = data.team1.isBatting ? data.team1 : data.team2; document.getElementById('score').textContent = `${bt.score}/${bt.wickets}`; }
-            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = `${data.striker.runs || 0}*(${data.striker.balls || 0})`; }
-            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = `${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`; }
+        window.updateOverlayUI = (data) => {
+            const m = data.team1;
+            document.getElementById('team1-name').innerText = m.name;
+            document.getElementById('team1-score').innerText = `${m.score}/${m.wickets}`;
+            document.getElementById('team1-overs').innerText = m.overs;
+            document.getElementById('striker-name').innerText = `${m.striker.name} ${m.striker.runs}*`;
+            document.getElementById('nonstriker-name').innerText = `${m.nonStriker.name} ${m.nonStriker.runs}`;
         };
-        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
+        window.triggerWicket = () => {
+            const el = document.getElementById('push-m');
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 3000);
+        };
+        window.initBroadcastChannel();
     </script>
 </body>
 </html>

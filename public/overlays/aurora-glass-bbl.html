@@ -2,41 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: #fff; overflow: hidden; }
-        .aurora-top { position: absolute; top: 0; width: 100%; height: 50px; background: linear-gradient(90deg, rgba(0,255,255,0.3), rgba(255,0,255,0.3)); backdrop-filter: blur(10px); display: flex; align-items: center; padding: 0 40px; }
-        .aurora-bottom { position: absolute; bottom: 0; width: 100%; height: 90px; background: linear-gradient(90deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1)); backdrop-filter: blur(10px); display: flex; align-items: center; padding: 0 40px; border-top: 2px solid rgba(255,255,255,0.3); }
-        .aurora-score { font-size: 3.5rem; font-weight: 900; color: #00ffff; }
+        :root { --aurora: linear-gradient(90deg, #ff00cc, #3333ff); --bg: rgba(10, 10, 15, 0.9); }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
+        .top-edge { position: absolute; top: 0; width: 100%; height: 50px; background: var(--bg); border-bottom: 3px solid transparent; border-image: var(--aurora) 1; display: flex; align-items: center; padding: 0 50px; box-sizing: border-box; justify-content: space-between; }
+        .bottom-edge { position: absolute; bottom: 0; width: 100%; height: 100px; background: var(--bg); border-top: 3px solid transparent; border-image: var(--aurora) 1; display: flex; align-items: center; padding: 0 50px; box-sizing: border-box; }
+        #push-aura { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5); opacity: 0; transition: 0.5s; }
+        #push-aura.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .push-txt { font-size: 8rem; font-weight: 900; font-style: italic; color: #fff; text-shadow: 0 0 30px #ff00cc; }
     </style>
 </head>
 <body>
-    <div class="aurora-top"><span id="tournament-name" style="font-weight: 900;"></span></div>
-    <div class="aurora-bottom">
-        <div class="aurora-score" id="score-display"></div>
-        <div style="margin-left: 40px;">
-            <div><span id="striker-name"></span> <span id="striker-stat" style="color:#00ffff"></span></div>
-            <div><span id="nonstriker-name"></span> <span id="nonstriker-stat"></span></div>
-        </div>
+    <div class="top-edge"><span id="match-header">BBL 2026 | LIVE</span></div>
+    <div id="push-aura"><div class="push-txt" id="p-msg">SIX!</div></div>
+    <div class="bottom-edge">
+        <div id="score-main" style="font-size: 4rem; font-weight: 900; background: var(--aurora); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0/0</div>
+        <div id="over-main" style="margin-left: 30px; font-size: 1.5rem; opacity: 0.7;">0.0 OVERS</div>
+        <div id="batter-stats" style="margin-left: auto; text-align: right; font-size: 1.8rem; font-weight: 900;">BATTERS LOADING...</div>
     </div>
+
     <script src="overlay-utils.js"></script>
     <script>
-        window.onScoreUpdate = function(data) {
-            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-            if (data.team1 && data.team2) {
-                const bt = data.team1.isBatting ? data.team1 : data.team2;
-                document.getElementById('score-display').textContent = `${bt.score}/${bt.wickets} (${bt.overs})`;
-            }
-            if (data.striker) {
-                document.getElementById('striker-name').textContent = data.striker.name || '';
-                document.getElementById('striker-stat').textContent = `${data.striker.runs || 0}*(${data.striker.balls || 0})`;
-            }
-            if (data.nonStriker) {
-                document.getElementById('nonstriker-name').textContent = data.nonStriker.name || '';
-                document.getElementById('nonstriker-stat').textContent = `${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`;
-            }
+        window.updateOverlayUI = (data) => {
+            const m = data.team1;
+            document.getElementById('score-main').innerText = `${m.name} ${m.score}/${m.wickets}`;
+            document.getElementById('over-main').innerText = `${m.overs} OVERS`;
+            document.getElementById('batter-stats').innerText = `${m.striker.name} ${m.striker.runs}* | ${m.nonStriker.name} ${m.nonStriker.runs}`;
         };
-        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
+        window.triggerPush = (msg) => {
+            const el = document.getElementById('push-aura');
+            document.getElementById('p-msg').innerText = msg;
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 3000);
+        };
+        window.initBroadcastChannel();
     </script>
 </body>
 </html>

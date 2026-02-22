@@ -2,41 +2,49 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: #0f0; overflow: hidden; }
-        .glitch-top { position: absolute; top: 0; width: 100%; height: 50px; background: #000; display: flex; align-items: center; padding: 0 40px; border-bottom: 2px solid #0f0; }
-        .glitch-bottom { position: absolute; bottom: 0; width: 100%; height: 90px; background: #000; display: flex; align-items: center; padding: 0 40px; border-top: 2px solid #0f0; }
-        .glitch-score { font-size: 3.5rem; font-weight: 900; color: #0f0; text-shadow: 2px 2px #ff00ff; }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Press Start 2P', cursive; color: #0f0; overflow: hidden; }
+        .arcade-box { position: absolute; bottom: 50px; left: 50px; background: #000; border: 4px solid #0f0; padding: 20px; box-shadow: 10px 10px 0 #f0f; }
+        .pixel-header { font-size: 1rem; color: #f0f; margin-bottom: 15px; }
+        .pixel-score { font-size: 2.5rem; margin-bottom: 15px; }
+        .pixel-players { font-size: 0.8rem; line-height: 1.5; color: #0ff; }
+
+        #push-glitch { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); }
+        #push-glitch.active { transform: translate(-50%, -50%) scale(1.5); animation: glitch 0.2s infinite; }
+        .glitch-txt { background: #f0f; color: #fff; padding: 10px 40px; font-size: 3rem; }
+        @keyframes glitch { 0% { transform: translate(-50%, -50%) skew(5deg); } 50% { transform: translate(-52%, -48%) skew(-5deg); } 100% { transform: translate(-50%, -50%) skew(5deg); } }
     </style>
 </head>
 <body>
-    <div class="glitch-top"><span id="tournament-name" style="font-weight: 900; color: #0f0;"></span></div>
-    <div class="glitch-bottom">
-        <div class="glitch-score" id="score-display"></div>
-        <div style="margin-left: 40px;">
-            <div><span id="striker-name"></span> <span id="striker-stat" style="color:#0f0"></span></div>
-            <div><span id="nonstriker-name"></span> <span id="nonstriker-stat"></span></div>
+    <div id="push-glitch"><div class="glitch-txt" id="p-msg">OUT!</div></div>
+
+    <div class="arcade-box">
+        <div class="pixel-header" id="tournament-name">CRICKET.EXE</div>
+        <div class="pixel-score">
+            <span id="team1-name">IND</span> <span id="team1-score">0/0</span>
+        </div>
+        <div class="pixel-players">
+            P1: <span id="striker-name">KOHLI 00*</span><br>
+            OV: <span id="team1-overs">0.0</span>
         </div>
     </div>
+
     <script src="overlay-utils.js"></script>
     <script>
-        window.onScoreUpdate = function(data) {
-            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-            if (data.team1 && data.team2) {
-                const bt = data.team1.isBatting ? data.team1 : data.team2;
-                document.getElementById('score-display').textContent = `${bt.score}/${bt.wickets} (${bt.overs})`;
-            }
-            if (data.striker) {
-                document.getElementById('striker-name').textContent = data.striker.name || '';
-                document.getElementById('striker-stat').textContent = `${data.striker.runs || 0}*(${data.striker.balls || 0})`;
-            }
-            if (data.nonStriker) {
-                document.getElementById('nonstriker-name').textContent = data.nonStriker.name || '';
-                document.getElementById('nonstriker-stat').textContent = `${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`;
-            }
+        window.updateOverlayUI = (data) => {
+            const m = data.team1;
+            document.getElementById('team1-name').innerText = m.name;
+            document.getElementById('team1-score').innerText = `${m.score}/${m.wickets}`;
+            document.getElementById('team1-overs').innerText = m.overs;
+            document.getElementById('striker-name').innerText = `${m.striker.name.substring(0,8)} ${m.striker.runs}*`;
         };
-        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
+        window.triggerWicket = () => {
+            const el = document.getElementById('push-glitch');
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 2500);
+        };
+        window.initBroadcastChannel();
     </script>
 </body>
 </html>

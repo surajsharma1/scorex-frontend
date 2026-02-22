@@ -4,31 +4,37 @@
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-        .split-top { position: absolute; top: 0; width: 100%; height: 50px; background: #0a0a0a; display: flex; align-items: center; padding: 0 40px; }
-        .split-title { font-size: 1.8rem; font-weight: 700; color: #00f2ff; letter-spacing: 2px; }
-        .split-bottom { position: absolute; bottom: 0; width: 100%; height: 100px; background: #0a0a0a; display: flex; }
-        .split-score { width: 350px; background: #00f2ff; color: #000; display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 900; }
+        body { margin: 0; background: transparent; font-family: 'Barlow Condensed', sans-serif; width: 1920px; height: 1080px; overflow: hidden; color: white; }
+        .mode-tag { position: absolute; top: 40px; right: 40px; background: #000; padding: 5px 20px; border: 1px solid #fff; font-weight: 900; }
+        .bottom-left-bar { position: absolute; bottom: 0; left: 0; background: #111; padding: 10px 60px; clip-path: polygon(0 0, 90% 0, 100% 100%, 0% 100%); border-top: 4px solid #f9cd05; }
+        .bottom-right-bar { position: absolute; bottom: 0; right: 0; background: #111; padding: 10px 60px; clip-path: polygon(10% 0, 100% 0, 100% 100%, 0% 100%); border-top: 4px solid #00f2ff; text-align: right; }
+        
+        /* Standardized Push ID */
+        #push-overlay { position: absolute; bottom: 80px; right: 40px; background: #00f2ff; color: #000; padding: 10px 40px; font-weight: 900; font-size: 2rem; transform: translateX(200%); transition: 0.4s; }
+        #push-overlay.active { transform: translateX(0); }
     </style>
 </head>
 <body>
-    <div class="split-top"><div class="split-title" id="tournament-name"></div></div>
-    <div class="split-bottom">
-        <div class="split-score" id="score">0/0</div>
-        <div style="flex-grow: 1; display: flex; align-items: center; justify-content: space-around; padding: 0 30px;">
-            <div><div style="font-size: 1.8rem; font-weight: 900;" id="striker-name"></div><div style="color:#00f2ff" id="striker-stat"></div></div>
-            <div style="opacity: 0.5;"><div style="font-size: 1.8rem; font-weight: 900;" id="nonstriker-name"></div><div id="nonstriker-stat"></div></div>
+    <div class="mode-tag" id="match-status">LIVE</div>
+    
+    <div id="push-overlay"><span id="push-txt">EVENT!</span></div>
+    
+    <div class="bottom-left-bar">
+        <div style="font-size:0.8rem; color:#f9cd05" id="tournament-name">TOURNAMENT LIVE</div>
+        <div style="font-size:2rem; font-weight:900">
+            <span id="team1-short">TM1</span>: <span id="team1-score">0</span>/<span id="team1-wickets">0</span> (<span id="team1-overs">0.0</span>)
         </div>
     </div>
+    
+    <div class="bottom-right-bar">
+        <div style="font-size:1.5rem">
+            <span id="striker-name">STRIKER</span>: <span id="striker-runs">0</span>* (<span id="striker-balls">0</span>)
+        </div>
+        <div style="font-size:0.8rem; opacity:0.6">
+            <span id="nonstriker-name">NON-STRIKER</span>: <span id="nonstriker-runs">0</span> (<span id="nonstriker-balls">0</span>)
+        </div>
+    </div>
+
     <script src="overlay-utils.js"></script>
-    <script>
-        window.onScoreUpdate = function(data) {
-            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
-            if (data.team1 && data.team2) { const bt = data.team1.isBatting ? data.team1 : data.team2; document.getElementById('score').textContent = `${bt.score}/${bt.wickets}`; }
-            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = `${data.striker.runs || 0}*(${data.striker.balls || 0})`; }
-            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = `${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`; }
-        };
-        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
-    </script>
 </body>
 </html>
