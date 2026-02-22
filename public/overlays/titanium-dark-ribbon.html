@@ -2,224 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --titanium: #e0e0e0; 
-            --neon-orange: #ff6600; 
-            --deep-base: #0a0a0a; 
-            --glass: rgba(255, 255, 255, 0.05);
-        }
-        
-        body { 
-            margin: 0; 
-            width: 1920px; 
-            height: 1080px; 
-            background: transparent; 
-            font-family: 'Barlow Condensed', sans-serif; 
-            color: white; 
-            overflow: hidden; 
-        }
-
-        /* TOP BORDER: STRUCTURAL RIBBON */
-        .top-perimeter { 
-            position: absolute; 
-            top: 0; 
-            width: 100%; 
-            height: 60px; 
-            background: var(--deep-base); 
-            border-bottom: 4px solid var(--titanium);
-            display: flex; 
-            align-items: center; 
-            padding: 0 50px; 
-            box-sizing: border-box;
-            z-index: 10;
-        }
-        .tourney-tag { 
-            font-size: 2.2rem; 
-            font-weight: 900; 
-            letter-spacing: 2px; 
-            color: var(--titanium);
-        }
-        .mode-status { 
-            margin-left: auto; 
-            background: var(--neon-orange); 
-            color: #000; 
-            padding: 2px 25px; 
-            font-weight: 900; 
-            transform: skewX(-15deg); 
-        }
-
-        /* BOTTOM BORDER: COMMAND DECK */
-        .bottom-perimeter { 
-            position: absolute; 
-            bottom: 0; 
-            width: 100%; 
-            height: 110px; 
-            background: linear-gradient(to top, #000 80%, var(--deep-base)); 
-            border-top: 2px solid rgba(255,255,255,0.1);
-            display: flex; 
-            align-items: center; 
-            padding: 0 60px; 
-            box-sizing: border-box;
-        }
-
-        .score-section { 
-            display: flex; 
-            align-items: baseline; 
-            gap: 15px;
-            border-right: 2px solid var(--neon-orange);
-            padding-right: 40px;
-        }
-        .main-score { font-size: 5.5rem; font-weight: 900; line-height: 1; }
-        .overs { font-size: 1.8rem; color: var(--neon-orange); opacity: 0.8; }
-
-        .player-hub { 
-            flex-grow: 1; 
-            display: flex; 
-            justify-content: space-around; 
-            padding-left: 40px;
-        }
-        .player-card { display: flex; flex-direction: column; }
-        .p-label { font-size: 1rem; color: var(--neon-orange); letter-spacing: 2px; }
-        .p-data { font-size: 2.5rem; font-weight: 900; }
-
-        /* PUSH ENGINE: SHOCKWAVE REVEAL */
-        #push-engine {
-            position: absolute;
-            bottom: 110px; /* Sits exactly on top of the bottom bar */
-            left: 0;
-            width: 100%;
-            height: 0;
-            background: var(--neon-orange);
-            overflow: hidden;
-            transition: height 0.3s cubic-bezier(0.17, 0.84, 0.44, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 5;
-        }
-        #push-engine.active { height: 100px; }
-        .push-text { 
-            font-size: 6rem; 
-            font-weight: 900; 
-            color: #000; 
-            font-style: italic;
-            transform: translateY(100px);
-            transition: transform 0.4s 0.1s;
-        }
-        #push-engine.active .push-text { transform: translateY(0); }
-
-        /* NEW PUSH CONTAINER */
-        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
-        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
-        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
-
+        :root { --titanium: #e0e0e0; --neon-orange: #ff6600; --deep-base: #0a0a0a; }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; }
+        .top-perimeter { position: absolute; top: 0; width: 100%; height: 60px; background: var(--deep-base); border-bottom: 4px solid var(--titanium); display: flex; align-items: center; padding: 0 50px; box-sizing: border-box; }
+        .bottom-ribbon { position: absolute; bottom: 0; width: 100%; height: 100px; background: linear-gradient(90deg, var(--deep-base), #222); border-top: 4px solid var(--neon-orange); display: flex; align-items: center; padding: 0 50px; }
+        .score-main { font-size: 4.5rem; font-weight: 900; color: var(--titanium); margin-right: 40px; }
     </style>
 </head>
 <body>
-
-    <div class="top-perimeter">
-        <div class="tourney-tag">BIG BASH LEAGUE // KNOCKOUT STAGE</div>
-        <div class="mode-status">LIVE REPLAY</div>
-    </div>
-
-    <div id="push-engine">
-        <div class="push-text" id="push-val">MAXIMUM SIX!</div>
-    </div>
-
-    <div class="bottom-perimeter">
-        <div class="score-section">
-            <div class="main-score">
-                <span id="team1-short">SYD</span> <span id="team1-score">214</span>/<span id="team1-wickets">4</span>
-            </div>
-            <div class="overs"><span id="team1-overs">18.4</span> OVERS</div>
+    <div class="top-perimeter"><span id="tournament-name" style="font-size: 1.8rem; letter-spacing: 10px;">MATCH TITLE</span></div>
+    <div class="bottom-ribbon">
+        <div class="score-main"><span id="team1-name">T1</span> <span id="team1-score">00</span>/<span id="team1-wickets">0</span></div>
+        <div style="font-size: 1.5rem;">
+            <div id="striker-name">PLAYER 1</div>
+            <div style="color: var(--neon-orange)" id="team1-overs">OVER: 0.0</div>
         </div>
-
-        <div class="player-hub">
-            <div class="player-card">
-                <span class="p-label">STRIKER</span>
-                <span class="p-data">
-                    <span id="striker-name">GLENN MAXWELL</span> 
-                    <span id="striker-status" style="color:var(--neon-orange)">84*</span>
-                </span>
-            </div>
-            <div class="player-card" style="opacity: 0.5;">
-                <span class="p-label">NON-STRIKER</span>
-                <span class="p-data">
-                    <span id="nonstriker-name">MARCUS STOINIS</span> 
-                    <span id="nonstriker-runs">12</span>
-                </span>
-            </div>
-        </div>
-
-        <div style="margin-left: auto; text-align: right;">
-            <div class="p-label">TARGET</div>
-            <div id="target" style="font-size: 2.5rem; font-weight: 900;">215</div>
+        <div style="margin-left: auto; text-align: right; opacity: 0.6;">
+            <div>BOWLING</div>
+            <div id="bowler-name" style="font-size: 2rem; font-weight: 900;">BOWLER NAME</div>
         </div>
     </div>
-
     <script src="overlay-utils.js"></script>
     <script>
-        // Auto-initialize with matchId from URL
-        const params = new URLSearchParams(window.location.search);
-        const matchId = params.get('matchId');
-        if (matchId) {
-            window.initLiveScore(matchId);
-        }
-
-        /**
-         * Trigger the Shockwave Push Animation
-         * @param {string} msg - The text to show
-         * @param {string} type - '6' (Green), 'W' (Red), '4' (Orange)
-         */
-        function triggerPush(msg, type) {
-            const engine = document.getElementById('push-engine');
-            const text = document.getElementById('push-val');
-            
-            text.innerText = msg;
-            
-            // Dynamic Color Logic
-            if (type === 'W') {
-                engine.style.background = '#ff0000';
-                text.style.color = '#fff';
-            } else if (type === '6') {
-                engine.style.background = '#00ff66';
-                text.style.color = '#000';
-            } else {
-                engine.style.background = '#ff6600';
-                text.style.color = '#000';
-            }
-
-            engine.classList.add('active');
-            
-            // Auto-hide after 3.5 seconds
-            setTimeout(() => {
-                engine.classList.remove('active');
-            }, 3500);
-        }
-
-        // Listen for score updates from overlay-utils
+        window.initBroadcastChannel();
+    
         window.addEventListener('scoreUpdated', (e) => {
             const data = e.detail;
-            // Update custom formatting for this overlay
-            const team1Short = document.getElementById('team1-short');
-            const team1Score = document.getElementById('team1-score');
-            const team1Wickets = document.getElementById('team1-wickets');
-            if (team1Short && data.team1) team1Short.textContent = data.team1.shortName || '';
-            if (team1Score && data.team1) team1Score.textContent = data.team1.score || '0';
-            if (team1Wickets && data.team1) team1Wickets.textContent = data.team1.wickets || '0';
+    
+            // Structural Header
+            if (data.team1) {
+                document.getElementById('team1-short').textContent = data.team1.shortName;
+                document.getElementById('team1-score').textContent = data.team1.score;
+                document.getElementById('team1-wickets').textContent = data.team1.wickets;
+            }
+    
+            // Detailed Batter Info
+            if (data.striker) {
+                const status = data.striker.status || '';
+                document.getElementById('striker-status').textContent = `${data.striker.runs}${status}`;
+            }
             
-            const strikerStatus = document.getElementById('striker-status');
-            if (strikerStatus && data.striker) strikerStatus.textContent = (data.striker.runs || '0') + (data.striker.status || '');
-            
-            const nonstrikerName = document.getElementById('nonstriker-name');
-            const nonstrikerRuns = document.getElementById('nonstriker-runs');
-            if (nonstrikerName && data.nonStriker) nonstrikerName.textContent = data.nonStriker.name || '';
-            if (nonstrikerRuns && data.nonStriker) nonstrikerRuns.textContent = data.nonStriker.runs || '0';
+            if (data.nonStriker) {
+                document.getElementById('nonstriker-name').textContent = data.nonStriker.name;
+                document.getElementById('nonstriker-runs').textContent = data.nonStriker.runs;
+            }
         });
-
-        // Example: triggerPush('WICKET - CAUGHT!', 'W');
     </script>
 </body>
 </html>

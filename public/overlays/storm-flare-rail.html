@@ -41,14 +41,28 @@
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
-        function triggerPush(msg) {
-            const f = document.getElementById('push-flare');
-            const t = document.getElementById('push-txt-flare');
-            t.innerText = msg;
-            f.classList.add('active'); t.classList.add('active');
-            setTimeout(() => { f.classList.remove('active'); t.classList.remove('active'); }, 3000);
-        }
+        window.initBroadcastChannel();
+    
+        window.addEventListener('scoreUpdated', (e) => {
+            const data = e.detail;
+    
+            // Left Pod: Score
+            if (data.team1) {
+                document.querySelector('.pod-left').textContent = 
+                    `${data.team1.shortName} ${data.team1.score}/${data.team1.wickets}`;
+            }
+    
+            // Right Pod: Batters
+            if (data.striker && data.nonStriker) {
+                const podRight = document.querySelector('.pod-right');
+                podRight.innerHTML = `
+                    <span><b>${data.striker.name.toUpperCase()}:</b> ${data.striker.runs}*</span>
+                    <span style="opacity: 0.5;"><b>${data.nonStriker.name.toUpperCase()}:</b> ${data.nonStriker.runs}</span>
+                `;
+            }
+        });
     </script>
 </body>
 </html>

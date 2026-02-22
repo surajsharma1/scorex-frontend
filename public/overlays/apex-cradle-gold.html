@@ -4,57 +4,60 @@
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
     <style>
-        :root { --apex-gold: #f9cd05; --apex-navy: #001f3f; }
+        :root { --apex-gold: #f9cd05; --apex-navy: #001f3f; --accent: #00f2ff; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
 
-        /* TOP BORDER: APEX POINT */
         .top-apex { position: absolute; top: 0; width: 100%; height: 60px; background: var(--apex-navy); clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%); border-bottom: 4px solid var(--apex-gold); display: flex; align-items: center; justify-content: center; }
         .tournament-title { font-size: 2rem; font-weight: 900; letter-spacing: 10px; text-transform: uppercase; }
 
-        /* BOTTOM BORDER: DUAL CRADLE */
+        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
+        #push-container.active { transform: translate(-50%, -50%) scale(1.5); opacity: 1; }
+        .push-box { background: var(--accent); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+
         .bottom-cradle { position: absolute; bottom: 0; width: 100%; height: 110px; display: flex; align-items: flex-end; }
-        .cradle-left { background: #000; width: 45%; height: 90px; border-top: 5px solid var(--apex-gold); clip-path: polygon(0 0, 100% 0, 90% 100%, 0% 100%); display: flex; align-items: center; padding-left: 60px; }
-        .cradle-right { background: #fff; color: #000; width: 45%; height: 90px; border-top: 5px solid var(--apex-navy); clip-path: polygon(10% 0, 100% 0, 100% 100%, 0% 100%); margin-left: auto; display: flex; align-items: center; justify-content: flex-end; padding-right: 60px; }
-
-        /* PUSH ENGINE: CENTER EXPLOSION */
-        #push-apex { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); transition: 0.4s; z-index: 100; }
-        #push-apex.active { transform: translate(-50%, -50%) scale(1.5); }
-        .push-box { background: var(--apex-gold); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; box-shadow: 0 0 50px rgba(249, 205, 5, 0.5); }
-
-        /* NEW PUSH CONTAINER */
-        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
-        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
-        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+        .cradle-left { background: var(--apex-navy); width: 450px; height: 100px; clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%); border-top: 4px solid var(--apex-gold); display: flex; align-items: center; padding-left: 60px; }
+        .cradle-right { flex-grow: 1; background: rgba(0,0,0,0.8); height: 80px; display: flex; align-items: center; padding: 0 60px; justify-content: flex-end; border-top: 2px solid var(--apex-gold); }
     </style>
 </head>
 <body>
-    <div class="top-apex"><div class="tournament-title">T20 WORLD CHAMPIONSHIP</div></div>
+    <div class="top-apex"><div class="tournament-title" id="tourney-name">T20 WORLD CHAMPIONSHIP</div></div>
 
-    <div id="push-apex"><div class="push-box" id="p-msg">OUT!</div></div>
-
-    <!-- NEW PUSH CONTAINER -->
-    <div id="push-container">
-        <div class="push-box"><span id="p-msg">SIX!</span></div>
-    </div>
+    <div id="push-container"><div class="push-box" id="p-msg">SIX!</div></div>
 
     <div class="bottom-cradle">
         <div class="cradle-left">
-            <span style="font-size: 4rem; font-weight: 900; color: var(--apex-gold);">IND 242/4</span>
-            <span style="margin-left: 20px; font-size: 1.5rem; opacity: 0.6;">(19.2)</span>
+            <span id="score-display" style="font-size: 4rem; font-weight: 900; color: var(--apex-gold);">--- -/-</span>
+            <span id="overs-display" style="margin-left: 20px; font-size: 1.5rem; opacity: 0.6;">(0.0)</span>
         </div>
         <div class="cradle-right">
-            <div style="text-align: right; margin-right: 40px;"><b>SKY</b><br>104(48)*</div>
-            <div style="text-align: right;"><b>HARDIK</b><br>15(6)</div>
+            <div style="text-align: right; margin-right: 40px;">
+                <div id="bat1-name" style="font-size: 1.8rem; font-weight: 900;">BATTER 1</div>
+                <div id="bat1-runs" style="color: var(--apex-gold);">0(0)*</div>
+            </div>
+            <div style="text-align: right; opacity: 0.5;">
+                <div id="bat2-name" style="font-size: 1.8rem; font-weight: 900;">BATTER 2</div>
+                <div id="bat2-runs">0(0)</div>
+            </div>
         </div>
     </div>
 
-    <script src="overlay-utils.js"></script>
     <script>
-        function triggerPush(msg) {
-            const a = document.getElementById('push-apex');
-            document.getElementById('p-msg').innerText = msg;
-            a.classList.add('active'); setTimeout(() => a.classList.remove('active'), 3000);
-        }
+        const bc = new BroadcastChannel('cricket_score_updates');
+        bc.onmessage = (event) => {
+            const data = event.data;
+            if (data.type === 'PUSH_EVENT') {
+                const container = document.getElementById('push-container');
+                document.getElementById('p-msg').innerText = data.message;
+                container.classList.add('active');
+                setTimeout(() => container.classList.remove('active'), 3500);
+            } else {
+                const team = data.battingTeam === 1 ? data.team1 : data.team2;
+                document.getElementById('score-display').innerText = `${team.shortName} ${team.score}/${team.wickets}`;
+                document.getElementById('overs-display').innerText = `(${team.overs})`;
+                if(data.striker) document.getElementById('bat1-name').innerText = data.striker.name;
+                if(data.striker) document.getElementById('bat1-runs').innerText = `${data.striker.runs}(${data.striker.balls})*`;
+            }
+        };
     </script>
 </body>
 </html>

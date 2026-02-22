@@ -42,14 +42,36 @@
 
     <script src="overlay-utils.js"></script>
     <script>
-        // Initialize BroadcastChannel
-        window.initBroadcastChannel();
-
-        function triggerPush(msg) {
-            const g = document.getElementById('push-grid');
-            g.innerText = msg; g.classList.add('active');
-            setTimeout(() => g.classList.remove('active'), 3000);
-        }
+        const channel = window.initBroadcastChannel();
+    
+        channel.onmessage = (event) => {
+            const data = event.data;
+            
+            // Push Events (4s, 6s, Wickets)
+            if (data.type === 'PUSH_EVENT') {
+                const pushContainer = document.getElementById('push-container');
+                const msgEl = pushContainer.querySelector('#p-msg');
+                msgEl.textContent = data.message;
+                pushContainer.classList.add('active');
+                setTimeout(() => pushContainer.classList.remove('active'), 3500);
+                return;
+            }
+    
+            // Main Score Box
+            if (data.team1) {
+                document.querySelector('.score-box').textContent = 
+                    `${data.team1.shortName} ${data.team1.score}/${data.team1.wickets}`;
+            }
+    
+            // Player Row
+            if (data.striker) {
+                const playerRow = document.querySelector('.player-row');
+                playerRow.innerHTML = `
+                    <div><span style="color:var(--grid-red)">BAT:</span> ${data.striker.name.toUpperCase()} ${data.striker.runs}*(${data.striker.balls})</div>
+                    <div style="margin-left: 40px; opacity: 0.6;">OV: ${data.team1.overs}</div>
+                `;
+            }
+        };
     </script>
 </body>
 </html>

@@ -51,14 +51,27 @@
 
     <script src="overlay-utils.js"></script>
     <script>
-        // Initialize BroadcastChannel
-        window.initBroadcastChannel();
-
-        function triggerPush(msg) {
-            const w = document.getElementById('push-wrap');
-            document.getElementById('p-txt').innerText = msg;
-            w.classList.add('active'); setTimeout(() => w.classList.remove('active'), 3000);
-        }
+        const channel = window.initBroadcastChannel();
+    
+        channel.onmessage = (event) => {
+            const data = event.data;
+    
+            // Team and Score Blocks
+            if (data.team1) {
+                document.querySelector('.block-team').textContent = data.team1.shortName;
+                document.querySelector('.block-score').innerHTML = 
+                    `${data.team1.score}/${data.team1.wickets} <span style="font-size: 1.5rem; opacity: 0.5; margin-left: 15px;">${data.team1.overs} OV</span>`;
+            }
+    
+            // Player Blocks
+            if (data.striker && data.nonStriker) {
+                const playerArea = document.querySelector('.block-players');
+                playerArea.innerHTML = `
+                    <div style="text-align: right;"><span style="color:var(--neon-blue)">${data.striker.name.toUpperCase()}</span> ${data.striker.runs}*</div>
+                    <div style="text-align: right; opacity: 0.6;"><span style="color:var(--neon-blue)">${data.nonStriker.name.toUpperCase()}</span> ${data.nonStriker.runs}</div>
+                `;
+            }
+        };
     </script>
 </body>
 </html>

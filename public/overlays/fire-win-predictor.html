@@ -177,6 +177,30 @@
             <div class="seg-status">NEED 24 FROM 8 BALLS</div>
         </div>
     </div>
-
+    <script src="overlay-utils.js"></script>
+    <script>
+        window.initBroadcastChannel();
+    
+        window.addEventListener('scoreUpdated', (e) => {
+            const data = e.detail;
+            
+            // Update Main Slab
+            document.querySelector('.seg-team').textContent = data.team1.shortName;
+            document.querySelector('.score-val').textContent = `${data.team1.score}/${data.team1.wickets}`;
+            document.querySelector('.over-val').textContent = `(${data.team1.overs})`;
+    
+            // Update Win Predictor Bar (Visual)
+            // Expecting data.stats.winProb = { team1: 65, team2: 35 }
+            if (data.stats && data.stats.winProb) {
+                const t1Prob = data.stats.winProb.team1;
+                const t2Prob = data.stats.winProb.team2;
+                document.querySelector('.prob-label').textContent = 
+                    `WIN PREDICTOR: ${data.team1.shortName} ${t1Prob}% | ${data.team2.shortName} ${t2Prob}%`;
+                
+                document.querySelector('.prob-team1').style.width = t1Prob + '%';
+                document.querySelector('.prob-team2').style.width = t2Prob + '%';
+            }
+        });
+    </script>
 </body>
 </html>

@@ -46,14 +46,31 @@
             <span style="opacity: 0.5;">NON: <b>G. MAXWELL 14</b></span>
         </div>
     </div>
-
     <script src="overlay-utils.js"></script>
     <script>
-        function triggerPush(msg) {
-            const w = document.getElementById('push-wrap');
-            document.getElementById('p-txt').innerText = msg;
-            w.classList.add('active'); setTimeout(() => w.classList.remove('active'), 3000);
-        }
+        window.initBroadcastChannel();
+    
+        window.addEventListener('scoreUpdated', (e) => {
+            const data = e.detail;
+    
+            // Top Wing (Tournament)
+            if (data.tournament) {
+                document.getElementById('tournament-name').textContent = data.tournament.name;
+            }
+    
+            // Bottom Wing (Score)
+            if (data.team1) {
+                document.getElementById('team1-name').textContent = data.team1.shortName;
+                document.getElementById('team1-score').textContent = `${data.team1.score}/${data.team1.wickets}`;
+                document.getElementById('team1-overs').textContent = data.team1.overs;
+            }
+    
+            // Bottom Wing (Players)
+            if (data.striker && data.nonStriker) {
+                document.getElementById('striker-name').textContent = `${data.striker.name} ${data.striker.runs}*`;
+                document.getElementById('nonstriker-name').textContent = `${data.nonStriker.name} ${data.nonStriker.runs}`;
+            }
+        });
     </script>
 </body>
 </html>

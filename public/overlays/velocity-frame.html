@@ -2,59 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Design 2 - Velocity Frame</title>
+    <title>Velocity Frame</title>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #111; --neon: #00f2ff; --live: #ff0055; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; color: white; font-family: 'Barlow Condensed', sans-serif; }
-
         .top-wing { position: absolute; top: 0; width: 100%; height: 60px; display: flex; }
         .tw-left { background: var(--primary); width: 70%; clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%); border-bottom: 4px solid var(--neon); display: flex; align-items: center; padding-left: 60px; font-size: 1.8rem; font-weight: 900; }
-        .tw-right { background: var(--live); width: 30%; margin-left: -5%; clip-path: polygon(5% 0, 100% 0, 100% 100%, 0% 100%); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; }
-
-        .bottom-wing { position: absolute; bottom: 0; width: 100%; height: 80px; display: flex; align-items: flex-end; }
-        .bw-score { background: #fff; color: #000; width: 40%; height: 100%; clip-path: polygon(0 0, 90% 0, 100% 100%, 0% 100%); display: flex; align-items: center; padding-left: 60px; font-size: 3.5rem; font-weight: 900; }
-        .bw-players { background: var(--primary); width: 65%; height: 80%; margin-left: -5%; display: flex; align-items: center; justify-content: flex-end; padding-right: 60px; gap: 40px; border-top: 3px solid var(--neon); }
-
-        #push-wrap { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotateY(90deg); transition: 0.5s; }
-        #push-wrap.active { transform: translate(-50%, -50%) rotateY(0deg); }
-        .push-box { background: var(--neon); color: #000; padding: 20px 80px; font-size: 6rem; font-weight: 900; border-right: 15px solid #000; }
-
-        /* NEW PUSH CONTAINER */
-        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
-        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
-        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+        .tw-right { background: var(--live); width: 30%; margin-left: -5%; clip-path: polygon(5% 0, 100% 0, 100% 100%, 0% 100%); display: flex; align-items: center; justify-content: flex-end; padding-right: 60px; font-weight: 900; }
+        .bottom-wing { position: absolute; bottom: 0; width: 100%; height: 110px; background: var(--primary); border-top: 4px solid var(--neon); display: flex; align-items: center; padding: 0 60px; box-sizing: border-box; }
+        .bw-score { font-size: 4rem; font-weight: 900; color: var(--neon); }
+        .bw-players { margin-left: auto; display: flex; gap: 40px; font-size: 1.5rem; }
     </style>
 </head>
 <body>
     <div class="top-wing">
-        <div class="tw-left" id="tournament-name">BIG BASH LEAGUE 2026 | FINAL</div>
-        <div class="tw-right">LIVE REPLAY</div>
+        <div class="tw-left" id="tournament-name">TOURNAMENT NAME</div>
+        <div class="tw-right">LIVE BROADCAST</div>
     </div>
-
-    <div id="push-wrap"><div class="push-box" id="p-txt">BOWLED!</div></div>
 
     <div class="bottom-wing">
         <div class="bw-score">
-            <span id="team1-name">AUS</span> <span id="team1-score">212/5</span> 
-            <small style="font-size: 1.5rem; margin-left: 10px;" id="team1-overs">18.4</small>
+            <span id="team1-name">TEAM</span> <span id="team1-score">000</span>/<span id="team1-wickets">0</span> 
+            <small style="font-size: 1.5rem; margin-left: 10px; opacity: 0.7;" id="team1-overs">0.0</small>
         </div>
         <div class="bw-players">
-            <span>STRIKER: <b id="striker-name">T. HEAD 82*</b></span>
-            <span style="opacity: 0.5;">NON: <b id="nonstriker-name">G. MAXWELL 14</b></span>
+            <span>BAT: <b id="striker-name">PLAYER NAME</b></span>
+            <span style="opacity: 0.5;">BOWL: <b id="bowler-name">BOWLER NAME</b></span>
         </div>
     </div>
-
     <script src="overlay-utils.js"></script>
-    <script>
-        // Initialize BroadcastChannel for real-time score updates from ScoreboardUpdate
-        window.initBroadcastChannel();
-
-        function triggerPush(msg) {
-            const w = document.getElementById('push-wrap');
-            document.getElementById('p-txt').innerText = msg;
-            w.classList.add('active'); setTimeout(() => w.classList.remove('active'), 3000);
-        }
-    </script>
 </body>
 </html>

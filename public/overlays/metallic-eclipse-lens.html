@@ -43,12 +43,33 @@
         </div>
     </div>
 
-    <script>
-        function triggerPush(msg) {
-            const e = document.getElementById('push-eclipse');
-            document.getElementById('p-msg').innerText = msg;
-            e.classList.add('active'); setTimeout(() => e.classList.remove('active'), 3000);
+    <script src="overlay-utils.js"></script>
+<script>
+    const channel = window.initBroadcastChannel();
+
+    channel.onmessage = (event) => {
+        const data = event.data;
+
+        // Update Bottom Score Wing
+        if (data.team1) {
+            const scoreWing = document.querySelector('.wing-score');
+            scoreWing.innerHTML = `
+                <span style="font-size: 4rem; font-weight: 900;">${data.team1.shortName} ${data.team1.score}/${data.team1.wickets}</span>
+                <span style="margin-left: 20px; font-size: 1.5rem; color: var(--highlight);">${data.team1.overs} OV</span>
+            `;
         }
-    </script>
+
+        // Update Bottom Player Wing
+        if (data.striker) {
+            const playerWing = document.querySelector('.wing-players');
+            playerWing.innerHTML = `
+                <div style="text-align: right;">
+                    <div style="font-size: 0.8rem; opacity: 0.5;">CURRENT BATTER</div>
+                    <div style="font-size: 2rem; font-weight: 900; color: var(--highlight);">${data.striker.name} ${data.striker.runs}*</div>
+                </div>
+            `;
+        }
+    };
+</script>
 </body>
 </html>

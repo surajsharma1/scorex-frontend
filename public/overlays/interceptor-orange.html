@@ -44,12 +44,37 @@
         </div>
     </div>
 
-    <script>
-        function triggerPush(msg) {
-            const i = document.getElementById('push-i');
-            i.innerText = msg; i.classList.add('active');
-            setTimeout(() => i.classList.remove('active'), 3000);
+    <script src="overlay-utils.js"></script>
+<script>
+    window.initBroadcastChannel();
+
+    window.addEventListener('scoreUpdated', (e) => {
+        const data = e.detail;
+
+        // Update Left Slant (Team Name)
+        if (data.team1) {
+            document.querySelector('.i-team').textContent = data.team1.shortName;
+            
+            // Update Score & Overs
+            document.querySelector('.i-score').innerHTML = `
+                ${data.team1.score}/${data.team1.wickets} 
+                <span style="font-size: 1.5rem; opacity: 0.5; margin-left: 20px;">
+                    ${data.team1.overs} OVERS
+                </span>
+            `;
         }
-    </script>
+
+        // Player Stats (Right Side)
+        if (data.striker) {
+            const statsArea = document.querySelector('.i-stats');
+            statsArea.innerHTML = `
+                <div style="text-align: right;">
+                    <div style="font-size: 1rem; color: var(--orange);">STRIKER</div>
+                    <div style="font-size: 2.2rem; font-weight: 900;">${data.striker.name} ${data.striker.runs}*</div>
+                </div>
+            `;
+        }
+    });
+</script>
 </body>
 </html>

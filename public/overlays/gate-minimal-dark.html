@@ -41,12 +41,35 @@
         </div>
     </div>
 
-    <script>
-        function triggerPush(msg) {
-            const g = document.getElementById('push-gate');
-            g.innerText = msg; g.classList.add('active');
-            setTimeout(() => g.classList.remove('active'), 3000);
+    <script src="overlay-utils.js"></script>
+<script>
+    const channel = window.initBroadcastChannel();
+
+    channel.onmessage = (event) => {
+        const data = event.data;
+        if (data.type === 'PUSH_EVENT') {
+            const gate = document.getElementById('push-gate');
+            gate.textContent = data.message;
+            gate.style.opacity = '1';
+            setTimeout(() => gate.style.opacity = '0', 3000);
+            return;
         }
-    </script>
+
+        // Score Area
+        document.querySelector('.g-score-area').textContent = 
+            `${data.team1.shortName} ${data.team1.score}/${data.team1.wickets}`;
+
+        // Stats Area
+        if (data.striker) {
+            const stats = document.querySelector('.g-stats-area');
+            stats.innerHTML = `
+                <div style="font-size: 1.2rem; opacity: 0.6;">CURRENT BATTER</div>
+                <div style="font-size: 2.5rem; font-weight: 900;">
+                    ${data.striker.name.toUpperCase()} <span style="color:#d31027">${data.striker.runs}*</span>
+                </div>
+            `;
+        }
+    };
+</script>
 </body>
 </html>

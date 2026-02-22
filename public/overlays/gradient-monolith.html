@@ -65,12 +65,23 @@
         </div>
     </div>
 
-    <script>
-        function triggerPush(msg) {
-            const m = document.getElementById('push-m');
-            m.innerText = msg; m.classList.add('active');
-            setTimeout(() => m.classList.remove('active'), 3500);
+    <script src="overlay-utils.js"></script>
+<script>
+    window.initBroadcastChannel();
+
+    window.addEventListener('scoreUpdated', (e) => {
+        const data = e.detail;
+        
+        // Row 1: Score & Overs
+        const row1 = document.querySelector('.m-row-1 div:first-child');
+        row1.innerHTML = `${data.team1.shortName} ${data.team1.score}/${data.team1.wickets} <small style="font-size: 1.5rem; opacity: 0.5;">(${data.team1.overs})</small>`;
+
+        // Row 2: Player Summary (Ticker Style)
+        if (data.striker && data.nonStriker) {
+            document.querySelector('.m-row-2').textContent = 
+                `${data.striker.name} ${data.striker.runs}* | ${data.nonStriker.name} ${data.nonStriker.runs} | CRR: ${data.stats.currentRunRate}`;
         }
-    </script>
+    });
+</script>
 </body>
 </html>

@@ -2,54 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Design 3 - Hex Perimeter</title>
+    <title>Hex Perimeter</title>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { --main: #1a1a1a; --sub: #c6ff00; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; color: white; font-family: 'Barlow Condensed', sans-serif; }
-
         .top-hex { position: absolute; top: 0; width: 100%; height: 50px; background: var(--main); border-bottom: 4px solid var(--sub); display: flex; justify-content: center; align-items: center; }
         .top-hex::before { content: 'LIVE'; position: absolute; left: 0; top: 0; background: var(--sub); color: #000; padding: 0 40px; height: 100%; display: flex; align-items: center; font-weight: 900; clip-path: polygon(0 0, 100% 0, 80% 100%, 0% 100%); }
-
-        .bottom-full { position: absolute; bottom: 0; width: 100%; height: 110px; display: flex; align-items: flex-end; }
-        .hex-score { background: #fff; color: #000; width: 350px; height: 90px; clip-path: polygon(0 0, 90% 0, 100% 100%, 0% 100%); display: flex; justify-content: center; align-items: center; font-size: 3.5rem; font-weight: 900; }
-        .hex-data { flex-grow: 1; background: var(--main); height: 70px; display: flex; align-items: center; padding: 0 50px; border-top: 5px solid var(--sub); justify-content: space-between; }
-
-        #push-ev { position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%); opacity: 0; transition: 0.2s; font-size: 5rem; font-weight: 900; color: var(--sub); text-shadow: 0 0 20px var(--sub); }
-        #push-ev.active { opacity: 1; }
-
-        /* NEW PUSH CONTAINER */
-        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
-        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
-        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+        .bottom-full { position: absolute; bottom: 0; width: 100%; height: 110px; display: flex; align-items: flex-end; background: rgba(0,0,0,0.8); }
+        .hex-score { background: var(--sub); color: #000; padding: 10px 40px; font-size: 3.5rem; font-weight: 900; clip-path: polygon(0 0, 90% 0, 100% 100%, 0 100%); }
+        .hex-data { flex-grow: 1; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; }
     </style>
 </head>
 <body>
-    <div class="top-hex" id="tournament-name">ICC T20 WORLD CUP • BARBADOS</div>
-    <div id="push-ev" id="push-txt">SIXER!</div>
+    <div class="top-hex" id="tournament-name">TOURNAMENT NAME</div>
+    
+    <div id="push-container" style="position:absolute; top:40%; left:50%; transform:translate(-50%,-50%); display:none;">
+        <div id="p-msg" style="background:var(--sub); color:#000; padding:20px 80px; font-size:5rem; font-weight:900;">EVENT!</div>
+    </div>
 
     <div class="bottom-full">
         <div class="hex-score">
-            <span id="team1-name">WI</span> <span id="team1-score">145/4</span>
+            <span id="team1-name">TEAM</span> <span id="team1-score">000</span>/<span id="team1-wickets">0</span>
         </div>
         <div class="hex-data">
             <div style="font-size: 1.5rem;">
-                <b id="striker-name">POORAN:</b> 54(30)* | <b id="nonstriker-name">RUSSELL:</b> 12(4)
+                <b id="striker-name">PLAYER 1</b> | <b id="nonstriker-name">PLAYER 2</b>
             </div>
-            <div style="font-size: 1.8rem; color: var(--sub);">OVERS: <span id="team1-overs">14.2</span></div>
+            <div style="font-size: 1.5rem; opacity: 0.6;" id="team1-overs">0.0 OVERS</div>
         </div>
     </div>
-
     <script src="overlay-utils.js"></script>
-    <script>
-        // Initialize BroadcastChannel for real-time score updates from ScoreboardUpdate
-        window.initBroadcastChannel();
+<script>
+    const bc = window.initBroadcastChannel();
 
-        function triggerPush(msg) {
-            const e = document.getElementById('push-ev');
-            e.innerText = msg; e.classList.add('active');
-            setTimeout(() => e.classList.remove('active'), 3000);
+    bc.onmessage = (ev) => {
+        const data = ev.data;
+
+        // Top Header
+        if (data.tournament) {
+            document.getElementById('tournament-name').textContent = 
+                `${data.tournament.name.toUpperCase()} • LIVE`;
         }
-    </script>
+
+        // Hex Score Section
+        if (data.team1) {
+            document.getElementById('team1-name').textContent = data.team1.shortName;
+            document.getElementById('team1-score').textContent = `${data.team1.score}/${data.team1.wickets}`;
+        }
+
+        // Player Stats
+        if (data.striker && data.nonStriker) {
+            document.getElementById('striker-name').textContent = `${data.striker.name.toUpperCase()}:`;
+            document.getElementById('nonstriker-name').textContent = `${data.nonStriker.name.toUpperCase()}:`;
+            
+            // Updating the run values inside the hex-data div
+            const dataDiv = document.querySelector('.hex-data div:first-child');
+            dataDiv.innerHTML = `
+                <b id="striker-name">${data.striker.name}:</b> ${data.striker.runs}* | 
+                <b id="nonstriker-name">${data.nonStriker.name}:</b> ${data.nonStriker.runs}
+            `;
+        }
+    };
+</script>
 </body>
 </html>

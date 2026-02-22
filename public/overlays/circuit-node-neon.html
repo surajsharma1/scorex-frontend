@@ -5,49 +5,52 @@
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { --circuit: #00ffaa; --node: #111; }
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
 
         .c-top { position: absolute; top: 0; width: 100%; height: 45px; background: var(--node); border-bottom: 2px solid var(--circuit); display: flex; align-items: center; padding: 0 50px; box-shadow: 0 0 20px var(--circuit); }
-        
         .c-bottom { position: absolute; bottom: 0; width: 100%; height: 110px; background: var(--node); border-top: 4px solid var(--circuit); display: flex; align-items: center; padding: 0 60px; box-sizing: border-box; }
+        
         .c-score-node { background: #fff; color: #000; padding: 10px 40px; font-size: 3.5rem; font-weight: 900; border-radius: 5px; box-shadow: 0 0 15px #fff; }
-        .c-data-node { flex-grow: 1; margin-left: 40px; border-left: 2px solid var(--circuit); padding-left: 40px; display: flex; flex-direction: column; }
-
-        #push-circuit { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotateY(90deg); transition: 0.4s; }
-        #push-circuit.active { transform: translate(-50%, -50%) rotateY(0deg); }
-        .push-circuit-box { background: var(--circuit); color: #000; padding: 20px 80px; font-size: 6rem; font-weight: 900; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
-
-        /* NEW PUSH CONTAINER */
-        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
-        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
-        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+        
+        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); opacity: 0; transition: 0.3s; }
+        #push-container.active { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        .push-box { background: var(--circuit); color: black; padding: 30px; font-size: 6rem; font-weight: 900; }
     </style>
 </head>
 <body>
-    <div class="c-top"><span>SYDNEY THUNDER VS ADELAIDE STRIKERS</span><span style="margin-left:auto; color:var(--circuit)">LIVE NODE 01</span></div>
-    
-    <div id="push-circuit"><div class="push-circuit-box" id="p-txt">FOUR</div></div>
-
-    <!-- NEW PUSH CONTAINER -->
-    <div id="push-container">
-        <div class="push-box"><span id="p-msg">SIX!</span></div>
+    <div class="c-top">
+        <span id="match-title">LIVE FEED</span>
+        <span style="margin-left:auto; color:var(--circuit)">NODE STATUS: ACTIVE</span>
     </div>
+    
+    <div id="push-container"><div class="push-box" id="p-msg">FOUR</div></div>
 
     <div class="c-bottom">
-        <div class="c-score-node">185/2</div>
-        <div class="c-data-node">
-            <div style="font-size: 1.5rem; color: var(--circuit); font-weight: 900;">ADELAIDE STRIKERS</div>
-            <div style="font-size: 2rem;">WARNER 44(20) • KHWAJA 102(58)*</div>
+        <div class="c-score-node" id="score">0/0</div>
+        <div class="c-data-node" style="margin-left: 40px;">
+            <div id="team-name" style="font-size: 1.5rem; color: var(--circuit); font-weight: 900;">TEAM NAME</div>
+            <div id="batsman" style="font-size: 2rem;">BATTER 0(0)</div>
         </div>
-        <div style="font-size: 3rem; font-weight: 900;">18.4 <small style="font-size: 1rem; opacity: 0.5;">OV</small></div>
+        <div style="margin-left: auto; font-size: 3rem; font-weight: 900;" id="overs">0.0</div>
     </div>
 
     <script>
-        function triggerPush(msg) {
-            const c = document.getElementById('push-circuit');
-            document.getElementById('p-txt').innerText = msg;
-            c.classList.add('active'); setTimeout(() => c.classList.remove('active'), 3000);
-        }
+        const bc = new BroadcastChannel('cricket_score_updates');
+        bc.onmessage = (e) => {
+            const d = e.data;
+            if (d.type === 'PUSH_EVENT') {
+                const el = document.getElementById('push-container');
+                document.getElementById('p-msg').innerText = d.message;
+                el.classList.add('active');
+                setTimeout(() => el.classList.remove('active'), 3000);
+            } else {
+                const team = d.battingTeam === 1 ? d.team1 : d.team2;
+                document.getElementById('score').innerText = `${team.score}/${team.wickets}`;
+                document.getElementById('team-name').innerText = team.name.toUpperCase();
+                document.getElementById('overs').innerText = team.overs;
+                if(d.striker) document.getElementById('batsman').innerText = `${d.striker.name} ${d.striker.runs}(${d.striker.balls})*`;
+            }
+        };
     </script>
 </body>
 </html>

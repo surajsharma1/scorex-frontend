@@ -6,73 +6,50 @@
     <style>
         :root { --cyber-pink: #ff00ff; --cyber-cyan: #00ffff; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; }
-
-        /* TOP BORDER: SEGMENTED LINE */
         .top-cyber { position: absolute; top: 0; width: 100%; height: 40px; background: #000; display: flex; align-items: center; padding: 0 40px; border-bottom: 2px solid var(--cyber-pink); box-shadow: 0 0 15px var(--cyber-pink); }
-        
-        /* BOTTOM BORDER: HUD MODULES */
         .bottom-cyber { position: absolute; bottom: 0; width: 100%; height: 100px; display: flex; gap: 10px; padding: 10px; box-sizing: border-box; }
         .module { background: rgba(0,0,0,0.9); border: 1px solid var(--cyber-cyan); height: 100%; display: flex; align-items: center; justify-content: center; padding: 0 30px; }
-        .m-score { flex-grow: 1; font-size: 4rem; font-weight: 900; color: var(--cyber-cyan); }
-        .m-stats { width: 40%; font-size: 1.5rem; justify-content: space-between; }
-
-        /* PUSH ENGINE: GLITCH FLASH */
-        #push-cyber { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; transition: 0.1s; z-index: 10; font-size: 10rem; font-weight: 900; font-style: italic; color: #fff; text-shadow: 5px 0 var(--cyber-pink), -5px 0 var(--cyber-cyan); }
-        #push-cyber.active { opacity: 1; animation: glitch 0.3s infinite; }
-        @keyframes glitch { 0% { transform: translate(-50%, -52%); } 50% { transform: translate(-48%, -50%); } 100% { transform: translate(-50%, -48%); } }
-
-        /* NEW PUSH CONTAINER */
-        #push-container {
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0) rotate(-5deg);
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 999;
-        }
-        #push-container.active {
-            transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
-            opacity: 1;
-        }
-        .push-box {
-            background: var(--accent, #00f2ff);
-            color: #000;
-            padding: 20px 80px;
-            font-size: 5rem;
-            font-weight: 900;
-            font-style: italic;
-            text-transform: uppercase;
-            box-shadow: 0 0 50px var(--accent);
-            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
-        }
+        .m-score { font-size: 3.5rem; font-weight: 900; color: var(--cyber-cyan); }
     </style>
 </head>
 <body>
-    <div class="top-cyber">SYSTEM.OVERLAY_v2.0 // LIVE_FEED // SESSION.2026</div>
-    <div id="push-cyber">SYSTEM ERROR: SIX!</div>
-
-    <!-- NEW PUSH CONTAINER -->
-    <div id="push-container">
-        <div class="push-box"><span id="p-msg">SIX!</span></div>
-    </div>
+    <div class="top-cyber">SYSTEM.OVERLAY // <span id="tournament-name">TOURNAMENT</span></div>
 
     <div class="bottom-cyber">
-        <div class="module" style="width: 150px; font-weight: 900;">ENG</div>
-        <div class="module m-score">345/7</div>
-        <div class="module m-stats">
-            <div><b>ROOT</b> 122*</div>
-            <div><b>BROOK</b> 54</div>
-            <div style="color: var(--cyber-pink);">88.4 OV</div>
+        <div class="module" id="team1-name" style="width: 150px; font-weight: 900;">TEAM</div>
+        <div class="module m-score">
+            <span id="team1-score">000</span>/<span id="team1-wickets">0</span>
+        </div>
+        <div class="module" style="flex-grow: 1; justify-content: space-between;">
+            <div>BAT: <span id="striker-name">PLAYER</span></div>
+            <div style="color: var(--cyber-pink)" id="team1-overs">0.0 OV</div>
+            <div>BOWL: <span id="bowler-name">BOWLER</span></div>
         </div>
     </div>
+    <script src="overlay-utils.js"></script>
+<script>
+    const channel = window.initBroadcastChannel();
 
-    <script>
-        function triggerPush(msg) {
-            const c = document.getElementById('push-cyber');
-            c.innerText = msg; c.classList.add('active');
-            setTimeout(() => c.classList.remove('active'), 3000);
+    channel.onmessage = (event) => {
+        const data = event.data;
+
+        // Module 1: Team
+        if (data.team1) {
+            document.querySelector('.module:first-child').textContent = data.team1.shortName;
+            
+            // Module 2: Score
+            document.querySelector('.m-score').textContent = `${data.team1.score}/${data.team1.wickets}`;
         }
-    </script>
+
+        // Module 3: Stats
+        if (data.striker) {
+            const mStats = document.querySelector('.m-stats');
+            mStats.innerHTML = `
+                <div><b>${data.striker.name}</b> ${data.striker.runs}*</div>
+                <div style="opacity:0.4; font-size: 0.8rem; margin-left: 20px;">HUD_LINK_ESTABLISHED</div>
+            `;
+        }
+    };
+</script>
 </body>
 </html>
