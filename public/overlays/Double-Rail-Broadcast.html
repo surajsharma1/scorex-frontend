@@ -4,50 +4,31 @@
     <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: #fff; }
-        
-        /* DOUBLE TOP RAIL */
-        .rail-top { position: absolute; top: 0; width: 100%; }
-        .rail-1 { height: 30px; background: #ff0055; font-size: 1rem; font-weight: 900; display: flex; align-items: center; padding: 0 50px; }
-        .rail-2 { height: 40px; background: rgba(0,0,0,0.8); border-bottom: 2px solid #ff0055; display: flex; align-items: center; padding: 0 50px; font-size: 1.5rem; }
-
-        /* DOUBLE BOTTOM RAIL */
-        .rail-bottom { position: absolute; bottom: 0; width: 100%; }
-        .rail-3 { height: 80px; background: #000; display: flex; align-items: center; padding: 0 50px; border-top: 4px solid #fff; }
-        .rail-4 { height: 25px; background: #ff0055; width: 100%; }
-
-        #push-rail { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); font-size: 4rem; font-weight: 900; background: #fff; color: #000; padding: 5px 60px; clip-path: polygon(5% 0, 95% 0, 100% 100%, 0% 100%); opacity: 0; transition: 0.3s; }
-        #push-rail.active { opacity: 1; }
-
-        /* NEW PUSH CONTAINER */
-        #push-container { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0) rotate(-5deg); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; }
-        #push-container.active { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
-        .push-box { background: var(--accent, #00f2ff); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; font-style: italic; text-transform: uppercase; box-shadow: 0 0 50px var(--accent); clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+        body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
+        .double-top { position: absolute; top: 0; width: 100%; height: 70px; background: #0d1117; display: flex; align-items: center; padding: 0 60px; border-bottom: 5px solid #00d4ff; }
+        .double-title { font-size: 2rem; font-weight: 900; letter-spacing: 4px; }
+        .double-bottom { position: absolute; bottom: 0; width: 100%; height: 120px; background: linear-gradient(to top, #000, #0d1117); display: flex; align-items: center; padding: 0 60px; border-top: 5px solid #00d4ff; }
+        .double-score { font-size: 5rem; font-weight: 900; color: #00d4ff; text-shadow: 0 0 20px #00d4ff; min-width: 350px; }
     </style>
 </head>
 <body>
-    <div class="rail-top">
-        <div class="rail-1">WORLD BROADCAST • FEED A</div>
-        <div class="rail-2">TATA IPL 2026 • ELIMINATOR 2</div>
-    </div>
-
-    <div id="push-rail">WICKET!</div>
-
-    <div class="rail-bottom">
-        <div class="rail-3">
-            <span style="font-size: 4rem; font-weight: 900; color: #ff0055;">Kolkata 156/2</span>
-            <span style="margin-left: 40px; font-size: 2rem;">S. Iyer 45* • R. Singh 12</span>
-            <span style="margin-left: auto; font-size: 2rem; opacity: 0.5;">14.2 OVERS</span>
+    <div class="double-top"><div class="double-title" id="tournament-name"></div></div>
+    <div class="double-bottom">
+        <div class="double-score" id="score">0/0</div>
+        <div style="margin-left: auto; display: flex; gap: 50px;">
+            <div><div style="font-size: 2rem; font-weight: 900;" id="striker-name"></div><div style="color:#00d4ff" id="striker-stat"></div></div>
+            <div style="opacity: 0.5;"><div style="font-size: 2rem; font-weight: 900;" id="nonstriker-name"></div><div id="nonstriker-stat"></div></div>
         </div>
-        <div class="rail-4"></div>
     </div>
-
+    <script src="overlay-utils.js"></script>
     <script>
-        function triggerPush(msg) {
-            const r = document.getElementById('push-rail');
-            r.innerText = msg; r.classList.add('active');
-            setTimeout(() => r.classList.remove('active'), 3000);
-        }
+        window.onScoreUpdate = function(data) {
+            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
+            if (data.team1 && data.team2) { const bt = data.team1.isBatting ? data.team1 : data.team2; document.getElementById('score').textContent = `${bt.score}/${bt.wickets}`; }
+            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = `${data.striker.runs || 0}*(${data.striker.balls || 0})`; }
+            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = `${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`; }
+        };
+        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
     </script>
 </body>
 </html>
