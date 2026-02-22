@@ -2,48 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --apex-gold: #f9cd05; --apex-navy: #001f3f; }
         body { margin: 0; width: 1920px; height: 1080px; background: transparent; font-family: 'Barlow Condensed', sans-serif; color: white; overflow: hidden; }
-        .top-apex { position: absolute; top: 0; width: 100%; height: 60px; background: var(--apex-navy); clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%); border-bottom: 4px solid var(--apex-gold); display: flex; align-items: center; justify-content: center; }
-        .tournament-title { font-size: 2rem; font-weight: 900; letter-spacing: 10px; text-transform: uppercase; }
-        .bottom-cradle { position: absolute; bottom: 0; width: 100%; height: 110px; display: flex; align-items: flex-end; }
-        .cradle-left { background: var(--apex-navy); width: 40%; height: 100%; clip-path: polygon(0 0, 90% 0, 100% 100%, 0% 100%); border-top: 4px solid var(--apex-gold); display: flex; align-items: center; padding-left: 60px; }
-        .cradle-right { flex-grow: 1; background: rgba(0, 31, 63, 0.9); height: 80px; display: flex; align-items: center; justify-content: flex-end; padding-right: 60px; }
-        #push-apex { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); transition: 0.4s; z-index: 100; }
-        #push-apex.active { transform: translate(-50%, -50%) scale(1.5); }
-        .push-box { background: var(--apex-gold); color: #000; padding: 20px 80px; font-size: 5rem; font-weight: 900; box-shadow: 0 0 50px rgba(249, 205, 5, 0.5); }
+        .apex-top { position: absolute; top: 0; width: 100%; height: 55px; background: linear-gradient(90deg, #ffd700, #ff8c00); display: flex; align-items: center; padding: 0 50px; }
+        .apex-title { font-size: 1.8rem; font-weight: 900; color: #1a1a1a; letter-spacing: 2px; }
+        .apex-bottom { position: absolute; bottom: 0; width: 100%; height: 85px; background: linear-gradient(to top, #1a1a1a, #2d2d2d); display: flex; align-items: center; padding: 0 50px; border-top: 3px solid #ffd700; }
+        .apex-score { font-size: 3.5rem; font-weight: 900; color: #ffd700; }
     </style>
 </head>
 <body>
-    <div class="top-apex"><div class="tournament-title" id="tourney-name">T20 WORLD CHAMPIONSHIP</div></div>
-    <div id="push-apex"><div class="push-box" id="p-msg">OUT!</div></div>
-    <div class="bottom-cradle">
-        <div class="cradle-left">
-            <span id="score-val" style="font-size: 4rem; font-weight: 900; color: var(--apex-gold);">IND 0/0</span>
-            <span id="overs-val" style="margin-left: 20px; font-size: 1.5rem; opacity: 0.6;">(0.0)</span>
-        </div>
-        <div class="cradle-right">
-            <div id="player-data" style="font-size: 2rem; font-weight: 900; font-style: italic;">WAITING FOR DATA...</div>
+    <div class="apex-top"><div class="apex-title" id="tournament-name"></div></div>
+    <div class="apex-bottom">
+        <div class="apex-score"><span id="score">0/0</span></div>
+        <div style="margin-left: 35px;">
+            <div><span id="striker-name"></span> <span id="striker-stat" style="color:#ffd700"></span></div>
+            <div><span id="nonstriker-name"></span> <span id="nonstriker-stat"></span></div>
         </div>
     </div>
-
     <script src="overlay-utils.js"></script>
     <script>
-        window.updateOverlayUI = (data) => {
-            const m = data.team1;
-            document.getElementById('score-val').innerText = `${m.name} ${m.score}/${m.wickets}`;
-            document.getElementById('overs-val').innerText = `(${m.overs})`;
-            document.getElementById('player-data').innerText = `${m.striker.name} ${m.striker.runs}* | ${m.nonStriker.name} ${m.nonStriker.runs}`;
+        window.onScoreUpdate = function(data) {
+            if (data.tournament) document.getElementById('tournament-name').textContent = data.tournament.name || '';
+            let bt = data.team1?.isBatting ? data.team1 : data.team2;
+            if (bt) document.getElementById('score').textContent = (bt.score||0) + '/' + (bt.wickets||0);
+            if (data.striker) { document.getElementById('striker-name').textContent = data.striker.name || ''; document.getElementById('striker-stat').textContent = (data.striker.runs||0) + '*(' + (data.striker.balls||0) + ')'; }
+            if (data.nonStriker) { document.getElementById('nonstriker-name').textContent = data.nonStriker.name || ''; document.getElementById('nonstriker-stat').textContent = (data.nonStriker.runs||0) + '(' + (data.nonStriker.balls||0) + ')'; }
         };
-        window.triggerWicket = (msg) => {
-            const el = document.getElementById('push-apex');
-            document.getElementById('p-msg').innerText = msg;
-            el.classList.add('active');
-            setTimeout(() => el.classList.remove('active'), 3000);
-        };
-        window.initBroadcastChannel();
+        window.addEventListener('scoreUpdated', (e) => window.onScoreUpdate(e.detail));
     </script>
 </body>
 </html>
