@@ -1,0 +1,140 @@
+:root {
+    --prism-violet: #8a2be2;
+    --prism-gold: #ffcc00;
+    --glass-blur: blur(20px);
+    --dark-edge: rgba(0, 0, 0, 0.9);
+}
+
+body {
+    width: 1920px; height: 1080px;
+    font-family: 'Orbitron', sans-serif;
+}
+
+/* --- DYNAMIC ISLAND (TOP) --- */
+.prism-island {
+    position: absolute;
+    top: 35px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+}
+
+.island-content {
+    background: var(--dark-edge);
+    padding: 8px 45px;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 30px rgba(138, 43, 226, 0.3);
+    position: relative;
+}
+
+.t-name {
+    font-size: 0.85rem;
+    letter-spacing: 5px;
+    color: #fff;
+    font-weight: 800;
+}
+
+/* --- THE PRISM SLAB (BOTTOM) --- */
+.prism-wrapper {
+    position: absolute;
+    bottom: 60px; left: 50%;
+    transform: translateX(-50%);
+    width: 1200px; height: 100px;
+}
+
+/* The Background Shards */
+.shard {
+    position: absolute;
+    width: 400px; height: 120px;
+    bottom: -10px;
+    z-index: 1;
+    filter: blur(15px);
+    opacity: 0.5;
+}
+
+.shard-violet {
+    left: -50px;
+    background: var(--prism-violet);
+    clip-path: polygon(0% 0%, 100% 20%, 80% 100%, 0% 80%);
+    animation: sway 8s infinite alternate ease-in-out;
+}
+
+.shard-gold {
+    right: -50px;
+    background: var(--prism-gold);
+    clip-path: polygon(20% 0%, 100% 0%, 100% 100%, 0% 80%);
+    animation: sway 8s infinite alternate-reverse ease-in-out;
+}
+
+/* The Main Bridge */
+.prism-bridge {
+    position: relative;
+    z-index: 10;
+    height: 100%;
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 50px 10px 50px 10px; /* Non-fixed geometry */
+    display: flex;
+    align-items: center;
+    padding: 0 50px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+}
+
+.section { display: flex; align-items: center; }
+
+/* Team Section */
+.team-block { flex: 1; gap: 20px; border-right: 1px solid rgba(255,255,255,0.1); }
+.team-initials {
+    font-size: 1.4rem; font-weight: 900; color: var(--prism-gold);
+    background: rgba(255,255,255,0.05);
+    padding: 10px 15px; border-radius: 12px;
+}
+.score-main { font-size: 2.6rem; font-weight: 900; color: #fff; }
+.over-sub { font-size: 1.1rem; opacity: 0.5; margin-left: 10px; }
+
+/* Player Section (Center) */
+.player-block { flex: 2; flex-direction: column; padding: 0 40px; }
+.kinetic-line-container {
+    width: 100%; height: 2px;
+    background: rgba(255,255,255,0.05);
+    margin-bottom: 10px; position: relative;
+    overflow: hidden;
+}
+.line-spark {
+    width: 60px; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--prism-violet), transparent);
+    position: absolute; animation: moveSpark 3s infinite linear;
+}
+
+.batter-display { display: flex; gap: 40px; width: 100%; justify-content: center; }
+.p-unit { font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+.p-unit.striker { color: var(--prism-gold); }
+.dot { width: 5px; height: 5px; background: var(--prism-gold); border-radius: 50%; }
+
+/* Right Section */
+.context-block { flex: 1; justify-content: flex-end; text-align: right; }
+.label { font-size: 0.65rem; color: var(--prism-violet); display: block; letter-spacing: 2px; }
+.b-fig { font-weight: 800; color: #fff; }
+
+/* Floating Target Cap */
+.target-cap {
+    position: absolute;
+    top: -18px; right: 80px;
+    background: var(--prism-gold);
+    color: #000;
+    padding: 4px 25px;
+    font-size: 0.75rem; font-weight: 900;
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+    z-index: 20;
+}
+
+/* ANIMATIONS */
+@keyframes sway {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(-10px) rotate(3deg); }
+}
+@keyframes moveSpark {
+    0% { left: -100%; }
+    100% { left: 200%; }
+}

@@ -29,28 +29,60 @@
     </style>
 </head>
 <body>
-    <div class="prism-top">
-        <span style="font-size: 1.5rem; letter-spacing: 3px;">TATA IPL 2026 • QUALIFIER 1</span>
+    <div class="prism-top" id="tournament-name">
+        <span style="font-size: 1.5rem; letter-spacing: 3px;" id="tournament-text">TOURNAMENT</span>
         <div class="mode-tag">LIVE BROADCAST</div>
     </div>
 
     <div id="push-prism"><div class="push-box" id="p-msg">WICKET!</div></div>
 
     <div class="prism-bottom">
-        <div class="p-team">GT</div>
-        <div class="p-score">156/4 <small style="font-size: 1.5rem; color: var(--prism-cyan);">(14.2)</small></div>
+        <div class="p-team" id="team1-name">T1</div>
+        <div class="p-score" id="team1-score">0/0 <small style="font-size: 1.5rem; color: var(--prism-cyan);" id="team1-overs">(0.0)</small></div>
         <div class="p-stats">
-            <div style="font-size: 1.8rem;">S. GILL <span style="color: var(--prism-cyan)">74*(42)</span></div>
-            <div style="font-size: 1.8rem; opacity: 0.5;">D. MILLER 12(9)</div>
+            <div style="font-size: 1.8rem;" id="striker-info">Striker: 0*(0)</div>
+            <div style="font-size: 1.8rem; opacity: 0.5;" id="nonstriker-info">Non-Striker: 0(0)</div>
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
         function triggerPush(msg) {
             const el = document.getElementById('push-prism');
             document.getElementById('p-msg').innerText = msg;
-            el.classList.add('active'); setTimeout(() => el.classList.remove('active'), 3000);
+            el.classList.add('active'); 
+            setTimeout(function() { el.classList.remove('active'); }, 3000);
         }
+        
+        // Listen for score updates
+        window.addEventListener('scoreUpdated', function(e) {
+            const data = e.detail;
+            
+            // Update tournament name
+            if (data.tournament) {
+                document.getElementById('tournament-text').textContent = data.tournament.name.toUpperCase();
+            }
+            
+            // Update team name
+            if (data.team1) {
+                document.getElementById('team1-name').textContent = data.team1.shortName || data.team1.name.substring(0, 3).toUpperCase();
+                document.getElementById('team1-score').innerHTML = data.team1.score + '/' + data.team1.wickets + ' <small style="font-size: 1.5rem; color: var(--prism-cyan);" id="team1-overs">(' + data.team1.overs + ')</small>';
+            }
+            
+            // Update striker
+            if (data.striker) {
+                document.getElementById('striker-info').innerHTML = data.striker.name + ' <span style="color: var(--prism-cyan)">' + data.striker.runs + '*(' + data.striker.balls + ')</span>';
+            }
+            
+            // Update non-striker
+            if (data.nonStriker) {
+                document.getElementById('nonstriker-info').textContent = data.nonStriker.name + ' ' + data.nonStriker.runs + '(' + data.nonStriker.balls + ')';
+            }
+        });
+        
+        window.onWicket = function(data) {
+            triggerPush(data.message || 'WICKET!');
+        };
     </script>
 </body>
 </html>

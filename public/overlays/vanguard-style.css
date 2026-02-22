@@ -1,0 +1,133 @@
+:root {
+    --cyan: #00f2ff;
+    --magenta: #ff00ff;
+    --dark: #08080a;
+    --glass: rgba(255, 255, 255, 0.03);
+}
+
+body {
+    width: 1920px; height: 1080px;
+    font-family: 'Orbitron', sans-serif;
+    color: white;
+}
+
+/* --- DYNAMIC ISLAND --- */
+.vanguard-island {
+    position: absolute;
+    top: 30px; left: 50%;
+    transform: translateX(-50%);
+}
+
+.island-frame {
+    background: var(--dark);
+    padding: 12px 50px;
+    border-top: 2px solid var(--cyan);
+    border-bottom: 2px solid var(--magenta);
+    clip-path: polygon(5% 0, 100% 0, 95% 100%, 0 100%);
+    font-weight: 900;
+    letter-spacing: 5px;
+    font-size: 0.85rem;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+/* --- MAIN OVERLAY --- */
+.vanguard-container {
+    position: absolute;
+    bottom: 50px; left: 50%;
+    transform: translateX(-50%);
+    width: 1280px; height: 110px;
+}
+
+/* The Background Shapes (Stacked Colors) */
+.v-plate {
+    position: absolute;
+    width: 50%; height: 130px;
+    bottom: -10px;
+    z-index: 1;
+    opacity: 0.4;
+}
+
+.v-plate-cyan {
+    left: -20px;
+    background: var(--cyan);
+    clip-path: polygon(0 0, 100% 15%, 85% 100%, 0 85%);
+    transform: skewX(-10deg);
+}
+
+.v-plate-magenta {
+    right: -20px;
+    background: var(--magenta);
+    clip-path: polygon(15% 15%, 100% 0, 100% 85%, 0 100%);
+    transform: skewX(10deg);
+}
+
+/* Main Hub */
+.vanguard-hub {
+    position: relative;
+    z-index: 5;
+    height: 100%;
+    background: linear-gradient(180deg, #111 0%, #000 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    /* Asymmetrical Cut */
+    clip-path: polygon(0 0, 98% 0, 100% 100%, 2% 100%);
+}
+
+.v-section { display: flex; align-items: center; padding: 0 40px; }
+
+/* Team Identity */
+.team-zone { width: 350px; border-right: 1px solid var(--glass); }
+.team-tag {
+    background: var(--cyan);
+    color: black;
+    padding: 5px 15px;
+    font-weight: 900;
+    margin-right: 20px;
+    transform: skewX(-15deg);
+}
+.score-val { font-size: 2.6rem; font-weight: 900; }
+.over-val { font-size: 1.1rem; opacity: 0.5; margin-left: 10px; }
+
+/* Player Hub (Center) */
+.player-zone {
+    flex: 1;
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.kinetic-scanner {
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), var(--magenta), transparent);
+    position: absolute; top: 20px;
+    animation: scanLine 3s infinite ease-in-out;
+}
+
+.player-flex { display: flex; width: 100%; justify-content: space-around; align-items: center; }
+.p-block { text-align: center; }
+.p-name { font-size: 0.75rem; color: #888; display: block; }
+.p-run { font-size: 1.4rem; font-weight: 800; }
+.p-block.striker { color: var(--cyan); }
+
+.p-divider { width: 1px; height: 30px; background: var(--glass); transform: rotate(20deg); }
+
+/* Front Tags (Stacked on Top) */
+.v-tag {
+    position: absolute;
+    top: -15px;
+    padding: 4px 20px;
+    font-size: 0.7rem;
+    font-weight: 900;
+    color: black;
+    z-index: 10;
+}
+
+.v-tag-left { left: 80px; background: var(--cyan); transform: skewX(-20deg); }
+.v-tag-right { left: 220px; background: var(--magenta); color: white; transform: skewX(-20deg); }
+
+/* ANIMATIONS */
+@keyframes scanLine {
+    0%, 100% { width: 0%; opacity: 0; }
+    50% { width: 80%; opacity: 1; }
+}

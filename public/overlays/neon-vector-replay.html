@@ -26,21 +26,21 @@
     </style>
 </head>
 <body>
-    <div class="top-vector">SYDNEY SIXERS vs PERTH SCORCHERS • REPLAY MODE</div>
+    <div class="top-vector" id="tournament-name">REPLAY MODE</div>
     <div id="push-vector">SIXER!</div>
 
     <div class="bottom-vector">
-        <div class="v-left">
-            <span id="team1-short">PER</span> <span id="team1-score">210</span>/<span id="team1-wickets">4</span>
+        <div class="v-left" id="team1-score">
+            <span id="team1-short">T1</span> <span id="team1-score-text">0/0</span>
         </div>
         <div class="v-right">
             <div style="text-align: right;">
                 <div style="font-size: 1rem; color: var(--vector);">BATTER</div>
-                <div id="striker-name" style="font-size: 2rem;">J. INGLIS 54*</div>
+                <div id="striker-name" style="font-size: 2rem;">Striker: 0*</div>
             </div>
             <div style="text-align: right;">
                 <div style="font-size: 1rem; color: var(--vector);">OVER</div>
-                <div id="team1-overs" style="font-size: 2rem;">19.2</div>
+                <div id="team1-overs" style="font-size: 2rem;"></div>
             </div>
         </div>
     </div>
@@ -59,6 +59,36 @@
             v.innerText = msg; v.classList.add('active');
             setTimeout(() => v.classList.remove('active'), 3000);
         }
+        
+        // Listen for score updates
+        window.addEventListener('scoreUpdated', function(e) {
+            const data = e.detail;
+            
+            // Update tournament name
+            if (data.tournament) {
+                document.getElementById('tournament-name').textContent = data.tournament.name + ' • REPLAY MODE';
+            }
+            
+            // Update team score
+            if (data.team1) {
+                document.getElementById('team1-short').textContent = data.team1.shortName || data.team1.name.substring(0, 3).toUpperCase();
+                document.getElementById('team1-score-text').textContent = data.team1.score + '/' + data.team1.wickets;
+            }
+            
+            // Update overs
+            if (data.team1 && data.team1.overs) {
+                document.getElementById('team1-overs').textContent = data.team1.overs;
+            }
+            
+            // Update striker
+            if (data.striker) {
+                document.getElementById('striker-name').textContent = data.striker.name + ' ' + data.striker.runs + '*';
+            }
+        });
+        
+        window.onWicket = function(data) {
+            triggerPush(data.message || 'OUT!');
+        };
     </script>
 </body>
 </html>

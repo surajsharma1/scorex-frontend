@@ -1,0 +1,120 @@
+:root {
+    --titan-amber: #ff9900;
+    --titan-slate: #445566;
+    --titan-dark: #0f1115;
+    --titan-glass: rgba(15, 17, 21, 0.95);
+}
+
+body {
+    width: 1920px; height: 1080px;
+    font-family: 'Orbitron', sans-serif;
+    color: white;
+}
+
+/* --- DYNAMIC ISLAND --- */
+.titan-island {
+    position: absolute;
+    top: 35px; left: 50%;
+    transform: translateX(-50%);
+}
+
+.island-frame {
+    background: var(--titan-dark);
+    padding: 12px 60px;
+    border-bottom: 3px solid var(--titan-amber);
+    clip-path: polygon(0 0, 100% 0, 92% 100%, 8% 100%);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    font-weight: 900;
+    letter-spacing: 6px;
+    font-size: 0.85rem;
+}
+
+/* --- THE MASTER CONTAINER --- */
+.titan-master {
+    position: absolute;
+    bottom: 60px; left: 50%;
+    transform: translateX(-50%);
+    width: 1280px; height: 115px;
+}
+
+/* Layer 1: Behind-Side Beams */
+.chassis-beam {
+    position: absolute;
+    width: 450px; height: 150px;
+    top: -20px;
+    z-index: 1;
+    opacity: 0.7;
+}
+
+.beam-amber {
+    left: -30px;
+    background: linear-gradient(135deg, var(--titan-amber), transparent);
+    clip-path: polygon(0 15%, 100% 0, 85% 100%, 0 85%);
+}
+
+.beam-slate {
+    right: -30px;
+    background: linear-gradient(-135deg, var(--titan-slate), transparent);
+    clip-path: polygon(15% 0, 100% 15%, 100% 85%, 0 100%);
+}
+
+/* Layer 2: The Core Bar */
+.titan-core {
+    position: relative;
+    z-index: 5;
+    height: 100%;
+    background: var(--titan-dark);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 20px 40px rgba(0,0,0,0.6);
+    /* Heavy Slanted Geometry */
+    clip-path: polygon(2% 0, 98% 0, 100% 100%, 0 100%);
+}
+
+.t-section { display: flex; align-items: center; padding: 0 45px; }
+
+/* Team Shield Identity */
+.team-zone { width: 400px; border-right: 2px solid rgba(255,255,255,0.05); }
+.team-shield {
+    background: var(--titan-amber);
+    color: black; font-weight: 900; font-size: 1.6rem;
+    padding: 15px; clip-path: polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%);
+    margin-right: 20px;
+}
+.score-num { font-size: 3rem; font-weight: 900; line-height: 1; }
+.over-num { font-size: 1.2rem; color: var(--titan-amber); margin-left: 10px; }
+
+/* Player Hub (Center) */
+.stream-zone { flex: 1; position: relative; }
+.vertical-buffer {
+    position: absolute; left: 0; top: 20%; width: 3px; height: 60%;
+    background: var(--titan-amber);
+}
+.player-stack { width: 100%; padding-left: 20px; }
+.p-unit { display: flex; justify-content: space-between; margin: 4px 0; font-size: 0.95rem; }
+.p-unit.striker { color: var(--titan-amber); font-weight: 800; }
+
+/* Layer 3: Stacked Plates on Top */
+.titan-plate {
+    position: absolute;
+    top: -30px;
+    padding: 6px 30px;
+    font-size: 0.75rem;
+    font-weight: 900;
+    z-index: 10;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+.plate-amber {
+    right: 180px;
+    background: var(--titan-amber);
+    color: black;
+    transform: skewX(-20deg) rotate(1deg);
+}
+
+.plate-slate {
+    right: 350px;
+    background: var(--titan-slate);
+    color: white;
+    transform: skewX(-20deg) rotate(-1deg);
+}

@@ -1,0 +1,152 @@
+:root {
+    --primary: #f9cd05; /* Cyber Yellow */
+    --secondary: #7000ff; /* Electric Violet */
+    --dark: #050508;
+    --glass: rgba(255, 255, 255, 0.05);
+}
+
+body {
+    width: 1920px; height: 1080px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* --- DYNAMIC ISLAND --- */
+.island-container {
+    position: absolute;
+    top: 30px; left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.island-core {
+    background: var(--dark);
+    padding: 10px 40px;
+    border: 1px solid var(--primary);
+    border-radius: 4px 20px 4px 20px;
+    color: white;
+    font-weight: 900;
+    letter-spacing: 4px;
+    box-shadow: 0 0 20px rgba(249, 205, 5, 0.2);
+}
+
+.island-bracket {
+    color: var(--primary);
+    font-size: 2rem;
+    font-weight: 100;
+    animation: bracketPulse 2s infinite ease-in-out;
+}
+
+/* --- THE AETHER BAR --- */
+.aether-master-container {
+    position: absolute;
+    bottom: 50px; left: 50%;
+    transform: translateX(-50%);
+    width: 1250px; height: 110px;
+}
+
+/* Back Wings (The "Behind" Shapes) */
+.wing {
+    position: absolute;
+    width: 300px; height: 100%;
+    z-index: 1;
+    filter: blur(2px);
+}
+
+.wing-left {
+    left: -40px;
+    background: var(--secondary);
+    clip-path: polygon(0 20%, 100% 0, 85% 100%, 5% 80%);
+    transform: rotate(-2deg);
+    opacity: 0.6;
+}
+
+.wing-right {
+    right: -40px;
+    background: var(--primary);
+    clip-path: polygon(15% 0, 100% 20%, 95% 80%, 0 100%);
+    transform: rotate(2deg);
+    opacity: 0.6;
+}
+
+/* Main Base Bar */
+.aether-base {
+    position: relative;
+    z-index: 5;
+    height: 100%;
+    background: linear-gradient(180deg, #111, #000);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px 60px 20px 60px; /* Curved theme */
+    display: flex;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+    overflow: hidden;
+}
+
+.aether-section {
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+}
+
+/* Team Zone */
+.team-zone {
+    background: linear-gradient(90deg, var(--secondary), transparent);
+    width: 300px;
+}
+
+.t-code { font-size: 1.5rem; font-weight: 900; color: var(--primary); display: block; }
+.score-main .val { font-size: 2.5rem; font-weight: 900; color: white; }
+.score-main .sub { font-size: 1.1rem; opacity: 0.5; margin-left: 8px; }
+
+/* Player Zone (Center) */
+.player-zone {
+    flex: 1;
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.pulse-line {
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    position: absolute;
+    left: 0;
+}
+.pulse-line.top { top: 20px; }
+.pulse-line.bottom { bottom: 20px; }
+
+.batter-flex { display: flex; align-items: center; gap: 40px; width: 100%; justify-content: center; }
+.p-name { font-size: 0.75rem; color: #888; display: block; }
+.p-score { font-size: 1.3rem; font-weight: 800; color: #fff; }
+
+.center-sep { width: 1px; height: 30px; background: var(--glass); transform: rotate(20deg); }
+
+/* Context/Bowler Zone */
+.context-zone {
+    background: linear-gradient(-90deg, var(--glass), transparent);
+}
+
+.bowler-pill { text-align: right; }
+.b-label { font-size: 0.6rem; letter-spacing: 2px; color: var(--primary); }
+.b-data span { display: block; font-weight: 700; }
+
+/* Front Tag (Floating on top) */
+.front-target-tag {
+    position: absolute;
+    top: -15px; left: 50%;
+    transform: translateX(-50%) skewX(-15deg);
+    background: var(--primary);
+    color: black;
+    padding: 5px 30px;
+    font-weight: 900;
+    font-size: 0.8rem;
+    z-index: 10;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+/* ANIMATIONS */
+@keyframes bracketPulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}

@@ -18,15 +18,56 @@
     </style>
 </head>
 <body>
-    <div class="mode-tag">LIVE - REPLAY</div>
+    <div class="mode-tag" id="tournament-name">LIVE - REPLAY</div>
     <div id="event-toast">BOWLED!</div>
-    <div class="bottom-left-bar">
-        <div style="font-size:0.8rem; color:#f9cd05">TOURNAMENT: ASHES SERIES</div>
-        <div style="font-size:2rem; font-weight:900">ENG: 312/6 (88.4)</div>
+    <div class="bottom-left-bar" id="team1-info">
+        <div style="font-size:0.8rem; color:#f9cd05" id="tournament-display">TOURNAMENT</div>
+        <div style="font-size:2rem; font-weight:900" id="team1-score">0/0 (0.0)</div>
     </div>
-    <div class="bottom-right-bar">
-        <div style="font-size:1.5rem">BEN STOKES: 102*</div>
-        <div style="font-size:0.8rem; opacity:0.6">JOE ROOT: 45</div>
+    <div class="bottom-right-bar" id="players-info">
+        <div style="font-size:1.5rem" id="striker-info">Striker: 0* (0)</div>
+        <div style="font-size:1rem; opacity:0.6" id="nonstriker-info">Non-Striker: 0 (0)</div>
     </div>
+
+    <script src="overlay-utils.js"></script>
+    <script>
+        // Listen for score updates
+        window.addEventListener('scoreUpdated', function(e) {
+            const data = e.detail;
+            
+            // Update tournament name
+            if (data.tournament) {
+                document.getElementById('tournament-name').textContent = 'LIVE - ' + data.tournament.name.toUpperCase();
+                document.getElementById('tournament-display').textContent = 'TOURNAMENT: ' + data.tournament.name;
+            }
+            
+            // Update team 1 score
+            if (data.team1) {
+                document.getElementById('team1-score').textContent = data.team1.name + ': ' + data.team1.score + '/' + data.team1.wickets + ' (' + data.team1.overs + ')';
+            }
+            
+            // Update striker info
+            if (data.striker) {
+                document.getElementById('striker-info').textContent = data.striker.name + ': ' + data.striker.runs + '* (' + data.striker.balls + ')';
+            }
+            
+            // Update non-striker info
+            if (data.nonStriker) {
+                document.getElementById('nonstriker-info').textContent = data.nonStriker.name + ': ' + data.nonStriker.runs + ' (' + data.nonStriker.balls + ')';
+            }
+        });
+
+        // Handle push events for wickets/fours/sixes
+        function triggerPush(msg) {
+            const t = document.getElementById('event-toast');
+            t.textContent = msg;
+            t.classList.add('active');
+            setTimeout(function() { t.classList.remove('active'); }, 3000);
+        }
+
+        window.onWicket = function(data) {
+            triggerPush(data.message || 'OUT!');
+        };
+    </script>
 </body>
 </html>
