@@ -24,7 +24,8 @@
 </head>
 <body>
     <div class="prism-frame">
-        <div class="prism-header">SA20 • SUNRISERS EASTERN CAPE vs MI CAPE TOWN</div>
+        <!-- Dynamic Tournament Name -->
+        <div class="prism-header" id="tournament-name"></div>
         
         <div id="push-wrap-p">SIX!</div>
         
@@ -34,16 +35,88 @@
         </div>
 
         <div class="prism-footer">
-            <div class="p-score-main">SEC 167/4 <span style="font-size: 1.5rem; opacity: 0.4;">17.5 OV</span></div>
+            <!-- Dynamic Score Display -->
+            <div class="p-score-main">
+                <span id="team-name"></span> <span id="score"></span>/<span id="wickets"></span> 
+                <span style="font-size: 1.5rem; opacity: 0.4;" id="overs"></span>
+            </div>
             <div class="p-player-grid">
-                <div><div style="font-size: 1.8rem; font-weight: 900;">MARKRAM</div><div style="color:#00f2ff">82*(40)</div></div>
-                <div><div style="font-size: 1.8rem; font-weight: 900;">STUBBS</div><div>12(5)</div></div>
+                <!-- Striker -->
+                <div>
+                    <div style="font-size: 1.8rem; font-weight: 900;" id="striker-name"></div>
+                    <div style="color:#00f2ff" id="striker-stat"></div>
+                </div>
+                <!-- Non-Striker -->
+                <div>
+                    <div style="font-size: 1.8rem; font-weight: 900;" id="nonstriker-name"></div>
+                    <div id="nonstriker-stat"></div>
+                </div>
+                <!-- Bowler -->
+                <div>
+                    <div style="font-size: 1.4rem; font-weight: 900;" id="bowler-name"></div>
+                    <div style="color:#ff6600" id="bowler-stat"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="overlay-utils.js"></script>
     <script>
+        // Handle score updates from ScoreboardUpdate component
+        window.onScoreUpdate = function(data) {
+            // Update tournament name
+            if (data.tournament) {
+                const tournamentEl = document.getElementById('tournament-name');
+                if (tournamentEl) tournamentEl.textContent = data.tournament.name || '';
+            }
+            
+            // Update team name (batting team)
+            if (data.team1 && data.team2) {
+                const battingTeam = data.team1.isBatting ? data.team1 : data.team2;
+                const teamNameEl = document.getElementById('team-name');
+                if (teamNameEl) teamNameEl.textContent = battingTeam.name || '';
+                
+                // Update score
+                const scoreEl = document.getElementById('score');
+                const wicketsEl = document.getElementById('wickets');
+                const oversEl = document.getElementById('overs');
+                if (scoreEl) scoreEl.textContent = battingTeam.score || '0';
+                if (wicketsEl) wicketsEl.textContent = battingTeam.wickets || '0';
+                if (oversEl) oversEl.textContent = battingTeam.overs || '0.0';
+            }
+            
+            // Update striker
+            if (data.striker) {
+                const strikerNameEl = document.getElementById('striker-name');
+                const strikerStatEl = document.getElementById('striker-stat');
+                if (strikerNameEl) strikerNameEl.textContent = data.striker.name || '';
+                if (strikerStatEl) {
+                    const status = data.striker.status || '';
+                    strikerStatEl.textContent = `${data.striker.runs || 0}(${data.striker.balls || 0})${status}`;
+                }
+            }
+            
+            // Update non-striker
+            if (data.nonStriker) {
+                const nonStrikerNameEl = document.getElementById('nonstriker-name');
+                const nonStrikerStatEl = document.getElementById('nonstriker-stat');
+                if (nonStrikerNameEl) nonStrikerNameEl.textContent = data.nonStriker.name || '';
+                if (nonStrikerStatEl) {
+                    nonStrikerStatEl.textContent = `${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`;
+                }
+            }
+            
+            // Update bowler
+            if (data.bowler) {
+                const bowlerNameEl = document.getElementById('bowler-name');
+                const bowlerStatEl = document.getElementById('bowler-stat');
+                if (bowlerNameEl) bowlerNameEl.textContent = data.bowler.name || '';
+                if (bowlerStatEl) {
+                    bowlerStatEl.textContent = `${data.bowler.overs || 0}-${data.bowler.maidens || 0}-${data.bowler.runs || 0}-${data.bowler.wickets || 0}`;
+                }
+            }
+        };
+
         // Keep legacy triggerPush for backwards compatibility
         function triggerPush(msg) {
             const p = document.getElementById('push-wrap-p');
@@ -52,6 +125,11 @@
                 setTimeout(() => p.classList.remove('active'), 3000);
             }
         }
+
+        // Listen for scoreUpdated events from overlay-utils
+        window.addEventListener('scoreUpdated', (e) => {
+            window.onScoreUpdate(e.detail);
+        });
     </script>
 </body>
 </html>

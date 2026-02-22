@@ -1,61 +1,52 @@
 // Overlay Utilities - Team/Player Toggle and Data Management
 
-// Sample match data (will be replaced by API data)
+// Default match data (only used as fallback when no live data)
 let matchData = {
   tournament: {
-    name: 'Premier League T20',
+    name: '',
     logo: ''
   },
   team1: {
-    name: 'Mumbai Warriors',
-    shortName: 'MW',
-    score: '185',
-    wickets: '4',
-    overs: '20.0',
-    color: '#004BA0',
-    players: [
-      { name: 'Rohit Sharma', role: 'Batsman (C)' },
-      { name: 'Quinton de Kock', role: 'WK-Batsman' },
-      { name: 'Suryakumar Yadav', role: 'Batsman' },
-      { name: 'Ishan Kishan', role: 'WK-Batsman' },
-      { name: 'Kieron Pollard', role: 'All-rounder' },
-      { name: 'Hardik Pandya', role: 'All-rounder' },
-      { name: 'Krunal Pandya', role: 'All-rounder' },
-      { name: 'Rahul Chahar', role: 'Bowler' },
-      { name: 'Trent Boult', role: 'Bowler' },
-      { name: 'Jasprit Bumrah', role: 'Bowler' },
-      { name: 'Adam Milne', role: 'Bowler' }
-    ]
+    name: '',
+    shortName: '',
+    score: '0',
+    wickets: '0',
+    overs: '0.0',
+    color: '#004BA0'
   },
   team2: {
-    name: 'Chennai Kings',
-    shortName: 'CK',
-    score: '142',
-    wickets: '7',
-    overs: '16.2',
-    color: '#FCCA06',
-    players: [
-      { name: 'MS Dhoni', role: 'WK-Batsman (C)' },
-      { name: 'Ruturaj Gaikwad', role: 'Batsman' },
-      { name: 'Faf du Plessis', role: 'Batsman' },
-      { name: 'Moeen Ali', role: 'All-rounder' },
-      { name: 'Ambati Rayudu', role: 'Batsman' },
-      { name: 'Ravindra Jadeja', role: 'All-rounder' },
-      { name: 'Sam Curran', role: 'All-rounder' },
-      { name: 'Dwayne Bravo', role: 'All-rounder' },
-      { name: 'Shardul Thakur', role: 'Bowler' },
-      { name: 'Deepak Chahar', role: 'Bowler' },
-      { name: 'Josh Hazlewood', role: 'Bowler' }
-    ]
+    name: '',
+    shortName: '',
+    score: '0',
+    wickets: '0',
+    overs: '0.0',
+    color: '#FCCA06'
+  },
+  striker: {
+    name: '',
+    runs: 0,
+    balls: 0
+  },
+  nonStriker: {
+    name: '',
+    runs: 0,
+    balls: 0
+  },
+  bowler: {
+    name: '',
+    overs: 0,
+    maidens: 0,
+    runs: 0,
+    wickets: 0
   },
   stats: {
-    currentRunRate: '8.75',
-    requiredRunRate: '12.30',
-    last5Overs: '48/2',
-    target: '186'
+    currentRunRate: '0.00',
+    requiredRunRate: '0.00',
+    last5Overs: '',
+    target: '0'
   },
-  status: 'In Progress',
-  result: 'Mumbai Warriors need 44 runs in 22 balls'
+  status: '',
+  result: ''
 };
 
 // Initialize overlay with data
@@ -604,5 +595,132 @@ window.postPushEvent = function(type, message) {
       window.initBroadcastChannel();
       console.log('Auto-initialized BroadcastChannel for real-time score updates');
     }, 100);
+  }
+})();
+
+// Enhanced BroadcastChannel handler for ScoreboardUpdate data
+window.initScoreboardListener = function() {
+  const channel = new BroadcastChannel('cricket_score_updates');
+  
+  channel.onmessage = (event) => {
+    const data = event.data;
+    
+    // Check if this is data from ScoreboardUpdate (contains tournament, team1, team2)
+    if (data.tournament || data.team1 || data.team2) {
+      // Update matchData with new values
+      matchData = {
+        tournament: {
+          name: data.tournament?.name || '',
+          logo: data.tournament?.logo || ''
+        },
+        team1: {
+          name: data.team1?.name || '',
+          shortName: data.team1?.shortName || '',
+          score: data.team1?.score?.toString() || '0',
+          wickets: data.team1?.wickets?.toString() || '0',
+          overs: data.team1?.overs?.toString() || '0.0',
+          color: data.team1?.color || '#004BA0'
+        },
+        team2: {
+          name: data.team2?.name || '',
+          shortName: data.team2?.shortName || '',
+          score: data.team2?.score?.toString() || '0',
+          wickets: data.team2?.wickets?.toString() || '0',
+          overs: data.team2?.overs?.toString() || '0.0',
+          color: data.team2?.color || '#FCCA06'
+        },
+        striker: {
+          name: data.striker?.name || '',
+          runs: data.striker?.runs || 0,
+          balls: data.striker?.balls || 0
+        },
+        nonStriker: {
+          name: data.nonStriker?.name || '',
+          runs: data.nonStriker?.runs || 0,
+          balls: data.nonStriker?.balls || 0
+        },
+        bowler: {
+          name: data.bowler?.name || '',
+          overs: data.bowler?.overs || 0,
+          maidens: data.bowler?.maidens || 0,
+          runs: data.bowler?.runs || 0,
+          wickets: data.bowler?.wickets || 0
+        },
+        stats: {
+          currentRunRate: data.stats?.currentRunRate?.toString() || '0.00',
+          requiredRunRate: data.stats?.requiredRunRate?.toString() || '0.00',
+          last5Overs: data.stats?.last5Overs || '',
+          target: data.stats?.target?.toString() || '0'
+        },
+        status: data.status || '',
+        result: data.result || ''
+      };
+      
+      // Update the score display
+      if (typeof window.updateScore === 'function') {
+        window.updateScore(matchData);
+      }
+      
+      // Also trigger updateScoreDisplay if available
+      if (typeof window.updateScoreDisplay === 'function') {
+        window.updateScoreDisplay();
+      }
+      
+      console.log('Scoreboard data updated:', matchData);
+    }
+    
+    // Handle Score Updates
+    if (data.team1 || data.team2) {
+      // Use the updateScore function from overlay-utils
+      if (typeof window.updateScore === 'function') {
+        window.updateScore(data);
+      }
+      console.log("Scores Updated", data);
+    }
+    
+    // Handle Push Events (Animations)
+    if (data.type === 'PUSH_EVENT') {
+      const container = document.getElementById('push-container');
+      const textEl = document.getElementById('p-msg');
+      
+      if (!container || !textEl) return;
+
+      textEl.innerText = data.message || '';
+      
+      // Dynamic Styling based on event
+      if (data.eventType === 'WICKET') {
+        container.style.setProperty('--accent', '#ff0033');
+      } else if (data.eventType === 'SIX') {
+        container.style.setProperty('--accent', '#a020f0');
+      } else if (data.eventType === 'FOUR') {
+        container.style.setProperty('--accent', '#00ff66');
+      } else {
+        container.style.setProperty('--accent', '#00f2ff');
+      }
+
+      container.classList.add('active');
+      setTimeout(() => container.classList.remove('active'), 3500);
+    }
+    
+    // Check if it's a wicket event
+    if (data.type === 'WICKET') {
+      if (typeof window.triggerPush === 'function') {
+        window.triggerPush(data.message || 'OUT!', 'W');
+      }
+    }
+  };
+  
+  console.log('Scoreboard listener initialized');
+  return channel;
+};
+
+// Auto-initialize scoreboard listener
+(function() {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(window.initScoreboardListener, 100);
+    });
+  } else {
+    setTimeout(window.initScoreboardListener, 100);
   }
 })();

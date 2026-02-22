@@ -50,7 +50,7 @@
 </head>
 <body>
     <div class="top-slab">
-        <div class="tournament-badge" id="tournament-name">CHAMPIONS TROPHY</div>
+        <div class="tournament-badge" id="tournament-name"></div>
     </div>
 
     <div id="push-lock"><span id="p-txt">OUT!</span></div>
@@ -62,10 +62,12 @@
 
     <div class="bottom-bar">
         <div class="score-wrap">
-            <div style="font-size: 1.5rem; color: var(--gold);" id="team-name">TEAM NAME</div>
+            <div style="font-size: 1.5rem; color: var(--gold);" id="team-name"></div>
             <div style="font-size: 4rem; font-weight: 900; line-height: 1;">
                 <span id="score">0/0</span> <small style="font-size: 1.5rem; opacity: 0.5;" id="overs">(0.0)</small>
             </div>
+            <!-- Bowler info -->
+            <div style="font-size: 1rem; color: var(--accent);" id="bowler-info"></div>
         </div>
         
         <div class="players-wrap">
@@ -82,30 +84,75 @@
 
     <script src="overlay-utils.js"></script>
     <script>
+        // Handle score updates from ScoreboardUpdate component
         window.onScoreUpdate = function(data) {
+            // Handle wicket/six/four events
             if (data.type === 'WICKET' || data.type === 'SIX' || data.type === 'FOUR') {
                 const lock = document.getElementById('push-lock');
-                document.getElementById('p-txt').innerText = data.message;
-                
-                // Dynamic styling
-                if (data.type === 'WICKET') lock.style.setProperty('--accent', 'var(--wicket)');
-                else if (data.type === 'SIX') lock.style.setProperty('--accent', '#2ecc71');
-                else lock.style.setProperty('--accent', '#00f2ff');
+                const pTxt = document.getElementById('p-txt');
+                if (lock && pTxt) {
+                    pTxt.innerText = data.message || 'OUT!';
+                    
+                    // Dynamic styling
+                    if (data.type === 'WICKET') lock.style.setProperty('--accent', 'var(--wicket)');
+                    else if (data.type === 'SIX') lock.style.setProperty('--accent', '#2ecc71');
+                    else lock.style.setProperty('--accent', '#00f2ff');
 
-                lock.classList.add('active');
-                setTimeout(() => lock.classList.remove('active'), 3500);
+                    lock.classList.add('active');
+                    setTimeout(() => lock.classList.remove('active'), 3500);
+                }
                 return;
             }
 
-            if (data.tournament) document.getElementById('tournament-name').innerText = data.tournament.name;
-            const team = data.battingTeam === 1 ? data.team1 : data.team2;
-            document.getElementById('team-name').innerText = team.name.toUpperCase();
-            document.getElementById('score').innerText = `${team.score}/${team.wickets}`;
-            document.getElementById('overs').innerText = `(${team.overs})`;
+            // Update tournament name
+            if (data.tournament) {
+                const tournamentEl = document.getElementById('tournament-name');
+                if (tournamentEl) tournamentEl.textContent = data.tournament.name || '';
+            }
             
-            if (data.striker) document.getElementById('striker-stat').innerText = `${data.striker.runs} (${data.striker.balls})*`;
-            if (data.nonstriker) document.getElementById('nonstriker-stat').innerText = `${data.nonstriker.runs} (${data.nonstriker.balls})`;
+            // Update team name (batting team)
+            if (data.team1 && data.team2) {
+                const battingTeam = data.team1.isBatting ? data.team1 : data.team2;
+                const teamNameEl = document.getElementById('team-name');
+                if (teamNameEl) teamNameEl.textContent = battingTeam.name ? battingTeam.name.toUpperCase() : '';
+                
+                // Update score
+                const scoreEl = document.getElementById('score');
+                const oversEl = document.getElementById('overs');
+                if (scoreEl) scoreEl.textContent = `${battingTeam.score}/${battingTeam.wickets}`;
+                if (oversEl) oversEl.textContent = `(${battingTeam.overs})`;
+            }
+            
+            // Update striker
+            if (data.striker) {
+                const strikerStatEl = document.getElementById('striker-stat');
+                if (strikerStatEl) {
+                    const status = data.striker.status || '*';
+                    strikerStatEl.textContent = `${data.striker.runs || 0} (${data.striker.balls || 0})${status}`;
+                }
+            }
+            
+            // Update non-striker
+            if (data.nonStriker) {
+                const nonStrikerStatEl = document.getElementById('nonstriker-stat');
+                if (nonStrikerStatEl) {
+                    nonStrikerStatEl.textContent = `${data.nonStriker.runs || 0} (${data.nonStriker.balls || 0})`;
+                }
+            }
+            
+            // Update bowler
+            if (data.bowler) {
+                const bowlerInfoEl = document.getElementById('bowler-info');
+                if (bowlerInfoEl) {
+                    bowlerInfoEl.textContent = `Bowler: ${data.bowler.name || ''} ${data.bowler.overs || 0}-${data.bowler.maidens || 0}-${data.bowler.runs || 0}-${data.bowler.wickets || 0}`;
+                }
+            }
         };
+
+        // Listen for scoreUpdated events from overlay-utils
+        window.addEventListener('scoreUpdated', (e) => {
+            window.onScoreUpdate(e.detail);
+        });
     </script>
 </body>
 </html>

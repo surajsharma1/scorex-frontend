@@ -104,27 +104,27 @@
 
     <div id="score-bug">
         <div class="main-bar">
-            <div id="team1-name">INDIA</div>
+            <div class="team-name" id="team-name"></div>
             <div class="score-row">
-                <span id="team1-score">142</span>/<span id="team1-wickets">3</span>
-                <span class="overs-text">(<span id="team1-overs">18.2</span>)</span>
+                <span id="team1-score">0</span>/<span id="team1-wickets">0</span>
+                <span class="overs-text">(<span id="team1-overs">0.0</span>)</span>
             </div>
         </div>
         <div class="batter-box">
-            <div id="striker-name">K. Lokesh: 73(48)*</div>
-            <div id="nonstriker-name" style="opacity: 0.7;">R. Jadeja: 12(7)</div>
+            <div id="striker-name"></div>
+            <div id="nonstriker-name" style="opacity: 0.7;"></div>
         </div>
     </div>
 
     <div id="performance-ribbon">
         <div style="color: var(--accent-gold); font-size: 0.8rem; margin-bottom: 5px;">LAST 6 BALLS</div>
         <div id="recent-balls">
-            <span class="ball-circle">0</span>
-            <span class="ball-circle four">4</span>
-            <span class="ball-circle">1</span>
-            <span class="ball-circle out">W</span>
-            <span class="ball-circle six">6</span>
-            <span class="ball-circle">1</span>
+            <span class="ball-circle">-</span>
+            <span class="ball-circle">-</span>
+            <span class="ball-circle">-</span>
+            <span class="ball-circle">-</span>
+            <span class="ball-circle">-</span>
+            <span class="ball-circle">-</span>
         </div>
     </div>
 
@@ -138,14 +138,54 @@
         }
 
         // Initialize BroadcastChannel for real-time score updates
-        // This listens for messages from ScoreboardUpdate component
         window.initBroadcastChannel();
 
+        // Handle score updates from ScoreboardUpdate component
+        window.onScoreUpdate = function(data) {
+            // Update team name (batting team)
+            if (data.team1 && data.team2) {
+                const battingTeam = data.team1.isBatting ? data.team1 : data.team2;
+                const teamNameEl = document.getElementById('team-name');
+                if (teamNameEl) teamNameEl.textContent = battingTeam.name || '';
+                
+                // Update score
+                const scoreEl = document.getElementById('team1-score');
+                const wicketsEl = document.getElementById('team1-wickets');
+                const oversEl = document.getElementById('team1-overs');
+                if (scoreEl) scoreEl.textContent = battingTeam.score || '0';
+                if (wicketsEl) wicketsEl.textContent = battingTeam.wickets || '0';
+                if (oversEl) oversEl.textContent = battingTeam.overs || '0.0';
+            }
+            
+            // Update striker
+            if (data.striker) {
+                const strikerEl = document.getElementById('striker-name');
+                if (strikerEl) {
+                    const status = data.striker.status || '*';
+                    strikerEl.textContent = `${data.striker.name || ''}: ${data.striker.runs || 0}(${data.striker.balls || 0})${status}`;
+                }
+            }
+            
+            // Update non-striker
+            if (data.nonStriker) {
+                const nonStrikerEl = document.getElementById('nonstriker-name');
+                if (nonStrikerEl) {
+                    nonStrikerEl.textContent = `${data.nonStriker.name || ''}: ${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`;
+                }
+            }
+        };
+
+        // Legacy function for backwards compatibility
         function updateScore() {
-            document.getElementById('team1-score').innerText = document.getElementById('in-runs').value;
-            document.getElementById('team1-wickets').innerText = document.getElementById('in-wickets').value;
-            document.getElementById('team1-overs').innerText = document.getElementById('in-overs').value;
-            document.getElementById('striker-name').innerText = document.getElementById('in-striker').value;
+            const runsEl = document.getElementById('in-runs');
+            const wicketsEl = document.getElementById('in-wickets');
+            const oversEl = document.getElementById('in-overs');
+            const strikerEl = document.getElementById('in-striker');
+            
+            if (runsEl) document.getElementById('team1-score').innerText = runsEl.value;
+            if (wicketsEl) document.getElementById('team1-wickets').innerText = wicketsEl.value;
+            if (oversEl) document.getElementById('team1-overs').innerText = oversEl.value;
+            if (strikerEl) document.getElementById('striker-name').innerText = strikerEl.value;
         }
 
         function triggerWicket() {
@@ -155,6 +195,11 @@
                 alert.style.transform = "translate(-50%, -50%) scale(0)";
             }, 3000);
         }
+
+        // Listen for scoreUpdated events from overlay-utils
+        window.addEventListener('scoreUpdated', (e) => {
+            window.onScoreUpdate(e.detail);
+        });
     </script> 
 </body>
 </html>

@@ -149,6 +149,83 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
   const currentTeam = liveScores[liveScores.battingTeam];
   const bowlingTeam = liveScores[liveScores.battingTeam === 'team1' ? 'team2' : 'team1'];
 
+  // Get actual team names from tournament
+  const getTeam1Name = () => teams[0]?.name || 'Team 1';
+  const getTeam2Name = () => teams[1]?.name || 'Team 2';
+
+  // Create comprehensive overlay data
+  const createOverlayData = () => {
+    const isBattingTeam1 = liveScores.battingTeam === 'team1';
+    const battingTeamData = liveScores[liveScores.battingTeam];
+    const bowlingTeamData = isBattingTeam1 ? liveScores.team2 : liveScores.team1;
+    
+    return {
+      // Tournament info
+      tournament: {
+        name: tournament.name || 'Tournament',
+        id: tournament._id || ''
+      },
+      // Team 1 data (batting or bowling)
+      team1: {
+        name: getTeam1Name(),
+        shortName: getTeam1Name().substring(0, 3).toUpperCase(),
+        score: isBattingTeam1 ? (battingTeamData?.score || 0) : (bowlingTeamData?.score || 0),
+        wickets: isBattingTeam1 ? (battingTeamData?.wickets || 0) : (bowlingTeamData?.wickets || 0),
+        overs: isBattingTeam1 ? `${Math.floor(battingTeamData?.overs || 0)}.${battingTeamData?.balls || 0}` : `${Math.floor(bowlingTeamData?.overs || 0)}.${bowlingTeamData?.balls || 0}`,
+        color: '#004BA0',
+        isBatting: isBattingTeam1
+      },
+      // Team 2 data (batting or bowling)
+      team2: {
+        name: getTeam2Name(),
+        shortName: getTeam2Name().substring(0, 3).toUpperCase(),
+        score: !isBattingTeam1 ? (battingTeamData?.score || 0) : (bowlingTeamData?.score || 0),
+        wickets: !isBattingTeam1 ? (battingTeamData?.wickets || 0) : (bowlingTeamData?.wickets || 0),
+        overs: !isBattingTeam1 ? `${Math.floor(battingTeamData?.overs || 0)}.${battingTeamData?.balls || 0}` : `${Math.floor(bowlingTeamData?.overs || 0)}.${bowlingTeamData?.balls || 0}`,
+        color: '#FCCA06',
+        isBatting: !isBattingTeam1
+      },
+      // Striker batsman
+      striker: {
+        name: battingTeamData?.batsmen[0]?.name || 'Striker',
+        runs: battingTeamData?.batsmen[0]?.runs || 0,
+        balls: battingTeamData?.batsmen[0]?.balls || 0,
+        fours: battingTeamData?.batsmen[0]?.fours || 0,
+        sixes: battingTeamData?.batsmen[0]?.sixes || 0,
+        status: (battingTeamData?.batsmen[0]?.runs || 0) > 0 && (battingTeamData?.batsmen[0]?.isStriker) ? '*' : ''
+      },
+      // Non-striker batsman
+      nonStriker: {
+        name: battingTeamData?.batsmen[1]?.name || 'Non-Striker',
+        runs: battingTeamData?.batsmen[1]?.runs || 0,
+        balls: battingTeamData?.batsmen[1]?.balls || 0,
+        fours: battingTeamData?.batsmen[1]?.fours || 0,
+        sixes: battingTeamData?.batsmen[1]?.sixes || 0,
+        status: ''
+      },
+      // Bowler
+      bowler: {
+        name: battingTeamData?.bowler?.name || 'Bowler',
+        overs: battingTeamData?.bowler?.overs || 0,
+        maidens: battingTeamData?.bowler?.maidens || 0,
+        runs: battingTeamData?.bowler?.runs || 0,
+        wickets: battingTeamData?.bowler?.wickets || 0
+      },
+      // Match stats
+      stats: {
+        currentRunRate: liveScores.currentRunRate || 0,
+        requiredRunRate: liveScores.requiredRunRate || 0,
+        target: liveScores.target || 0,
+        last5Overs: liveScores.lastFiveOvers || ''
+      },
+      // Match status
+      battingTeam: liveScores.battingTeam,
+      innings: liveScores.innings || 1,
+      status: liveScores.target > 0 ? 'Chasing' : 'Batting',
+      result: ''
+    };
+  };
+
   // Update Overlay UI
   const updateOverlayUI = (scores: LiveScores) => {
     if (!scores) return;
@@ -166,7 +243,13 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
 
   // Trigger Wicket Animation
   const triggerWicketAnimation = (message: string) => {
-    channel.postMessage({ type: 'WICKET', message });
+    // Create full overlay data for wicket event
+    const overlayData = createOverlayData();
+    channel.postMessage({ 
+      type: 'WICKET', 
+      message,
+      ...overlayData
+    });
   };
 
   useEffect(() => {
@@ -181,9 +264,11 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     return () => channel.close();
   }, []);
 
+  // Broadcast comprehensive score data whenever liveScores changes
   useEffect(() => {
-    channel.postMessage(liveScores);
-  }, [liveScores]);
+    const overlayData = createOverlayData();
+    channel.postMessage(overlayData);
+  }, [liveScores, tournament.name, teams]);
 
   const updateStats = (field: string, value: unknown) => {
     setLiveScores(prev => ({ ...prev, [field]: value }));
