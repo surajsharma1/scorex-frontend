@@ -27,6 +27,11 @@
         <div class="prism-header">SA20 • SUNRISERS EASTERN CAPE vs MI CAPE TOWN</div>
         
         <div id="push-wrap-p">SIX!</div>
+        
+        <!-- NEW PUSH NOTIFICATION CONTAINER -->
+        <div id="push-container">
+            <div id="p-msg"></div>
+        </div>
 
         <div class="prism-footer">
             <div class="p-score-main">SEC 167/4 <span style="font-size: 1.5rem; opacity: 0.4;">17.5 OV</span></div>
@@ -37,11 +42,15 @@
         </div>
     </div>
 
+    <script src="overlay-utils.js"></script>
     <script>
+        // Keep legacy triggerPush for backwards compatibility
         function triggerPush(msg) {
             const p = document.getElementById('push-wrap-p');
-            p.innerText = msg; p.classList.add('active');
-            setTimeout(() => p.classList.remove('active'), 3000);
+            if (p) {
+                p.innerText = msg; p.classList.add('active');
+                setTimeout(() => p.classList.remove('active'), 3000);
+            }
         }
     </script>
 </body>

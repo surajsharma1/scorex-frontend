@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Eye, Download, Settings, Crown, Edit, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 import { overlayAPI, matchAPI } from '../services/api';
 import { Overlay, Match, Tournament } from './types';
-
 import Payment from './Payment';
 
 // Dynamic overlay list based on actual files in public/overlays folder
@@ -554,16 +553,49 @@ export default function OverlayEditor({ selectedMatch: propSelectedMatch, select
     return currentHost;
   };
 
+// Mapping of template IDs to actual HTML filenames
+const TEMPLATE_FILE_MAP: Record<string, string> = {
+    'vintage': 'vintage.html',
+    'minimal-dark': 'gate-minimal-dark.html',
+    'slate-gold': 'slate-gold-ashes.html',
+    'minimalist': 'minimalist-split-bar.html',
+    'gradient': 'gradient-monolith.html',
+    'neon': 'neon-vector-replay.html',
+    'circuit': 'circuit-node-neon.html',
+    'cyber': 'cyber-shield.html',
+    'hex': 'hex-perimeter.html',
+    'grid': 'grid-sunset-red.html',
+    'titan': 'titan-perimeter.html',
+    'prism': 'prism-pop-desert.html',
+    'modern': 'modern-monolith-slab.html',
+    'apex': 'apex-cradle-gold.html',
+    'aurora': 'aurora-glass-bbl.html',
+    'mono': 'mono-cyberpunk.html',
+    'storm': 'storm-flare-rail.html',
+    'titanium': 'titanium-dark-ribbon.html',
+    'retro': 'retro-glitch-hud.html',
+    'wooden2': 'wooden2.html',
+    'interceptor': 'interceptor-orange.html',
+    'metallic': 'metallic-eclipse-lens.html',
+    'red': 'red-spine-replay.html',
+    'double-rail': 'Double-Rail-Broadcast.html',
+    'rail-world': 'rail-world-broadcast.html',
+    'news': 'news-ticker-broadcast.html',
+    'vertical': 'vertical-slice-ashes.html',
+    'velocity': 'velocity-frame-v2.html',
+    'velocity-frame': 'velocity-frame.html',
+    'fire': 'fire-win-predictor.html',
+    'broadcast-bug': 'broadcast-score-bug.html',
+  };
+
   // Helper to get the overlay URL - point directly to Vercel to avoid CORS issues
   const getOverlayUrl = (overlay: Overlay): string => {
     // Use direct Vercel URL format to avoid cross-origin issues
     // URL format: https://scorex-live.vercel.app/overlays/{template}.html?matchId={matchId}&apiBaseUrl={apiBaseUrl}
     const frontendUrl = 'https://scorex-live.vercel.app';
-    // Make sure template has .html extension
-    let templateName = overlay.template || 'vintage';
-    if (!templateName.endsWith('.html')) {
-      templateName = templateName + '.html';
-    }
+    // Map template ID to actual filename, fallback to template + .html
+    const templateId = overlay.template || 'vintage';
+    const templateName = TEMPLATE_FILE_MAP[templateId] || `${templateId}.html`;
     const matchId = overlay.match?._id || overlay.match || '';
     const apiBaseUrl = 'https://scorex-backend.onrender.com/api/v1';
     
