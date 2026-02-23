@@ -106,25 +106,22 @@ export default function OverlayForm() {
               <option value="titan-perimeter.html">Titan Perimeter</option>
               <option value="prism-pop-desert.html">Prism Pop</option>
               <option value="modern-monolith-slab.html">Modern Monolith</option>
-              {/* Premium Designer */}
-              <option value="apex-cradle-gold.html">Apex Cradle Gold</option>
-              <option value="aurora-glass-bbl.html">Aurora Glass BBL</option>
-              <option value="mono-cyberpunk.html">Mono Cyberpunk</option>
-              <option value="storm-flare-rail.html">Storm Flare</option>
-              <option value="titanium-dark-ribbon.html">Titanium Dark</option>
-              <option value="retro-glitch-hud.html">Retro Glitch HUD</option>
-              <option value="wooden2.html">Wooden Board</option>
-              <option value="interceptor-orange.html">Interceptor Orange</option>
-              <option value="metallic-eclipse-lens.html">Metallic Eclipse</option>
-              <option value="red-spine-replay.html">Red Spine Replay</option>
-              <option value="Double-Rail-Broadcast.html">Double Rail Broadcast</option>
-              <option value="rail-world-broadcast.html">Rail World</option>
-              <option value="news-ticker-broadcast.html">News Ticker Broadcast</option>
-              <option value="vertical-slice-ashes.html">Vertical Slice Ashes</option>
-              <option value="velocity-frame-v2.html">Velocity Frame V2</option>
-              <option value="velocity-frame.html">Velocity Frame</option>
-              <option value="fire-win-predictor.html">Fire Win Predictor</option>
-              <option value="broadcast-score-bug.html">Broadcast Score Bug</option>
+              {/* Premium Collection - New Overlay Templates */}
+              <option value="orbital-overlay.html">Orbital Overlay</option>
+              <option value="fragment-overlay.html">Fragment Overlay</option>
+              <option value="nebula-overlay.html">Nebula Overlay</option>
+              <option value="aether-overlay.html">Aether Overlay</option>
+              <option value="vector-overlay.html">Vector Overlay</option>
+              <option value="vector-shift.html">Vector Shift</option>
+              <option value="zenith-overlay.html">Zenith Overlay</option>
+              <option value="chronos-overlay.html">Chronos Overlay</option>
+              <option value="obsidian-overlay.html">Obsidian Overlay</option>
+              <option value="vanguard-overlay.html">Vanguard Overlay</option>
+              <option value="fractal-overlay.html">Fractal Overlay</option>
+              <option value="glitch-overlay.html">Glitch Overlay</option>
+              <option value="titan-overlay.html">Titan Overlay</option>
+              <option value="prism-overlay.html">Prism Overlay</option>
+              <option value="octane-overlay.html">Octane Overlay</option>
             </select>
           </div>
           <div>
