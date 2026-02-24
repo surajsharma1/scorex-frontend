@@ -99,6 +99,7 @@ export const overlayAPI = {
   createOverlay: (data: any) => api.post('/overlays', data),
   updateOverlay: (id: string, data: any) => api.put(`/overlays/${id}`, data),
   deleteOverlay: (id: string) => api.delete(`/overlays/${id}`),
+  getOverlayTemplates: () => api.get('/overlays/templates'),
 };
 
 export const userAPI = {

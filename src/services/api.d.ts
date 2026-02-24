@@ -32,9 +32,12 @@ export declare const bracketAPI: {
 };
 export declare const overlayAPI: {
     getOverlays: () => Promise<import("axios").AxiosResponse<any, any, {}>>;
+    getOverlay: (id: string) => Promise<import("axios").AxiosResponse<any, any, {}>>;
+    getOverlayPublic: (publicId: string) => Promise<import("axios").AxiosResponse<any, any, {}>>;
     createOverlay: (data: any) => Promise<import("axios").AxiosResponse<any, any, {}>>;
     updateOverlay: (id: string, data: any) => Promise<import("axios").AxiosResponse<any, any, {}>>;
     deleteOverlay: (id: string) => Promise<import("axios").AxiosResponse<any, any, {}>>;
+    getOverlayTemplates: () => Promise<import("axios").AxiosResponse<any, any, {}>>;
 };
 export default api;
 //# sourceMappingURL=api.d.ts.map
