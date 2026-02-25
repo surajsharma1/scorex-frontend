@@ -24,7 +24,7 @@ import Membership from './components/Membership';
 import Payment from './components/Payment';
 
 // Providers
-import { ThemeProvider } from './components/ThemeProvider';
+import ThemeProvider from './components/ThemeProvider';
 
 const router = createBrowserRouter([
   {
