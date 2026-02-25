@@ -25,22 +25,21 @@ export default {
         'dark-light': '#bfa181',
 
         
-        // Semantic colors
-        primary: {
-          DEFAULT: '#34729c',
-          light: '#6cb1da',
-          dark: '#1e5470',
-          50: '#e6f0f5',
-          100: '#cce0eb',
-          200: '#99c1d7',
-          300: '#66a2c3',
-          400: '#3383af',
-          500: '#34729c',
-          600: '#2a5c7e',
-          700: '#21465f',
-          800: '#18303f',
-          900: '#0f1a20',
-        },
+        // Semantic colors - using simple string values for bg- utilities
+        primary: '#34729c',
+        'primary-light': '#6cb1da',
+        'primary-dark': '#1e5470',
+        primary50: '#e6f0f5',
+        primary100: '#cce0eb',
+        primary200: '#99c1d7',
+        primary300: '#66a2c3',
+        primary400: '#3383af',
+        primary500: '#34729c',
+        primary600: '#2a5c7e',
+        primary700: '#21465f',
+        primary800: '#18303f',
+        primary900: '#0f1a20',
+        
         secondary: {
           DEFAULT: '#6ec1d1',
           light: '#cbeaec',
@@ -75,11 +74,6 @@ export default {
       },
       fontFamily: {
         sans: ['Bierika', 'Inter', 'system-ui', 'sans-serif'],
-      },
-      backgroundColor: {
-        'primary': '#34729c',
-        'primary-light': '#6cb1da',
-        'primary-dark': '#1e5470',
       },
     },
   },

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { User, Message } from './types';
 import { messageAPI } from '../services/api';
 import { Send, X, Loader, MessageCircle } from 'lucide-react';
-import io, { Socket } from 'socket.io-client';
+import { socketService } from '../services/socket'; // Use singleton
 
 interface MessageChatProps {
   friend: User;
@@ -29,54 +29,47 @@ const MessageChat: React.FC<MessageChatProps> = ({ friend, onClose }) => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [socket, setSocket] = useState<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentUserId = getCurrentUserId();
+  const socket = socketService.getSocket();
 
   useEffect(() => {
     loadMessages();
     
-    // Setup socket for real-time messaging
-    const newSocket = io(import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || 'http://localhost:5000');
-    setSocket(newSocket);
+    // Join a room for this conversation (optional, depending on backend)
+    // socket.emit('joinChat', { userId: currentUserId, friendId: friend._id });
 
-    newSocket.emit('joinChat', { userId: currentUserId, friendId: friend._id });
+    const handleNewMessage = (msg: Message) => {
+        // Only append if it belongs to this conversation
+        if (msg.from === friend._id || (msg.from === currentUserId && msg.to === friend._id)) {
+            setMessages(prev => [...prev, msg]);
+            scrollToBottom();
+        }
+    };
 
-    newSocket.on('newMessage', (message: Message) => {
-      if (
-        (message.from === friend._id && message.to === currentUserId) ||
-        (message.from === currentUserId && message.to === friend._id)
-      ) {
-        setMessages((prev) => [...prev, message]);
-      }
-    });
+    socket.on('newMessage', handleNewMessage);
 
     return () => {
-      newSocket.emit('leaveChat', { userId: currentUserId, friendId: friend._id });
-      newSocket.close();
+        socket.off('newMessage', handleNewMessage);
     };
-  }, [friend._id, currentUserId]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, [friend._id]);
 
   const loadMessages = async () => {
     try {
       const response = await messageAPI.getMessages(friend._id);
-      const messagesArray = Array.isArray(response.data) 
-        ? response.data 
-        : (Array.isArray(response.data?.messages) ? response.data.messages : []);
-      setMessages(messagesArray);
+      setMessages(response.data.messages || []);
+      scrollToBottom();
     } catch (error) {
-      console.error('Failed to load messages:', error);
+      console.error('Failed to load messages');
     } finally {
       setLoading(false);
     }
+  };
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -85,160 +78,100 @@ const MessageChat: React.FC<MessageChatProps> = ({ friend, onClose }) => {
 
     setSending(true);
     try {
-      const response = await messageAPI.sendMessage(friend._id, newMessage.trim());
-      const sentMessage = response.data?.message || response.data;
-      if (sentMessage) {
-        setMessages((prev) => [...prev, sentMessage]);
-      }
-      setNewMessage('');
-      
-      // Emit socket event for real-time delivery
-      if (socket) {
-        socket.emit('sendMessage', {
+      // Optimistic Update
+      const tempMsg: Message = {
+          _id: Date.now().toString(),
           from: currentUserId,
           to: friend._id,
-          content: newMessage.trim(),
-        });
-      }
+          content: newMessage,
+          read: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, tempMsg]);
+      setNewMessage('');
+      scrollToBottom();
+
+      await messageAPI.sendMessage(friend._id, tempMsg.content);
+      // Real confirmation will come via socket or re-fetch
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error('Failed to send message');
     } finally {
       setSending(false);
     }
   };
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
-
-  // Group messages by date
-  const groupedMessages = messages.reduce((groups: { [key: string]: Message[] }, message) => {
-    const date = formatDate(message.createdAt);
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(message);
-    return groups;
-  }, {});
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-dark-bg-alt rounded-lg shadow-xl w-full max-w-lg h-[600px] flex flex-col">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-dark-primary/30 flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="h-10 w-10 bg-blue-500 dark:bg-dark-primary rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium text-white">
+    <div className="fixed bottom-4 right-4 w-96 h-[500px] bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col z-50 overflow-hidden">
+      {/* Header */}
+      <div className="bg-blue-600 p-4 text-white flex justify-between items-center">
+        <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold">
                 {friend.username.charAt(0).toUpperCase()}
-              </span>
             </div>
-            <div className="ml-3">
-              <h3 className="font-semibold text-gray-900 dark:text-dark-light">{friend.username}</h3>
-              {friend.fullName && (
-                <p className="text-xs text-gray-500 dark:text-dark-accent/70">{friend.fullName}</p>
-              )}
+            <div>
+                <h3 className="font-bold">{friend.username}</h3>
+                <span className="text-xs text-blue-200 flex items-center gap-1">
+                    <span className="w-2 h-2 bg-green-400 rounded-full"></span> Online
+                </span>
             </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:text-dark-accent/50 dark:hover:text-dark-light rounded-lg hover:bg-gray-100 dark:hover:bg-dark-primary/20"
-          >
-            <X className="h-5 w-5" />
-          </button>
         </div>
+        <button onClick={onClose} className="hover:bg-white/20 p-2 rounded-full transition">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900 space-y-4">
           {loading ? (
-            <div className="flex justify-center items-center h-full">
-              <Loader className="animate-spin h-8 w-8 text-blue-600 dark:text-dark-accent" />
-            </div>
-          ) : messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-dark-accent/70">
-              <MessageCircle className="h-12 w-12 mb-2" />
-              <p>{t('messages.noMessages', 'No messages yet')}</p>
-              <p className="text-sm">{t('messages.startConversation', 'Start the conversation!')}</p>
-            </div>
-          ) : (
-            Object.entries(groupedMessages).map(([date, dateMessages]) => (
-              <div key={date}>
-                <div className="flex justify-center mb-4">
-                  <span className="px-3 py-1 bg-gray-100 dark:bg-dark-primary/30 rounded-full text-xs text-gray-500 dark:text-dark-accent">
-                    {date}
-                  </span>
-                </div>
-                {dateMessages.map((message) => (
-                  <div
-                    key={message._id}
-                    className={`flex ${message.from === currentUserId ? 'justify-end' : 'justify-start'} mb-3`}
-                  >
-                    <div
-                      className={`max-w-[70%] px-4 py-2 rounded-2xl ${
-                        message.from === currentUserId
-                          ? 'bg-blue-500 dark:bg-dark-primary text-white rounded-br-md'
-                          : 'bg-gray-100 dark:bg-dark-bg text-gray-900 dark:text-dark-light rounded-bl-md'
-                      }`}
-                    >
-                      <p className="text-sm break-words">{message.content}</p>
-                      <p
-                        className={`text-xs mt-1 ${
-                          message.from === currentUserId
-                            ? 'text-blue-100 dark:text-dark-accent/70'
-                            : 'text-gray-500 dark:text-dark-accent/50'
-                        }`}
-                      >
-                        {formatTime(message.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex justify-center items-center h-full">
+                  <Loader className="animate-spin text-blue-500" />
               </div>
-            ))
+          ) : messages.length === 0 ? (
+              <div className="text-center text-gray-400 mt-20">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                  <p>No messages yet.</p>
+                  <p className="text-sm">Say hello to {friend.username}!</p>
+              </div>
+          ) : (
+              messages.map((msg, index) => {
+                  const isMe = msg.from === currentUserId;
+                  return (
+                      <div key={index} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[75%] p-3 rounded-2xl text-sm ${
+                              isMe 
+                                ? 'bg-blue-600 text-white rounded-tr-none' 
+                                : 'bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-tl-none'
+                          }`}>
+                              {msg.content}
+                              <div className={`text-[10px] mt-1 text-right ${isMe ? 'text-blue-200' : 'text-gray-400'}`}>
+                                  {new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                              </div>
+                          </div>
+                      </div>
+                  );
+              })
           )}
           <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Area */}
-        <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200 dark:border-dark-primary/30">
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder={t('messages.typeMessage', 'Type a message...')}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-dark-primary/30 rounded-full focus:ring-2 focus:ring-blue-500 dark:focus:ring-dark-accent bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-light"
-              disabled={sending}
-            />
-            <button
-              type="submit"
-              disabled={sending || !newMessage.trim()}
-              className="p-2 bg-blue-500 dark:bg-dark-primary text-white rounded-full hover:bg-blue-600 dark:hover:bg-dark-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {sending ? (
-                <Loader className="h-5 w-5 animate-spin" />
-              ) : (
-                <Send className="h-5 w-5" />
-              )}
-            </button>
-          </div>
-        </form>
       </div>
+
+      {/* Input Area */}
+      <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex gap-2">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button 
+            type="submit" 
+            disabled={!newMessage.trim() || sending}
+            className="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 transition"
+          >
+              <Send className="w-5 h-5" />
+          </button>
+      </form>
     </div>
   );
 };

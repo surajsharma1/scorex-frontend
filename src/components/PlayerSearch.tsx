@@ -1,111 +1,102 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { userAPI } from '../services/api';
 import { User } from './types';
-import api from '../services/api';
+import { Search, Loader2, UserPlus, X } from 'lucide-react';
 
 interface PlayerSearchProps {
-  onPlayerSelect: (user: User) => void;
+  onSelect: (user: User) => void;
+  excludeIds?: string[];
   placeholder?: string;
-  className?: string;
 }
 
-const PlayerSearch: React.FC<PlayerSearchProps> = ({
-  onPlayerSelect,
-  placeholder = "Search for players...",
-  className = ""
-}) => {
+export default function PlayerSearch({ onSelect, excludeIds = [], placeholder = "Search users..." }: PlayerSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const searchUsers = async (searchQuery: string) => {
-    if (!searchQuery.trim()) {
+  const handleSearch = async (val: string) => {
+    setQuery(val);
+    if (val.length < 2) {
       setResults([]);
-      setShowResults(false);
+      setIsOpen(false);
       return;
     }
 
     setLoading(true);
+    setIsOpen(true);
     try {
-      const response = await api.get(`/users/search?query=${encodeURIComponent(searchQuery)}`);
-      setResults(response.data.users);
-      setShowResults(true);
-    } catch (error) {
-      console.error('Error searching users:', error);
-      setResults([]);
+      const res = await userAPI.searchUsers(val);
+      const users = res.data.users || [];
+      // Filter out already selected IDs
+      setResults(users.filter((u: User) => !excludeIds.includes(u._id)));
+    } catch (e) {
+      console.error("Search error");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setQuery(value);
-    searchUsers(value);
-  };
-
-  const handlePlayerSelect = (user: User) => {
-    onPlayerSelect(user);
+  const handleSelect = (user: User) => {
+    onSelect(user);
     setQuery('');
     setResults([]);
-    setShowResults(false);
+    setIsOpen(false);
   };
 
   return (
-    <div className={`relative ${className}`}>
-      <input
-        type="text"
-        value={query}
-        onChange={handleInputChange}
-        placeholder={placeholder}
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-      />
+    <div className="relative w-full">
+      <div className="relative">
+        <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => handleSearch(e.target.value)}
+          placeholder={placeholder}
+          className="w-full pl-9 pr-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+        />
+        {query && (
+          <button 
+            onClick={() => { setQuery(''); setIsOpen(false); }}
+            className="absolute right-2 top-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full"
+          >
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        )}
+      </div>
 
-      {loading && (
-        <div className="absolute right-3 top-3">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-        </div>
-      )}
-
-      {showResults && results.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {results.map((user) => (
-            <div
-              key={user._id}
-              onClick={() => handlePlayerSelect(user)}
-              className="flex items-center space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-600 last:border-b-0"
-            >
-              {user.profilePicture ? (
-                <img
-                  src={user.profilePicture}
-                  alt={user.username}
-                  className="w-8 h-8 rounded-full"
-                />
-              ) : (
-                <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                  <span className="text-xs text-gray-600 dark:text-gray-300 font-semibold">
-                    {user.username.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 dark:text-white">{user.username}</p>
-                {user.bio && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{user.bio}</p>
-                )}
-              </div>
+      {isOpen && (query.length >= 2) && (
+        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-60 overflow-y-auto">
+          {loading ? (
+            <div className="p-4 text-center">
+              <Loader2 className="w-5 h-5 animate-spin mx-auto text-blue-500" />
             </div>
-          ))}
-        </div>
-      )}
-
-      {showResults && query && results.length === 0 && !loading && (
-        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-3">
-          <p className="text-gray-600 dark:text-gray-400 text-sm">No users found</p>
+          ) : results.length === 0 ? (
+            <div className="p-4 text-center text-sm text-gray-500">No users found.</div>
+          ) : (
+            <ul>
+              {results.map(user => (
+                <li 
+                  key={user._id}
+                  onClick={() => handleSelect(user)}
+                  className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b last:border-0 border-gray-100 dark:border-gray-700"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-xs font-bold text-blue-700 dark:text-blue-300">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium dark:text-white">{user.username}</p>
+                      {user.fullName && <p className="text-xs text-gray-500">{user.fullName}</p>}
+                    </div>
+                  </div>
+                  <UserPlus className="w-4 h-4 text-gray-400" />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </div>
   );
-};
-
-export default PlayerSearch;
+}

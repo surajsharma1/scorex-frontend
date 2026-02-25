@@ -3,118 +3,66 @@
  */
 
 export interface TokenPayload {
-  id: string;
-  role: string;
-  membership: string;
-  membershipExpiresAt?: string;
-  exp?: number;
-  iat?: number;
+  userId: string;
+  username: string;
+  role: 'admin' | 'organizer' | 'user';
+  membership: 'free' | 'premium-level1' | 'premium-level2';
+  exp: number;
 }
 
-/**
- * Parse JWT token and return the payload
- */
-export function parseToken(): TokenPayload | null {
-  const token = localStorage.getItem('token');
-  if (!token) return null;
-
+// Safe JWT Decode (doesn't require external library)
+export function parseToken(token: string): TokenPayload | null {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload;
-  } catch (error) {
-    console.error('Error parsing token:', error);
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      window.atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
     return null;
   }
 }
 
-/**
- * Get the current user's effective membership level
- * Returns 'free' if membership has expired
- */
-export function getEffectiveMembership(): string {
-  const payload = parseToken();
-  if (!payload) return 'free';
-
-  // Admin always has full access
-  if (payload.role === 'admin') {
-    return 'pro';
-  }
-
-  let membership = payload.membership || 'free';
-
-  // Check if membership has expired
-  if (payload.membershipExpiresAt) {
-    const expiryDate = new Date(payload.membershipExpiresAt);
-    if (expiryDate < new Date()) {
-      // Membership has expired
-      return 'free';
-    }
-  }
-
-  return membership;
+export function getCurrentUser() {
+  const userStr = localStorage.getItem('user');
+  if (userStr) return JSON.parse(userStr);
+  
+  const token = localStorage.getItem('token');
+  if (token) return parseToken(token);
+  
+  return null;
 }
 
-/**
- * Get the membership expiry date if available
- */
-export function getMembershipExpiryDate(): Date | null {
-  const payload = parseToken();
-  if (!payload?.membershipExpiresAt) return null;
-
-  return new Date(payload.membershipExpiresAt);
-}
-
-/**
- * Check if the membership is currently active (not expired)
- */
-export function isMembershipActive(): boolean {
-  const payload = parseToken();
+export function isAuthenticated(): boolean {
+  const token = localStorage.getItem('token');
+  if (!token) return false;
+  
+  const payload = parseToken(token);
   if (!payload) return false;
-
-  // Free membership is always "active"
-  if (!payload.membership || payload.membership === 'free') {
-    return true;
+  
+  // Check expiration
+  const now = Date.now() / 1000;
+  if (payload.exp < now) {
+    localStorage.removeItem('token');
+    return false;
   }
-
-  // Admin always has active membership
-  if (payload.role === 'admin') {
-    return true;
-  }
-
-  // Check expiry
-  if (payload.membershipExpiresAt) {
-    const expiryDate = new Date(payload.membershipExpiresAt);
-    return expiryDate >= new Date();
-  }
-
-  // No expiry date means legacy membership (treat as active)
+  
   return true;
 }
 
-/**
- * Check if user has access to a specific membership level
- */
-export function hasAccess(requiredLevel: 'free' | 'premium-level1' | 'premium-level2' | 'pro'): boolean {
-  const membership = getEffectiveMembership();
-
-  const levels: Record<string, number> = {
-    'free': 0,
-    'premium': 1,
-    'premium-level1': 1,
-    'premium-level2': 2,
-    'pro': 3,
-  };
-
-  const userLevel = levels[membership] ?? 0;
-  const requiredLevelNum = levels[requiredLevel] ?? 0;
-
-  return userLevel >= requiredLevelNum;
+export function hasRole(role: 'admin' | 'organizer'): boolean {
+  const user = getCurrentUser();
+  if (!user) return false;
+  if (user.role === 'admin') return true; // Admin has all permissions
+  return user.role === role;
 }
 
-/**
- * Get user role from token
- */
-export function getUserRole(): string {
-  const payload = parseToken();
-  return payload?.role || 'viewer';
+export function isPremium(): boolean {
+  const user = getCurrentUser();
+  if (!user) return false;
+  return user.membership === 'premium-level1' || user.membership === 'premium-level2' || user.role === 'admin';
 }

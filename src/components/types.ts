@@ -1,52 +1,112 @@
+// Core Data Models
+
 export interface User {
-  fullName: any;
   _id: string;
   username: string;
   email: string;
-  role: 'admin' | 'organizer';
-  friends?: string[];
+  fullName?: string;
   profilePicture?: string;
   bio?: string;
+  role?: 'admin' | 'user' | 'organizer';
+  stats?: {
+    tournamentsCreated: number;
+    matchesManaged: number;
+    teamsCreated: number;
+  };
+  createdAt?: string;
+}
+
+export interface Player {
+  id?: string;
+  _id?: string;
+  name: string;
+  role: 'Batsman' | 'Bowler' | 'All-rounder' | 'Wicket Keeper';
+  jerseyNumber: number | string;
+  stats?: {
+    matches: number;
+    runs: number;
+    wickets: number;
+    average?: number;
+  };
+}
+
+export interface Team {
+  _id: string;
+  name: string;
+  shortName: string;
+  color: string;
+  logo?: string;
+  players: Player[];
+  tournament?: string;
+  stats?: {
+    played: number;
+    won: number;
+    lost: number;
+    points: number;
+    nrr: number;
+  };
+  // For live match display
+  batsmen?: Batsman[];
+  bowler?: Bowler;
 }
 
 export interface Tournament {
-  teams: any;
   _id: string;
   name: string;
   description?: string;
-  format: string;
   startDate: string;
-  numberOfTeams: number;
-  status: 'upcoming' | 'active' | 'completed';
-  isLive: boolean;
-  liveStreamUrl?: string;
+  endDate?: string;
+  status: 'upcoming' | 'ongoing' | 'completed';
+  format: 'T20' | 'ODI' | 'Test';
+  teams: Team[];
+  numberOfTeams?: number;
   liveScores?: LiveScores;
-  createdBy: string;
 }
 
-// Extended live scores interface for enhanced scoreboard
-export interface LiveScores {
-  team1: TeamScore;
-  team2: TeamScore;
-  battingTeam: 'team1' | 'team2';
-  currentRunRate: number;
-  requiredRunRate: number;
-  target: number;
-  lastFiveOvers: string;
-  innings?: number;
-  isChasing?: boolean;
+// Pagination type
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext?: boolean;
+  hasPrev?: boolean;
 }
 
-export interface TeamScore {
-  name: string;
-  score: number;
-  wickets: number;
-  overs: number;
-  balls: number;
-  batsmen: Batsman[];
-  bowler: Bowler | null;
+export interface Match {
+  _id: string;
+  tournament: Tournament | string;
+  team1: Team;
+  team2: Team;
+  date: string;
+  venue: string;
+  status: 'scheduled' | 'ongoing' | 'completed' | 'upcoming';
+  matchType: string;
+  tossWinner?: string;
+  tossChoice?: 'bat' | 'bowl';
+  
+  // Live Score Data
+  score1?: number;
+  wickets1?: number;
+  overs1?: number;
+  score2?: number;
+  wickets2?: number;
+  overs2?: number;
+  
+  currentRunRate?: number;
+  requiredRunRate?: number;
+  target?: number;
+  
+  videoLink?: string;
+  liveStreamUrl?: string;
+  
+  liveScores?: LiveScores;
+  
+  // Added for live tracking
+  battingTeam?: 'team1' | 'team2';
 }
 
+// Complex Scoring Types
 export interface Batsman {
   name: string;
   runs: number;
@@ -54,6 +114,7 @@ export interface Batsman {
   fours: number;
   sixes: number;
   isStriker: boolean;
+  out?: string;
 }
 
 export interface Bowler {
@@ -64,169 +125,75 @@ export interface Bowler {
   wickets: number;
 }
 
-export interface Team {
-  _id: string;
+export interface TeamInnings {
   name: string;
-  color: string;
-  logo?: string;
-  tournament: string;
-  players: Player[];
-  createdBy: string;
+  score: number;
+  wickets: number;
+  overs: number;
+  balls: number;
+  batsmen: Batsman[];
+  bowler: Bowler | null;
 }
 
-export interface Player {
-  _id: string;
-  name: string;
-  role: string;
-  jerseyNumber: string;
-  image?: string;
-  stats?: {
-    runs: number;
-    wickets: number;
-    // Add more stats as needed
-  };
-}
-export interface Bracket {
-  _id: string;
-  tournament: Tournament;
-  type: string;
-  numberOfTeams: number;
-  rounds: any[];
-  createdBy: string;
-}
-
-export interface Overlay {
-  _id: string;
-  name: string;
-  tournament: Tournament;
-  match?: Match;
-  template: string;
-  config: any;
-  elements: any[];
-  publicId: string;
-  publicUrl?: string;
-  createdBy: string;
-}
-export interface Match {
-  _id: string;
-  tournament: string;
-  team1: Team;
-  team2: Team;
-  date: string;
-  venue?: string;
-  status: 'scheduled' | 'ongoing' | 'completed' | 'upcoming' | 'active'; // Added 'ongoing'
-  score1?: number;
-  score2?: number;
-  wickets1?: number;
-  wickets2?: number;
-  overs1?: number;
-  overs2?: number;
-  winner?: string;
-  tossWinner?: string;
-  matchType?: 'League' | 'Quarter-Final' | 'Semi-Final' | 'Final' | 'Playoff';
-  createdBy: string;
-}
-
-export interface Notification {
-  _id: string;
-  message: string;
-  type: 'info' | 'warning' | 'success';
-  read: boolean;
-  createdAt: string;
-}
-
-export interface PaginationParams {
-  page: number;
-  limit: number;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
-}
-
-export interface Friend {
-  _id: string;
-  from: User;
-  to: User;
-  status: 'pending' | 'accepted' | 'blocked';
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Club {
-  _id: string;
-  name: string;
-  description?: string;
-  members: string[];
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
+export interface LiveScores {
+  team1: TeamInnings;
+  team2: TeamInnings;
+  battingTeam: 'team1' | 'team2';
+  currentRunRate: number;
+  requiredRunRate: number;
+  target: number;
+  lastFiveOvers: string;
+  innings: number;
+  isChasing: boolean;
+  [key: string]: any; // Index signature for dynamic access
 }
 
 export interface Message {
   _id: string;
+  content: string;
   from: string;
   to: string;
-  content: string;
   read: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Conversation {
-  _id: string;
-  participants: User[];
-  lastMessage?: Message;
-  unreadCount: number;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface LeaderboardEntry {
   _id: string;
-  rank: number;
-  user?: User;
-  team?: Team;
-  player?: Player;
+  player?: { name: string };
+  team?: { name: string };
   stats: {
-    matches: number;
-    wins: number;
-    losses: number;
     runs?: number;
     wickets?: number;
+    matches: number;
     average?: number;
     strikeRate?: number;
     economy?: number;
+    overs?: number;
+    wins?: number;
+    losses?: number;
   };
 }
 
-export interface LiveMatch {
+export interface Friend {
   _id: string;
-  tournament: Tournament;
-  team1: Team;
-  team2: Team;
-  score1: number;
-  score2: number;
-  wickets1: number;
-  wickets2: number;
-  overs1: number;
-  overs2: number;
-  status: 'ongoing' | 'completed';
-  liveStreamUrl?: string;
-  viewers?: number;
-  createdAt: string;
-  updatedAt: string;
+  status: 'pending' | 'accepted';
+  from?: User;
+  to?: User;
+}
+
+export interface Club {
+  _id: string;
+  name: string;
+  description: string;
+  members: User[];
+  admin: string;
+}
+
+export interface Overlay {
+  id: string;
+  name: string;
+  file: string;
+  type: 'free' | 'premium';
+  color: string;
 }

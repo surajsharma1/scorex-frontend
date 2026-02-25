@@ -19,7 +19,7 @@ export default function TeamList() {
         setLoading(true);
       }
 
-      const response = await teamAPI.getTeams(page, 10);
+      const response = await teamAPI.getTeams();
       const newTeams = response.data.teams || [];
       const paginationData = response.data.pagination;
 

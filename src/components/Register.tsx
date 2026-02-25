@@ -1,179 +1,142 @@
-import { useState, useEffect } from 'react';
-
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { Loader2, Mail, Lock, User, CheckCircle } from 'lucide-react';
 
 export default function Register() {
-  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    fullName: '',
-    dob: '',
-    googleId: '',
+    confirmPassword: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Prefill from query params if from Google OAuth
-    const email = searchParams.get('email');
-    const fullName = searchParams.get('fullName');
-    const googleId = searchParams.get('googleId');
-    if (email) setFormData(prev => ({ ...prev, email }));
-    if (fullName) setFormData(prev => ({ ...prev, fullName }));
-    if (googleId) setFormData(prev => ({ ...prev, googleId }));
-  }, [searchParams]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submission started');
     
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
+
     setLoading(true);
     setError('');
     
     try {
-      const registrationData = {
-        username: formData.username.trim(),
-        email: formData.email.trim(),
-        password: formData.password,
-        fullName: formData.fullName?.trim() || undefined,
-        dob: formData.dob || undefined,
-        googleId: formData.googleId || undefined,
-      };
+      const res = await authAPI.register({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password
+      });
       
-      console.log('Sending registration data:', registrationData);
-      
-      const response = await authAPI.register(registrationData);
-      console.log('Registration response:', response.data);
-      
-      // Check if registration was successful and we got a token
-      if (response.data.token) {
-        // Store the token and redirect to profile
-        localStorage.setItem('token', response.data.token);
-        navigate('/profile');
+      // Auto login or redirect to login
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+        navigate('/');
       } else {
-        setError('Registration failed: No token received');
+        alert("Account created! Please log in.");
+        navigate('/login');
       }
     } catch (err: any) {
-      console.error('Registration error details:', err);
-      console.error('Error response:', err.response?.data);
-      console.error('Error status:', err.response?.status);
-      setError(err.response?.data?.message || err.message || 'Registration failed');
+      setError(err.response?.data?.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-light-bg dark:bg-dark-bg">
-      <div className="bg-white dark:bg-gray-800 p-8 w-full max-w-md rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
+      <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-light-primary dark:text-dark-light mb-2">Join ScoreX</h2>
-          <p className="text-text dark:text-text-dark">Create your tournament management account</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
+          <p className="text-gray-400">Join ScoreX to manage your tournaments</p>
         </div>
 
         {error && (
-          <div className="bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-300 px-4 py-3 rounded mb-6">
+          <div className="mb-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-red-200 text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-text dark:text-text-dark mb-2">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-text dark:text-text-dark placeholder-text/50 dark:placeholder-text-dark/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Choose a username"
-              required
-            />
+            <label className="block text-sm font-medium text-gray-300 mb-1">Username</label>
+            <div className="relative">
+              <User className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
+              <input 
+                type="text" 
+                value={formData.username}
+                onChange={(e) => setFormData({...formData, username: e.target.value})}
+                className="w-full pl-10 p-3 bg-gray-700 border border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                placeholder="cricket_fan_99"
+                required 
+              />
+            </div>
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-text dark:text-text-dark mb-2">
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-text dark:text-text-dark placeholder-text/50 dark:placeholder-text-dark/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter your email"
-              required
-            />
+            <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
+              <input 
+                type="email" 
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                className="w-full pl-10 p-3 bg-gray-700 border border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                placeholder="you@example.com"
+                required 
+              />
+            </div>
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-text dark:text-text-dark mb-2">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-text dark:text-text-dark placeholder-text/50 dark:placeholder-text-dark/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Create a password"
-              required
-            />
+            <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
+              <input 
+                type="password" 
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                className="w-full pl-10 p-3 bg-gray-700 border border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                placeholder="Min 6 characters"
+                required 
+              />
+            </div>
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-text dark:text-text-dark mb-2">
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-text dark:text-text-dark placeholder-text/50 dark:placeholder-text-dark/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Confirm your password"
-              required
-            />
+            <label className="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label>
+            <div className="relative">
+              <CheckCircle className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
+              <input 
+                type="password" 
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                className="w-full pl-10 p-3 bg-gray-700 border border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                placeholder="Retype password"
+                required 
+              />
+            </div>
           </div>
 
-          <button
-            type="submit"
+          <button 
+            type="submit" 
             disabled={loading}
-            className="w-full py-3 px-4 bg-light-primary dark:bg-dark-primary text-white rounded-lg font-medium"
+            className="w-full py-3 mt-4 bg-green-600 hover:bg-green-700 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
           >
-            {loading ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                Creating Account...
-              </div>
-            ) : (
-              'Create Account'
-            )}
+            {loading ? <Loader2 className="animate-spin w-5 h-5" /> : 'Sign Up'}
           </button>
-
-          <div className="text-center">
-            <p className="text-text dark:text-text-dark text-sm">
-              Already have an account?{' '}
-              <button
-                onClick={() => navigate('/login')}
-                className="text-light-primary dark:text-dark-primary font-medium"
-              >
-                Sign in here
-              </button>
-            </p>
-          </div>
         </form>
+
+        <div className="mt-6 text-center text-sm text-gray-400">
+          Already have an account?{' '}
+          <Link to="/login" className="text-green-400 hover:text-green-300 font-bold">
+            Log In
+          </Link>
+        </div>
       </div>
     </div>
   );

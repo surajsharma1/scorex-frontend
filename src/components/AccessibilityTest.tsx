@@ -8,7 +8,7 @@ interface AccessibilityTestProps {
 
 interface AxeResult {
   id: string;
-  impact: 'minor' | 'moderate' | 'serious' | 'critical' | undefined;
+  impact: 'minor' | 'moderate' | 'serious' | 'critical' | undefined ;
   description: string;
   help: string;
   helpUrl: string;
@@ -39,7 +39,7 @@ const AccessibilityTest: React.FC<AccessibilityTestProps> = ({ componentName, ch
 
       const violations = results.violations.map(violation => ({
         id: violation.id,
-        impact: violation.impact,
+        impact: violation.impact || undefined,
         description: violation.description,
         help: violation.help,
         helpUrl: violation.helpUrl,
@@ -60,7 +60,7 @@ const AccessibilityTest: React.FC<AccessibilityTestProps> = ({ componentName, ch
     return () => clearTimeout(timer);
   }, []);
 
-  const getImpactColor = (impact: string | undefined) => {
+  const getImpactColor = (impact: string | undefined | null) => {
     switch (impact) {
       case 'critical': return 'text-red-600 bg-red-50';
       case 'serious': return 'text-orange-600 bg-orange-50';
@@ -114,7 +114,7 @@ const AccessibilityTest: React.FC<AccessibilityTestProps> = ({ componentName, ch
                 <div key={index} className="p-4">
                   <div className="flex items-start">
                     <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getImpactColor(result.impact)}`}>
-                      {result.impact.toUpperCase()}
+                      {(result.impact || 'unknown').toUpperCase()}
                     </div>
                     <div className="ml-3 flex-1">
                       <h3 className="text-sm font-medium text-gray-900 dark:text-white">

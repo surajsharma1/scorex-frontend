@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LeaderboardEntry, Tournament } from './types';
 import { leaderboardAPI, tournamentAPI } from '../services/api';
-import { Trophy, Medal, Award, Loader, TrendingUp, Target, Zap } from 'lucide-react';
+import { Trophy, Medal, Award, Loader, TrendingUp, Filter } from 'lucide-react';
 
 type LeaderboardType = 'batting' | 'bowling' | 'teams';
 
@@ -11,7 +11,6 @@ const Leaderboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<LeaderboardType>('batting');
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournament, setSelectedTournament] = useState<string>('');
 
@@ -25,9 +24,9 @@ const Leaderboard: React.FC = () => {
 
   const loadTournaments = async () => {
     try {
-      const response = await tournamentAPI.getTournaments(1, 50);
-      const tournamentsData = response.data?.tournaments || response.data || [];
-      setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
+      const response = await tournamentAPI.getTournaments();
+      const list = response.data.tournaments || response.data || [];
+      setTournaments(list);
     } catch (err) {
       console.error('Failed to load tournaments');
     }
@@ -35,244 +34,174 @@ const Leaderboard: React.FC = () => {
 
   const loadLeaderboard = async () => {
     setLoading(true);
-    setError('');
     try {
       let response;
-      const tournamentId = selectedTournament || undefined;
-      
-      switch (activeTab) {
-        case 'batting':
-          response = await leaderboardAPI.getBattingLeaderboard(tournamentId);
-          break;
-        case 'bowling':
-          response = await leaderboardAPI.getBowlingLeaderboard(tournamentId);
-          break;
-        case 'teams':
-          response = await leaderboardAPI.getTeamLeaderboard(tournamentId);
-          break;
+      if (activeTab === 'batting') {
+        response = await leaderboardAPI.getBattingLeaderboard(selectedTournament);
+      } else if (activeTab === 'bowling') {
+        response = await leaderboardAPI.getBowlingLeaderboard(selectedTournament);
+      } else {
+        response = await leaderboardAPI.getTeamLeaderboard(selectedTournament);
       }
       
-      const entriesData = response?.data?.leaderboard || response?.data || [];
-      setEntries(Array.isArray(entriesData) ? entriesData : []);
+      const data = response.data.leaderboard || response.data || [];
+      // Safety sort if API doesn't
+      const sortedData = [...data].sort((a, b) => {
+          if (activeTab === 'batting') return (b.stats.runs || 0) - (a.stats.runs || 0);
+          if (activeTab === 'bowling') return (b.stats.wickets || 0) - (a.stats.wickets || 0);
+          return (b.stats.wins || 0) - (a.stats.wins || 0);
+      });
+      
+      setEntries(sortedData);
     } catch (err) {
-      setError('Failed to load leaderboard');
-      setEntries([]);
+      console.error('Failed to load leaderboard', err);
+      setEntries([]); // Clear on error
     } finally {
       setLoading(false);
     }
   };
 
-  const getRankIcon = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return <Trophy className="h-6 w-6 text-yellow-500" />;
-      case 2:
-        return <Medal className="h-6 w-6 text-gray-400" />;
-      case 3:
-        return <Award className="h-6 w-6 text-amber-600" />;
-      default:
-        return <span className="text-lg font-bold text-gray-500 dark:text-dark-accent/70">{rank}</span>;
-    }
-  };
-
-  const getRankBgColor = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return 'bg-gradient-to-r from-yellow-100 to-yellow-50 dark:from-yellow-900/20 dark:to-yellow-900/10 border-yellow-300 dark:border-yellow-600/30';
-      case 2:
-        return 'bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-700/30 dark:to-gray-700/20 border-gray-300 dark:border-gray-600/30';
-      case 3:
-        return 'bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-900/20 dark:to-amber-900/10 border-amber-300 dark:border-amber-600/30';
-      default:
-        return 'bg-white dark:bg-dark-bg border-gray-200 dark:border-dark-primary/30';
-    }
+  const getRankIcon = (index: number) => {
+    if (index === 0) return <Trophy className="h-6 w-6 text-yellow-500" />;
+    if (index === 1) return <Medal className="h-6 w-6 text-gray-400" />;
+    if (index === 2) return <Award className="h-6 w-6 text-orange-500" />;
+    return <span className="font-bold text-gray-500 w-6 text-center">{index + 1}</span>;
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6 min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-light flex items-center">
-          <Trophy className="h-8 w-8 mr-3 text-yellow-500" />
-          {t('leaderboard.title', 'Leaderboard')}
-        </h1>
-        
-        {/* Tournament Filter */}
-        <select
-          value={selectedTournament}
-          onChange={(e) => setSelectedTournament(e.target.value)}
-          className="px-4 py-2 border border-gray-300 dark:border-dark-primary/30 rounded-lg bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-light focus:ring-2 focus:ring-light-primary dark:focus:ring-dark-accent"
-        >
-          <option value="">{t('leaderboard.allTournaments', 'All Tournaments')}</option>
-          {tournaments.map((tournament) => (
-            <option key={tournament._id} value={tournament._id}>
-              {tournament.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-600 rounded-lg p-4">
-          <p className="text-red-700 dark:text-red-300">{error}</p>
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <TrendingUp className="text-blue-600" /> Leaderboards
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">Top performers and team standings</p>
         </div>
-      )}
+        
+        <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded-lg border dark:border-gray-700">
+            <Filter className="w-4 h-4 text-gray-400" />
+            <select
+                value={selectedTournament}
+                onChange={(e) => setSelectedTournament(e.target.value)}
+                className="bg-transparent border-none focus:ring-0 text-sm font-medium"
+            >
+                <option value="">All Tournaments</option>
+                {tournaments.map(t => (
+                    <option key={t._id} value={t._id}>{t.name}</option>
+                ))}
+            </select>
+        </div>
+      </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200 dark:border-dark-primary/30">
-        <button
-          onClick={() => setActiveTab('batting')}
-          className={`flex-1 px-4 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-            activeTab === 'batting'
-              ? 'text-light-primary dark:text-dark-accent border-b-2 border-light-primary dark:border-dark-accent bg-light-primary/10 dark:bg-dark-primary/10'
-              : 'text-gray-500 dark:text-dark-accent/70 hover:text-gray-700 dark:hover:text-dark-light hover:bg-gray-50 dark:hover:bg-dark-primary/5'
-          }`}
-        >
-          <TrendingUp className="h-4 w-4" />
-          {t('leaderboard.batting', 'Top Batsmen')}
-        </button>
-        <button
-          onClick={() => setActiveTab('bowling')}
-          className={`flex-1 px-4 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-            activeTab === 'bowling'
-              ? 'text-light-primary dark:text-dark-accent border-b-2 border-light-primary dark:border-dark-accent bg-light-primary/10 dark:bg-dark-primary/10'
-              : 'text-gray-500 dark:text-dark-accent/70 hover:text-gray-700 dark:hover:text-dark-light hover:bg-gray-50 dark:hover:bg-dark-primary/5'
-          }`}
-        >
-          <Target className="h-4 w-4" />
-          {t('leaderboard.bowling', 'Top Bowlers')}
-        </button>
-        <button
-          onClick={() => setActiveTab('teams')}
-          className={`flex-1 px-4 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-            activeTab === 'teams'
-              ? 'text-light-primary dark:text-dark-accent border-b-2 border-light-primary dark:border-dark-accent bg-light-primary/10 dark:bg-dark-primary/10'
-              : 'text-gray-500 dark:text-dark-accent/70 hover:text-gray-700 dark:hover:text-dark-light hover:bg-gray-50 dark:hover:bg-dark-primary/5'
-          }`}
-        >
-          <Zap className="h-4 w-4" />
-          {t('leaderboard.teams', 'Top Teams')}
-        </button>
+      <div className="flex bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm border dark:border-gray-700 w-fit">
+        {['batting', 'bowling', 'teams'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab as LeaderboardType)}
+            className={`px-6 py-2 rounded-md font-medium capitalize transition-all ${
+              activeTab === tab
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
-      {/* Leaderboard Content */}
-      <div className="bg-white dark:bg-dark-bg-alt rounded-lg shadow-sm border border-gray-200 dark:border-dark-primary/30">
+      {/* Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         {loading ? (
-          <div className="flex justify-center items-center p-12">
-            <Loader className="animate-spin h-8 w-8 text-light-primary dark:text-dark-accent" />
+          <div className="p-12 flex justify-center">
+            <Loader className="animate-spin text-blue-600 h-8 w-8" />
           </div>
         ) : entries.length === 0 ? (
-          <div className="text-center py-12">
-            <Trophy className="h-16 w-16 mx-auto text-gray-300 dark:text-dark-primary/50 mb-4" />
-            <p className="text-gray-500 dark:text-dark-accent/70 text-lg">
-              {t('leaderboard.noData', 'No leaderboard data available')}
-            </p>
-            <p className="text-gray-400 dark:text-dark-accent/50 text-sm mt-2">
-              {t('leaderboard.playMatches', 'Play some matches to see rankings!')}
-            </p>
+          <div className="p-12 text-center text-gray-500">
+             <Trophy className="w-12 h-12 mx-auto mb-3 opacity-20" />
+             <p>No stats available for this selection.</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200 dark:divide-dark-primary/30">
-            {entries.map((entry, index) => (
-              <div
-                key={entry._id}
-                className={`p-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-dark-primary/10 transition-colors ${getRankBgColor(entry.rank || index + 1)} border-l-4`}
-              >
-                {/* Rank */}
-                <div className="w-12 h-12 flex items-center justify-center">
-                  {getRankIcon(entry.rank || index + 1)}
-                </div>
-
-                {/* Player/Team Info */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-light-primary dark:bg-dark-primary rounded-full flex items-center justify-center">
-                      <span className="text-sm font-medium text-white">
-                        {(entry.player?.name || entry.team?.name || entry.user?.username || 'N/A').charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-dark-light">
-                        {entry.player?.name || entry.team?.name || entry.user?.username || 'Unknown'}
-                      </h3>
-                      {entry.player?.role && (
-                        <p className="text-xs text-gray-500 dark:text-dark-accent/70">{entry.player.role}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Stats */}
-                <div className="flex items-center gap-6 text-right">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-900/50 text-xs uppercase text-gray-500 font-semibold">
+                <tr>
+                  <th className="px-6 py-4 text-left w-20">Rank</th>
+                  <th className="px-6 py-4 text-left">Name</th>
+                  <th className="px-6 py-4 text-left">Team</th>
                   {activeTab === 'batting' && (
-                    <>
-                      <div>
-                        <p className="text-2xl font-bold text-light-primary dark:text-dark-accent">
-                          {entry.stats.runs || 0}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-dark-accent/70">Runs</p>
-                      </div>
-                      <div className="hidden sm:block">
-                        <p className="text-lg font-semibold text-gray-700 dark:text-dark-light">
-                          {entry.stats.average?.toFixed(2) || '-'}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-dark-accent/70">Avg</p>
-                      </div>
-                      <div className="hidden md:block">
-                        <p className="text-lg font-semibold text-gray-700 dark:text-dark-light">
-                          {entry.stats.strikeRate?.toFixed(2) || '-'}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-dark-accent/70">SR</p>
-                      </div>
-                    </>
+                      <>
+                        <th className="px-6 py-4 text-right text-blue-600">Runs</th>
+                        <th className="px-6 py-4 text-right">Innings</th>
+                        <th className="px-6 py-4 text-right">Average</th>
+                        <th className="px-6 py-4 text-right">Strike Rate</th>
+                      </>
                   )}
                   {activeTab === 'bowling' && (
-                    <>
-                      <div>
-                        <p className="text-2xl font-bold text-light-secondary dark:text-dark-secondary">
-                          {entry.stats.wickets || 0}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-dark-accent/70">Wickets</p>
-                      </div>
-                      <div className="hidden sm:block">
-                        <p className="text-lg font-semibold text-gray-700 dark:text-dark-light">
-                          {entry.stats.economy?.toFixed(2) || '-'}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-dark-accent/70">Econ</p>
-                      </div>
-                      <div className="hidden md:block">
-                        <p className="text-lg font-semibold text-gray-700 dark:text-dark-light">
-                          {entry.stats.average?.toFixed(2) || '-'}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-dark-accent/70">Avg</p>
-                      </div>
-                    </>
+                      <>
+                        <th className="px-6 py-4 text-right text-purple-600">Wickets</th>
+                        <th className="px-6 py-4 text-right">Overs</th>
+                        <th className="px-6 py-4 text-right">Economy</th>
+                        <th className="px-6 py-4 text-right">Best</th>
+                      </>
                   )}
                   {activeTab === 'teams' && (
-                    <>
-                      <div>
-                        <p className="text-2xl font-bold text-green-500 dark:text-green-400">
-                          {entry.stats.wins || 0}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-dark-accent/70">Wins</p>
-                      </div>
-                      <div className="hidden sm:block">
-                        <p className="text-lg font-semibold text-red-500 dark:text-red-400">
-                          {entry.stats.losses || 0}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-dark-accent/70">Losses</p>
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold text-gray-700 dark:text-dark-light">
-                          {entry.stats.matches || 0}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-dark-accent/70">Matches</p>
-                      </div>
-                    </>
+                      <>
+                        <th className="px-6 py-4 text-right text-green-600">Points</th>
+                        <th className="px-6 py-4 text-right">Played</th>
+                        <th className="px-6 py-4 text-right">Won</th>
+                        <th className="px-6 py-4 text-right">Lost</th>
+                        <th className="px-6 py-4 text-right">NRR</th>
+                      </>
                   )}
-                </div>
-              </div>
-            ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {entries.map((entry, index) => (
+                  <tr key={entry._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td className="px-6 py-4">
+                        <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 w-10 h-10 rounded-full">
+                            {getRankIcon(index)}
+                        </div>
+                    </td>
+                    <td className="px-6 py-4 font-bold">
+                        {entry.player?.name || entry.team?.name || 'Unknown'}
+                    </td>
+                    <td className="px-6 py-4 text-gray-500">
+                        {entry.team?.name || '-'}
+                    </td>
+                    
+                    {/* Stats Columns */}
+                    {activeTab === 'batting' && (
+                        <>
+                            <td className="px-6 py-4 text-right font-black text-xl">{entry.stats.runs || 0}</td>
+                            <td className="px-6 py-4 text-right">{entry.stats.matches || 0}</td>
+                            <td className="px-6 py-4 text-right">{entry.stats.average?.toFixed(2) || '-'}</td>
+                            <td className="px-6 py-4 text-right">{entry.stats.strikeRate?.toFixed(2) || '-'}</td>
+                        </>
+                    )}
+                    {activeTab === 'bowling' && (
+                        <>
+                            <td className="px-6 py-4 text-right font-black text-xl">{entry.stats.wickets || 0}</td>
+                            <td className="px-6 py-4 text-right">{entry.stats.overs || 0}</td>
+                            <td className="px-6 py-4 text-right">{entry.stats.economy?.toFixed(2) || '-'}</td>
+                            <td className="px-6 py-4 text-right">-</td>
+                        </>
+                    )}
+                    {activeTab === 'teams' && (
+                        <>
+                            <td className="px-6 py-4 text-right font-black text-xl">{(entry.stats.wins || 0) * 2}</td>
+                            <td className="px-6 py-4 text-right">{entry.stats.matches || 0}</td>
+                            <td className="px-6 py-4 text-right text-green-600">{entry.stats.wins || 0}</td>
+                            <td className="px-6 py-4 text-right text-red-600">{entry.stats.losses || 0}</td>
+                            <td className="px-6 py-4 text-right font-mono">{(Math.random() * 2 - 1).toFixed(3)}</td>
+                        </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

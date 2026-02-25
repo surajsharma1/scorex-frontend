@@ -31,7 +31,9 @@ function App() {
   return (
     
     <div className="app-container">
-      <Sidebar />
+      <Sidebar isOpen={false} onToggle={function (): void {
+        throw new Error('Function not implemented.');
+      } } />
       <main className="main-content">
         <Outlet />
       </main>

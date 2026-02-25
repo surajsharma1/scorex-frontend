@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Save, Coins, RotateCcw, X, Target } from 'lucide-react';
 import { tournamentAPI } from '../services/api';
-import { Tournament, Team, LiveScores, Batsman, Bowler, TeamScore } from './types';
+import { Tournament, Team, LiveScores, Batsman, Bowler } from './types';
 
 // Types for cricket scoring
 type ExtraType = 'wide' | 'noBall' | 'bye' | 'legBye' | null;
@@ -17,21 +17,6 @@ interface ScoreboardUpdateProps {
   tournament: Tournament;
   onUpdate: () => void;
 }
-
-// Default players for demo (in real app, would come from team data)
-const defaultPlayers: Player[] = [
-  { id: '1', name: 'Player 1', role: 'Batsman' },
-  { id: '2', name: 'Player 2', role: 'Batsman' },
-  { id: '3', name: 'Player 3', role: 'All-rounder' },
-  { id: '4', name: 'Player 4', role: 'Batsman' },
-  { id: '5', name: 'Player 5', role: 'WK-Batsman' },
-  { id: '6', name: 'Player 6', role: 'All-rounder' },
-  { id: '7', name: 'Player 7', role: 'All-rounder' },
-  { id: '8', name: 'Player 8', role: 'Bowler' },
-  { id: '9', name: 'Player 9', role: 'Bowler' },
-  { id: '10', name: 'Player 10', role: 'Bowler' },
-  { id: '11', name: 'Player 11', role: 'Bowler' },
-];
 
 // Out type labels
 const outTypes: { type: OutType; label: string; short: string }[] = [
@@ -62,11 +47,9 @@ const extraRunLabels: Record<number, string> = {
   6: 'Six',
 };
 
-// Helper to format overs display - FIXED to avoid floating point issues
+// Helper to format overs display
 const formatOvers = (overs: number, balls: number) => {
-  // Round overs to avoid floating point precision issues
-  const cleanOvers = Math.round(overs * 10) / 10;
-  return `${Math.floor(cleanOvers)}.${balls}`;
+  return `${overs}.${balls}`;
 };
 
 const getTeamName = (teams: Team[], index: number) => teams[index]?.name || `Team ${index + 1}`;
@@ -85,30 +68,29 @@ const createDefaultBowler = (): Bowler => ({
 });
 
 export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpdateProps) {
-  const teams = tournament.teams as unknown as Team[];
+  // Ensure teams is treated as an array
+  const teams = Array.isArray(tournament.teams) ? tournament.teams : [];
   
+  // Use a ref for the BroadcastChannel to persist across renders
+  const channelRef = useRef<BroadcastChannel | null>(null);
+
   const [liveScores, setLiveScores] = useState<LiveScores>(() => {
     const existing = tournament.liveScores;
+    // Helper to safely get nested data
+    const getTeamData = (teamKey: 'team1' | 'team2', index: number) => ({
+        name: existing?.[teamKey]?.name || getTeamName(teams, index),
+        score: existing?.[teamKey]?.score || 0,
+        wickets: existing?.[teamKey]?.wickets || 0,
+        overs: existing?.[teamKey]?.overs || 0,
+        balls: existing?.[teamKey]?.balls || 0,
+        batsmen: existing?.[teamKey]?.batsmen?.length ? existing[teamKey].batsmen : createDefaultBatsmen(),
+        bowler: existing?.[teamKey]?.bowler || createDefaultBowler(),
+    });
+
     return {
-      team1: { 
-        name: getTeamName(teams, 0), 
-        score: existing?.team1?.score || 0, 
-        wickets: existing?.team1?.wickets || 0, 
-        overs: existing?.team1?.overs || 0, 
-        balls: existing?.team1?.balls || 0,
-        batsmen: existing?.team1?.batsmen || createDefaultBatsmen(),
-        bowler: existing?.team1?.bowler || createDefaultBowler(),
-      },
-      team2: { 
-        name: getTeamName(teams, 1), 
-        score: existing?.team2?.score || 0, 
-        wickets: existing?.team2?.wickets || 0, 
-        overs: existing?.team2?.overs || 0, 
-        balls: existing?.team2?.balls || 0,
-        batsmen: existing?.team2?.batsmen || createDefaultBatsmen(),
-        bowler: existing?.team2?.bowler || createDefaultBowler(),
-      },
-      battingTeam: 'team1',
+      team1: getTeamData('team1', 0),
+      team2: getTeamData('team2', 1),
+      battingTeam: existing?.battingTeam || 'team1',
       currentRunRate: existing?.currentRunRate || 0,
       requiredRunRate: existing?.requiredRunRate || 0,
       target: existing?.target || 0,
@@ -123,65 +105,88 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
   
   // Toss states
   const [tossWinner, setTossWinner] = useState<'team1' | 'team2' | null>(null);
-  const [tossChoice, setTossChoice] = useState<'bat' | 'bowl' | null>(null);
-
-// Player selection states
-  const [availablePlayers, setAvailablePlayers] = useState<Player[]>(defaultPlayers);
+  
+  // Player selection states
+  const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
   const [strikerIndex, setStrikerIndex] = useState(0);
-  const [nonStrikerIndex, setNonStrikerIndex] = useState(1);
-  const [bowlerIndex, setBowlerIndex] = useState(7);
+  const [nonStrikerIndex, setNonStrikerIndex] = useState(0);
+  const [bowlerIndex, setBowlerIndex] = useState(0);
   
   // Selected batsman for scoring (0 = striker, 1 = non-striker)
   const [selectedBatsmanIndex, setSelectedBatsmanIndex] = useState(0);
 
   // Modal states
   const [showExtraModal, setShowExtraModal] = useState(false);
-  const [showWideModal, setShowWideModal] = useState(false);
   const [showExtrasModal, setShowExtrasModal] = useState(false);
   const [showOutModal, setShowOutModal] = useState(false);
   const [pendingExtraType, setPendingExtraType] = useState<ExtraType>(null);
-  const [showTeamSelect, setShowTeamSelect] = useState(false);
 
-  // Broadcast Channel for Overlay Communication
-  const channel = new BroadcastChannel('cricket_score_updates');
+  // Initialize Broadcast Channel once
+  useEffect(() => {
+    channelRef.current = new BroadcastChannel('cricket_score_updates');
+    
+    // Cleanup on unmount
+    return () => {
+      if (channelRef.current) {
+        channelRef.current.close();
+      }
+    };
+  }, []);
+
+  // Update available players when batting team changes
+  useEffect(() => {
+    if (!teams || teams.length === 0) return;
+
+    const battingTeamIndex = liveScores.battingTeam === 'team1' ? 0 : 1;
+    const battingTeamObj = teams[battingTeamIndex];
+
+    if (battingTeamObj && Array.isArray(battingTeamObj.players)) {
+        // Map team players to Player interface
+        const playersList = battingTeamObj.players.map((p: any) => ({
+            id: p._id || p.id || Math.random().toString(),
+            name: p.name || 'Unknown Player',
+            role: p.role || 'Player'
+        }));
+        setAvailablePlayers(playersList);
+    }
+  }, [liveScores.battingTeam, teams]);
 
   // Get current batting team
   const currentTeam = liveScores[liveScores.battingTeam];
-  const bowlingTeam = liveScores[liveScores.battingTeam === 'team1' ? 'team2' : 'team1'];
-
-  // Get actual team names from tournament
-  const getTeam1Name = () => teams[0]?.name || 'Team 1';
-  const getTeam2Name = () => teams[1]?.name || 'Team 2';
-
+  
   // Create comprehensive overlay data
-  const createOverlayData = () => {
+  const createOverlayData = useMemo(() => {
     const isBattingTeam1 = liveScores.battingTeam === 'team1';
     const battingTeamData = liveScores[liveScores.battingTeam];
     const bowlingTeamData = isBattingTeam1 ? liveScores.team2 : liveScores.team1;
     
+    // Get actual team names
+    const t1Name = teams[0]?.name || 'Team 1';
+    const t2Name = teams[1]?.name || 'Team 2';
+
     return {
       // Tournament info
       tournament: {
         name: tournament.name || 'Tournament',
         id: tournament._id || ''
       },
-      // Team 1 data (batting or bowling)
+      // Team 1 data
       team1: {
-        name: getTeam1Name(),
-        shortName: getTeam1Name().substring(0, 3).toUpperCase(),
+        name: t1Name,
+        shortName: t1Name.substring(0, 3).toUpperCase(),
         score: isBattingTeam1 ? (battingTeamData?.score || 0) : (bowlingTeamData?.score || 0),
         wickets: isBattingTeam1 ? (battingTeamData?.wickets || 0) : (bowlingTeamData?.wickets || 0),
-        overs: isBattingTeam1 ? `${Math.floor(battingTeamData?.overs || 0)}.${battingTeamData?.balls || 0}` : `${Math.floor(bowlingTeamData?.overs || 0)}.${bowlingTeamData?.balls || 0}`,
+        overs: isBattingTeam1 ? `${battingTeamData?.overs || 0}.${battingTeamData?.balls || 0}` : `${bowlingTeamData?.overs || 0}.${bowlingTeamData?.balls || 0}`,
         color: '#004BA0',
         isBatting: isBattingTeam1
       },
-      // Team 2 data (batting or bowling)
+      // Team 2 data
       team2: {
-        name: getTeam2Name(),
-        shortName: getTeam2Name().substring(0, 3).toUpperCase(),
+        name: t2Name,
+        shortName: t2Name.substring(0, 3).toUpperCase(),
         score: !isBattingTeam1 ? (battingTeamData?.score || 0) : (bowlingTeamData?.score || 0),
         wickets: !isBattingTeam1 ? (battingTeamData?.wickets || 0) : (bowlingTeamData?.wickets || 0),
-        overs: !isBattingTeam1 ? `${Math.floor(battingTeamData?.overs || 0)}.${battingTeamData?.balls || 0}` : `${Math.floor(bowlingTeamData?.overs || 0)}.${bowlingTeamData?.balls || 0}`,
+        overs: !isBattingTeam1 ? `${battingTeamData?.overs || 0}.${battingTeamData?.balls || 0}` : `${bowlingTeamData?.overs || 0}.${bowlingTeamData?.balls || 0}`,
         color: '#FCCA06',
         isBatting: !isBattingTeam1
       },
@@ -192,7 +197,7 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
         balls: battingTeamData?.batsmen[0]?.balls || 0,
         fours: battingTeamData?.batsmen[0]?.fours || 0,
         sixes: battingTeamData?.batsmen[0]?.sixes || 0,
-        status: (battingTeamData?.batsmen[0]?.runs || 0) > 0 && (battingTeamData?.batsmen[0]?.isStriker) ? '*' : ''
+        status: '*'
       },
       // Non-striker batsman
       nonStriker: {
@@ -224,51 +229,25 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
       status: liveScores.target > 0 ? 'Chasing' : 'Batting',
       result: ''
     };
-  };
-
-  // Update Overlay UI
-  const updateOverlayUI = (scores: LiveScores) => {
-    if (!scores) return;
-    setLiveScores(prev => ({
-      ...prev,
-      team1: scores.team1 || prev.team1,
-      team2: scores.team2 || prev.team2,
-      battingTeam: scores.battingTeam || prev.battingTeam,
-      currentRunRate: scores.currentRunRate ?? prev.currentRunRate,
-      requiredRunRate: scores.requiredRunRate ?? prev.requiredRunRate,
-      target: scores.target ?? prev.target,
-      lastFiveOvers: scores.lastFiveOvers || prev.lastFiveOvers,
-    }));
-  };
-
-  // Trigger Wicket Animation
-  const triggerWicketAnimation = (message: string) => {
-    // Create full overlay data for wicket event
-    const overlayData = createOverlayData();
-    channel.postMessage({ 
-      type: 'WICKET', 
-      message,
-      ...overlayData
-    });
-  };
-
-  useEffect(() => {
-    channel.onmessage = (event) => {
-      const data = event.data;
-      if (data.type === 'WICKET') {
-        triggerWicketAnimation(data.message);
-      } else {
-        updateOverlayUI(data);
-      }
-    };
-    return () => channel.close();
-  }, []);
+  }, [liveScores, tournament, teams]);
 
   // Broadcast comprehensive score data whenever liveScores changes
   useEffect(() => {
-    const overlayData = createOverlayData();
-    channel.postMessage(overlayData);
-  }, [liveScores, tournament.name, teams]);
+    if (channelRef.current) {
+        channelRef.current.postMessage(createOverlayData);
+    }
+  }, [createOverlayData]);
+
+  // Trigger Wicket Animation
+  const triggerWicketAnimation = (message: string) => {
+    if (channelRef.current) {
+        channelRef.current.postMessage({ 
+            type: 'WICKET', 
+            message,
+            ...createOverlayData
+        });
+    }
+  };
 
   const updateStats = (field: string, value: unknown) => {
     setLiveScores(prev => ({ ...prev, [field]: value }));
@@ -279,31 +258,6 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
       ...prev,
       [team]: { ...prev[team], [field]: value }
     }));
-  };
-
-  // Swap striker after odd runs
-  const swapStriker = () => {
-    setLiveScores(prev => {
-      const team = prev[prev.battingTeam];
-      const newBatsmen = [...team.batsmen];
-      newBatsmen[0] = { ...newBatsmen[0], isStriker: false };
-      newBatsmen[1] = { ...newBatsmen[1], isStriker: true };
-      
-      // Swap the batsmen array positions
-      const temp = newBatsmen[0];
-      newBatsmen[0] = newBatsmen[1];
-      newBatsmen[1] = temp;
-      
-      return {
-        ...prev,
-        [prev.battingTeam]: { ...team, batsmen: newBatsmen }
-      };
-    });
-    
-    // Swap striker/non-striker indices
-    const tempIdx = strikerIndex;
-    setStrikerIndex(nonStrikerIndex);
-    setNonStrikerIndex(tempIdx);
   };
 
   // Add runs (0, 1, 2, 3, 4, 6)
@@ -325,7 +279,7 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
         };
       }
       
-      // Update ball count - FIXED: Use integer math to avoid floating point errors
+      // Update ball count
       let newBalls = team.balls + 1;
       let newOvers = team.overs;
       if (newBalls === 6) {
@@ -333,11 +287,12 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
         newBalls = 0;
       }
       
-      // Update bowler - FIXED: Use integer overs
+      // Update bowler
       const newBowler = team.bowler ? {
         ...team.bowler,
         runs: team.bowler.runs + runs,
-        overs: newOvers,
+        overs: newOvers, // Use integer overs, not float
+        wickets: team.bowler.wickets
       } : null;
       
       // Swap striker on odd runs
@@ -345,6 +300,9 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
         const temp = newBatsmen[0];
         newBatsmen[0] = newBatsmen[1];
         newBatsmen[1] = temp;
+        // Toggle isStriker flag for correctness (visual swap already done by array swap)
+        newBatsmen[0].isStriker = true;
+        newBatsmen[1].isStriker = false;
       }
       
       // Calculate run rate
@@ -365,8 +323,9 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
       };
     });
     
-    // Trigger overlay update
-    channel.postMessage({ type: 'RUN', runs, team: liveScores.battingTeam });
+    if (channelRef.current) {
+        channelRef.current.postMessage({ type: 'RUN', runs, team: liveScores.battingTeam });
+    }
   };
 
   // Handle extra (Wide, No-ball, Bye, Leg-bye)
@@ -375,39 +334,39 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     setShowExtraModal(true);
   };
 
-  // Add extra runs - FIXED
+  // Add extra runs
   const addExtraRuns = (runs: number) => {
     if (!pendingExtraType) return;
     
     setLiveScores(prev => {
       const team = prev[prev.battingTeam];
-      const newScore = team.score + runs;
+      // Logic: If it's Wide or No-ball, usually +1 run is added by default plus any runs run.
+      // e.g., Wide + 4 means 5 runs total. 
+      const penalty = (pendingExtraType === 'wide' || pendingExtraType === 'noBall') ? 1 : 0;
+      const totalRunsToAdd = runs + penalty;
+      const newScore = team.score + totalRunsToAdd;
       
       let newBalls = team.balls;
       let newOvers = team.overs;
       
-      // Wide and No-ball: runs added but NO legal ball counted
-      // Bye and Leg-bye: runs added AND ball is counted
-      if (pendingExtraType === 'wide' || pendingExtraType === 'noBall') {
-        // No ball increment - runs added but ball doesn't count
-        // But no-ball always has 1 run added automatically
-      } else {
-        // Bye and Leg-bye count as legal ball
+      // Wide and No-ball: ball does NOT count (usually).
+      // Bye and Leg-bye: ball DOES count.
+      if (pendingExtraType === 'bye' || pendingExtraType === 'legBye') {
         newBalls = team.balls + 1;
         if (newBalls >= 6) {
           newOvers = team.overs + 1;
-          newBalls = newBalls - 6;
+          newBalls = 0;
         }
       }
       
-      // Update bowler - FIXED: Proper overs handling
+      // Update bowler
       const newBowler = team.bowler ? {
         ...team.bowler,
-        runs: team.bowler.runs + runs,
-        overs: newOvers, // Use the new overs directly
+        runs: team.bowler.runs + totalRunsToAdd,
+        overs: newOvers,
       } : null;
       
-      // Calculate run rate - FIXED: Avoid floating point
+      // Calculate run rate
       const totalBalls = newOvers * 6 + newBalls;
       const rr = totalBalls > 0 ? (newScore / (totalBalls / 6)) : 0;
       
@@ -424,8 +383,9 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
       };
     });
     
-    // Trigger overlay update
-    channel.postMessage({ type: 'EXTRA', extraType: pendingExtraType, runs, team: liveScores.battingTeam });
+    if(channelRef.current) {
+        channelRef.current.postMessage({ type: 'EXTRA', extraType: pendingExtraType, runs, team: liveScores.battingTeam });
+    }
     
     setShowExtraModal(false);
     setPendingExtraType(null);
@@ -436,7 +396,7 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     setShowOutModal(true);
   };
 
-  // Process wicket - FIXED
+  // Process wicket
   const processWicket = (outType: OutType) => {
     const outMessages: Record<string, string> = {
       caught: 'CAUGHT',
@@ -455,22 +415,38 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
       const team = prev[prev.battingTeam];
       const newWickets = team.wickets + 1;
       
-      // Remove striker from batsmen list
-      const newBatsmen = team.batsmen.filter(b => b.isStriker);
+      // LOGIC FIX: Keep the non-striker, remove the striker
+      // Filter returns array of kept elements. We want to keep !isStriker
+      const remainingBatsman = team.batsmen.find(b => !b.isStriker);
       
-      // If wickets fall, update ball count (except for run out)
+      // Create a new fresh batsman placeholder
+      const newBatsman: Batsman = {
+          name: 'New Batter',
+          runs: 0,
+          balls: 0,
+          fours: 0,
+          sixes: 0,
+          isStriker: true // New batter typically takes strike (unless cross logic, kept simple here)
+      };
+
+      // Construct new batsmen array [New Striker, Old Non-Striker]
+      const newBatsmen = remainingBatsman 
+          ? [newBatsman, { ...remainingBatsman, isStriker: false }] 
+          : [newBatsman, createDefaultBatsmen()[1]];
+      
+      // If wickets fall, update ball count (except for run out usually, but simplifying)
       let newBalls = team.balls;
       let newOvers = team.overs;
       
-      if (outType !== 'runOut') {
+      if (outType !== 'timedOut') { // Timed out doesn't count ball? usually ball counts for most outs
         newBalls = team.balls + 1;
         if (newBalls >= 6) {
           newOvers = team.overs + 1;
-          newBalls = newBalls - 6;
+          newBalls = 0;
         }
       }
       
-      // Update bowler wickets - FIXED
+      // Update bowler wicket count
       const newBowler = team.bowler ? {
         ...team.bowler,
         wickets: team.bowler.wickets + 1,
@@ -492,14 +468,12 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     
     // Trigger wicket animation
     triggerWicketAnimation(message);
-    
     setShowOutModal(false);
   };
 
   // Handle toss
   const handleToss = (winner: 'team1' | 'team2', choice: 'bat' | 'bowl') => {
     setTossWinner(winner);
-    setTossChoice(choice);
     const battingTeam = choice === 'bat' ? winner : (winner === 'team1' ? 'team2' : 'team1');
     updateStats('battingTeam', battingTeam);
     updateStats('isChasing', choice === 'bowl');
@@ -567,36 +541,51 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     }
   };
 
-  // Update player at crease
-  const updateBatsman = (index: number, name: string) => {
-    setLiveScores(prev => {
-      const team = prev[prev.battingTeam];
-      const newBatsmen = [...team.batsmen];
-      if (newBatsmen[index]) {
-        newBatsmen[index] = { ...newBatsmen[index], name };
+  // Update player at crease via dropdown
+  const handlePlayerSelect = (slotIndex: number, playerIdx: number) => {
+      const selectedPlayer = availablePlayers[playerIdx];
+      if (selectedPlayer) {
+          setLiveScores(prev => {
+              const team = prev[prev.battingTeam];
+              const newBatsmen = [...team.batsmen];
+              // Ensure we have an object to update
+              if (!newBatsmen[slotIndex]) {
+                  newBatsmen[slotIndex] = { 
+                      name: '', runs: 0, balls: 0, fours: 0, sixes: 0, isStriker: slotIndex === 0 
+                  };
+              }
+              newBatsmen[slotIndex] = { ...newBatsmen[slotIndex], name: selectedPlayer.name };
+              return {
+                  ...prev,
+                  [prev.battingTeam]: { ...team, batsmen: newBatsmen }
+              };
+          });
+          
+          if (slotIndex === 0) setStrikerIndex(playerIdx);
+          else setNonStrikerIndex(playerIdx);
       }
-      return {
-        ...prev,
-        [prev.battingTeam]: { ...team, batsmen: newBatsmen }
-      };
-    });
+  };
+  
+  // Update bowler via dropdown
+  const handleBowlerSelect = (playerIdx: number) => {
+      const selectedPlayer = availablePlayers[playerIdx];
+      if (selectedPlayer) {
+          setLiveScores(prev => {
+              const team = prev[prev.battingTeam];
+              const currentBowler = team.bowler || createDefaultBowler();
+              return {
+                  ...prev,
+                  [prev.battingTeam]: { 
+                      ...team, 
+                      bowler: { ...currentBowler, name: selectedPlayer.name }
+                  }
+              };
+          });
+          setBowlerIndex(playerIdx);
+      }
   };
 
-  // Update bowler
-  const updateBowlerName = (name: string) => {
-    setLiveScores(prev => {
-      const team = prev[prev.battingTeam];
-      return {
-        ...prev,
-        [prev.battingTeam]: { 
-          ...team, 
-          bowler: team.bowler ? { ...team.bowler, name } : { name, overs: 0, maidens: 0, runs: 0, wickets: 0 }
-        }
-      };
-    });
-  };
-
-// Render scoring buttons with batsman selection
+// Render scoring buttons
   const renderScoringButtons = () => (
     <div className="space-y-3">
       {/* Batsman Selection */}
@@ -646,12 +635,11 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     </div>
   );
 
-// Render extra buttons - Wide with 0-4 + Combined extras dropdown
+// Render extra buttons
   const renderExtraButtons = () => (
     <div className="space-y-2 mt-2">
-      {/* Wide + 0 to Wide + 4 buttons */}
       <div>
-        <label className="text-xs text-gray-400 uppercase mb-1 block">Wide</label>
+        <label className="text-xs text-gray-400 uppercase mb-1 block">Wide (Run + Wide)</label>
         <div className="grid grid-cols-5 gap-1">
           {wideRunOptions.map((run) => (
             <button
@@ -668,7 +656,6 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
         </div>
       </div>
       
-      {/* Combined Extras Dropdown Button */}
       <div className="flex gap-2 mt-2">
         <div className="relative flex-1">
           <button
@@ -679,7 +666,6 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
             <span className="text-xs">▼</span>
           </button>
           
-          {/* Extras Dropdown Modal */}
           {showExtrasModal && (
             <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-800 rounded-lg border border-gray-600 p-2 shadow-xl z-10">
               <button
@@ -792,22 +778,24 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
   const renderPlayerDropdown = (
     label: string,
     value: number,
-    onChange: (idx: number) => void,
-    excludeIdx?: number
+    _onChange: (idx: number) => void,
+    isBowler: boolean = false
   ) => (
     <div className="flex flex-col gap-1">
       <label className="text-xs text-gray-400 uppercase">{label}</label>
       <select
         value={value}
-        onChange={(e) => onChange(parseInt(e.target.value))}
+        onChange={(e) => isBowler 
+            ? handleBowlerSelect(parseInt(e.target.value)) 
+            : handlePlayerSelect(label === 'Striker' ? 0 : 1, parseInt(e.target.value))
+        }
         className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
       >
+        <option value={-1}>Select Player</option>
         {availablePlayers.map((player, idx) => (
-          idx !== excludeIdx && (
-            <option key={player.id} value={idx}>
+           <option key={player.id} value={idx}>
               {player.name}
-            </option>
-          )
+           </option>
         ))}
       </select>
     </div>
@@ -851,7 +839,7 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
         </div>
       )}
 
-      {/* Team Selection Buttons */}
+      {/* Team Selection Buttons (Active indicator) */}
       {tossWinner && (
         <div className="flex gap-2">
           <button
@@ -954,9 +942,9 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
       {/* Player Selection */}
       {tossWinner && (
         <div className="grid grid-cols-3 gap-4 bg-gray-800 p-4 rounded-lg border border-gray-700">
-          {renderPlayerDropdown('Striker', strikerIndex, setStrikerIndex, nonStrikerIndex)}
-          {renderPlayerDropdown('Non-Striker', nonStrikerIndex, setNonStrikerIndex, strikerIndex)}
-          {renderPlayerDropdown('Bowler', bowlerIndex, setBowlerIndex)}
+          {renderPlayerDropdown('Striker', strikerIndex, setStrikerIndex)}
+          {renderPlayerDropdown('Non-Striker', nonStrikerIndex, setNonStrikerIndex)}
+          {renderPlayerDropdown('Bowler', bowlerIndex, setBowlerIndex, true)}
         </div>
       )}
 

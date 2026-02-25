@@ -76,7 +76,7 @@ export default function TournamentDetail() {
   // Wicket selection modal
   const [showWicketModal, setShowWicketModal] = useState(false);
   const [pendingWicketType, setPendingWicketType] = useState<string>('');
-  const [isNoBallOrWide, setIsNoBallOrWide] = useState(false);
+  const [deliveryKind, setDeliveryKind] = useState<'normal' | 'noBall' | 'wide'>('normal');
 
   // Cricket innings state
   const [innings, setInnings] = useState<Innings>(() => createDefaultInnings());
@@ -209,29 +209,29 @@ export default function TournamentDetail() {
     autoSaveScore(newInnings, selectedTeamForUpdate);
   };
 
-  // Handle wicket with selection
-  const handleWicket = (dismissal: Dismissal) => {
+  // Handle wicket with selection - Track if this was a noBall or wide delivery
+  const handleWicket = (dismissal: Dismissal, deliveryKind: 'normal' | 'noBall' | 'wide' = 'normal') => {
     // Determine if this is a legal ball delivery
-    if (isNoBallOrWide) {
+    if (deliveryKind === 'noBall' || deliveryKind === 'wide') {
       // On no-ball or wide, only certain dismissals allowed
       if (dismissal === 'stumped' || dismissal === 'runOut') {
-        processDelivery(0, isNoBallOrWide === 'noBall' ? 'noBall' : 'wide', dismissal);
+        processDelivery(0, deliveryKind, dismissal);
       } else {
         // Can't be bowled, caught, lbw on no-ball/wide - treat as run out if they try
-        processDelivery(0, isNoBallOrWide === 'noBall' ? 'noBall' : 'wide', 'runOut');
+        processDelivery(0, deliveryKind, 'runOut');
       }
     } else {
       processDelivery(0, 'normal', dismissal);
     }
     setShowWicketModal(false);
-    setIsNoBallOrWide(false);
+    setDeliveryKind('normal');
     setPendingWicketType('');
   };
 
   // Open wicket modal
-  const openWicketModal = (type: 'normal' | 'runOut', isNBorWide: boolean = false) => {
+  const openWicketModal = (type: 'normal' | 'runOut', deliveryType: 'normal' | 'noBall' | 'wide' = 'normal') => {
     setPendingWicketType(type);
-    setIsNoBallOrWide(isNBorWide);
+    setDeliveryKind(deliveryType);
     setShowWicketModal(true);
   };
 
@@ -668,18 +668,18 @@ export default function TournamentDetail() {
           <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
             <h3 className="text-xl font-bold mb-4 text-center">
               Select Dismissal Type
-              {isNoBallOrWide && <span className="text-yellow-400 block text-sm">(No Ball/Wide)</span>}
+              {deliveryKind !== 'normal' && <span className="text-yellow-400 block text-sm">({deliveryKind})</span>}
             </h3>
             
             <div className="space-y-2">
               {outTypes.map((out) => {
                 // Filter based on whether it's no-ball/wide
-                const isAllowed = isNoBallOrWide ? out.canBeNoBall : true;
+                const isAllowed = deliveryKind !== 'normal' ? out.canBeNoBall : true;
                 
                 return (
                   <button
                     key={out.type}
-                    onClick={() => handleWicket(out.type as Dismissal)}
+                    onClick={() => handleWicket(out.type as Dismissal, deliveryKind)}
                     disabled={!isAllowed}
                     className={`w-full py-3 rounded-lg font-bold ${
                       isAllowed 
@@ -688,14 +688,14 @@ export default function TournamentDetail() {
                     }`}
                   >
                     {out.label}
-                    {!isAllowed && <span className="text-xs block">(Not allowed on {isNoBallOrWide ? 'No Ball/Wide' : 'legal ball'})</span>}
+                    {!isAllowed && <span className="text-xs block">(Not allowed on {deliveryKind !== 'normal' ? deliveryKind : 'legal ball'})</span>}
                   </button>
                 );
               })}
             </div>
 
             <button
-              onClick={() => { setShowWicketModal(false); setIsNoBallOrWide(false); }}
+              onClick={() => { setShowWicketModal(false); setDeliveryKind('normal'); }}
               className="w-full mt-4 bg-gray-600 hover:bg-gray-700 py-2 rounded-lg"
             >
               Cancel
@@ -706,3 +706,8 @@ export default function TournamentDetail() {
     </div>
   );
 }
+
+function setIsNoBallOrWide(arg0: boolean) {
+  throw new Error('Function not implemented.');
+}
+

@@ -1,356 +1,148 @@
 import { useState } from 'react';
-import { Smartphone, CheckCircle, X, CreditCard } from 'lucide-react';
+import { paymentAPI } from '../services/api';
+import { CreditCard, CheckCircle, X, ShieldCheck, Loader2 } from 'lucide-react';
 
 interface PaymentProps {
   onClose: () => void;
   onSuccess: (plan: string) => void;
 }
 
-const LEVELS = [
-  {
-    id: 'level1',
-    name: 'Level 1',
-    description: 'Unanimated overlays',
-    features: [
-      'All unanimated overlay templates',
-      'Basic customization',
-      'Unlimited tournaments',
-      'Community support'
-    ],
-    color: 'bg-blue-600'
-  },
-  {
-    id: 'level2',
-    name: 'Level 2',
-    description: 'All overlays',
-    features: [
-      'All overlay templates (including animated)',
-      'Full customization',
-      'Unlimited tournaments',
-      'Priority support',
-      'Custom branding'
-    ],
-    color: 'bg-purple-600'
-  }
-];
-
-const DURATIONS = [
-  { id: '1day', name: '1 Day', multiplier: 1 },
-  { id: '1week', name: '1 Week', multiplier: 7 },
-  { id: '1month', name: '1 Month', multiplier: 30 }
-];
-
-const PRICES = {
-  level1: { base: 1 }, // $1 per day
-  level2: { base: 2 }  // $2 per day
-};
-
 export default function Payment({ onClose, onSuccess }: PaymentProps) {
-  const [selectedLevel, setSelectedLevel] = useState('level1');
-  const [selectedDuration, setSelectedDuration] = useState('1week');
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('upi');
-  const [upiDetails, setUpiDetails] = useState({
-    upiId: '',
-    name: ''
-  });
-  const [cardDetails, setCardDetails] = useState({
-    number: '',
-    expiry: '',
-    cvc: '',
-    name: ''
-  });
+  const [selectedPlan, setSelectedPlan] = useState('premium-level1');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvc, setCvc] = useState('');
 
-  const calculatePrice = () => {
-    const levelPrice = PRICES[selectedLevel as keyof typeof PRICES].base;
-    const durationMultiplier = DURATIONS.find(d => d.id === selectedDuration)?.multiplier || 1;
-    return levelPrice * durationMultiplier;
-  };
-
-  const handlePayment = async () => {
+  const handlePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
-    try {
-      const price = calculatePrice();
 
-      // Create payment intent
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/v1/payments/create-intent`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          amount: price,
-          level: selectedLevel,
-          duration: selectedDuration
-        })
-      });
-
-      const { clientSecret, paymentIntentId } = await response.json();
-
-      // For UPI payments, we would integrate with Stripe Elements
-      // For now, simulate successful payment
-      setTimeout(async () => {
-        // Confirm payment
-        const confirmResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/v1/payments/confirm`, {
-
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            paymentIntentId,
-            level: selectedLevel,
-            duration: selectedDuration
-          })
-        });
-
-        const result = await confirmResponse.json();
-
-        if (result.success) {
-          // Store the new token with updated membership
-          if (result.token) {
-            localStorage.setItem('token', result.token);
-          }
-          onSuccess(`premium-${selectedLevel}`);
-        } else {
-          throw new Error('Payment confirmation failed');
-        }
-      }, 2000);
-
-    } catch (error) {
-      console.error('Payment failed:', error);
-      // For demo purposes, simulate successful payment
-      // In production, remove this fallback
-      onSuccess(`premium-${selectedLevel}`);
-    } finally {
-      setLoading(false);
-    }
+    // Simulate network delay for payment gateway
+    setTimeout(async () => {
+      try {
+        // In a real app, you would interact with Stripe/PayPal here
+        // For now, we hit our backend to update the user status
+        await paymentAPI.createSubscription(selectedPlan);
+        onSuccess(selectedPlan);
+      } catch (error) {
+        alert('Payment failed. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }, 2000);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white dark:bg-dark-bg-alt p-6 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-dark-primary/30">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-dark-light">Upgrade Your Plan</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-900 dark:hover:text-dark-light"
-          >
-            <X className="w-6 h-6" />
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="bg-white dark:bg-gray-800 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white flex justify-between items-start">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <ShieldCheck className="w-6 h-6" /> Secure Checkout
+            </h2>
+            <p className="text-blue-100 text-sm mt-1">Upgrade your ScoreX experience</p>
+          </div>
+          <button onClick={onClose} className="bg-white/20 p-1 rounded-full hover:bg-white/30 transition">
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Level Selection */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-light mb-4">Select Level</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {LEVELS.map((level) => (
-              <div
-                key={level.id}
-                className={`border-2 rounded-lg p-6 cursor-pointer transition-all ${
-                  selectedLevel === level.id
-                    ? 'border-blue-500 bg-gray-100 dark:bg-dark-bg'
-                    : 'border-gray-300 dark:border-dark-primary/30 bg-white dark:bg-dark-bg-alt hover:border-gray-500'
-                }`}
-                onClick={() => setSelectedLevel(level.id)}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-dark-light">{level.name}</h3>
-                  {selectedLevel === level.id && (
-                    <CheckCircle className="w-6 h-6 text-green-400" />
-                  )}
-                </div>
-                <p className="text-sm text-gray-600 dark:text-dark-accent/70 mb-4">{level.description}</p>
-                <ul className="space-y-2">
-                  {level.features.map((feature, index) => (
-                    <li key={index} className="text-sm text-gray-700 dark:text-dark-accent flex items-center">
-                      <CheckCircle className="w-4 h-4 text-green-400 mr-2 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+        <div className="p-6 overflow-y-auto">
+          {/* Plan Selection */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div 
+              onClick={() => setSelectedPlan('premium-level1')}
+              className={`border-2 p-4 rounded-xl cursor-pointer transition-all ${
+                selectedPlan === 'premium-level1' 
+                  ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20' 
+                  : 'border-gray-200 dark:border-gray-700'
+              }`}
+            >
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-bold dark:text-white">Level 1</span>
+                {selectedPlan === 'premium-level1' && <CheckCircle className="w-5 h-5 text-blue-600" />}
               </div>
-            ))}
-          </div>
-        </div>
+              <p className="text-2xl font-bold dark:text-white">$5<span className="text-sm font-normal text-gray-500">/mo</span></p>
+              <p className="text-xs text-gray-500 mt-2">Static Overlays & Basic Stats</p>
+            </div>
 
-        {/* Duration Selection */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-light mb-4">Select Duration</h3>
-          <div className="grid grid-cols-3 gap-4">
-            {DURATIONS.map((duration) => (
-              <button
-                key={duration.id}
-                onClick={() => setSelectedDuration(duration.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  selectedDuration === duration.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 dark:bg-dark-bg text-gray-900 dark:text-dark-light hover:bg-gray-300 dark:hover:bg-dark-bg-alt'
-                }`}
-              >
-                {duration.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Payment Method Selection */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-light mb-4">Payment Method</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => setPaymentMethod('upi')}
-              className={`flex items-center px-4 py-2 rounded-lg ${
-                paymentMethod === 'upi'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 dark:bg-dark-bg text-gray-900 dark:text-dark-light hover:bg-gray-300 dark:hover:bg-dark-bg-alt'
+            <div 
+              onClick={() => setSelectedPlan('premium-level2')}
+              className={`border-2 p-4 rounded-xl cursor-pointer transition-all ${
+                selectedPlan === 'premium-level2' 
+                  ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20' 
+                  : 'border-gray-200 dark:border-gray-700'
               }`}
             >
-              <Smartphone className="w-5 h-5 mr-2" />
-              UPI
-            </button>
-            <button
-              onClick={() => setPaymentMethod('card')}
-              className={`flex items-center px-4 py-2 rounded-lg ${
-                paymentMethod === 'card'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 dark:bg-dark-bg text-gray-900 dark:text-dark-light hover:bg-gray-300 dark:hover:bg-dark-bg-alt'
-              }`}
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-bold dark:text-white">Level 2</span>
+                {selectedPlan === 'premium-level2' && <CheckCircle className="w-5 h-5 text-purple-600" />}
+              </div>
+              <p className="text-2xl font-bold dark:text-white">$12<span className="text-sm font-normal text-gray-500">/mo</span></p>
+              <p className="text-xs text-gray-500 mt-2">Animated Overlays & API Access</p>
+            </div>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handlePayment} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Card Number</label>
+              <div className="relative">
+                <CreditCard className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <input 
+                  type="text" 
+                  value={cardNumber}
+                  onChange={(e) => setCardNumber(e.target.value.replace(/\D/g,'').substring(0,16))}
+                  placeholder="0000 0000 0000 0000"
+                  className="w-full pl-10 p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white font-mono"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expiry</label>
+                <input 
+                  type="text" 
+                  value={expiry}
+                  onChange={(e) => setExpiry(e.target.value)}
+                  placeholder="MM/YY"
+                  className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CVC</label>
+                <input 
+                  type="text" 
+                  value={cvc}
+                  onChange={(e) => setCvc(e.target.value)}
+                  placeholder="123"
+                  maxLength={3}
+                  className="w-full p-2.5 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  required
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full mt-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2"
             >
-              <CreditCard className="w-5 h-5 mr-2" />
-              Credit Card
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                `Pay Now`
+              )}
             </button>
-            <button
-              onClick={() => setPaymentMethod('paypal')}
-              className={`flex items-center px-4 py-2 rounded-lg ${
-                paymentMethod === 'paypal'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 dark:bg-dark-bg text-gray-900 dark:text-dark-light hover:bg-gray-300 dark:hover:bg-dark-bg-alt'
-              }`}
-            >
-              PayPal
-            </button>
-          </div>
-        </div>
-
-        {/* Payment Form */}
-        {paymentMethod === 'upi' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-2">
-                UPI ID
-              </label>
-              <input
-                type="text"
-                placeholder="user@upi"
-                value={upiDetails.upiId}
-                onChange={(e) => setUpiDetails({ ...upiDetails, upiId: e.target.value })}
-                className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-dark-primary/30 rounded-lg text-gray-900 dark:text-dark-light placeholder-gray-500 dark:placeholder-dark-accent/50"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                placeholder="John Doe"
-                value={upiDetails.name}
-                onChange={(e) => setUpiDetails({ ...upiDetails, name: e.target.value })}
-                className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-dark-primary/30 rounded-lg text-gray-900 dark:text-dark-light placeholder-gray-500 dark:placeholder-dark-accent/50"
-              />
-            </div>
-          </div>
-        )}
-
-        {paymentMethod === 'card' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-2">
-                Card Number
-              </label>
-              <input
-                type="text"
-                placeholder="1234 5678 9012 3456"
-                value={cardDetails.number}
-                onChange={(e) => setCardDetails({ ...cardDetails, number: e.target.value })}
-                className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-dark-primary/30 rounded-lg text-gray-900 dark:text-dark-light placeholder-gray-500 dark:placeholder-dark-accent/50"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-2">
-                Cardholder Name
-              </label>
-              <input
-                type="text"
-                placeholder="John Doe"
-                value={cardDetails.name}
-                onChange={(e) => setCardDetails({ ...cardDetails, name: e.target.value })}
-                className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-dark-primary/30 rounded-lg text-gray-900 dark:text-dark-light placeholder-gray-500 dark:placeholder-dark-accent/50"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-2">
-                Expiry Date
-              </label>
-              <input
-                type="text"
-                placeholder="MM/YY"
-                value={cardDetails.expiry}
-                onChange={(e) => setCardDetails({ ...cardDetails, expiry: e.target.value })}
-                className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-dark-primary/30 rounded-lg text-gray-900 dark:text-dark-light placeholder-gray-500 dark:placeholder-dark-accent/50"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-dark-accent mb-2">
-                CVC
-              </label>
-              <input
-                type="text"
-                placeholder="123"
-                value={cardDetails.cvc}
-                onChange={(e) => setCardDetails({ ...cardDetails, cvc: e.target.value })}
-                className="w-full px-3 py-2 bg-white dark:bg-dark-bg border border-gray-300 dark:border-dark-primary/30 rounded-lg text-gray-900 dark:text-dark-light placeholder-gray-500 dark:placeholder-dark-accent/50"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Payment Summary */}
-        <div className="bg-gray-100 dark:bg-dark-bg rounded-lg p-4 mb-6">
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-dark-light mb-2">Payment Summary</h4>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-700 dark:text-dark-accent">
-                {LEVELS.find(l => l.id === selectedLevel)?.name} - {DURATIONS.find(d => d.id === selectedDuration)?.name}
-              </span>
-              <span className="text-gray-900 dark:text-dark-light font-bold">
-                ${calculatePrice()}
-              </span>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-dark-accent/70">
-              {LEVELS.find(l => l.id === selectedLevel)?.description}
-            </p>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-4">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white dark:bg-dark-bg dark:hover:bg-dark-bg-alt rounded-lg transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handlePayment}
-            disabled={loading}
-            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Processing...' : `Pay $${calculatePrice()}`}
-          </button>
+          </form>
         </div>
       </div>
     </div>

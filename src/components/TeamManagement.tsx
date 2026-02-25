@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Upload, Edit, Trash2, Loader2, User, Settings } from 'lucide-react';
-import { teamAPI, tournamentAPI, overlayAPI } from '../services/api';
+import { Plus, Upload, Edit, Trash2, Loader2, User, Settings, Shield } from 'lucide-react';
+import { teamAPI, tournamentAPI } from '../services/api';
 import { Team, Tournament, Player } from './types';
 import PlayerSearch from './PlayerSearch';
 
@@ -13,552 +13,300 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
-  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [selectedTournamentId, setSelectedTournamentId] = useState<string>(selectedTournament?._id || '');
+  
+  // Form State
   const [formData, setFormData] = useState({
     name: '',
+    shortName: '',
     color: '#16a34a',
     tournament: selectedTournament?._id || '',
   });
+  
+  // Player Form State
+  const [showPlayerForm, setShowPlayerForm] = useState(false);
   const [playerForm, setPlayerForm] = useState({
     name: '',
     role: 'Batsman',
     jerseyNumber: '',
   });
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [playerImageFile, setPlayerImageFile] = useState<File | null>(null);
 
   useEffect(() => {
-    fetchData();
-  }, [selectedTournament, selectedTournamentId]);
+    loadTournaments();
+  }, []);
 
-  const fetchData = async () => {
+  useEffect(() => {
+    if (selectedTournamentId) {
+      loadTeams(selectedTournamentId);
+    }
+  }, [selectedTournamentId]);
+
+  const loadTournaments = async () => {
     try {
-      const tournamentFilter = selectedTournament ? selectedTournament._id : (selectedTournamentId && selectedTournamentId !== '' ? selectedTournamentId : undefined);
-      const [teamsRes, tournamentsRes] = await Promise.all([
-        teamAPI.getTeams(tournamentFilter),
-        tournamentAPI.getTournaments(),
-      ]);
-      const teamsData = teamsRes.data?.teams || teamsRes.data || [];
-      const tournamentsData = tournamentsRes.data?.tournaments || tournamentsRes.data || [];
-      setTeams(Array.isArray(teamsData) ? teamsData : []);
-      setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to fetch data');
+      const res = await tournamentAPI.getTournaments();
+      const list = res.data.tournaments || res.data || [];
+      setTournaments(list);
+      // Auto-select first if none selected
+      if (!selectedTournamentId && list.length > 0) {
+        setSelectedTournamentId(list[0]._id);
+      }
+    } catch (e) {
+      console.error("Failed to load tournaments");
     }
   };
 
-  const handleCreateTeam = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const loadTeams = async (tId: string) => {
     setLoading(true);
-    setError('');
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('color', formData.color);
-      formDataToSend.append('tournament', formData.tournament);
-      if (logoFile) {
-        formDataToSend.append('logo', logoFile);
-      }
-
-      if (editingTeam) {
-        await teamAPI.updateTeam(editingTeam._id, formDataToSend);
-      } else {
-        await teamAPI.createTeam(formDataToSend);
-      }
-
-      setShowCreateForm(false);
-      setEditingTeam(null);
-      resetForm();
-      fetchData();
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to save team');
+      const res = await teamAPI.getTeams(tId);
+      setTeams(res.data.teams || []);
+      setSelectedTeam(null); // Reset selection on tournament change
+    } catch (e) {
+      console.error("Failed to load teams");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEditTeam = (team: Team) => {
-    setEditingTeam(team);
-    setFormData({
-      name: team.name,
-      color: team.color,
-      tournament: team.tournament,
-    });
-    setShowCreateForm(true);
-  };
-
-  const handleDeleteTeam = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this team?')) {
-      try {
-        await teamAPI.deleteTeam(id);
-        fetchData();
-        if (selectedTeam && selectedTeam._id === id) {
-          setSelectedTeam(null);
-        }
-      } catch (error: any) {
-        setError(error.response?.data?.message || 'Failed to delete team');
-      }
+  const handleCreateTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !selectedTournamentId) return;
+    
+    setLoading(true);
+    try {
+      const payload = { ...formData, tournament: selectedTournamentId };
+      const res = await teamAPI.createTeam(payload);
+      setTeams([...teams, res.data.team || res.data]);
+      setShowCreateForm(false);
+      setFormData({ name: '', shortName: '', color: '#16a34a', tournament: selectedTournamentId });
+    } catch (e) {
+      alert("Failed to create team");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAddPlayer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTeam) return;
-    setLoading(true);
-    setError('');
-    try {
-      const playerData = new FormData();
-      playerData.append('name', playerForm.name);
-      playerData.append('role', playerForm.role);
-      playerData.append('jerseyNumber', playerForm.jerseyNumber);
-      if (playerImageFile) {
-        playerData.append('image', playerImageFile);
-      }
 
-      await teamAPI.addPlayer(selectedTeam._id, playerData);
+    // Validation: Check duplicate Jersey
+    if (selectedTeam.players?.some(p => p.jerseyNumber === parseInt(playerForm.jerseyNumber))) {
+        alert("Jersey number already exists in this team!");
+        return;
+    }
+
+    try {
+      const res = await teamAPI.addPlayer(selectedTeam._id, playerForm);
+      // Update local state
+      const updatedTeam = res.data.team || res.data;
+      setTeams(teams.map(t => t._id === updatedTeam._id ? updatedTeam : t));
+      setSelectedTeam(updatedTeam);
+      setShowPlayerForm(false);
       setPlayerForm({ name: '', role: 'Batsman', jerseyNumber: '' });
-      setPlayerImageFile(null);
-      fetchData();
-      setSelectedTeam(teams.find((team) => team._id === selectedTeam._id) || null);
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to add player');
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      alert("Failed to add player");
     }
   };
 
-  const resetForm = () => {
-    setFormData({ name: '', color: '#16a34a', tournament: '' });
-    setLogoFile(null);
-  };
-
-  const handleCreateOverlay = async (team: Team, tournament: Tournament) => {
-    try {
-      setLoading(true);
-      const overlayData = {
-        name: `${team.name} - Live Score`,
-        tournament: tournament._id,
-        template: 'classic',
-        config: {
-          backgroundColor: team.color || '#16a34a',
-          opacity: 90,
-          fontFamily: 'Inter',
-          position: 'top',
-          showAnimations: true,
-          autoUpdate: true,
-        },
-        elements: [],
-      };
-
-      await overlayAPI.createOverlay(overlayData);
-      setError('Overlay created successfully! Check Overlay Editor to view and customize.');
-      setTimeout(() => setError(''), 3000);
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to create overlay');
-    } finally {
-      setLoading(false);
-    }
+  const deleteTeam = async (id: string) => {
+      if(!confirm("Delete this team?")) return;
+      try {
+          await teamAPI.deleteTeam(id);
+          setTeams(teams.filter(t => t._id !== id));
+          if(selectedTeam?._id === id) setSelectedTeam(null);
+      } catch(e) {
+          alert("Failed to delete team");
+      }
   };
 
   return (
-    <div className="space-y-8 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen p-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400">Teams & Players</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">
-            Manage teams and add players with images
-          </p>
-        </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2 shadow-md"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Add New Team</span>
-        </button>
-      </div>
-
-      {!selectedTournament && (
-        <div className="card p-6">
-          <h2 className="text-xl font-bold text-gradient mb-4">Filter by Tournament</h2>
-          <select
-            value={selectedTournamentId}
-            onChange={(e) => setSelectedTournamentId(e.target.value)}
-            className="w-full px-4 py-3 bg-white dark:bg-neutral-800/50 border border-gray-300 dark:border-neutral-600/50 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-300"
-          >
-            <option value="">All Tournaments</option>
-            {tournaments.map((tournament) => (
-              <option key={tournament._id} value={tournament._id}>
-                {tournament.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-300 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
-
-      {showCreateForm && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-300 dark:border-gray-700 p-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-            {editingTeam ? 'Edit Team' : 'Create New Team'}
-          </h2>
-
-          <form onSubmit={handleCreateTeam}>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Team Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Mumbai Indians"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Tournament
-                </label>
-                <select
-                  value={formData.tournament}
-                  onChange={(e) => setFormData({ ...formData, tournament: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                  required
-                >
-                  <option value="">Select Tournament</option>
-                  {tournaments.map((tournament) => (
-                    <option key={tournament._id} value={tournament._id}>
-                      {tournament.name}
-                    </option>
-                  ))}
-                </select>
-                {tournaments.length === 0 && (
-                  <p className="text-red-400 text-sm mt-1">No tournaments available. Please create a tournament first.</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Team Logo
-                </label>
-                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-green-500 transition-colors cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
-                    className="hidden"
-                    id="logo-upload"
-                  />
-                  <label htmlFor="logo-upload" className="cursor-pointer">
-                    <Upload className="w-8 h-8 text-gray-600 dark:text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {logoFile ? logoFile.name : 'Click to upload logo'}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                      PNG, JPG up to 5MB
-                    </p>
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Team Color
-                </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="color"
-                    value={formData.color}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="w-16 h-12 rounded-lg border border-gray-300 dark:border-gray-600 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={formData.color}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="flex space-x-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
-                >
-                  {loading ? 'Saving...' : (editingTeam ? 'Update Team' : 'Create Team')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreateForm(false);
-                    setEditingTeam(null);
-                    resetForm();
-                  }}
-                  className="px-6 py-3 bg-gray-600 text-gray-300 rounded-lg font-semibold hover:bg-gray-500 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </form>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Sidebar: Team List */}
+      <div className="md:col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col h-[600px]">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="font-bold mb-2 dark:text-white">Select Tournament</h3>
+            <select 
+                value={selectedTournamentId}
+                onChange={(e) => setSelectedTournamentId(e.target.value)}
+                className="w-full p-2 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            >
+                <option value="">-- Select --</option>
+                {tournaments.map(t => (
+                    <option key={t._id} value={t._id}>{t.name}</option>
+                ))}
+            </select>
+            
+            <button 
+                onClick={() => setShowCreateForm(true)}
+                disabled={!selectedTournamentId}
+                className="w-full mt-3 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+                <Plus className="w-4 h-4" /> New Team
+            </button>
         </div>
 
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-          <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Teams</h2>
-            <div className="space-y-4">
-              {selectedTournament ? (
-                // When viewing specific tournament, show flat list
+        <div className="flex-1 overflow-y-auto p-2">
+            {loading ? <div className="text-center p-4">Loading...</div> : (
                 <div className="space-y-2">
-                  {teams.map((team) => (
-                    <div
-                      key={team._id}
-                      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                        selectedTeam && selectedTeam._id === team._id
-                          ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                          : 'hover:bg-gray-700'
-                      }`}
-                    >
-                      <button
-                        onClick={() => setSelectedTeam(team)}
-                        className="flex-1 text-left"
-                      >
-                        <p className="font-semibold text-white">{team.name}</p>
-                        <p className="text-sm text-gray-400">{team.players?.length || 0} players</p>
-                      </button>
-                      <div className="flex space-x-1">
-                        <button
-                          onClick={() => handleEditTeam(team)}
-                          className="p-1 text-blue-400 hover:bg-blue-50 rounded"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteTeam(team._id)}
-                          className="p-1 text-red-400 hover:bg-red-50 rounded"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                // When viewing all teams, group by tournament
-                tournaments.map((tournament) => {
-                  const tournamentTeams = teams.filter(team => {
-                    const teamTournamentId = typeof team.tournament === 'string' ? team.tournament : team.tournament?._id;
-                    return teamTournamentId === tournament._id;
-                  });
-                  if (tournamentTeams.length === 0) return null;
-                  return (
-                    <div key={tournament._id} className="space-y-2">
-                      <h3 className="text-lg font-semibold text-blue-400 border-b border-gray-600 pb-2">
-                        {tournament.name}
-                      </h3>
-                      {tournamentTeams.map((team) => (
-                        <div
-                          key={team._id}
-                          className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ml-4 ${
-                            selectedTeam && selectedTeam._id === team._id
-                              ? 'bg-green-100 text-green-800'
-                              : 'hover:bg-gray-700'
-                          }`}
-                        >
-                          <button
+                    {teams.map(team => (
+                        <div 
+                            key={team._id}
                             onClick={() => setSelectedTeam(team)}
-                            className="flex-1 text-left"
-                          >
-                            <p className="font-semibold text-white">{team.name}</p>
-                            <p className="text-sm text-gray-400">{team.players?.length || 0} players</p>
-                          </button>
-                          <div className="flex space-x-1">
-                            <button
-                              onClick={() => handleEditTeam(team)}
-                              className="p-1 text-blue-400 hover:bg-blue-50 rounded"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteTeam(team._id)}
-                              className="p-1 text-red-400 hover:bg-red-50 rounded"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-
-        {selectedTeam && (
-          <div className="lg:col-span-2">
-            <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 overflow-hidden">
-              <div className="p-6 border-b border-gray-700 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h2 className="text-2xl font-bold">{selectedTeam.name}</h2>
-                    <p className="text-blue-100 mt-1">T20 Squad</p>
-                  </div>
-                  <button
-                    onClick={() => setSelectedTeam(null)}
-                    className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-bold text-white">
-                    Squad Players ({selectedTeam.players?.length || 0})
-                  </h3>
-                </div>
-
-                <div className="space-y-4 mb-6">
-                  {selectedTeam.players?.map((player) => (
-                    <div
-                      key={player._id}
-                      className="flex items-center justify-between p-4 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
-                          {player.image ? (
-                            <img
-                              src={`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}${player.image}`}
-                              alt={player.name}
-                              className="w-16 h-16 rounded-lg object-cover"
-                            />
-                          ) : (
-                            <User className="w-8 h-8 text-white" />
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-white">
-                            {player.name}
-                          </h4>
-                          <p className="text-sm text-gray-400">{player.role}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <span className="text-2xl font-bold text-gray-400">
-                          #{player.jerseyNumber}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="bg-gray-700 rounded-lg p-6 border border-gray-600 space-y-6">
-                  <div>
-                    <h4 className="font-bold text-white mb-4">
-                      Add Player by Username
-                    </h4>
-                    <PlayerSearch
-                      onPlayerSelect={async (user) => {
-                        try {
-                          setLoading(true);
-                          await teamAPI.addPlayerByUsername(selectedTeam._id, user._id);
-                          fetchData();
-                          setSelectedTeam(teams.find((team) => team._id === selectedTeam._id) || null);
-                        } catch (error) {
-                          console.error('Error adding player:', error);
-                        } finally {
-                          setLoading(false);
-                        }
-                      }}
-                      placeholder="Search for players to add..."
-                      className="mb-4"
-                    />
-                  </div>
-
-                  <div className="border-t border-gray-600 pt-4">
-                    <h4 className="font-bold text-white mb-2">
-                      Or Add Player with Image
-                    </h4>
-                    <form onSubmit={handleAddPlayer}>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <input
-                          type="text"
-                          value={playerForm.name}
-                          onChange={(e) => setPlayerForm({ ...playerForm, name: e.target.value })}
-                          placeholder="Player Name"
-                          className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
-                          required
-                        />
-                        <input
-                          type="text"
-                          value={playerForm.jerseyNumber}
-                          onChange={(e) => setPlayerForm({ ...playerForm, jerseyNumber: e.target.value })}
-                          placeholder="Jersey Number"
-                          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
-                          required
-                        />
-                        <select
-                          value={playerForm.role}
-                          onChange={(e) => setPlayerForm({ ...playerForm, role: e.target.value })}
-                          className="px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-600 text-white"
+                            className={`p-3 rounded-lg cursor-pointer flex items-center justify-between transition-colors ${
+                                selectedTeam?._id === team._id 
+                                    ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700' 
+                                    : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
                         >
-                          <option>Batsman</option>
-                          <option>Bowler</option>
-                          <option>All-rounder</option>
-                          <option>Wicket Keeper</option>
-                        </select>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => setPlayerImageFile(e.target.files?.[0] || null)}
-                            className="hidden"
-                            id="player-image-upload"
-                          />
-                          <label
-                            htmlFor="player-image-upload"
-                            className="flex-1 bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-gray-500 transition-colors cursor-pointer text-center"
-                          >
-                            {playerImageFile ? playerImageFile.name : 'Upload Photo'}
-                          </label>
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs" style={{backgroundColor: team.color || '#666'}}>
+                                    {(team.shortName || team.name.substring(0,2)).toUpperCase()}
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-sm dark:text-white">{team.name}</p>
+                                    <p className="text-xs text-gray-500">{team.players?.length || 0} Players</p>
+                                </div>
+                            </div>
                         </div>
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
-                      >
-                        {loading ? 'Adding...' : 'Add to Team'}
-                      </button>
-                    </form>
-                  </div>
+                    ))}
+                    {teams.length === 0 && <p className="text-center text-gray-400 mt-10">No teams found</p>}
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
+            )}
+        </div>
       </div>
+
+      {/* Main Content: Team Details */}
+      <div className="md:col-span-2">
+          {selectedTeam ? (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                  <div className="flex justify-between items-start mb-6">
+                      <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold text-white shadow-lg" style={{backgroundColor: selectedTeam.color}}>
+                              {(selectedTeam.shortName || selectedTeam.name.substring(0,2)).toUpperCase()}
+                          </div>
+                          <div>
+                              <h2 className="text-2xl font-bold dark:text-white">{selectedTeam.name}</h2>
+                              <p className="text-gray-500">Squad Size: {selectedTeam.players?.length || 0}</p>
+                          </div>
+                      </div>
+                      <button onClick={() => deleteTeam(selectedTeam._id)} className="text-red-500 hover:bg-red-50 p-2 rounded">
+                          <Trash2 className="w-5 h-5" />
+                      </button>
+                  </div>
+
+                  <div className="mb-6">
+                      <div className="flex justify-between items-center mb-4">
+                          <h3 className="font-bold text-lg dark:text-white">Squad List</h3>
+                          <button 
+                            onClick={() => setShowPlayerForm(true)}
+                            className="text-sm bg-green-600 text-white px-3 py-1.5 rounded flex items-center gap-1"
+                          >
+                              <Plus className="w-4 h-4" /> Add Player
+                          </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {selectedTeam.players?.map((player, idx) => (
+                              <div key={idx} className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
+                                  <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center font-bold text-gray-600 dark:text-gray-300 mr-3">
+                                      {player.jerseyNumber || '#'}
+                                  </div>
+                                  <div className="flex-1">
+                                      <p className="font-semibold dark:text-white">{player.name}</p>
+                                      <p className="text-xs text-gray-500 uppercase">{player.role}</p>
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+                  </div>
+              </div>
+          ) : (
+              <div className="h-full flex flex-col items-center justify-center bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 p-10">
+                  <Shield className="w-16 h-16 text-gray-300 mb-4" />
+                  <p className="text-gray-500">Select a team to manage squad</p>
+              </div>
+          )}
+      </div>
+
+      {/* CREATE TEAM MODAL */}
+      {showCreateForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+                  <h3 className="text-xl font-bold mb-4 dark:text-white">Create New Team</h3>
+                  <form onSubmit={handleCreateTeam} className="space-y-4">
+                      <input 
+                        placeholder="Team Name" 
+                        value={formData.name}
+                        onChange={e => setFormData({...formData, name: e.target.value})}
+                        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        required 
+                      />
+                      <input 
+                        placeholder="Short Name (e.g. CSK)" 
+                        value={formData.shortName}
+                        onChange={e => setFormData({...formData, shortName: e.target.value.toUpperCase()})}
+                        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        maxLength={4}
+                      />
+                      <div className="flex items-center gap-2">
+                          <input 
+                             type="color" 
+                             value={formData.color}
+                             onChange={e => setFormData({...formData, color: e.target.value})}
+                             className="h-10 w-10 border-0 p-0 rounded cursor-pointer"
+                          />
+                          <span className="text-sm text-gray-500">Team Color</span>
+                      </div>
+                      <div className="flex gap-2 mt-4">
+                          <button type="button" onClick={() => setShowCreateForm(false)} className="flex-1 py-2 bg-gray-200 rounded">Cancel</button>
+                          <button type="submit" className="flex-1 py-2 bg-blue-600 text-white rounded font-bold">Create</button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      )}
+
+      {/* ADD PLAYER MODAL */}
+      {showPlayerForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+                  <h3 className="text-xl font-bold mb-4 dark:text-white">Add Player</h3>
+                  <form onSubmit={handleAddPlayer} className="space-y-4">
+                      <input 
+                        placeholder="Full Name" 
+                        value={playerForm.name}
+                        onChange={e => setPlayerForm({...playerForm, name: e.target.value})}
+                        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        required 
+                      />
+                      <select 
+                        value={playerForm.role}
+                        onChange={e => setPlayerForm({...playerForm, role: e.target.value})}
+                        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      >
+                          <option value="Batsman">Batsman</option>
+                          <option value="Bowler">Bowler</option>
+                          <option value="All-rounder">All-rounder</option>
+                          <option value="Wicket Keeper">Wicket Keeper</option>
+                      </select>
+                      <input 
+                        type="number"
+                        placeholder="Jersey Number" 
+                        value={playerForm.jerseyNumber}
+                        onChange={e => setPlayerForm({...playerForm, jerseyNumber: e.target.value})}
+                        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        required 
+                      />
+                      <div className="flex gap-2 mt-4">
+                          <button type="button" onClick={() => setShowPlayerForm(false)} className="flex-1 py-2 bg-gray-200 rounded">Cancel</button>
+                          <button type="submit" className="flex-1 py-2 bg-green-600 text-white rounded font-bold">Add Player</button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      )}
     </div>
   );
 }
