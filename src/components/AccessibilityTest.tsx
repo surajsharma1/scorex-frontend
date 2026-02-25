@@ -37,7 +37,7 @@ const AccessibilityTest: React.FC<AccessibilityTestProps> = ({ componentName, ch
         }
       });
 
-      const violations = results.violations.map(violation => ({
+      const violations = results.violations.map((violation: any) => ({
         id: violation.id,
         impact: violation.impact || undefined,
         description: violation.description,
