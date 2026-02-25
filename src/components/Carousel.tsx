@@ -1,64 +1,77 @@
 import { useState, useEffect } from 'react';
 import { tournamentAPI } from '../services/api';
-import { Trophy, Radio, Calendar, Zap } from 'lucide-react';
+import { Trophy, Radio, Zap, Calendar } from 'lucide-react';
 
-interface SimpleTournament {
+interface TickerItem {
   _id: string;
   name: string;
   status: string;
-  format?: string;
+  liveScore?: string; // "145/2 (18.4)"
 }
 
 export default function Carousel() {
-  const [tournaments, setTournaments] = useState<SimpleTournament[]>([]);
+  const [items, setItems] = useState<TickerItem[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await tournamentAPI.getTournaments();
-        // Filter for active or upcoming tournaments
-        const active = (res.data || []).filter((t: SimpleTournament) => 
-          t.status === 'ongoing' || t.status === 'upcoming'
-        );
-        // If empty, add placeholders so the design doesn't break
+        const res = await tournamentAPI.getTournaments(); // Calls backend
+        // Filter for relevant items
+        const active = (res.data || []).map((t: any) => ({
+          _id: t._id,
+          name: t.name,
+          status: t.status,
+          // If backend provides a summary match score, use it, else default
+          liveScore: t.activeMatch ? `${t.activeMatch.score1}/${t.activeMatch.wickets1}` : undefined
+        })).filter((t: any) => t.status === 'ongoing' || t.status === 'upcoming');
+        
+        // If no live data, show placeholders so the UI doesn't look broken
         if (active.length === 0) {
-            setTournaments([
-                { _id: '1', name: 'ScoreX Premier League', status: 'upcoming', format: 'T20' },
-                { _id: '2', name: 'National Cup 2025', status: 'upcoming', format: 'ODI' }
+            setItems([
+                { _id: 'demo1', name: 'ScoreX Premier League', status: 'upcoming' },
+                { _id: 'demo2', name: 'Global Championship', status: 'upcoming' }
             ]);
         } else {
-            setTournaments(active);
+            setItems(active);
         }
       } catch (error) {
-        console.error("Failed to load ticker data");
+        console.error("Ticker error", error);
       }
     };
+
     fetchData();
+    const interval = setInterval(fetchData, 60000); // Update every minute
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="w-full bg-black/80 backdrop-blur-md border-b border-white/10 h-12 flex items-center overflow-hidden relative z-50">
-      {/* Label */}
-      <div className="bg-red-600 h-full px-6 flex items-center justify-center z-20 shadow-[4px_0_24px_rgba(220,38,38,0.5)]">
-        <span className="font-orbitron font-bold text-white tracking-wider text-sm flex items-center gap-2">
-            <Radio className="w-4 h-4 animate-pulse" /> LIVE ACTION
+    <div className="w-full bg-black/90 backdrop-blur-xl border-b border-white/10 h-10 flex items-center overflow-hidden relative z-50">
+      {/* Static Label */}
+      <div className="bg-red-600 h-full px-4 flex items-center justify-center z-20 shadow-[4px_0_15px_rgba(220,38,38,0.5)]">
+        <span className="font-orbitron font-bold text-white text-xs flex items-center gap-2">
+            <Radio className="w-3 h-3 animate-pulse" /> LIVE FEED
         </span>
       </div>
 
-      {/* Marquee Container */}
-      <div className="flex overflow-hidden w-full mask-linear-gradient">
-        <div className="animate-marquee flex items-center gap-16 pl-4">
-          {/* We duplicate the array to create a seamless infinite loop effect */}
-          {[...tournaments, ...tournaments, ...tournaments].map((t, i) => (
+      {/* Scrolling Container */}
+      <div className="flex overflow-hidden w-full">
+        <div className="animate-marquee flex items-center gap-12 pl-4">
+          {/* Tripled list ensures seamless infinite scroll loop */}
+          {[...items, ...items, ...items].map((t, i) => (
             <div key={`${t._id}-${i}`} className="flex items-center gap-3 text-sm font-medium whitespace-nowrap">
-              <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-                  t.status === 'ongoing' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
-              }`}>
-                {t.status.toUpperCase()}
-              </span>
-              <span className="text-gray-100 font-barlow text-lg tracking-wide">{t.name}</span>
-              <span className="text-gray-500 text-xs border border-gray-700 px-1 rounded">{t.format || 'T20'}</span>
-              <Zap className="w-3 h-3 text-yellow-500" />
+              {t.status === 'ongoing' ? (
+                <span className="text-xs font-bold text-red-400 border border-red-500/30 px-1 rounded animate-pulse-soft">LIVE</span>
+              ) : (
+                <span className="text-xs font-bold text-blue-400 border border-blue-500/30 px-1 rounded">COMING SOON</span>
+              )}
+              
+              <span className="text-gray-200 font-barlow tracking-wide text-base">{t.name}</span>
+              
+              {t.liveScore && (
+                 <span className="text-green-400 font-mono">{t.liveScore}</span>
+              )}
+              
+              <Zap className="w-3 h-3 text-yellow-500/50" />
             </div>
           ))}
         </div>
