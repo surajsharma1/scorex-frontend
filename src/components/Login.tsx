@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { Loader2, Mail, Lock, LogIn, Chrome } from 'lucide-react';
@@ -26,14 +26,28 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    // This usually involves redirecting to your backend OAuth endpoint
-    // window.location.href = 'http://localhost:5000/api/v1/auth/google';
-    
-    // OR if you are using Firebase/Frontend SDK, you handle it here.
-    // For now, we'll alert as a placeholder for the backend integration
-    alert("Please configure Backend Google OAuth strategy to use this feature.");
+  const handleGoogleLogin = () => {
+    // Redirect to backend OAuth endpoint
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    window.location.href = `${backendUrl}/api/v1/auth/google`;
   };
+
+  // Check for OAuth token in URL on component mount (for OAuth callback)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      // Store the token and redirect to dashboard
+      localStorage.setItem('token', token);
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, '/dashboard');
+      
+      // Fetch user data and navigate
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
