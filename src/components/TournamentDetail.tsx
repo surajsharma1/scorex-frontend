@@ -594,7 +594,7 @@ export default function TournamentDetail() {
                 <button onClick={() => processDelivery(2, 'wide')} className="bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded font-bold">Wd+2</button>
                 <button onClick={() => processDelivery(3, 'wide')} className="bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded font-bold">Wd+3</button>
                 <button onClick={() => processDelivery(4, 'wide')} className="bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded font-bold">Wd+4</button>
-                <button onClick={() => openWicketModal('runOut', true)} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">Wd+Wkt</button>
+<button onClick={() => openWicketModal('runOut', 'wide')} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">Wd+Wkt</button>
               </div>
             </div>
 
@@ -620,7 +620,7 @@ export default function TournamentDetail() {
                 <button onClick={() => processDelivery(2, 'bye')} className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-bold">B+2</button>
                 <button onClick={() => processDelivery(3, 'bye')} className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-bold">B+3</button>
                 <button onClick={() => processDelivery(4, 'bye')} className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-bold">B+4</button>
-                <button onClick={() => openWicketModal('runOut', false)} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">B+Wkt</button>
+<button onClick={() => openWicketModal('runOut', 'normal')} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">B+Wkt</button>
               </div>
             </div>
 
@@ -633,7 +633,7 @@ export default function TournamentDetail() {
                 <button onClick={() => processDelivery(2, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+2</button>
                 <button onClick={() => processDelivery(3, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+3</button>
                 <button onClick={() => processDelivery(4, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+4</button>
-                <button onClick={() => openWicketModal('runOut', false)} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">LB+Wkt</button>
+<button onClick={() => openWicketModal('runOut', 'normal')} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">LB+Wkt</button>
               </div>
             </div>
 
@@ -641,7 +641,7 @@ export default function TournamentDetail() {
             <div className="mb-4">
               <h4 className="text-sm font-medium text-gray-400 mb-2">WICKET (Legal Delivery)</h4>
               <button
-                onClick={() => openWicketModal('normal', false)}
+onClick={() => openWicketModal('normal', 'normal')}
                 className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-bold text-xl"
               >
                 OUT - Select Dismissal Type
