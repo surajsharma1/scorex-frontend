@@ -32,6 +32,7 @@ const router = createBrowserRouter([
     element: <App />, // Protected Layout (Sidebar + Header)
     children: [
       { index: true, element: <Dashboard /> },
+      { path: "dashboard", element: <Dashboard /> },
       { path: "tournaments", element: <TournamentView /> },
       { path: "tournaments/:id", element: <TournamentDetail /> },
       { path: "match/:id", element: <MatchDetails /> },
