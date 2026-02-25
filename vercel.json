@@ -3,12 +3,16 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/static-build",
+      "use": "@vercel/node",
       "config": {
         "distDir": "dist"
       }
     }
   ],
+  "install": {
+    "runtime": "nodejs18.x",
+    "packageManager": "npm"
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
