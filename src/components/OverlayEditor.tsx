@@ -63,17 +63,25 @@ export default function OverlayEditor() {
     const win = window.open(url, 'ScoreX_Overlay', 'width=1920,height=1080,menubar=no,toolbar=no');
     setOpenedWindow(win);
   };
-
+  
   const pushDataToOverlay = (match: Match) => {
     if (!channelRef.current) return;
 
-    // Transform API match data to Overlay format
-    const isTeam1 = match.battingTeam === 'team1';
-    const battingTeam = isTeam1 ? match.team1 : match.team2;
-    const bowlingTeam = isTeam1 ? match.team2 : match.team1;
+    // Robust fallbacks for optional data
+    const isTeam1Batting = match.battingTeam === 'team1';
     
+    // Safely access nested liveScores properties
+    const currentInnings = match.liveScores ? match.liveScores[match.battingTeam || 'team1'] : null;
+    
+    // Find Striker and Non-Striker safely
+    const striker = currentInnings?.batsmen?.find((b: any) => b.isStriker) || { name: '', runs: 0, balls: 0 };
+    const nonStriker = currentInnings?.batsmen?.find((b: any) => !b.isStriker) || { name: '', runs: 0, balls: 0 };
+    const currentBowler = currentInnings?.bowler || { name: '', overs: 0, runs: 0, wickets: 0 };
+
     const payload = {
-        tournament: { name: typeof match.tournament === 'string' ? match.tournament : match.tournament?.name || 'Live Tournament' },
+        tournament: { 
+            name: typeof match.tournament === 'string' ? 'Tournament' : (match.tournament?.name || 'Tournament') 
+        },
         team1: {
             name: match.team1?.name || 'Team 1',
             shortName: (match.team1?.name || 'T1').substring(0,3).toUpperCase(),  
@@ -88,13 +96,15 @@ export default function OverlayEditor() {
             wickets: match.wickets2 || 0,
             overs: match.overs2 || 0
         },
-        striker: match.liveScores && match.battingTeam ? match.liveScores[match.battingTeam]?.batsmen?.find((b: any) => b.isStriker) || { name: 'Striker', runs: 0, balls: 0 } : { name: 'Striker', runs: 0, balls: 0 },
-        nonStriker: match.liveScores && match.battingTeam ? match.liveScores[match.battingTeam]?.batsmen?.find((b: any) => !b.isStriker) || { name: 'Non-Striker', runs: 0, balls: 0 } : { name: 'Non-Striker', runs: 0, balls: 0 },
-        bowler: match.liveScores && match.battingTeam ? match.liveScores[match.battingTeam]?.bowler || { name: 'Bowler', overs: 0, runs: 0, wickets: 0 } : { name: 'Bowler', overs: 0, runs: 0, wickets: 0 },
+        // Active play data
+        striker: striker,
+        nonStriker: nonStriker,
+        bowler: currentBowler,
         stats: {
             currentRunRate: match.currentRunRate || 0,
             requiredRunRate: match.requiredRunRate || 0,
-            target: match.target || 0
+            target: match.target || 0,
+            need: match.target ? (match.target - (isTeam1Batting ? match.score1! : match.score2!)) : 0
         }
     };
 

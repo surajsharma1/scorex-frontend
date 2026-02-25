@@ -1,120 +1,136 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { tournamentAPI } from '../services/api';
-import { Tournament, PaginationMeta } from './types';
+import { Tournament } from './types';
+import { Search, Filter, Calendar, Users, Trophy, Radio } from 'lucide-react';
 
 export default function TournamentList() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const navigate = useNavigate();
-
-  const fetchTournaments = async (page: number = 1, append: boolean = false) => {
-    try {
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
-      }
-
-      const response = await tournamentAPI.getTournaments(page, 10);
-      const newTournaments = response.data.tournaments || [];
-      const paginationData = response.data.pagination;
-
-      if (append) {
-        setTournaments(prev => [...prev, ...newTournaments]);
-      } else {
-        setTournaments(newTournaments);
-      }
-
-      setPagination(paginationData);
-      setCurrentPage(page);
-    } catch (error) {
-      console.error('Failed to fetch tournaments');
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  };
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'completed'>('all');
 
   useEffect(() => {
-    fetchTournaments();
+    loadTournaments();
   }, []);
 
-  const loadMore = () => {
-    if (pagination?.hasNext) {
-      fetchTournaments(currentPage + 1, true);
+  const loadTournaments = async () => {
+    try {
+      const res = await tournamentAPI.getTournaments(); // Ensure this endpoint returns all tournaments
+      setTournaments(res.data);
+    } catch (error) {
+      console.error("Failed to load tournaments");
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) return (
-    <div className="p-6 bg-light-bg-alt dark:bg-dark-bg text-light-dark dark:text-dark-light min-h-screen" role="status" aria-live="polite" aria-label="Loading tournaments">
-
-      <p>Loading tournaments...</p>
-    </div>
-  );
+  const filteredTournaments = tournaments.filter(t => {
+    const matchesSearch = t.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = statusFilter === 'all' || t.status === statusFilter;
+    return matchesSearch && matchesFilter;
+  });
 
   return (
-    <div className="p-6 bg-light-bg-alt dark:bg-dark-bg text-light-dark dark:text-dark-light min-h-screen">
-
-      <h1 className="text-2xl mb-4" id="tournaments-heading">Tournaments</h1>
-      <button
-        onClick={() => navigate('/tournaments/new')}
-        className="btn-primary mb-4"
-        aria-label="Create a new tournament"
-      >
-        Create New
-      </button>
-      <div
-        className="space-y-2"
-        role="list"
-        aria-labelledby="tournaments-heading"
-        aria-label={`List of ${tournaments.length} tournaments`}
-      >
-        {tournaments.map((tournament) => (
-          <div
-            key={tournament._id}
-            className="flex items-center justify-between w-full bg-white dark:bg-dark-bg-alt p-4 border-b border-gray-200 dark:border-dark-primary/30"
-
-            role="listitem"
-            aria-label={`Tournament: ${tournament.name}`}
-          >
-            <div className="flex items-center space-x-3 flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-light" id={`tournament-${tournament._id}-name`}>
-
-                {tournament.name}
-              </h3>
-            </div>
-            <div className="w-10 h-10 bg-gray-300 dark:bg-dark-secondary rounded-full flex items-center justify-center">
-              {/* Placeholder for logo */}
-              <span className="text-gray-600 dark:text-dark-accent/70 text-sm">Logo</span>
-
-            </div>
-            <button
-              onClick={() => navigate(`/tournaments/${tournament._id}/edit`)}
-              className="text-blue-500 hover:text-blue-600 dark:text-dark-accent dark:hover:text-dark-light transition-colors"
-
-              aria-label={`Edit tournament ${tournament.name}`}
-              aria-describedby={`tournament-${tournament._id}-name`}
-            >
-              Edit
-            </button>
-          </div>
-        ))}
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tournaments</h1>
+          <p className="text-gray-500 dark:text-gray-400">Browse and join cricket leagues</p>
+        </div>
+        <Link 
+          to="/tournaments/create" 
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg font-semibold shadow-lg transition-all"
+        >
+          Create Tournament
+        </Link>
       </div>
-      {pagination?.hasNext && (
-        <div className="mt-4 text-center">
-          <button
-            onClick={loadMore}
-            disabled={loadingMore}
-            className="btn-secondary"
-            aria-label={loadingMore ? "Loading more tournaments" : "Load more tournaments"}
-            aria-disabled={loadingMore}
+
+      {/* Search and Filter Bar */}
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+          <input 
+            type="text" 
+            placeholder="Search tournaments..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+        <div className="relative">
+          <Filter className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            className="pl-10 p-3 pr-8 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white appearance-none cursor-pointer"
           >
-            {loadingMore ? 'Loading...' : 'Load More'}
-          </button>
+            <option value="all">All Status</option>
+            <option value="ongoing">Live / Ongoing</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTournaments.map((tournament) => (
+            <Link 
+              to={`/tournaments/${tournament._id}`} 
+              key={tournament._id}
+              className="block bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden border border-gray-200 dark:border-gray-700 group"
+            >
+              <div className="h-32 bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center">
+                <Trophy className="w-16 h-16 text-white opacity-20 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="p-5">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-bold text-xl text-gray-900 dark:text-white truncate pr-2">
+                    {tournament.name}
+                  </h3>
+                  {tournament.status === 'ongoing' && (
+                    <span className="flex items-center gap-1 text-xs font-bold text-red-600 bg-red-100 dark:bg-red-900/30 px-2 py-1 rounded-full animate-pulse">
+                      <Radio className="w-3 h-3" /> LIVE
+                    </span>
+                  )}
+                </div>
+                
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gray-400" />
+                    <span>{new Date(tournament.startDate).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-gray-400" />
+                    <span>{tournament.teams?.length || 0} Teams</span>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                  <span className={`text-xs px-2 py-1 rounded-md capitalize font-medium
+                    ${tournament.status === 'completed' ? 'bg-gray-100 text-gray-600' : 
+                      tournament.status === 'upcoming' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}
+                  `}>
+                    {tournament.status}
+                  </span>
+                  <span className="text-green-600 dark:text-green-400 text-sm font-medium group-hover:translate-x-1 transition-transform">
+                    View Details →
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+          
+          {filteredTournaments.length === 0 && (
+            <div className="col-span-full text-center py-20 text-gray-500">
+              No tournaments found matching your search.
+            </div>
+          )}
         </div>
       )}
     </div>

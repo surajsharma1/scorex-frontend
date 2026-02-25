@@ -1,99 +1,165 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { teamAPI } from '../services/api';
+import { tournamentAPI, teamAPI } from '../services/api';
+import { Team } from './types';
+import { Calendar, Trophy, Users, CheckCircle } from 'lucide-react';
 
-export default function TeamForm() {
+export default function TournamentForm() {
   const [formData, setFormData] = useState({
     name: '',
-    color: '',
-    players: [{ name: '', role: '', jerseyNumber: '' }],
+    description: '',
+    startDate: '',
+    endDate: '',
+    format: 'T20',
+    selectedTeams: [] as string[],
   });
-  const [loading, setLoading] = useState(false);                                                                                                                                                                                                                                          
+  const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const addPlayer = () => {
-    setFormData({
-      ...formData,
-      players: [...formData.players, { name: '', role: '', jerseyNumber: '' }],
-    });
-  };
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const res = await teamAPI.getTeams();
+        setAvailableTeams(res.data);
+      } catch (error) {
+        console.error("Failed to load teams");
+      }
+    };
+    fetchTeams();
+  }, []);
 
-  const updatePlayer = (index: number, field: string, value: string) => {
-    const updatedPlayers = [...formData.players];
-    updatedPlayers[index] = { ...updatedPlayers[index], [field]: value };
-    setFormData({ ...formData, players: updatedPlayers });
+  const handleTeamToggle = (teamId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedTeams: prev.selectedTeams.includes(teamId)
+        ? prev.selectedTeams.filter(id => id !== teamId)
+        : [...prev.selectedTeams, teamId]
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await teamAPI.createTeam(formData);
-      navigate('/teams');
+      // API expects 'teams' as an array of IDs
+      const payload = {
+        ...formData,
+        teams: formData.selectedTeams
+      };
+      await tournamentAPI.createTournament(payload);
+      navigate('/tournaments');
     } catch (error) {
-      alert('Failed to create team');
+      console.error(error);
+      alert('Failed to create tournament');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-6 bg-light-bg-alt dark:bg-dark-bg text-light-dark dark:text-dark-light min-h-screen">
-      <h2 className="text-2xl mb-4 text-light-dark dark:text-dark-light">Create Team</h2>
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-dark-bg-alt p-6 rounded shadow-md border border-light-secondary/30 dark:border-dark-primary/30">
-        <input
-          type="text"
-          placeholder="Team Name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full p-2 mb-4 border border-light-secondary/30 dark:border-dark-primary/30 rounded bg-white dark:bg-dark-bg text-light-dark dark:text-dark-light focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          required
-        />
-        <input
-          type="color"
-          placeholder="Color"
-          value={formData.color}
-          onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-          className="w-full p-2 mb-4 border border-light-secondary/30 dark:border-dark-primary/30 rounded cursor-pointer"
-          required
-        />
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-green-600 to-emerald-700 p-6 text-white">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Trophy className="w-6 h-6" /> Create Tournament
+          </h2>
+          <p className="text-green-100 opacity-90">Setup a new league or series</p>
+        </div>
 
-        <h3 className="text-lg mb-2 text-light-dark dark:text-dark-light">Players</h3>
-        {formData.players.map((player, index) => (
-          <div key={index} className="mb-4 p-4 border border-light-secondary/30 dark:border-dark-primary/30 rounded bg-light-bg dark:bg-dark-bg">
-            <input
-              type="text"
-              placeholder="Player Name"
-              value={player.name}
-              onChange={(e) => updatePlayer(index, 'name', e.target.value)}
-              className="w-full p-2 mb-2 border border-light-secondary/30 dark:border-dark-primary/30 rounded bg-white dark:bg-dark-bg text-light-dark dark:text-dark-light focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-            <input
-              type="text"
-              placeholder="Role (e.g., Batsman)"
-              value={player.role}
-              onChange={(e) => updatePlayer(index, 'role', e.target.value)}
-              className="w-full p-2 mb-2 border border-light-secondary/30 dark:border-dark-primary/30 rounded bg-white dark:bg-dark-bg text-light-dark dark:text-dark-light focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-            <input
-              type="number"
-              placeholder="Jersey Number"
-              value={player.jerseyNumber}
-              onChange={(e) => updatePlayer(index, 'jerseyNumber', e.target.value)}
-              className="w-full p-2 mb-2 border border-light-secondary/30 dark:border-dark-primary/30 rounded bg-white dark:bg-dark-bg text-light-dark dark:text-dark-light focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tournament Name</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                placeholder="Ex: Premier League 2024"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <input
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  className="w-full pl-10 p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date (Optional)</label>
+              <input
+                type="date"
+                value={formData.endDate}
+                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Format</label>
+              <select
+                value={formData.format}
+                onChange={(e) => setFormData({ ...formData, format: e.target.value })}
+                className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                <option value="T20">T20</option>
+                <option value="ODI">ODI</option>
+                <option value="Test">Test Match</option>
+              </select>
+            </div>
           </div>
-        ))}
-        <button type="button" onClick={addPlayer} className="btn-secondary mr-2">
-          Add Player
-        </button>
-        <button type="submit" disabled={loading} className="btn-primary">
-          {loading ? 'Creating...' : 'Create'}
-        </button>
-      </form>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex justify-between">
+              <span>Select Teams</span>
+              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{formData.selectedTeams.length} Selected</span>
+            </label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto border p-3 rounded-lg dark:border-gray-600">
+              {availableTeams.map(team => (
+                <div 
+                  key={team._id}
+                  onClick={() => handleTeamToggle(team._id)}
+                  className={`p-3 rounded-lg cursor-pointer border transition-all flex items-center justify-between ${
+                    formData.selectedTeams.includes(team._id)
+                      ? 'bg-green-50 border-green-500 dark:bg-green-900/30'
+                      : 'bg-gray-50 border-gray-200 dark:bg-gray-700 dark:border-gray-600'
+                  }`}
+                >
+                  <span className="font-medium dark:text-white truncate">{team.name}</span>
+                  {formData.selectedTeams.includes(team._id) && <CheckCircle className="w-4 h-4 text-green-600" />}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="pt-4 border-t dark:border-gray-700 flex justify-end gap-3">
+             <button
+               type="button"
+               onClick={() => navigate('/tournaments')}
+               className="px-6 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700"
+             >
+               Cancel
+             </button>
+             <button 
+               type="submit" 
+               disabled={loading}
+               className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all shadow-md"
+             >
+               {loading ? 'Creating...' : 'Create Tournament'}
+             </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

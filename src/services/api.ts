@@ -48,6 +48,8 @@ export const authAPI = {
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
   resetPassword: (token: string, password: string) => api.post(`/auth/reset-password/${token}`, { password }),
   verifyEmail: (token: string) => api.get(`/auth/verify-email/${token}`),
+  // Add this if you implement backend Google Auth
+  googleLogin: (token: string) => api.post('/auth/google', { token }),
 };
 
 export const userAPI = {
@@ -123,6 +125,8 @@ export const leaderboardAPI = {
 
 export const paymentAPI = {
   createSubscription: (plan: string) => api.post('/payments/subscribe', { plan }),
+  createRazorpayOrder: (amount: number, plan: string) => api.post('/payments/razorpay/order', { amount, plan }),
+  verifyRazorpayPayment: (data: any) => api.post('/payments/razorpay/verify', data),
 };
 
 export default api;
