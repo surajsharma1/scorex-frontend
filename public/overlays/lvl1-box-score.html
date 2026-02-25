@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScoreX Master Overlay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Oswald:wght@500;700&family=Courier+Prime:wght@700&family=VT323&family=Teko:wght@600&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    
+    <style>
+        /* =========================================
+           1. RESET & VARIABLES
+           ========================================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --primary: #333;
+            --secondary: #fff;
+            --accent: #e63946;
+            --font-main: 'Roboto', sans-serif;
+            --font-num: 'Roboto', sans-serif;
+        }
+
+        body { 
+            background: transparent; 
+            overflow: hidden; 
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+            display: flex; /* Default positioning context */
+            /* Default: Bottom Center */
+            align-items: flex-end; 
+            justify-content: center;
+            padding-bottom: 50px;
+        }
+
+        /* The Main Container - Theme agnostic start */
+        .overlay-container {
+            display: grid;
+            transition: all 0.3s ease;
+            background: var(--secondary);
+            color: var(--primary);
+            position: relative;
+        }
+
+        /* Sub-sections */
+        .section-header, .section-score, .section-players, .section-footer {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Common Elements */
+        .team-box { font-weight: 900; text-transform: uppercase; }
+        .score-main { font-weight: 800; line-height: 1; }
+        .ball-item {
+            width: 24px; height: 24px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 11px;
+            background: #ddd; color: #333; margin-right: 2px;
+        }
+        .ball-4 { background: #2e7d32 !important; color: #fff !important; }
+        .ball-6 { background: #1565c0 !important; color: #fff !important; }
+        .ball-W { background: #d32f2f !important; color: #fff !important; }
+
+        /* =========================================
+           2. THEME LAYOUTS (Drastically Different)
+           ========================================= */
+
+        /* --- THEME 10: BOX SCORE (Bottom Right Square) --- */
+        body.theme-box-score {
+            justify-content: flex-end; /* Right */
+            padding-right: 40px;
+            padding-bottom: 40px;
+        }
+        .theme-box-score .overlay-container {
+            grid-template-areas: "header" "score" "players";
+            grid-template-columns: 1fr;
+            width: 280px;
+            height: auto;
+            border: 4px solid #333;
+            background: white;
+        }
+        .theme-box-score .section-header { background: #333; color: white; flex-direction: row; justify-content: space-between; }
+        .theme-box-score .section-score { text-align: center; border-bottom: 2px solid #333; padding: 10px; }
+        .theme-box-score .score-main { font-size: 56px; font-family: 'Teko', sans-serif; }
+        .theme-box-score .section-footer { display: none; }
+       
+    </style>
+</head>
+
+<script>
+    window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { apiBaseUrl: 'http://localhost:5000/api/v1' };
+</script>
+
+<body class="theme-default">
+    
+    <div class="overlay-container">
+        <div class="section-header">
+            <div style="display:flex; justify-content:space-between; width:100%">
+                <span class="team-box" id="battingTeam">BAT</span>
+                <span class="vs-badge">vs</span>
+                <span class="team-box" id="bowlingTeam">BWL</span>
+            </div>
+            <div style="font-size: 10px; opacity: 0.8; margin-top: 4px;">MATCH STATUS</div>
+        </div>
+
+        <div class="section-score">
+            <div class="score-main">
+                <span id="runs">0</span>/<span id="wickets">0</span>
+            </div>
+            <div style="font-size: 14px; opacity: 0.8;">
+                <span id="overs">0.0</span> OVERS
+            </div>
+        </div>
+
+        <div class="section-players">
+            <div style="display:flex; justify-content:space-between; width:100%; font-weight:700">
+                <span id="striker">Striker</span>
+                <span id="strikerScore">0*(0)</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; width:100%; opacity:0.7">
+                <span id="nonStriker">Non-Striker</span>
+                <span id="nonStrikerScore">0(0)</span>
+            </div>
+        </div>
+
+        <div class="section-footer">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-weight:600">
+                <span id="bowler">Bowler</span>
+                <span id="bowlerFigures">0/0</span>
+            </div>
+            <div style="display:flex; gap:2px;" id="ballsContainer">
+                </div>
+            <div style="font-size:10px; text-align:right; width:100%; margin-top:2px;">
+                <span id="crr">CRR: 0.0</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const config = window.OVERLAY_CONFIG;
+        const socket = io(config.apiBaseUrl);
+        const matchId = config.matchId;
+
+        const els = {
+            batting: document.getElementById('battingTeam'),
+            bowling: document.getElementById('bowlingTeam'),
+            runs: document.getElementById('runs'),
+            wickets: document.getElementById('wickets'),
+            overs: document.getElementById('overs'),
+            striker: document.getElementById('striker'),
+            strikerScore: document.getElementById('strikerScore'),
+            nonStriker: document.getElementById('nonStriker'),
+            nonStrikerScore: document.getElementById('nonStrikerScore'),
+            bowler: document.getElementById('bowler'),
+            bowlerFigures: document.getElementById('bowlerFigures'),
+            crr: document.getElementById('crr'),
+            balls: document.getElementById('ballsContainer')
+        };
+
+        socket.on('connect', () => {
+            console.log('Connected to ScoreX');
+            if(matchId) socket.emit('join_match', matchId);
+        });
+
+        socket.on('match_update', (data) => {
+            update(data);
+        });
+
+        function update(data) {
+            if(!data) return;
+            // Safe Text Update
+            const txt = (el, val) => { if(el) el.innerText = val; };
+
+            txt(els.runs, data.score || 0);
+            txt(els.wickets, data.wickets || 0);
+            txt(els.overs, data.overs || '0.0');
+            txt(els.batting, data.battingTeam || 'BAT');
+            txt(els.bowling, data.bowlingTeam || 'BWL');
+
+            // Batsmen
+            if(data.striker) {
+                txt(els.striker, data.striker.name);
+                txt(els.strikerScore, `${data.striker.runs || 0}*(${data.striker.balls || 0})`);
+            }
+            if(data.nonStriker) {
+                txt(els.nonStriker, data.nonStriker.name);
+                txt(els.nonStrikerScore, `${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`);
+            }
+
+            // Bowler
+            if(data.bowler) {
+                txt(els.bowler, data.bowler.name);
+                txt(els.bowlerFigures, `${data.bowler.wickets || 0}/${data.bowler.runsConceded || 0}`);
+            }
+            
+            txt(els.crr, `CRR: ${data.crr || '0.0'}`);
+
+            // Balls
+            if(els.balls) {
+                els.balls.innerHTML = '';
+                (data.thisOver || []).forEach(ball => {
+                    const d = document.createElement('div');
+                    let c = 'ball-item';
+                    if(ball == '4') c += ' ball-4';
+                    if(ball == '6') c += ' ball-6';
+                    if(ball == 'W') c += ' ball-W';
+                    d.className = c;
+                    d.innerText = ball;
+                    els.balls.appendChild(d);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

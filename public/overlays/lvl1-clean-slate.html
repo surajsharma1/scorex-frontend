@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScoreX Lvl 1 Overlay</title>
+    <link rel="stylesheet" href="lvl1-styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="{{THEME_CLASS}}">
+    <style>body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; background: transparent; }
+        .overlay-container {
+            position: fixed; bottom: 30px; left: 30px; right: 30px;
+            height: 100px; display: flex; background: white; border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); overflow: hidden;
+        }
+        .header-section, .main-stats, .players-section, .footer-section {
+            padding: 10px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .header-section { background: #333; color: white; width: 120px; align-items: center; font-weight: bold; }
+        .main-stats { background: #f0f0f0; width: 140px; align-items: center; border-right: 1px solid #ddd; }
+        .score-box { font-size: 32px; font-weight: 800; }
+        .players-section { flex: 1; border-right: 1px solid #ddd; }
+        .footer-section { width: 250px; align-items: flex-end; }
+        .balls-row { display: flex; gap: 4px; margin-top: 5px; }
+        .ball-item { width: 20px; height: 20px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
+        .ball-4 { background: #4caf50; color: white; }
+        .ball-6 { background: #2196f3; color: white; }
+        .ball-W { background: #f44336; color: white; }
+        </style>
+
+    <div class="overlay-container">
+        <div class="header-section">
+            <div class="team-name" id="battingTeam">BAT</div>
+            <div class="vs">VS</div>
+            <div class="team-name" id="bowlingTeam">BWL</div>
+        </div>
+
+        <div class="main-stats">
+            <div class="score-box">
+                <span id="runs">0</span>/<span id="wickets">0</span>
+            </div>
+            <div class="overs-box">
+                <span id="overs">0.0</span> <span class="label">OVERS</span>
+            </div>
+        </div>
+
+        <div class="players-section">
+            <div class="player active" id="striker">Striker 0*</div>
+            <div class="player" id="nonStriker">Non-Striker 0</div>
+        </div>
+
+        <div class="footer-section">
+            <div class="bowler-info" id="bowler">Bowler 0/0</div>
+            <div class="balls-row" id="ballsContainer">
+                </div>
+            <div class="crr" id="crr">CRR: 0.0</div>
+        </div>
+    </div>
+
+    <script>
+        // Fallback if backend doesn't inject
+        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
+            apiBaseUrl: 'http://localhost:5000/api/v1',
+            level: 1 
+        };
+    </script>
+    <script src="engine.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ScoreX Premium Overlay</title>
+    <link rel="stylesheet" href="lvl2-styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="{{THEME_CLASS}}">
+
+    <div id="notificationArea" class="notification-popup">
+        <div class="notif-content">
+            <span id="notificationText">WICKET!</span>
+        </div>
+        <div class="notif-flare"></div>
+    </div>
+
+    <div class="premium-bar">
+        <div class="p-section p-teams">
+            <div class="p-team-box">
+                <span id="battingTeam">IND</span> 
+                <span class="vs-marker">vs</span> 
+                <span id="bowlingTeam">AUS</span>
+            </div>
+        </div>
+
+        <div class="p-section p-score">
+            <div class="score-wrapper">
+                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
+            </div>
+            <div class="over-wrapper">
+                <span id="overs">0.0</span> Ovs
+            </div>
+        </div>
+
+        <div class="p-section p-details">
+            <div class="p-row">
+                <span id="striker" class="highlight">Striker 0*</span>
+                <span id="nonStriker">Non-Striker 0</span>
+            </div>
+            <div class="p-row sub-row">
+                <span id="bowler">Bowler</span>
+                <span id="crr">CRR 0.0</span>
+            </div>
+        </div>
+
+        <div class="p-section p-balls" id="ballsContainer">
+            </div>
+    </div>
+
+    <script>
+        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
+            apiBaseUrl: 'http://localhost:5000/api/v1',
+            level: 2 
+        };
+    </script>
+    <script src="engine.js"></script>
+</body>
+</html>

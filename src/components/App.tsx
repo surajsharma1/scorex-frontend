@@ -1,28 +1,40 @@
-import { useState } from 'react';
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import Frontpage from './Frontpage';
-import Login from './Login';
-import Register from './Register';
-import Dashboard from './Dashboard';
-import TournamentList from './TournamentList';
-import TournamentForm from './TournamentForm';
-import TournamentDetail from './TournamentDetail';
-import LiveMatches from './LiveMatches';
-import OverlayEditor from './OverlayEditor';
-import Payment from './Payment';
-import Leaderboard from './Leaderboard';
-import TeamManagement from './TeamManagement';
-import FriendList from './FriendList';
-import ClubManagement from './ClubManagement';
-import Membership from './Membership';
-import Profile from './Profile';
 import { Menu } from 'lucide-react';
 
 // --- Dashboard Layout Wrapper ---
 // This component handles the Sidebar and Mobile Menu for all protected pages
 const DashboardLayout = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+      } else {
+        setIsAuthenticated(true);
+      }
+      setIsLoading(false);
+    };
+    checkAuth();
+  }, [navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white overflow-hidden">
@@ -37,7 +49,7 @@ const DashboardLayout = () => {
       {/* Sidebar Component */}
       <Sidebar isOpen={isSidebarOpen} onToggle={() => setSidebarOpen(false)} />
 
-      {/* Main Content */}
+      {/* Main Content - Use Outlet to render child routes */}
       <main className="flex-1 md:ml-64 h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
         <Outlet />
       </main>
@@ -46,40 +58,10 @@ const DashboardLayout = () => {
 };
 
 // --- Main App Component ---
-// Router is already in main.tsx, this just defines routes
+// Router is already in main.tsx, this just serves as a layout wrapper
+// Uses Outlet to render child routes from the router
 function App() {
-  const token = localStorage.getItem('token');
-
-  return (
-    <Routes>
-      {/* --- PUBLIC ROUTES --- */}
-      <Route path="/" element={<Frontpage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/matches/live" element={<LiveMatches />} />
-      <Route path="/tournaments" element={<TournamentList />} />
-      <Route path="/leaderboard" element={<Leaderboard />} />
-
-      {/* --- PROTECTED ROUTES (Require Login) --- */}
-      <Route element={token ? <DashboardLayout /> : <Navigate to="/login" replace />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/tournaments/create" element={<TournamentForm />} />
-        <Route path="/tournaments/:id" element={<TournamentDetail />} />
-        <Route path="/overlays" element={<OverlayEditor />} />
-        <Route path="/teams" element={<TeamManagement />} />
-        <Route path="/friends" element={<FriendList />} />
-        <Route path="/clubs" element={<ClubManagement />} />
-        <Route path="/membership" element={<Membership />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/live-matches" element={<LiveMatches />} />
-        <Route path="/upgrade" element={
-          <div className="flex items-center justify-center h-full">
-            <Payment onClose={() => window.history.back()} onSuccess={() => alert('Upgraded!')} />
-          </div>
-        } />
-      </Route>
-    </Routes>
-  );
+  return <DashboardLayout />;
 }
 
 export default App;
