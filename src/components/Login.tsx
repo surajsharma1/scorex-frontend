@@ -28,7 +28,7 @@ export default function Login() {
 
   const handleGoogleLogin = () => {
     // Redirect to backend OAuth endpoint
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://scorex-backend.onrender.com';
     window.location.href = `${backendUrl}/api/v1/auth/google`;
   };
 
