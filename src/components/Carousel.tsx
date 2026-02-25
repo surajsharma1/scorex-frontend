@@ -1,124 +1,68 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { tournamentAPI } from '../services/api';
+import { Trophy, Radio, Calendar, Zap } from 'lucide-react';
 
-interface CarouselItem {
-  id: string;
-  content: React.ReactNode;
-  bgColor?: string;
-  bgGradient?: string;
+interface SimpleTournament {
+  _id: string;
+  name: string;
+  status: string;
+  format?: string;
 }
 
-interface CarouselProps {
-  items: CarouselItem[];
-  autoPlay?: boolean;
-  autoPlayInterval?: number;
-  showDots?: boolean;
-  showArrows?: boolean;
-  className?: string;
-}
-
-const Carousel: React.FC<CarouselProps> = ({
-  items,
-  autoPlay = true,
-  autoPlayInterval = 5000,
-  showDots = true,
-  showArrows = true,
-  className = '',
-}) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  const goToNext = useCallback(() => {
-    if (isTransitioning || items.length <= 1) return;
-    setIsTransitioning(true);
-    setCurrentIndex((prev) => (prev + 1) % items.length);
-    setTimeout(() => setIsTransitioning(false), 500);
-  }, [items.length, isTransitioning]);
-
-  const goToPrev = useCallback(() => {
-    if (isTransitioning || items.length <= 1) return;
-    setIsTransitioning(true);
-    setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
-    setTimeout(() => setIsTransitioning(false), 500);
-  }, [items.length, isTransitioning]);
-
-  const goToSlide = useCallback((index: number) => {
-    if (isTransitioning || index === currentIndex) return;
-    setIsTransitioning(true);
-    setCurrentIndex(index);
-    setTimeout(() => setIsTransitioning(false), 500);
-  }, [currentIndex, isTransitioning]);
+export default function Carousel() {
+  const [tournaments, setTournaments] = useState<SimpleTournament[]>([]);
 
   useEffect(() => {
-    if (!autoPlay || items.length <= 1) return;
-
-    const interval = setInterval(goToNext, autoPlayInterval);
-    return () => clearInterval(interval);
-  }, [autoPlay, autoPlayInterval, goToNext, items.length]);
-
-  if (items.length === 0) {
-    return null;
-  }
+    const fetchData = async () => {
+      try {
+        const res = await tournamentAPI.getTournaments();
+        // Filter for active or upcoming tournaments
+        const active = (res.data || []).filter((t: SimpleTournament) => 
+          t.status === 'ongoing' || t.status === 'upcoming'
+        );
+        // If empty, add placeholders so the design doesn't break
+        if (active.length === 0) {
+            setTournaments([
+                { _id: '1', name: 'ScoreX Premier League', status: 'upcoming', format: 'T20' },
+                { _id: '2', name: 'National Cup 2025', status: 'upcoming', format: 'ODI' }
+            ]);
+        } else {
+            setTournaments(active);
+        }
+      } catch (error) {
+        console.error("Failed to load ticker data");
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
-    <div className={`relative overflow-hidden rounded-xl ${className}`}>
-      {/* Slides Container */}
-      <div
-        className="flex transition-transform duration-500 ease-in-out"
-        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-      >
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className={`w-full flex-shrink-0 ${item.bgColor || ''}`}
-            style={item.bgGradient ? { background: item.bgGradient } : {}}
-          >
-            {item.content}
-          </div>
-        ))}
+    <div className="w-full bg-black/80 backdrop-blur-md border-b border-white/10 h-12 flex items-center overflow-hidden relative z-50">
+      {/* Label */}
+      <div className="bg-red-600 h-full px-6 flex items-center justify-center z-20 shadow-[4px_0_24px_rgba(220,38,38,0.5)]">
+        <span className="font-orbitron font-bold text-white tracking-wider text-sm flex items-center gap-2">
+            <Radio className="w-4 h-4 animate-pulse" /> LIVE ACTION
+        </span>
       </div>
 
-      {/* Navigation Arrows */}
-      {showArrows && items.length > 1 && (
-        <>
-          <button
-            onClick={goToPrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/80 dark:bg-dark-bg/80 rounded-full shadow-lg hover:bg-white dark:hover:bg-dark-bg transition-colors z-10"
-            disabled={isTransitioning}
-            aria-label="Previous slide"
-          >
-            <ChevronLeft className="h-6 w-6 text-gray-800 dark:text-dark-light" />
-          </button>
-          <button
-            onClick={goToNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/80 dark:bg-dark-bg/80 rounded-full shadow-lg hover:bg-white dark:hover:bg-dark-bg transition-colors z-10"
-            disabled={isTransitioning}
-            aria-label="Next slide"
-          >
-            <ChevronRight className="h-6 w-6 text-gray-800 dark:text-dark-light" />
-          </button>
-        </>
-      )}
-
-      {/* Dots Navigation */}
-      {showDots && items.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
-          {items.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                index === currentIndex
-                  ? 'bg-white w-8'
-                  : 'bg-white/50 hover:bg-white/75'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
+      {/* Marquee Container */}
+      <div className="flex overflow-hidden w-full mask-linear-gradient">
+        <div className="animate-marquee flex items-center gap-16 pl-4">
+          {/* We duplicate the array to create a seamless infinite loop effect */}
+          {[...tournaments, ...tournaments, ...tournaments].map((t, i) => (
+            <div key={`${t._id}-${i}`} className="flex items-center gap-3 text-sm font-medium whitespace-nowrap">
+              <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                  t.status === 'ongoing' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
+              }`}>
+                {t.status.toUpperCase()}
+              </span>
+              <span className="text-gray-100 font-barlow text-lg tracking-wide">{t.name}</span>
+              <span className="text-gray-500 text-xs border border-gray-700 px-1 rounded">{t.format || 'T20'}</span>
+              <Zap className="w-3 h-3 text-yellow-500" />
+            </div>
           ))}
         </div>
-      )}
+      </div>
     </div>
   );
-};
-
-export default Carousel;
+}

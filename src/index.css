@@ -6,13 +6,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Define custom color utilities */
-@layer components {
-  .bg-primary {
-    background-color: #34729c;
-  }
-}
-
 :root {
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
@@ -21,32 +14,41 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  @apply bg-gray-900 text-white;
 }
 
-/* Custom Scrollbar for Dashboard Panels */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-gray-900; 
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-700 rounded-full hover:bg-gray-600;
 }
 
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.5);
-  border-radius: 20px;
-}
-
-.dark .overflow-y-auto::-webkit-scrollbar-thumb {
-  background-color: rgba(75, 85, 99, 0.5);
-}
-
-/* Animation Utilities */
+/* Animations */
 @keyframes pulse-glow {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.95); }
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px rgba(74, 222, 128, 0.5); }
+  50% { opacity: 0.8; transform: scale(0.98); box-shadow: 0 0 20px rgba(74, 222, 128, 0.2); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 .animate-pulse-glow {
-  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: pulse-glow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content; /* Ensure container fits content */
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }

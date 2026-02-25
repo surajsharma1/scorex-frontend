@@ -1,120 +1,153 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { matchAPI } from '../services/api';
-import { Match } from './types';
-import { Trophy, Play, Activity, Users, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import Carousel from './Carousel';
+import { Trophy, BarChart3, ShieldCheck, Play, ArrowRight, Activity, Users, Video } from 'lucide-react';
 
 export default function Frontpage() {
-  const navigate = useNavigate();
-  const [liveMatches, setLiveMatches] = useState<Match[]>([]);
-
-  useEffect(() => {
-    // Redirect if already logged in
-    if (localStorage.getItem('token')) {
-      navigate('/');
-    }
-    
-    // Fetch teaser data
-    loadLiveMatches();
-  }, []);
-
-  const loadLiveMatches = async () => {
-    try {
-      const res = await matchAPI.getAllMatches();
-      const matches = res.data.matches || [];
-      setLiveMatches(matches.filter((m: Match) => m.status === 'ongoing').slice(0, 3));
-    } catch (e) {
-      console.error("Failed to load landing data");
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-900 text-white font-sans">
-      {/* Navbar */}
-      <nav className="p-6 flex justify-between items-center max-w-7xl mx-auto">
-        <div className="text-2xl font-black bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-          ScoreX
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col font-sans overflow-x-hidden selection:bg-green-500/30">
+      
+      {/* 1. Navbar */}
+      <nav className="fixed top-0 w-full z-40 bg-[#0a0a0a]/80 backdrop-blur-lg border-b border-white/5">
+        <div className="container mx-auto px-6 h-20 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-tr from-green-500 to-emerald-600 rounded-lg rotate-3 flex items-center justify-center">
+                    <span className="font-orbitron font-bold text-black text-lg">S</span>
+                </div>
+                <span className="font-orbitron font-bold text-2xl tracking-tight text-white">SCOREX</span>
+            </div>
+            
+            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
+                <a href="#features" className="hover:text-white transition">Features</a>
+                <Link to="/matches/live" className="hover:text-white transition flex items-center gap-2">
+                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> Live Matches
+                </Link>
+                <Link to="/tournaments" className="hover:text-white transition">Tournaments</Link>
+            </div>
+
+            <div className="flex items-center gap-4">
+                <Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition">Log In</Link>
+                <Link to="/register" className="px-5 py-2.5 bg-white text-black text-sm font-bold rounded-lg hover:bg-gray-200 transition shadow-[0_0_20px_rgba(255,255,255,0.15)]">
+                    Sign Up
+                </Link>
+            </div>
         </div>
-        <div className="flex gap-4">
-          <Link to="/login" className="px-4 py-2 hover:text-blue-400 font-medium">Login</Link>
-          <Link to="/register" className="px-6 py-2 bg-blue-600 rounded-full font-bold hover:bg-blue-700 transition">
-            Get Started
-          </Link>
-        </div>
+        {/* Ticker integration */}
+        <Carousel />
       </nav>
 
-      {/* Hero Section */}
-      <header className="py-20 px-6 text-center max-w-5xl mx-auto">
-        <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
-          Next Gen Cricket <br/>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">
-            Tournament Manager
-          </span>
-        </h1>
-        <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-          Create tournaments, manage teams, and broadcast professional-grade live scores with our advanced overlay system.
-        </p>
-        <div className="flex justify-center gap-4">
-          <Link to="/register" className="px-8 py-4 bg-white text-gray-900 rounded-full font-bold text-lg hover:bg-gray-100 flex items-center gap-2">
-            Start Free <ArrowRight className="w-5 h-5" />
-          </Link>
-          <Link to="/live-matches" className="px-8 py-4 bg-gray-800 border border-gray-700 rounded-full font-bold text-lg hover:bg-gray-700 flex items-center gap-2">
-            <Play className="w-5 h-5 text-red-500" /> Watch Live
-          </Link>
-        </div>
-      </header>
+      {/* 2. Hero Section */}
+      <div className="relative pt-48 pb-32 px-6">
+        {/* Background blobs */}
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-green-600/20 rounded-full blur-[120px] pointer-events-none"></div>
 
-      {/* Features Grid */}
-      <section className="py-20 bg-gray-800/50">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="p-8 bg-gray-800 rounded-2xl border border-gray-700 hover:border-blue-500 transition-colors">
-            <Trophy className="w-12 h-12 text-yellow-500 mb-4" />
-            <h3 className="text-xl font-bold mb-2">Tournament Brackets</h3>
-            <p className="text-gray-400">Automated scheduling and drag-and-drop bracket generation for any tournament format.</p>
+        <div className="container mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-green-400 text-xs font-bold uppercase tracking-wider mb-8 animate-fade-in-up">
+            <Activity className="w-3 h-3" /> The Ultimate Cricket Platform
           </div>
-          <div className="p-8 bg-gray-800 rounded-2xl border border-gray-700 hover:border-green-500 transition-colors">
-            <Activity className="w-12 h-12 text-green-500 mb-4" />
-            <h3 className="text-xl font-bold mb-2">Live Scoring</h3>
-            <p className="text-gray-400">Real-time ball-by-ball scoring with advanced stats, wagon wheels, and run rates.</p>
-          </div>
-          <div className="p-8 bg-gray-800 rounded-2xl border border-gray-700 hover:border-purple-500 transition-colors">
-            <Users className="w-12 h-12 text-purple-500 mb-4" />
-            <h3 className="text-xl font-bold mb-2">Stream Overlays</h3>
-            <p className="text-gray-400">Professional broadcast overlays that sync instantly with your live scorecard.</p>
+          
+          <h1 className="text-5xl md:text-8xl font-black mb-6 leading-[1.1] font-orbitron tracking-tight">
+            NEXT GEN <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-500">
+              CRICKET SCORING
+            </span>
+          </h1>
+          
+          <p className="text-lg md:text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Manage tournaments, generate TV-grade overlays for live streams, and track advanced player analytics in real-time.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row justify-center gap-5">
+            <Link 
+              to="/register" 
+              className="flex items-center justify-center gap-3 px-8 py-4 bg-green-600 hover:bg-green-500 text-black font-bold rounded-xl transition-all hover:scale-105 shadow-[0_0_40px_rgba(34,197,94,0.3)]"
+            >
+              Create Tournament <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link 
+              to="/matches/live" 
+              className="flex items-center justify-center gap-3 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-md rounded-xl font-bold transition-all hover:scale-105"
+            >
+              <Play className="w-5 h-5 fill-current" /> Watch Live
+            </Link>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Live Preview */}
-      {liveMatches.length > 0 && (
-        <section className="py-20 max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
-            <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
-            Happening Now
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {liveMatches.map(match => (
-              <div key={match._id} className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-xs font-bold bg-red-900/50 text-red-400 px-2 py-1 rounded">LIVE</span>
-                  <span className="text-xs text-gray-400">{match.venue}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-bold">{match.team1.name}</h3>
-                    <p className="text-2xl font-bold text-blue-400">{match.score1}/{match.wickets1}</p>
-                  </div>
-                  <span className="text-gray-600 font-bold">VS</span>
-                  <div className="text-right">
-                    <h3 className="font-bold">{match.team2.name}</h3>
-                    <p className="text-2xl font-bold text-yellow-400">{match.score2}/{match.wickets2}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+      {/* 3. Stats / Social Proof */}
+      <div className="border-y border-white/10 bg-black/50 py-12">
+          <div className="container mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              <StatItem value="10k+" label="Matches Scored" />
+              <StatItem value="500+" label="Active Leagues" />
+              <StatItem value="2M+" label="Runs Tracked" />
+              <StatItem value="4.9/5" label="User Rating" />
           </div>
-        </section>
-      )}
+      </div>
+
+      {/* 4. Features Grid */}
+      <div id="features" className="py-32 bg-gradient-to-b from-[#0a0a0a] to-[#111]">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-20">
+              <h2 className="text-3xl md:text-5xl font-bold font-orbitron mb-4">Pro Tools for Everyone</h2>
+              <p className="text-gray-400">Everything you need to run a world-class cricket organization.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <FeatureCard 
+              icon={<Video className="w-8 h-8 text-cyan-400" />}
+              title="Broadcast Overlays"
+              desc="Professional OBS overlays for YouTube & Facebook live streams. Animated, automated, and instant."
+              color="border-cyan-500/20 bg-cyan-500/5"
+            />
+            <FeatureCard 
+              icon={<BarChart3 className="w-8 h-8 text-purple-400" />}
+              title="Deep Analytics"
+              desc="Wagon wheels, pitch maps, and worm charts generated automatically from your scoring data."
+              color="border-purple-500/20 bg-purple-500/5"
+            />
+            <FeatureCard 
+              icon={<ShieldCheck className="w-8 h-8 text-green-400" />}
+              title="League Management"
+              desc="Automated points tables, net run rate (NRR) calculations, and player transfer management."
+              color="border-green-500/20 bg-green-500/5"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Footer */}
+      <footer className="py-12 border-t border-white/10 bg-black">
+        <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-2xl font-orbitron font-bold text-gray-500">SCOREX</div>
+          <div className="text-gray-500 text-sm">
+            &copy; 2025 ScoreX Sports Technology. All rights reserved.
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function StatItem({ value, label }: { value: string, label: string }) {
+    return (
+        <div>
+            <div className="text-3xl md:text-4xl font-black text-white font-barlow mb-1">{value}</div>
+            <div className="text-gray-500 text-sm font-medium uppercase tracking-wider">{label}</div>
+        </div>
+    )
+}
+
+function FeatureCard({ icon, title, desc, color }: any) {
+  return (
+    <div className={`p-8 rounded-3xl border ${color} hover:border-opacity-50 transition-all duration-300 group`}>
+      <div className="mb-6 bg-white/5 w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+          {icon}
+      </div>
+      <h3 className="text-2xl font-bold mb-4 font-barlow text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-400 transition-all">
+          {title}
+      </h3>
+      <p className="text-gray-400 leading-relaxed">
+          {desc}
+      </p>
     </div>
   );
 }
