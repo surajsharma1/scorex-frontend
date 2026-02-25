@@ -11,6 +11,12 @@ import TournamentDetail from './TournamentDetail';
 import LiveMatches from './LiveMatches';
 import OverlayEditor from './OverlayEditor';
 import Payment from './Payment';
+import Leaderboard from './Leaderboard';
+import TeamManagement from './TeamManagement';
+import FriendList from './FriendList';
+import ClubManagement from './ClubManagement';
+import Membership from './Membership';
+import Profile from './Profile';
 import { Menu } from 'lucide-react';
 
 // --- Dashboard Layout Wrapper ---
@@ -52,6 +58,7 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/matches/live" element={<LiveMatches />} />
       <Route path="/tournaments" element={<TournamentList />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
 
       {/* --- PROTECTED ROUTES (Require Login) --- */}
       <Route element={token ? <DashboardLayout /> : <Navigate to="/login" replace />}>
@@ -59,6 +66,12 @@ function App() {
         <Route path="/tournaments/create" element={<TournamentForm />} />
         <Route path="/tournaments/:id" element={<TournamentDetail />} />
         <Route path="/overlays" element={<OverlayEditor />} />
+        <Route path="/teams" element={<TeamManagement />} />
+        <Route path="/friends" element={<FriendList />} />
+        <Route path="/clubs" element={<ClubManagement />} />
+        <Route path="/membership" element={<Membership />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/live-matches" element={<LiveMatches />} />
         <Route path="/upgrade" element={
           <div className="flex items-center justify-center h-full">
             <Payment onClose={() => window.history.back()} onSuccess={() => alert('Upgraded!')} />

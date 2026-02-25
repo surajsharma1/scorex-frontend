@@ -29,22 +29,30 @@ export default function Login() {
   const handleGoogleLogin = () => {
     // Redirect to backend OAuth endpoint
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://scorex-backend.onrender.com';
-    window.location.href = `${backendUrl}/api/v1/auth/google`;
+    // Store the current URL to redirect back after OAuth
+    const currentUrl = window.location.origin;
+    window.location.href = `${backendUrl}/api/v1/auth/google?redirect_uri=${encodeURIComponent(currentUrl)}`;
   };
 
   // Check for OAuth token in URL on component mount (for OAuth callback)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
+    const error = urlParams.get('error');
+    
+    if (error) {
+      setError(error);
+      return;
+    }
     
     if (token) {
-      // Store the token and redirect to dashboard
+      // Store the token
       localStorage.setItem('token', token);
       
       // Clean up URL
       window.history.replaceState({}, document.title, '/dashboard');
       
-      // Fetch user data and navigate
+      // Redirect to dashboard
       navigate('/dashboard');
     }
   }, [navigate]);
