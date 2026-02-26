@@ -260,7 +260,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
               <div>
                 <p className="font-semibold dark:text-white">{getPlanDisplayName()}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {selectedLevel === 'lv1' ? 'Basic animated overlays' : 'All premium overlays + priority support'}
+                  {selectedLevel === 'lv1' ? ' Basic animated overlays' : 'All premium overlays + priority support'}
                 </p>
               </div>
               <div className={`text-2xl font-bold ${selectedLevel === 'lv2' ? 'text-purple-600' : 'text-blue-600'}`}>
@@ -282,7 +282,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
             {paymentMethod === 'card' ? (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Card Number </label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Card Number (Test: 8871474139)</label>
                   <div className="relative">
                     <CreditCard className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                     <input 
