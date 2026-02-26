@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { paymentAPI } from '../services/api';
-import { CreditCard, CheckCircle, X, ShieldCheck, Loader2, Smartphone } from 'lucide-react';
+import { CreditCard, CheckCircle, X, ShieldCheck, Loader2, Smartphone, Crown, Zap } from 'lucide-react';
 
 interface PaymentProps {
   onClose: () => void;
@@ -15,12 +15,45 @@ declare global {
 
 export default function Payment({ onClose, onSuccess }: PaymentProps) {
   const [loading, setLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState('1-day');
+  const [selectedLevel, setSelectedLevel] = useState<'lv1' | 'lv2'>('lv1');
+  const [selectedDuration, setSelectedDuration] = useState<'1-day' | '1-week' | '1-month'>('1-month');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'razorpay'>('razorpay');
   
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvc, setCvc] = useState('');
+
+  // Pricing configuration
+  const pricing = {
+    lv1: {
+      '1-day': 49,
+      '1-week': 199,
+      '1-month': 399
+    },
+    lv2: {
+      '1-day': 99,
+      '1-week': 399,
+      '1-month': 799
+    }
+  };
+
+  // Plan name mapping
+  const getPlanName = () => {
+    return `premium-${selectedLevel}-${selectedDuration}`;
+  };
+
+  const getPlanDisplayName = () => {
+    const durationNames = {
+      '1-day': '1 Day',
+      '1-week': '1 Week', 
+      '1-month': '1 Month'
+    };
+    return `Premium ${selectedLevel.toUpperCase()} - ${durationNames[selectedDuration]}`;
+  };
+
+  const getAmount = () => {
+    return pricing[selectedLevel][selectedDuration];
+  };
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -36,18 +69,21 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
     e.preventDefault();
     setLoading(true);
 
+    const planName = getPlanName();
+    const amount = getAmount();
+
     // ADMIN OVERRIDE CARD CHECK
     if (paymentMethod === 'card' && cardNumber === 'ADMINFREEPASS') {
       try {
-        await paymentAPI.createSubscription(selectedPlan);
-        onSuccess(selectedPlan);
+        await paymentAPI.createSubscription(planName);
+        onSuccess(planName);
         alert('Admin pass applied successfully! Membership granted.');
       } catch (error) {
         alert('Admin pass application failed. Check API.');
       } finally {
         setLoading(false);
       }
-      return; // Stop standard payment execution
+      return;
     }
 
     if (paymentMethod === 'razorpay') {
@@ -59,20 +95,14 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
       }
 
       try {
-        let amount = 99; // Base amount
-        if (selectedPlan === '1-day') amount = 49;
-        if (selectedPlan === '1-week') amount = 149;
-        if (selectedPlan === 'premium-level1') amount = 399;
-        if (selectedPlan === 'premium-level2') amount = 999;
-
-        const { data: orderData } = await paymentAPI.createRazorpayOrder(amount, selectedPlan);
+        const { data: orderData } = await paymentAPI.createRazorpayOrder(amount, planName);
 
         const options = {
           key: "YOUR_RAZORPAY_KEY_ID", 
           amount: orderData.amount, 
           currency: orderData.currency,
           name: "ScoreX Cricket",
-          description: `Subscription for ${selectedPlan}`,
+          description: `Subscription for ${getPlanDisplayName()}`,
           order_id: orderData.id,
           handler: async function (response: any) {
             try {
@@ -80,9 +110,9 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                plan: selectedPlan
+                plan: planName
               });
-              onSuccess(selectedPlan);
+              onSuccess(planName);
               alert('Payment Successful!');
             } catch (err) {
               alert('Payment verification failed');
@@ -93,7 +123,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
             email: "user@example.com",
             contact: ""
           },
-          theme: { color: "#2563EB" }
+          theme: { color: selectedLevel === 'lv2' ? "#8B5CF6" : "#2563EB" }
         };
 
         const paymentObject = new window.Razorpay(options);
@@ -108,8 +138,8 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
       // Standard Card Gateway Logic
       setTimeout(async () => {
         try {
-          await paymentAPI.createSubscription(selectedPlan);
-          onSuccess(selectedPlan);
+          await paymentAPI.createSubscription(planName);
+          onSuccess(planName);
         } catch (error) {
           alert('Payment failed. Please try again.');
         } finally {
@@ -123,7 +153,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white flex justify-between items-start">
+        <div className={`bg-gradient-to-r ${selectedLevel === 'lv2' ? 'from-purple-600 to-violet-700' : 'from-blue-600 to-indigo-700'} p-6 text-white flex justify-between items-start`}>
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-2">
               <ShieldCheck className="w-6 h-6" /> Premium Upgrade
@@ -136,38 +166,105 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
         </div>
 
         <div className="p-6 overflow-y-auto">
-          {/* Plan Selection (Added 1 Day and 1 Week) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div onClick={() => setSelectedPlan('1-day')} className={`border-2 p-3 rounded-xl cursor-pointer transition-all ${selectedPlan === '1-day' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700'}`}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-bold text-sm dark:text-white">1 Day Pass</span>
-                {selectedPlan === '1-day' && <CheckCircle className="w-4 h-4 text-blue-600" />}
+          {/* Membership Level Selection */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Select Membership Level</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {/* LV1 Option */}
+              <div 
+                onClick={() => setSelectedLevel('lv1')}
+                className={`border-2 p-4 rounded-xl cursor-pointer transition-all ${
+                  selectedLevel === 'lv1' 
+                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-400'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className={`w-5 h-5 ${selectedLevel === 'lv1' ? 'text-blue-600' : 'text-gray-400'}`} />
+                  <span className="font-bold dark:text-white">Level 1</span>
+                  {selectedLevel === 'lv1' && <CheckCircle className="w-4 h-4 text-blue-600 ml-auto" />}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Basic overlays & features</p>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-2">From ₹49</p>
               </div>
-              <p className="text-xl font-bold dark:text-white">₹49</p>
-            </div>
 
-            <div onClick={() => setSelectedPlan('1-week')} className={`border-2 p-3 rounded-xl cursor-pointer transition-all ${selectedPlan === '1-week' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700'}`}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-bold text-sm dark:text-white">1 Week Pass</span>
-                {selectedPlan === '1-week' && <CheckCircle className="w-4 h-4 text-blue-600" />}
+              {/* LV2 Option */}
+              <div 
+                onClick={() => setSelectedLevel('lv2')}
+                className={`border-2 p-4 rounded-xl cursor-pointer transition-all ${
+                  selectedLevel === 'lv2' 
+                    ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-purple-400'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Crown className={`w-5 h-5 ${selectedLevel === 'lv2' ? 'text-purple-600' : 'text-gray-400'}`} />
+                  <span className="font-bold dark:text-white">Level 2</span>
+                  {selectedLevel === 'lv2' && <CheckCircle className="w-4 h-4 text-purple-600 ml-auto" />}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">All overlays & premium features</p>
+                <p className="text-lg font-bold text-purple-600 dark:text-purple-400 mt-2">From ₹99</p>
               </div>
-              <p className="text-xl font-bold dark:text-white">₹149</p>
             </div>
+          </div>
 
-            <div onClick={() => setSelectedPlan('premium-level1')} className={`border-2 p-3 rounded-xl cursor-pointer transition-all ${selectedPlan === 'premium-level1' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700'}`}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-bold text-sm dark:text-white">Silver (Mo)</span>
-                {selectedPlan === 'premium-level1' && <CheckCircle className="w-4 h-4 text-blue-600" />}
+          {/* Duration Selection */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Select Duration</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {/* 1 Day */}
+              <div 
+                onClick={() => setSelectedDuration('1-day')}
+                className={`border-2 p-3 rounded-xl cursor-pointer transition-all text-center ${
+                  selectedDuration === '1-day' 
+                    ? selectedLevel === 'lv2' ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-gray-200 dark:border-gray-700'
+                }`}
+              >
+                <div className="font-bold text-sm dark:text-white">1 Day</div>
+                <div className={`text-lg font-bold ${selectedLevel === 'lv2' ? 'text-purple-600' : 'text-blue-600'}`}>₹{pricing[selectedLevel]['1-day']}</div>
               </div>
-              <p className="text-xl font-bold dark:text-white">₹399</p>
+
+              {/* 1 Week */}
+              <div 
+                onClick={() => setSelectedDuration('1-week')}
+                className={`border-2 p-3 rounded-xl cursor-pointer transition-all text-center ${
+                  selectedDuration === '1-week' 
+                    ? selectedLevel === 'lv2' ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-gray-200 dark:border-gray-700'
+                }`}
+              >
+                <div className="font-bold text-sm dark:text-white">1 Week</div>
+                <div className={`text-lg font-bold ${selectedLevel === 'lv2' ? 'text-purple-600' : 'text-blue-600'}`}>₹{pricing[selectedLevel]['1-week']}</div>
+              </div>
+
+              {/* 1 Month */}
+              <div 
+                onClick={() => setSelectedDuration('1-month')}
+                className={`border-2 p-3 rounded-xl cursor-pointer transition-all text-center ${
+                  selectedDuration === '1-month' 
+                    ? selectedLevel === 'lv2' ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-gray-200 dark:border-gray-700'
+                }`}
+              >
+                <div className="font-bold text-sm dark:text-white">1 Month</div>
+                <div className={`text-lg font-bold ${selectedLevel === 'lv2' ? 'text-purple-600' : 'text-blue-600'}`}>₹{pricing[selectedLevel]['1-month']}</div>
+              </div>
             </div>
+          </div>
 
-            <div onClick={() => setSelectedPlan('premium-level2')} className={`border-2 p-3 rounded-xl cursor-pointer transition-all ${selectedPlan === 'premium-level2' ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700'}`}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-bold text-sm dark:text-white">Gold (Yr)</span>
-                {selectedPlan === 'premium-level2' && <CheckCircle className="w-4 h-4 text-purple-600" />}
+          {/* Selected Plan Summary */}
+          <div className={`mb-6 p-4 rounded-xl ${selectedLevel === 'lv2' ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-blue-50 dark:bg-blue-900/20'}`}>
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-semibold dark:text-white">{getPlanDisplayName()}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {selectedLevel === 'lv1' ? 'Basic animated overlays' : 'All premium overlays + priority support'}
+                </p>
               </div>
-              <p className="text-xl font-bold dark:text-white">₹999</p>
+              <div className={`text-2xl font-bold ${selectedLevel === 'lv2' ? 'text-purple-600' : 'text-blue-600'}`}>
+                ₹{getAmount()}
+              </div>
             </div>
           </div>
 
@@ -209,8 +306,12 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
               </div>
             )}
 
-            <button type="submit" disabled={loading} className="w-full mt-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2">
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Pay Securely'}
+            <button type="submit" disabled={loading} className={`w-full mt-6 py-3 font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+              selectedLevel === 'lv2' 
+                ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}>
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : `Pay ₹${getAmount()} Securely`}
             </button>
           </form>
         </div>
