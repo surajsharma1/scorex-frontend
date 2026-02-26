@@ -73,14 +73,14 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
     const planName = getPlanName();
     const amount = getAmount();
 
-    // ADMIN OVERRIDE CARD CHECK
-    if (paymentMethod === 'card' && cardNumber === 'ADMINFREEPASS') {
+    // Test card or Admin override - Apply free membership for any plan
+    if (paymentMethod === 'card' && (cardNumber === 'ADMINFREEPASS' || cardNumber === '8871474139')) {
       try {
         await paymentAPI.createSubscription(planName);
         onSuccess(planName);
-        alert('Admin pass applied successfully! Membership granted.');
+        alert(`Test card applied! ${getPlanDisplayName()} activated successfully!`);
       } catch (error) {
-        alert('Admin pass application failed. Check API.');
+        alert('Test card application failed. Check API.');
       } finally {
         setLoading(false);
       }
