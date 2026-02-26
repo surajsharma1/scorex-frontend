@@ -16,8 +16,10 @@ export default function Carousel() {
     const fetchData = async () => {
       try {
         const res = await tournamentAPI.getTournaments(); // Calls backend
+        // Handle both response formats: { tournaments: [...] } or direct array
+        const tournaments = res.data.tournaments || res.data || [];
         // Filter for relevant items
-        const active = (res.data || []).map((t: any) => ({
+        const active = (tournaments).map((t: any) => ({
           _id: t._id,
           name: t.name,
           status: t.status,

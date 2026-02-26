@@ -24,10 +24,7 @@ export default {
         'dark-accent': '#178582',
         'dark-light': '#bfa181',
 
-        // Simple primary color alias for bg-primary, text-primary, etc.
-        'primary': '#34729c',
-        
-        // Primary color with all shades for Tailwind utilities
+        // Primary color - must use object format for utilities
         primary: {
           DEFAULT: '#34729c',
           light: '#6cb1da',
