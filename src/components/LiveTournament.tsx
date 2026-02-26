@@ -63,8 +63,24 @@ const LiveTournament: React.FC = () => {
     if (!id) return;
     try {
       const response = await matchAPI.getMatches(id);
+      
+      // Check if the response indicates the match wasn't found
+      if (response.status === 404 || (response.data && response.data.message === 'Match not found')) {
+        setError('Match not found. The match may have been deleted or the link is incorrect.');
+        setLoading(false);
+        return;
+      }
+      
       // Handle response structure variations
       const matchData = response.data.match || response.data;
+      
+      // Validate that we actually got match data
+      if (!matchData || !matchData._id) {
+        setError('Match data is invalid or unavailable.');
+        setLoading(false);
+        return;
+      }
+      
       setMatch(matchData);
       
       if (matchData.tournament) {
@@ -72,9 +88,25 @@ const LiveTournament: React.FC = () => {
           const tRes = await tournamentAPI.getTournament(tId);
           setTournament(tRes.data);
       }
-    } catch (err) {
-      console.error(err);
-      setError('Failed to load match details');
+    } catch (err: any) {
+      console.error('Error fetching match:', err);
+      
+      // Handle different error types
+      if (err.response) {
+        if (err.response.status === 404) {
+          setError('Match not found. The match may have been deleted or the link is incorrect.');
+        } else if (err.response.status === 401) {
+          setError('You are not authorized to view this match.');
+        } else if (err.response.status >= 500) {
+          setError('Server error. Please try again later.');
+        } else {
+          setError('Failed to load match details');
+        }
+      } else if (err.request) {
+        setError('Network error. Please check your connection.');
+      } else {
+        setError('Failed to load match details');
+      }
     } finally {
       setLoading(false);
     }
