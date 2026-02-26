@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        .overlay-container { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); width: 95%; height: 50px; background: #fff; border-radius: 25px; display: flex; color: #222; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: 'Arial', sans-serif; border: 2px solid #2a9d8f; }
+        .section { display: flex; align-items: center; padding: 0 12px; border-right: 1px solid #ddd; height: 100%; }
+        .team { font-weight: 900; color: #264653; }
+        .score { font-weight: bold; font-size: 20px; color: #e76f51; }
+        .players { font-size: 12px; flex-direction: column; align-items: flex-start; justify-content: center; flex-grow: 1; border: none; }
+        .balls { background: #264653; color: white; border-radius: 0 25px 25px 0; min-width: 80px; justify-content: center; }
+    </style>
+</head>
+<body>
+    <div class="overlay-container">
+        <div class="section team" id="teamName">INDIA</div>
+        <div class="section score" id="scores">150/3</div>
+        <div class="section players">
+            <div id="batsmanName">B: Kohli*</div>
+            <div id="bowlerName">P: Bumrah</div>
+        </div>
+        <div class="section balls" id="ballsTracker">● ● ○ ○ ○ ○</div>
+    </div>
+    <script src="/overlays/engine.js"></script>
+</body>
+</html>

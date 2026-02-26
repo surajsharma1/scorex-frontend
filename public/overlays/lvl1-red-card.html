@@ -1,50 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScoreX Lvl 1 Overlay</title>
-    <link rel="stylesheet" href="lvl1-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body class="{{THEME_CLASS}}">
-
-    <div class="overlay-container">
-        <div class="header-section">
-            <div class="team-name" id="battingTeam">BAT</div>
-            <div class="vs">VS</div>
-            <div class="team-name" id="bowlingTeam">BWL</div>
-        </div>
-
-        <div class="main-stats">
-            <div class="score-box">
-                <span id="runs">0</span>/<span id="wickets">0</span>
-            </div>
-            <div class="overs-box">
-                <span id="overs">0.0</span> <span class="label">OVERS</span>
-            </div>
-        </div>
-
-        <div class="players-section">
-            <div class="player active" id="striker">Striker 0*</div>
-            <div class="player" id="nonStriker">Non-Striker 0</div>
-        </div>
-
-        <div class="footer-section">
-            <div class="bowler-info" id="bowler">Bowler 0/0</div>
-            <div class="balls-row" id="ballsContainer">
-                </div>
-            <div class="crr" id="crr">CRR: 0.0</div>
-        </div>
+<style>
+    .ov-wrapper { position: fixed; bottom: 0; width: 100%; font-family: monospace; }
+    .bar-top { background: #2f3542; color: #fff; height: 25px; display: flex; align-items: center; padding: 0 10px; font-size: 14px; }
+    .bar-btm { background: #f1f2f6; color: #2f3542; height: 35px; display: flex; align-items: center; padding: 0 10px; font-weight: bold; }
+  </style>
+  <div class="ov-wrapper">
+    <div class="bar-top">
+      <span id="batsmanName" style="flex:1">Batsman: ---</span>
+      <span id="bowlerName">Bowler: ---</span>
     </div>
-
-    <script>
-        // Fallback if backend doesn't inject
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 1 
-        };
-    </script>
-    <script src="engine.js"></script>
-</body>
-</html>
+    <div class="bar-btm">
+      <span id="teamName" style="margin-right:10px">TEAM</span>
+      <span id="scores" style="font-size:20px; flex:1">0/0 (0.0)</span>
+      <span id="ballsTracker">BALLS: . . . . . .</span>
+    </div>
+  </div><style>
+    .ov-wrapper { position: fixed; bottom: 0; width: 100%; font-family: monospace; }
+    .bar-top { background: #2f3542; color: #fff; height: 25px; display: flex; align-items: center; padding: 0 10px; font-size: 14px; }
+    .bar-btm { background: #f1f2f6; color: #2f3542; height: 35px; display: flex; align-items: center; padding: 0 10px; font-weight: bold; }
+  </style>
+  <div class="ov-wrapper">
+    <div class="bar-top">
+      <span id="batsmanName" style="flex:1">Batsman: ---</span>
+      <span id="bowlerName">Bowler: ---</span>
+    </div>
+    <div class="bar-btm">
+      <span id="teamName" style="margin-right:10px">TEAM</span>
+      <span id="scores" style="font-size:20px; flex:1">0/0 (0.0)</span>
+      <span id="ballsTracker">BALLS: . . . . . .</span>
+    </div>
+  </div>

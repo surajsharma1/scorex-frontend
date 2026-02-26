@@ -1,50 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScoreX Lvl 1 Overlay</title>
-    <link rel="stylesheet" href="lvl1-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body class="{{THEME_CLASS}}">
-
-    <div class="overlay-container">
-        <div class="header-section">
-            <div class="team-name" id="battingTeam">BAT</div>
-            <div class="vs">VS</div>
-            <div class="team-name" id="bowlingTeam">BWL</div>
-        </div>
-
-        <div class="main-stats">
-            <div class="score-box">
-                <span id="runs">0</span>/<span id="wickets">0</span>
-            </div>
-            <div class="overs-box">
-                <span id="overs">0.0</span> <span class="label">OVERS</span>
-            </div>
-        </div>
-
-        <div class="players-section">
-            <div class="player active" id="striker">Striker 0*</div>
-            <div class="player" id="nonStriker">Non-Striker 0</div>
-        </div>
-
-        <div class="footer-section">
-            <div class="bowler-info" id="bowler">Bowler 0/0</div>
-            <div class="balls-row" id="ballsContainer">
-                </div>
-            <div class="crr" id="crr">CRR: 0.0</div>
-        </div>
+<style>
+    .mono-tab { position: fixed; bottom: 15px; left: 5%; width: 90%; height: 50px; background: rgba(0,0,0,0.9); border: 1px solid #333; border-radius: 4px; display: flex; align-items: center; color: #00ff00; font-family: 'Courier New', monospace; padding: 0 15px; }
+    .m-section { border-right: 1px solid #333; padding: 0 12px; height: 70%; display: flex; align-items: center; }
+  </style>
+  <div class="mono-tab">
+    <div class="m-section" id="teamName">WI</div>
+    <div class="m-section" style="font-size:20px" id="scores">102-8</div>
+    <div style="flex:1; padding-left:15px; font-size:12px">
+      <span id="batsmanName">Holder*</span> | <span id="bowlerName">Nortje</span>
     </div>
-
-    <script>
-        // Fallback if backend doesn't inject
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 1 
-        };
-    </script>
-    <script src="engine.js"></script>
-</body>
-</html>
+    <div id="ballsTracker" style="letter-spacing:2px">W 0 0 1 . .</div>
+  </div>

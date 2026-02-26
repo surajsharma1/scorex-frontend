@@ -1,50 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScoreX Lvl 1 Overlay</title>
-    <link rel="stylesheet" href="lvl1-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body class="{{THEME_CLASS}}">
-
-    <div class="overlay-container">
-        <div class="header-section">
-            <div class="team-name" id="battingTeam">BAT</div>
-            <div class="vs">VS</div>
-            <div class="team-name" id="bowlingTeam">BWL</div>
-        </div>
-
-        <div class="main-stats">
-            <div class="score-box">
-                <span id="runs">0</span>/<span id="wickets">0</span>
-            </div>
-            <div class="overs-box">
-                <span id="overs">0.0</span> <span class="label">OVERS</span>
-            </div>
-        </div>
-
-        <div class="players-section">
-            <div class="player active" id="striker">Striker 0*</div>
-            <div class="player" id="nonStriker">Non-Striker 0</div>
-        </div>
-
-        <div class="footer-section">
-            <div class="bowler-info" id="bowler">Bowler 0/0</div>
-            <div class="balls-row" id="ballsContainer">
-                </div>
-            <div class="crr" id="crr">CRR: 0.0</div>
-        </div>
+<style>
+    .ov-container { position: fixed; bottom: 10px; left: 3%; width: 94%; height: 60px; display: flex; background: #1a1a1a; border-left: 5px solid #d4af37; color: #fff; font-family: 'Segoe UI', sans-serif; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    .ov-sec { padding: 0 15px; display: flex; align-items: center; border-right: 1px solid #333; }
+    .ov-team { font-weight: 800; color: #d4af37; }
+    .ov-score { font-size: 22px; font-weight: bold; }
+    .ov-players { flex: 1; font-size: 13px; line-height: 1.2; justify-content: space-around; }
+  </style>
+  <div class="ov-container">
+    <div class="ov-sec ov-team" id="teamName">TEAM</div>
+    <div class="ov-sec ov-score" id="scores">0/0</div>
+    <div class="ov-sec ov-players">
+      <div id="batsmanName">Batsman*</div>
+      <div id="bowlerName" style="opacity:0.6">Bowler</div>
     </div>
-
-    <script>
-        // Fallback if backend doesn't inject
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 1 
-        };
-    </script>
-    <script src="engine.js"></script>
-</body>
-</html>
+    <div class="ov-sec" style="border:none; color:#d4af37" id="ballsTracker">. . . . . .</div>
+  </div>

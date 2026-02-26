@@ -2,186 +2,101 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScoreX Overlay</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Oswald:wght@500;700&family=Courier+Prime:wght@700&family=VT323&family=Impact&display=swap" rel="stylesheet">
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    
+    <title>Neon Minimal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
     <style>
-        /* =========================================
-           1. CORE LAYOUT (Do Not Touch)
-           ========================================= */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            background: transparent; overflow: hidden; font-family: 'Roboto', sans-serif;
-            display: flex; align-items: flex-end; justify-content: center;
-            height: 100vh; padding-bottom: 40px; 
-            transition: all 0.3s ease;
+        body { margin: 0; overflow: hidden; background: transparent; font-family: 'Roboto', sans-serif; }
+        
+        .strip {
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+            display: flex; height: 80px;
+            background: #121212; color: #fff;
+            border-radius: 8px; overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            border-top: 3px solid #00e676;
         }
-        .overlay-container {
-            display: grid;
-            grid-template-columns: 160px 140px 220px 240px;
-            height: 90px; background: white; border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3); overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        .section-header, .section-score, .section-players, .section-footer {
-            display: flex; flex-direction: column; justify-content: center;
-            padding: 0 15px; border-right: 1px solid rgba(0,0,0,0.1);
-        }
-        .section-header { align-items: center; background: #333; color: white; }
-        .team-box { font-weight: 900; font-size: 20px; text-transform: uppercase; }
-        .vs-badge { font-size: 10px; opacity: 0.7; margin: 2px 0; }
-        .section-score { align-items: center; background: #fff; color: #000; }
-        .score-main { font-size: 38px; font-weight: 800; line-height: 1; white-space: nowrap; }
-        .over-count { font-size: 16px; color: #666; font-weight: 600; }
-        .section-players { justify-content: center; font-size: 14px; background: #f9f9f9; }
-        .player-row { display: flex; justify-content: space-between; width: 100%; margin-bottom: 4px; }
-        .player-row.active { font-weight: 700; color: #000; }
-        .section-footer { background: #eee; font-size: 13px; }
-        .bowler-info { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 5px; }
-        .balls-row { display: flex; gap: 4px; }
-        .ball-item {
-            width: 22px; height: 22px; border-radius: 50%; background: #ccc; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 11px; font-weight: bold; color: #333;
-        }
-        .ball-4 { background: #2e7d32; color: white; }
-        .ball-6 { background: #1565c0; color: white; }
-        .ball-W { background: #c62828; color: white; }
-        .crr-box { font-size: 11px; margin-top: 4px; opacity: 0.8; text-align: right; }
 
-        .theme-broadcast-bar .overlay-container {
-            width: 90vw; height: 70px; grid-template-columns: 150px 100px 1fr 200px;
-            border-radius: 35px; background: linear-gradient(to bottom, #ffffff, #f0f0f0);
-            border: 2px solid #ccc; bottom: 30px; left: 5vw;
-        }
-        .theme-broadcast-bar .section-header { background: #222; flex-direction: row; gap: 10px; }
-        .theme-broadcast-bar .team-box { color: #f1c40f; font-size: 18px; }
-        .theme-broadcast-bar .section-score { font-family: 'Oswald', sans-serif; background: #d32f2f; color: white; }
-        .theme-broadcast-bar .score-main { font-size: 32px; }
-        .theme-broadcast-bar .section-players { flex-direction: row; align-items: center; justify-content: space-around; }
-        .theme-broadcast-bar .section-footer { background: #eee; border-top-right-radius: 35px; border-bottom-right-radius: 35px; }
+        .section { padding: 0 20px; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid #333; }
+        
+        .match-info { min-width: 120px; }
+        .teams { font-weight: 900; font-size: 20px; letter-spacing: 1px; color: #bdbdbd; }
+        .teams span { color: #fff; }
+
+        .score-box { min-width: 140px; background: #1e1e1e; align-items: center; }
+        .big-score { font-size: 36px; font-weight: 900; color: #00e676; }
+        .overs { font-size: 14px; color: #9e9e9e; font-weight: bold; }
+
+        .batter-box { min-width: 200px; font-size: 14px; }
+        .batter { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .batter.active { color: #00e676; font-weight: bold; }
+        .batter.active::after { content: '*'; }
+
+        .bowler-box { min-width: 180px; background: #1e1e1e; }
+        .bowler-name { font-weight: bold; color: #2979ff; margin-bottom: 5px; }
+        .balls-vec { display: flex; gap: 3px; }
+        .dot { width: 18px; height: 18px; background: #424242; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
+        .dot.bound { background: #2979ff; color: white; }
+        .dot.out { background: #ff1744; color: white; }
 
     </style>
 </head>
-
-<body class="theme-default">
-    
-    <div class="overlay-container">
-        <div class="section-header">
-            <div class="team-box batting"><span id="battingTeam">BAT</span></div>
-            <div class="vs-badge">VS</div>
-            <div class="team-box bowling"><span id="bowlingTeam">BWL</span></div>
+<body>
+    <div class="strip">
+        <div class="section match-info">
+            <div class="teams"><span id="bat">IND</span> v <span id="bwl">AUS</span></div>
+            <div style="font-size: 10px; opacity: 0.6; margin-top: 5px;">LIVE</div>
         </div>
-
-        <div class="section-score">
-            <div class="score-main">
-                <span id="runs">0</span>/<span id="wickets">0</span>
-            </div>
-            <div class="over-count">
-                <span id="overs">0.0</span> <small>OVS</small>
-            </div>
+        <div class="section score-box">
+            <div class="big-score"><span id="sc">0</span>/<span id="wk">0</span></div>
+            <div class="overs"><span id="ov">0.0</span> OVS</div>
         </div>
-
-        <div class="section-players">
-            <div class="player-row active">
-                <span class="p-name" id="striker">Striker</span>
-                <span class="p-score" id="strikerScore">0*(0)</span>
-            </div>
-            <div class="player-row">
-                <span class="p-name" id="nonStriker">Non-Striker</span>
-                <span class="p-score" id="nonStrikerScore">0(0)</span>
-            </div>
+        <div class="section batter-box">
+            <div class="batter active"><span id="p1">Striker</span> <span id="s1">0</span></div>
+            <div class="batter"><span id="p2">Non-Striker</span> <span id="s2">0</span></div>
         </div>
-
-        <div class="section-footer">
-            <div class="bowler-info">
-                <span id="bowler">Bowler</span>
-                <span id="bowlerFigures">0/0</span>
+        <div class="section bowler-box">
+            <div style="display:flex; justify-content:space-between;">
+                <span class="bowler-name" id="bname">Bowler</span>
+                <span style="font-size:12px;" id="bfig">0/0</span>
             </div>
-            <div class="balls-row" id="ballsContainer"></div>
-            <div class="crr-box" id="crr">CRR 0.0</div>
+            <div class="balls-vec" id="bvec"></div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const config = window.OVERLAY_CONFIG || { apiBaseUrl: 'http://localhost:5000/api/v1' };
-            const socket = io(config.apiBaseUrl);
-            const matchId = config.matchId;
+        const config = window.OVERLAY_CONFIG || { apiBaseUrl: 'http://localhost:5000/api/v1' };
+        const socket = io(config.apiBaseUrl);
+        if(config.matchId) socket.emit('join_match', config.matchId);
 
-            // DOM Cache
-            const els = {
-                battingTeam: document.getElementById('battingTeam'),
-                bowlingTeam: document.getElementById('bowlingTeam'),
-                striker: document.getElementById('striker'),
-                strikerScore: document.getElementById('strikerScore'),
-                nonStriker: document.getElementById('nonStriker'),
-                nonStrikerScore: document.getElementById('nonStrikerScore'),
-                bowler: document.getElementById('bowler'),
-                bowlerFigures: document.getElementById('bowlerFigures'),
-                runs: document.getElementById('runs'),
-                wickets: document.getElementById('wickets'),
-                overs: document.getElementById('overs'),
-                crr: document.getElementById('crr'),
-                ballsContainer: document.getElementById('ballsContainer')
-            };
-
-            socket.on('connect', () => {
-                console.log('Connected to ScoreX Live');
-                if (matchId) socket.emit('join_match', matchId);
-            });
-
-            socket.on('match_update', (data) => {
-                updateBoard(data);
-            });
-
-            function updateBoard(data) {
-                const setText = (el, text) => { if(el) el.innerText = text; };
-
-                setText(els.runs, data.score || 0);
-                setText(els.wickets, data.wickets || 0);
-                setText(els.overs, data.overs || '0.0');
-                
-                setText(els.battingTeam, data.battingTeam || 'BAT');
-                setText(els.bowlingTeam, data.bowlingTeam || 'BWL');
-                
-                // Batsman
-                if(data.striker) {
-                    setText(els.striker, data.striker.name);
-                    setText(els.strikerScore, `${data.striker.runs || 0}*(${data.striker.balls || 0})`);
-                }
-                if(data.nonStriker) {
-                    setText(els.nonStriker, data.nonStriker.name);
-                    setText(els.nonStrikerScore, `${data.nonStriker.runs || 0}(${data.nonStriker.balls || 0})`);
-                }
-                
-                // Bowler
-                if(data.bowler) {
-                    setText(els.bowler, data.bowler.name);
-                    setText(els.bowlerFigures, `${data.bowler.wickets || 0}/${data.bowler.runsConceded || 0}`);
-                }
-                
-                setText(els.crr, `CRR: ${data.crr || '0.0'}`);
-
-                // Balls
-                if (els.ballsContainer) {
-                    els.ballsContainer.innerHTML = '';
-                    const balls = data.thisOver || [];
-                    balls.forEach((ball) => {
-                        const bDiv = document.createElement('div');
-                        let typeClass = '';
-                        if(ball == '4') typeClass = 'ball-4';
-                        else if(ball == '6') typeClass = 'ball-6';
-                        else if(ball == 'W') typeClass = 'ball-W';
-                        
-                        bDiv.className = `ball-item ${typeClass}`;
-                        bDiv.innerText = ball;
-                        els.ballsContainer.appendChild(bDiv);
-                    });
-                }
+        socket.on('match_update', d => {
+            document.getElementById('sc').innerText = d.score;
+            document.getElementById('wk').innerText = d.wickets;
+            document.getElementById('ov').innerText = d.overs;
+            document.getElementById('bat').innerText = d.battingTeam;
+            document.getElementById('bwl').innerText = d.bowlingTeam;
+            
+            if(d.striker) {
+                document.getElementById('p1').innerText = d.striker.name;
+                document.getElementById('s1').innerText = d.striker.runs;
             }
+            if(d.nonStriker) {
+                document.getElementById('p2').innerText = d.nonStriker.name;
+                document.getElementById('s2').innerText = d.nonStriker.runs;
+            }
+            if(d.bowler) {
+                document.getElementById('bname').innerText = d.bowler.name;
+                document.getElementById('bfig').innerText = `${d.bowler.wickets}/${d.bowler.runsConceded}`;
+            }
+
+            const v = document.getElementById('bvec');
+            v.innerHTML = '';
+            (d.thisOver || []).forEach(r => {
+                const b = document.createElement('div');
+                b.className = `dot ${['4','6'].includes(r) ? 'bound' : r === 'W' ? 'out' : ''}`;
+                b.innerText = r;
+                v.appendChild(b);
+            });
         });
     </script>
 </body>

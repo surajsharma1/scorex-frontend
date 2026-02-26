@@ -1,50 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScoreX Lvl 1 Overlay</title>
-    <link rel="stylesheet" href="lvl1-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body class="{{THEME_CLASS}}">
-
-    <div class="overlay-container">
-        <div class="header-section">
-            <div class="team-name" id="battingTeam">BAT</div>
-            <div class="vs">VS</div>
-            <div class="team-name" id="bowlingTeam">BWL</div>
-        </div>
-
-        <div class="main-stats">
-            <div class="score-box">
-                <span id="runs">0</span>/<span id="wickets">0</span>
-            </div>
-            <div class="overs-box">
-                <span id="overs">0.0</span> <span class="label">OVERS</span>
-            </div>
-        </div>
-
-        <div class="players-section">
-            <div class="player active" id="striker">Striker 0*</div>
-            <div class="player" id="nonStriker">Non-Striker 0</div>
-        </div>
-
-        <div class="footer-section">
-            <div class="bowler-info" id="bowler">Bowler 0/0</div>
-            <div class="balls-row" id="ballsContainer">
-                </div>
-            <div class="crr" id="crr">CRR: 0.0</div>
-        </div>
+<style>
+    .ov-container { position: fixed; bottom: 15px; left: 5%; width: 90%; height: 60px; background: #fff; border-radius: 4px; overflow: hidden; display: flex; color: #111; border-bottom: 4px solid #0984e3; }
+    .ov-left { background: #0984e3; color: white; padding: 0 20px; display: flex; flex-direction: column; justify-content: center; clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%); width: 30%; }
+  </style>
+  <div class="ov-container">
+    <div class="ov-left"><span id="teamName" style="font-weight:bold">TEAM</span><span id="scores" style="font-size:18px">0/0</span></div>
+    <div style="flex:1; display:flex; align-items:center; padding: 0 10px;">
+      <div style="font-size:12px; flex:1"><b id="batsmanName">Player Name*</b><br><span id="bowlerName">Bowler Name</span></div>
+      <div id="ballsTracker" style="background:#f1f2f6; padding: 5px; border-radius: 3px;">. . . . . .</div>
     </div>
-
-    <script>
-        // Fallback if backend doesn't inject
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 1 
-        };
-    </script>
-    <script src="engine.js"></script>
-</body>
-</html>
+  </div>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        .overlay-container { position: absolute; bottom: 20px; left: 5%; width: 90%; height: 60px; background: rgba(0,0,0,0.8); border-radius: 8px; display: flex; color: white; font-family: sans-serif; overflow: hidden; border: 1px solid #444; }
+        .team-box { background: #e63946; padding: 0 15px; display: flex; align-items: center; font-weight: bold; min-width: 100px; }
+        .score-box { flex-grow: 1; display: flex; align-items: center; padding: 0 20px; font-size: 24px; font-weight: bold; border-right: 1px solid #333; }
+        .player-info { display: flex; flex-direction: column; justify-content: center; padding: 0 15px; border-right: 1px solid #333; font-size: 14px; min-width: 120px; }
+        .over-tracker { display: flex; align-items: center; padding: 0 15px; background: #1d3557; color: #a8dadc; }
+    </style>
+</head>
+<body>
+    <div class="overlay-container">
+        <div class="team-box" id="teamName">TEAM NAME</div>
+        <div class="score-box" id="scores">000/0 (0.0)</div>
+        <div class="player-info">
+            <span id="batsmanName">Batsman: ---</span>
+            <span id="bowlerName">Bowler: ---</span>
+        </div>
+        <div class="over-tracker" id="ballsTracker">Over: . . . . . .</div>
+    </div>
+    <script src="/overlays/engine.js"></script>
+</body>
+</html>
