@@ -2,58 +2,150 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body class="{{THEME_CLASS}}">
+    <title>Lvl 2 - Stats Commander</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&display=swap');
 
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
-        </div>
-        <div class="notif-flare"></div>
+        body { margin: 0; overflow: hidden; font-family: 'Chakra Petch', sans-serif; color: white; }
+
+        /* TOP RIGHT BUG */
+        .top-bug {
+            position: fixed; top: 20px; right: 30px;
+            background: rgba(0, 10, 30, 0.9);
+            border: 1px solid #00f0ff;
+            border-radius: 8px;
+            padding: 10px 20px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+            display: flex; align-items: center; gap: 15px;
+        }
+        .bug-score { font-size: 32px; font-weight: 700; color: #00f0ff; }
+        .bug-overs { border-left: 1px solid #333; padding-left: 15px; font-size: 14px; color: #aaa; }
+
+        /* BOTTOM DASHBOARD */
+        .dashboard {
+            position: fixed; bottom: 10px; left: 2%; width: 96%; height: 85px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            border-top: 4px solid #00f0ff;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .panel {
+            padding: 5px 15px;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; justify-content: center;
+        }
+
+        /* 1. Batsmen Panel */
+        .bat-row { display: flex; justify-content: space-between; font-size: 14px; margin: 2px 0; }
+        .active-bat { color: #00f0ff; text-shadow: 0 0 5px rgba(0,240,255,0.5); font-weight: bold; }
+        
+        /* 2. Bowler Panel */
+        .bowl-name { font-size: 16px; font-weight: bold; color: #ff0055; }
+        .bowl-figs { font-size: 12px; color: #ccc; }
+
+        /* 3. Rates Panel */
+        .rate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 11px; }
+        .r-val { font-size: 16px; font-weight: bold; }
+
+        /* 4. Match Context */
+        .ctx-row { font-size: 12px; color: #888; display: flex; justify-content: space-between; }
+        .ctx-val { color: #fff; font-weight: bold; }
+
+        /* Animation */
+        .flash-text { animation: flash 0.5s ease; }
+        @keyframes flash { 0% { color: #fff; } 50% { color: #ff0055; } 100% { color: inherit; } }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-bug">
+        <div class="bug-score" id="topScore">0/0</div>
+        <div class="bug-overs" id="topOvers">0.0</div>
     </div>
 
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
+    <div class="dashboard">
+        <div class="panel">
+            <div class="bat-row active-bat">
+                <span id="p1Name">Striker</span> <span id="p1Score">0(0)</span>
+            </div>
+            <div class="bat-row" style="color: #aaa;">
+                <span id="p2Name">NonStriker</span> <span id="p2Score">0(0)</span>
             </div>
         </div>
 
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
-            </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
+        <div class="panel">
+            <div style="font-size:10px; color:#aaa; text-transform:uppercase">Bowling</div>
+            <div class="bowl-name" id="bowlName">Bowler</div>
+            <div class="bowl-figs" id="bowlFigs">0-0 (0.0)</div>
+        </div>
+
+        <div class="panel">
+            <div class="rate-grid">
+                <div>
+                    <div style="color:#aaa">CRR</div>
+                    <div class="r-val" id="crr" style="color:#00f0ff">0.00</div>
+                </div>
+                <div>
+                    <div style="color:#aaa">RRR</div>
+                    <div class="r-val" id="rrr">0.00</div>
+                </div>
             </div>
         </div>
 
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
+        <div class="panel" style="border:none">
+            <div class="ctx-row">
+                <span>Target</span> <span class="ctx-val" id="target">---</span>
             </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
+            <div class="ctx-row">
+                <span>Need</span> <span class="ctx-val" id="need">0 from 0</span>
+            </div>
+            <div class="ctx-row" style="margin-top:5px; border-top:1px solid #333; padding-top:2px">
+                 <span style="color:#ff0055">Last 5 Ov</span> <span class="ctx-val" id="last5">...</span>
             </div>
         </div>
-
-        <div class="p-section p-balls" id="ballsContainer">
-            </div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        const ch = new BroadcastChannel('cricket_score_updates');
+        ch.onmessage = (e) => {
+            const d = e.data;
+            if(!d.team1) return;
+            const t = d.team1.isBatting ? d.team1 : d.team2;
+
+            // Top
+            document.getElementById('topScore').innerText = `${t.score}/${t.wickets}`;
+            document.getElementById('topOvers').innerText = t.overs;
+
+            // Bottom - Players
+            document.getElementById('p1Name').innerText = `➤ ${d.striker.name}`;
+            document.getElementById('p1Score').innerText = `${d.striker.runs}(${d.striker.balls})`;
+            document.getElementById('p2Name').innerText = d.nonStriker.name;
+            document.getElementById('p2Score').innerText = `${d.nonStriker.runs}(${d.nonStriker.balls})`;
+
+            document.getElementById('bowlName').innerText = d.bowler.name;
+            document.getElementById('bowlFigs').innerText = `${d.bowler.wickets}-${d.bowler.runs} (${d.bowler.overs})`;
+
+            // Stats
+            document.getElementById('crr').innerText = d.stats.currentRunRate;
+            document.getElementById('rrr').innerText = d.stats.requiredRunRate || "---";
+            document.getElementById('target').innerText = d.stats.target || "---";
+            document.getElementById('last5').innerText = d.stats.last5Overs || "---";
+
+            // Needs Calc
+            if(d.stats.target > 0) {
+                const runsNeeded = d.stats.target - t.score;
+                // Approx balls remaining logic
+                const oversDone = parseFloat(t.overs);
+                const ballsDone = Math.floor(oversDone)*6 + (oversDone % 1 * 10);
+                const ballsRem = 120 - ballsDone; // Assuming T20
+                document.getElementById('need').innerText = `${runsNeeded} off ${Math.round(ballsRem)}`;
+            }
         };
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>

@@ -2,58 +2,189 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body class="{{THEME_CLASS}}">
+    <title>Lvl 2 - Cinema Scope</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Roboto:wght@400;700&display=swap');
 
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
-        </div>
-        <div class="notif-flare"></div>
+        :root {
+            --bar-height-top: 50px;
+            --bar-height-btm: 90px;
+            --primary: #ffc107; /* Amber */
+            --bg: #111;
+        }
+
+        body { margin: 0; overflow: hidden; font-family: 'Roboto', sans-serif; color: white; }
+
+        /* --- TOP BAR (Context) --- */
+        .top-bar {
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--bar-height-top);
+            background: linear-gradient(to bottom, #000, rgba(0,0,0,0.8));
+            border-bottom: 2px solid var(--primary);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; box-sizing: border-box;
+            transform: translateY(-100%);
+            animation: slideDown 0.8s ease-out forwards;
+        }
+
+        .match-title { font-family: 'Teko', sans-serif; font-size: 24px; color: var(--primary); letter-spacing: 1px; }
+        .match-status { font-size: 14px; font-weight: bold; color: #ddd; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 4px; }
+
+        /* --- BOTTOM BAR (Data) --- */
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--bar-height-btm);
+            background: linear-gradient(to top, #000 80%, rgba(0,0,0,0.9));
+            border-top: 2px solid var(--primary);
+            display: flex; align-items: center;
+            transform: translateY(100%);
+            animation: slideUp 0.8s ease-out 0.2s forwards;
+        }
+
+        /* Sections */
+        .team-logo-area {
+            width: 120px; height: 100%; background: var(--primary);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: #000; font-family: 'Teko', sans-serif;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+            padding-right: 15px;
+        }
+        .team-name { font-size: 32px; font-weight: 700; line-height: 0.9; }
+        .team-inn { font-size: 14px; font-weight: 600; text-transform: uppercase; }
+
+        .score-area {
+            padding: 0 25px; min-width: 140px; text-align: center;
+            border-right: 1px solid rgba(255,255,255,0.2);
+        }
+        .main-score { font-family: 'Teko', sans-serif; font-size: 48px; font-weight: 700; line-height: 0.9; color: #fff; }
+        .overs-display { font-size: 14px; color: #aaa; font-weight: bold; }
+
+        .players-grid {
+            flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+            gap: 5px 20px; padding: 0 20px; font-size: 13px;
+        }
+        .p-row { display: flex; justify-content: space-between; align-items: center; }
+        .p-label { color: var(--primary); font-size: 10px; font-weight: bold; width: 30px; }
+        .p-name { font-weight: 700; white-space: nowrap; }
+        .p-stat { color: #ddd; margin-left: 8px; }
+
+        .rates-area {
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 0 20px; border-left: 1px solid rgba(255,255,255,0.2);
+            text-align: right; font-size: 12px; color: #bbb;
+        }
+        .rate-val { color: #fff; font-weight: bold; font-size: 16px; }
+
+        .balls-rail {
+            width: 160px; height: 100%; background: #1a1a1a;
+            display: flex; flex-direction: column;
+        }
+        .rail-label { font-size: 10px; text-align: center; background: #333; color: #aaa; padding: 2px; }
+        .rail-dots { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .b-dot { width: 18px; height: 18px; border-radius: 50%; background: #444; display: grid; place-items: center; font-size: 10px; font-weight: bold; }
+        .b-dot.active { background: #fff; color: #000; }
+        .b-dot.boundary { background: var(--primary); color: #000; }
+        .b-dot.wicket { background: #e53935; color: #fff; }
+
+        /* Animations */
+        @keyframes slideDown { to { transform: translateY(0); } }
+        @keyframes slideUp { to { transform: translateY(0); } }
+        .pulse { animation: pulse 0.3s ease-in-out; }
+        @keyframes pulse { 50% { transform: scale(1.1); color: var(--primary); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="match-title" id="tournament">TOURNAMENT LIVE</div>
+        <div class="match-status" id="matchStatus">1st Innings</div>
     </div>
 
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
-            </div>
+    <div class="bottom-bar">
+        <div class="team-logo-area">
+            <div class="team-name" id="team">---</div>
+            <div class="team-inn">BATTING</div>
         </div>
 
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
-            </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
-            </div>
+        <div class="score-area">
+            <div class="main-score" id="score">0/0</div>
+            <div class="overs-display" id="overs">0.0 OVERS</div>
         </div>
 
-        <div class="p-section p-details">
+        <div class="players-grid">
             <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
+                <span class="p-label">STR</span>
+                <span class="p-name" id="striker">---</span>
+                <span class="p-stat" id="strikerStat">0(0)</span>
             </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
+            <div class="p-row">
+                <span class="p-label">NON</span>
+                <span class="p-name" id="nonStriker">---</span>
+                <span class="p-stat" id="nonStrikerStat">0(0)</span>
+            </div>
+            <div class="p-row">
+                <span class="p-label">BWL</span>
+                <span class="p-name" id="bowler">---</span>
+                <span class="p-stat" id="bowlerStat">0-0</span>
+            </div>
+            <div class="p-row" style="justify-content: flex-end;">
+                <span style="color:#aaa; margin-right:5px">CRR</span>
+                <span class="rate-val" id="crr">0.00</span>
             </div>
         </div>
 
-        <div class="p-section p-balls" id="ballsContainer">
-            </div>
+        <div class="balls-rail">
+            <div class="rail-label">THIS OVER</div>
+            <div class="rail-dots" id="ballsTracker"></div>
+        </div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        const ch = new BroadcastChannel('cricket_score_updates');
+
+        function update(id, text) {
+            const el = document.getElementById(id);
+            if(el.innerText !== text) {
+                el.innerText = text;
+                el.classList.remove('pulse');
+                void el.offsetWidth;
+                el.classList.add('pulse');
+            }
+        }
+
+        ch.onmessage = (e) => {
+            const d = e.data;
+            if(!d.team1) return;
+            const t = d.team1.isBatting ? d.team1 : d.team2;
+
+            update('tournament', d.tournament.name || "LIVE MATCH");
+            update('matchStatus', d.status || "Live");
+            
+            update('team', t.shortName);
+            update('score', `${t.score}/${t.wickets}`);
+            update('overs', `OV: ${t.overs}`);
+            
+            update('striker', d.striker.name);
+            update('strikerStat', `${d.striker.runs}(${d.striker.balls})`);
+            
+            update('nonStriker', d.nonStriker.name);
+            update('nonStrikerStat', `${d.nonStriker.runs}(${d.nonStriker.balls})`);
+
+            update('bowler', d.bowler.name);
+            update('bowlerStat', `${d.bowler.wickets}-${d.bowler.runs}`);
+            
+            update('crr', d.stats.currentRunRate);
+
+            // Balls
+            const b = parseInt(t.balls || 0);
+            let html = '';
+            for(let i=0; i<6; i++) {
+                let cls = 'b-dot';
+                if(i < b) cls += ' active'; 
+                // In a real scenario, you'd check the specific ball result (4,6,W) here from an array
+                html += `<div class="${cls}">${i < b ? (i+1) : ''}</div>`;
+            }
+            document.getElementById('ballsTracker').innerHTML = html;
         };
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>

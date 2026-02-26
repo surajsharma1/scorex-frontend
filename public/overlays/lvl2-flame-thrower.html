@@ -2,58 +2,153 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lvl 2 - Ocean Edge</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+
+        body { margin: 0; overflow: hidden; font-family: 'Nunito', sans-serif; }
+
+        .container {
+            position: fixed;
+            bottom: 15px;
+            left: 2%;
+            width: 96%;
+            height: 65px;
+            background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+            border-radius: 15px 15px 4px 4px;
+            display: flex;
+            color: white;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+            overflow: hidden;
+            border-bottom: 3px solid #00d2ff;
+        }
+
+        .team-section {
+            background: rgba(255,255,255,0.1);
+            width: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .score-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+        }
+
+        .main-score {
+            font-size: 32px;
+            font-weight: 900;
+            background: -webkit-linear-gradient(#00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-right: 15px;
+            min-width: 90px;
+        }
+
+        .stats-grid {
+            display: flex;
+            flex-direction: column;
+            font-size: 12px;
+            justify-content: center;
+            border-left: 1px solid rgba(255,255,255,0.2);
+            padding-left: 15px;
+            height: 70%;
+        }
+
+        .balls-section {
+            width: 120px;
+            background: rgba(0,0,0,0.3);
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 2px;
+            padding: 5px;
+            align-items: center;
+        }
+
+        .ball {
+            height: 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+        }
+        .ball.active { background: #00d2ff; color: #000; font-weight: bold; }
+        .ball.wicket { background: #ff4b1f; color: white; }
+
+        /* Soft Push Animation */
+        .push-wrap { height: 1.2em; overflow: hidden; display: inline-block; vertical-align: bottom; }
+        .push-inner { transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); display: block; }
+        .push-inner span { display: block; }
+
+    </style>
 </head>
-<body class="{{THEME_CLASS}}">
-
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
-        </div>
-        <div class="notif-flare"></div>
-    </div>
-
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
+<body>
+    <div class="container">
+        <div class="team-section" id="teamName">---</div>
+        <div class="score-section">
+            <div id="score" class="main-score">0/0</div>
+            <div class="stats-grid">
+                <div id="batsman">Waiting...</div>
+                <div id="bowler" style="opacity:0.7">...</div>
             </div>
         </div>
-
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
-            </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
-            </div>
+        <div class="balls-section" id="ballsTracker">
+            <div class="ball"></div><div class="ball"></div><div class="ball"></div>
+            <div class="ball"></div><div class="ball"></div><div class="ball"></div>
         </div>
-
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
-            </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
-            </div>
-        </div>
-
-        <div class="p-section p-balls" id="ballsContainer">
-            </div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        const channel = new BroadcastChannel('cricket_score_updates');
+        
+        function softPush(id, text) {
+            const el = document.getElementById(id);
+            if(!el || el.getAttribute('data-val') === text) return;
+            
+            if(!el.querySelector('.push-inner')) {
+                el.innerHTML = `<div class="push-wrap"><div class="push-inner"><span>${el.innerText}</span><span>${text}</span></div></div>`;
+            } else {
+                el.querySelector('.push-inner').children[1].innerText = text;
+            }
+
+            const inner = el.querySelector('.push-inner');
+            requestAnimationFrame(() => inner.style.transform = 'translateY(-50%)');
+
+            setTimeout(() => {
+                inner.style.transition = 'none';
+                inner.children[0].innerText = text;
+                inner.style.transform = 'translateY(0)';
+                el.setAttribute('data-val', text);
+                requestAnimationFrame(() => inner.style.transition = '');
+            }, 500);
+        }
+
+        channel.onmessage = (e) => {
+            const d = e.data;
+            if(!d.team1) return;
+            const t = d.team1.isBatting ? d.team1 : d.team2;
+
+            softPush('teamName', t.shortName);
+            softPush('score', `${t.score}/${t.wickets}`);
+            softPush('batsman', `${d.striker.name} ${d.striker.runs}`);
+            softPush('bowler', `${d.bowler.name} ${d.bowler.wickets}-${d.bowler.runs}`);
+            
+            // Simple balls update
+            const b = parseInt(t.balls || 0);
+            const tracker = document.getElementById('ballsTracker');
+            tracker.innerHTML = Array(6).fill(0).map((_, i) => 
+                `<div class="ball ${i < b ? 'active' : ''}">${i < b ? (i+1) : ''}</div>`
+            ).join('');
         };
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>

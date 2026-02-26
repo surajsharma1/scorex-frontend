@@ -2,58 +2,306 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lvl 2 - Velocity Push Overlay</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Inter:wght@400;600&display=swap');
+
+        :root {
+            --primary: #00f2ff; /* Neon Cyan */
+            --accent: #ff0055;  /* Neon Red */
+            --bg-dark: rgba(10, 10, 15, 0.95);
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+            --push-duration: 0.4s;
+        }
+
+        body { margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+
+        /* --- Main Container (Bottom Tab) --- */
+        .scoreboard-container {
+            position: fixed;
+            bottom: 15px;
+            left: 2%;
+            width: 96%;
+            height: 75px;
+            background: var(--bg-dark);
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: grid;
+            grid-template-columns: 80px 1.5fr 1fr 120px; /* Team | Players | Score | Balls */
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        /* --- Section Styling --- */
+        .section {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 10px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Team Box */
+        .section.team {
+            background: linear-gradient(145deg, #1a1a2e, #000);
+            align-items: center;
+            color: var(--primary);
+            font-family: 'Teko', sans-serif;
+            font-size: 24px;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        /* Player Stats (Batsman/Bowler) */
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            height: 50%;
+            color: var(--text-main);
+        }
+        .player-label { font-weight: 600; color: var(--primary); margin-right: 5px; font-size: 11px; }
+        .player-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+        .player-score { font-family: 'Teko', sans-serif; font-size: 16px; margin-left: 5px; color: #ffd700; }
+
+        /* Main Score (The Big Number) */
+        .section.score-main {
+            align-items: center;
+            background: rgba(0, 242, 255, 0.05);
+        }
+        .total-score {
+            font-family: 'Teko', sans-serif;
+            font-size: 38px;
+            font-weight: 700;
+            line-height: 0.9;
+            color: white;
+        }
+        .run-rate {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Balls Tracker */
+        .section.balls {
+            border-right: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ball-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 2px;
+            padding: 0 5px;
+            width: 100%;
+        }
+        .ball {
+            width: 16px;
+            height: 16px;
+            background: #2a2a2a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: bold;
+            color: #888;
+        }
+        .ball.active { background: var(--text-main); color: #000; }
+        .ball.boundary { background: var(--primary); color: #000; box-shadow: 0 0 5px var(--primary); }
+        .ball.wicket { background: var(--accent); color: white; box-shadow: 0 0 5px var(--accent); }
+
+        /* --- Animation Engine --- */
+        /* Wrapper for text that needs to animate */
+        .anim-wrapper {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+            vertical-align: bottom;
+            height: 1.2em; /* Adjust based on line-height */
+        }
+        
+        .anim-inner {
+            display: block;
+            transition: transform var(--push-duration) cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Push Up Animation State */
+        .pushing-up .anim-inner {
+            transform: translateY(-50%);
+        }
+
+        /* Helper to structure the inner content for animation */
+        .anim-inner span {
+            display: block;
+            height: 100%;
+        }
+
+    </style>
 </head>
-<body class="{{THEME_CLASS}}">
+<body>
 
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
-        </div>
-        <div class="notif-flare"></div>
-    </div>
-
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
-            </div>
+    <div class="scoreboard-container" id="scoreboard">
+        <div class="section team">
+            <div id="teamName" class="push-target">IND</div>
         </div>
 
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
+        <div class="section">
+            <div class="player-row" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <div style="display:flex; align-items:center;">
+                    <span class="player-label">BAT</span>
+                    <span id="strikerName" class="player-name push-target">Kohli</span>
+                </div>
+                <div id="strikerScore" class="player-score push-target">45(32)</div>
             </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
+            <div class="player-row">
+                <div style="display:flex; align-items:center;">
+                    <span class="player-label" style="color:var(--accent)">BWL</span>
+                    <span id="bowlerName" class="player-name push-target">Anderson</span>
+                </div>
+                <div id="bowlerScore" class="player-score push-target">2-24</div>
             </div>
         </div>
 
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
-            </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
-            </div>
+        <div class="section score-main">
+            <div id="scoreDisplay" class="total-score push-target">142/3</div>
+            <div class="run-rate">CRR: <span id="crr" class="push-target">8.4</span></div>
         </div>
 
-        <div class="p-section p-balls" id="ballsContainer">
+        <div class="section balls">
+            <div class="ball-grid" id="ballsContainer">
+                <div class="ball">.</div>
+                <div class="ball">.</div>
+                <div class="ball">.</div>
+                <div class="ball">.</div>
+                <div class="ball">.</div>
+                <div class="ball">.</div>
             </div>
+        </div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        // --- Animation Engine ---
+        
+        /**
+         * Safely updates text with a "Push" animation if the value has changed.
+         * @param {string} elementId - HTML ID of the element.
+         * @param {string} newValue - The new text value to display.
+         */
+        function updateWithPush(elementId, newValue) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+
+            // Normalize values to string to compare
+            const currentVal = el.getAttribute('data-value') || el.innerText;
+            if (String(currentVal) === String(newValue)) return;
+
+            // Construct the animation DOM structure if not already present
+            if (!el.querySelector('.anim-inner')) {
+                const text = el.innerText;
+                el.innerHTML = `<div class="anim-wrapper"><span class="anim-inner"><span>${text}</span><span>${newValue}</span></span></div>`;
+            } else {
+                // If already structured, we just update the bottom span
+                const inner = el.querySelector('.anim-inner');
+                // Set the "new" value in the second span
+                inner.children[1].innerText = newValue;
+            }
+
+            const inner = el.querySelector('.anim-inner');
+            
+            // Trigger Animation
+            // 1. Slide up
+            inner.style.transform = 'translateY(-100%)';
+
+            // 2. After slide, reset layout instantly to simulate continuous flow
+            setTimeout(() => {
+                // Remove transition to snap back
+                inner.style.transition = 'none'; 
+                // Set top span to new value
+                inner.children[0].innerText = newValue; 
+                // Reset transform
+                inner.style.transform = 'translateY(0)';
+                
+                // Save new value
+                el.setAttribute('data-value', newValue);
+
+                // Restore transition for next time
+                requestAnimationFrame(() => {
+                    inner.style.transition = 'transform var(--push-duration) cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                });
+            }, 400); // Matches --push-duration
+        }
+
+        // --- Broadcast Channel Listener ---
+        const channel = new BroadcastChannel('cricket_score_updates');
+
+        channel.onmessage = (event) => {
+            const data = event.data;
+            if (!data) return;
+
+            // console.log('Overlay received:', data);
+
+            // 1. Identify active team data
+            const isBattingTeam1 = data.team1.isBatting;
+            const battingTeam = isBattingTeam1 ? data.team1 : data.team2;
+            
+            // 2. Compulsory Data Mapping
+            const scoreText = `${battingTeam.score}/${battingTeam.wickets} <span style="font-size:0.6em; opacity:0.7">(${battingTeam.overs})</span>`;
+            
+            // 3. Trigger Updates
+            updateWithPush('teamName', battingTeam.shortName);
+            
+            // Note: We use innerHTML for score to support the smaller overs font
+            // For simple text push, we use our helper. For HTML, we might just swap it or enhance the helper.
+            // For now, let's use the helper for the main numbers and handle the HTML separately or strip tags.
+            const cleanScore = `${battingTeam.score}/${battingTeam.wickets}`;
+            updateWithPush('scoreDisplay', cleanScore); // Simpler for animation, or enhance helper for HTML
+            
+            // Update Batsman
+            updateWithPush('strikerName', data.striker.name + (data.striker.status || ''));
+            updateWithPush('strikerScore', `${data.striker.runs}(${data.striker.balls})`);
+
+            // Update Bowler
+            updateWithPush('bowlerName', data.bowler.name);
+            updateWithPush('bowlerScore', `${data.bowler.wickets}-${data.bowler.runs}`);
+
+            // Update CRR
+            updateWithPush('crr', data.stats.currentRunRate);
+
+            // 4. Update Balls (No push animation needed, just re-render grid)
+            // You would ideally get the "current over balls" array from your API data.
+            // Since the provided React code calculates it internally but sends specific events,
+            // we might need to parse the fractional overs.
+            // Simplified logic for visual demo:
+            renderBalls(battingTeam.overs);
         };
+
+        function renderBalls(oversStr) {
+            // This is a visual approximation based on the decimal part of the overs
+            // In a real integration, pass the actual array of the current over [1, 4, W, 0...]
+            const ballsCount = parseInt(String(oversStr).split('.')[1]) || 0;
+            const container = document.getElementById('ballsContainer');
+            
+            let html = '';
+            for(let i=0; i<6; i++) {
+                if(i < ballsCount) {
+                    html += `<div class="ball active"></div>`; // Placeholder dots
+                } else {
+                    html += `<div class="ball">.</div>`;
+                }
+            }
+            container.innerHTML = html;
+        }
+
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>

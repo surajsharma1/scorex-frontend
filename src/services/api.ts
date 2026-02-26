@@ -103,6 +103,7 @@ export const friendAPI = {
   sendRequest: (userId: string) => api.post(`/friends/request/${userId}`),
   acceptRequest: (requestId: string) => api.post(`/friends/accept/${requestId}`),
   rejectRequest: (requestId: string) => api.post(`/friends/reject/${requestId}`),
+  removeFriend: (friendId: string) => api.delete(`/friends/${friendId}`),
 };
 
 export const messageAPI = {

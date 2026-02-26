@@ -2,58 +2,164 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body class="{{THEME_CLASS}}">
+    <title>Lvl 2 - Titanium Split</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Khand:wght@500;700&family=Roboto:wght@400;900&display=swap');
 
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
+        body { margin: 0; overflow: hidden; font-family: 'Khand', sans-serif; text-transform: uppercase; }
+
+        /* METALLIC BACKGROUND MIXIN */
+        .metal {
+            background: linear-gradient(180deg, #4c4c4c 0%, #2b2b2b 40%, #1c1c1c 100%);
+            border-top: 1px solid #777;
+            border-bottom: 1px solid #000;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+        }
+
+        .accent { color: #ff9f43; } /* Sports Orange */
+
+        /* --- TOP BAR --- */
+        .top-bar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 45px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.8); border-bottom: 3px solid #ff9f43;
+            padding: 0 20px; box-sizing: border-box;
+            transform: translateY(-100%); animation: slideDown 0.6s forwards;
+        }
+
+        .tourney-info { font-size: 20px; letter-spacing: 1px; color: #ddd; }
+        .match-req { font-family: 'Roboto', sans-serif; font-size: 12px; color: #ff9f43; font-weight: bold; }
+
+        /* --- BOTTOM BAR --- */
+        .btm-container {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%) translateY(100%);
+            width: 96%; height: 85px;
+            display: flex;
+            animation: slideUp 0.6s 0.2s forwards;
+        }
+
+        /* Team Logo Block */
+        .team-block {
+            width: 100px; background: #ff9f43; color: #111;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+            z-index: 2; padding-right: 15px;
+        }
+        .team-name { font-size: 32px; font-weight: 700; line-height: 0.9; }
+
+        /* Score Block */
+        .score-block {
+            width: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: #1a1a1a; margin-left: -15px; padding-left: 20px; z-index: 1;
+            border-right: 2px solid #333;
+        }
+        .big-score { font-family: 'Roboto', sans-serif; font-size: 38px; font-weight: 900; color: #fff; }
+        .overs-sub { font-size: 14px; color: #888; }
+
+        /* Stats Block */
+        .stats-block {
+            flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+            padding: 5px 20px;
+        }
+
+        .stat-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .p-name { font-size: 18px; font-weight: 600; color: #eee; }
+        .p-val { font-family: 'Roboto', sans-serif; font-weight: bold; color: #ff9f43; }
+        
+        .active-bat::before { content: '►'; color: #ff9f43; margin-right: 5px; font-size: 10px; }
+
+        /* Balls */
+        .balls-row {
+            position: absolute; bottom: -12px; right: 0;
+            display: flex; gap: 2px;
+        }
+        .ball { width: 25px; height: 6px; background: #555; }
+        .ball.fill { background: #ff9f43; box-shadow: 0 0 5px #ff9f43; }
+
+        @keyframes slideDown { to { transform: translateY(0); } }
+        @keyframes slideUp { to { transform: translateX(-50%) translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="tourney-info" id="tournament">TOURNAMENT NAME</div>
+        <div class="match-req">
+            TARGET: <span id="target" style="color:white">---</span> | 
+            RRR: <span id="rrr" style="color:white">---</span>
         </div>
-        <div class="notif-flare"></div>
     </div>
 
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
-            </div>
+    <div class="btm-container metal">
+        <div class="team-block">
+            <div class="team-name" id="team">IND</div>
+        </div>
+        
+        <div class="score-block">
+            <div class="big-score" id="score">0/0</div>
+            <div class="overs-sub">CRR <span id="crr">0.0</span></div>
         </div>
 
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
+        <div class="stats-block">
+            <div style="padding-right: 15px; border-right: 1px solid #333;">
+                <div class="stat-row active-bat">
+                    <span class="p-name" id="strName">Striker</span>
+                    <span class="p-val" id="strRun">0(0)</span>
+                </div>
+                <div class="stat-row">
+                    <span class="p-name" id="nonName" style="opacity:0.7">NonStr</span>
+                    <span class="p-val" id="nonRun" style="opacity:0.7">0(0)</span>
+                </div>
             </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
+            <div style="padding-left: 15px;">
+                <div class="stat-row">
+                    <span class="p-name" style="color:#ff9f43">BOWLING</span>
+                    <span class="p-val" id="overs">0.0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="p-name" id="bowlName">Bowler</span>
+                    <span class="p-val" id="bowlFig">0-0</span>
+                </div>
             </div>
         </div>
-
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
-            </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
-            </div>
-        </div>
-
-        <div class="p-section p-balls" id="ballsContainer">
-            </div>
+        
+        <div class="balls-row" id="balls"></div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        const ch = new BroadcastChannel('cricket_score_updates');
+        ch.onmessage = (e) => {
+            const d = e.data; if(!d.team1) return;
+            const t = d.team1.isBatting ? d.team1 : d.team2;
+
+            // Top
+            document.getElementById('tournament').innerText = d.tournament.name || "LIVE MATCH";
+            document.getElementById('target').innerText = d.stats.target || "-";
+            document.getElementById('rrr').innerText = d.stats.requiredRunRate || "-";
+
+            // Bottom
+            document.getElementById('team').innerText = t.shortName;
+            document.getElementById('score').innerText = `${t.score}/${t.wickets}`;
+            document.getElementById('crr').innerText = d.stats.currentRunRate;
+            document.getElementById('overs').innerText = `(${t.overs})`;
+
+            // Players
+            document.getElementById('strName').innerText = d.striker.name;
+            document.getElementById('strRun').innerText = `${d.striker.runs}(${d.striker.balls})`;
+            document.getElementById('nonName').innerText = d.nonStriker.name;
+            document.getElementById('nonRun').innerText = `${d.nonStriker.runs}(${d.nonStriker.balls})`;
+            
+            document.getElementById('bowlName').innerText = d.bowler.name;
+            document.getElementById('bowlFig').innerText = `${d.bowler.wickets}-${d.bowler.runs}`;
+
+            // Balls
+            const b = parseInt(t.balls || 0);
+            let h = '';
+            for(let i=0; i<6; i++) h+=`<div class="ball ${i<b?'fill':''}"></div>`;
+            document.getElementById('balls').innerHTML = h;
         };
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>

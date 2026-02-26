@@ -2,58 +2,109 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body class="{{THEME_CLASS}}">
+    <title>Lvl 2 - Cyber HUD</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap');
 
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
-        </div>
-        <div class="notif-flare"></div>
+        body { margin: 0; font-family: 'Rajdhani', sans-serif; color: white; overflow: hidden; }
+
+        :root { --cyber-p: #d600ff; --cyber-b: #00b8ff; }
+
+        /* TOP HUD */
+        .top-hud {
+            position: fixed; top: 0; left: 0; width: 100%; height: 50px;
+            background: rgba(10, 10, 20, 0.9);
+            border-bottom: 2px solid var(--cyber-p);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: bold;
+            box-shadow: 0 0 15px var(--cyber-p);
+        }
+        .vs-tag { margin: 0 15px; color: var(--cyber-b); font-style: italic; }
+
+        /* BOTTOM HUD */
+        .btm-hud {
+            position: fixed; bottom: 10px; left: 10px; right: 10px; height: 80px;
+            background: linear-gradient(90deg, rgba(0,0,0,0.9), rgba(20,0,40,0.95));
+            border: 1px solid var(--cyber-b);
+            border-radius: 4px;
+            display: flex;
+            clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px);
+        }
+
+        .hud-score {
+            width: 150px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: rgba(0, 184, 255, 0.1); border-right: 1px solid var(--cyber-b);
+        }
+        .main-s { font-size: 40px; line-height: 0.9; text-shadow: 0 0 10px var(--cyber-b); }
+
+        .hud-details { flex: 1; padding: 5px 20px; display: grid; grid-template-columns: 1fr 1fr; font-size: 14px; }
+        .hud-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .h-label { color: var(--cyber-p); font-weight: bold; }
+
+        /* Over Progress Bar */
+        .over-prog {
+            position: absolute; bottom: 0; left: 0; height: 4px; background: #333; width: 100%;
+        }
+        .prog-fill { height: 100%; background: var(--cyber-p); width: 0%; transition: width 0.3s; }
+
+        .glitch-fx { animation: glitch 0.2s 2; }
+        @keyframes glitch { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -1px); } 100% { transform: translate(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-hud">
+        <span id="t1">TEAM 1</span> <span class="vs-tag">VS</span> <span id="t2">TEAM 2</span>
+        <span style="position:absolute; right:20px; font-size:14px; color:#aaa" id="status">LIVE</span>
     </div>
 
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
+    <div class="btm-hud">
+        <div class="hud-score">
+            <div class="main-s" id="score">0/0</div>
+            <div style="font-size:12px; letter-spacing:2px" id="overs">0.0</div>
+        </div>
+        
+        <div class="hud-details">
+            <div style="padding-right:10px; border-right:1px solid #333">
+                <div class="hud-row"><span class="h-label">STR</span> <span id="str">P1 0</span></div>
+                <div class="hud-row"><span class="h-label">NON</span> <span id="non">P2 0</span></div>
+            </div>
+            <div style="padding-left:10px">
+                <div class="hud-row"><span class="h-label">BWL</span> <span id="bwl">B1</span></div>
+                <div class="hud-row"><span>CRR</span> <span id="crr" style="color:var(--cyber-b)">0.0</span></div>
             </div>
         </div>
 
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
-            </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
-            </div>
-        </div>
-
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
-            </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
-            </div>
-        </div>
-
-        <div class="p-section p-balls" id="ballsContainer">
-            </div>
+        <div class="over-prog"><div class="prog-fill" id="bar"></div></div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        const ch = new BroadcastChannel('cricket_score_updates');
+        ch.onmessage = (e) => {
+            const d = e.data; if(!d.team1) return;
+            const t = d.team1.isBatting ? d.team1 : d.team2;
+
+            document.getElementById('t1').innerText = d.team1.name;
+            document.getElementById('t2').innerText = d.team2.name;
+            
+            const sc = document.getElementById('score');
+            if(sc.innerText !== `${t.score}/${t.wickets}`) {
+                sc.innerText = `${t.score}/${t.wickets}`;
+                sc.classList.add('glitch-fx');
+                setTimeout(()=>sc.classList.remove('glitch-fx'), 400);
+            }
+            
+            document.getElementById('overs').innerText = t.overs;
+            document.getElementById('str').innerText = `${d.striker.name} ${d.striker.runs}`;
+            document.getElementById('non').innerText = `${d.nonStriker.name} ${d.nonStriker.runs}`;
+            document.getElementById('bwl').innerText = `${d.bowler.name} ${d.bowler.wickets}-${d.bowler.runs}`;
+            document.getElementById('crr').innerText = d.stats.currentRunRate;
+
+            // Bar width
+            const balls = parseInt(t.balls || 0);
+            document.getElementById('bar').style.width = (balls / 6 * 100) + '%';
         };
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>

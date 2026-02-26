@@ -1,91 +1,276 @@
-import { Link } from 'react-router-dom';
-import Carousel from './Carousel';
-import { Trophy, BarChart3, Users, ShieldCheck, Play, ArrowRight, Zap } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { UserPlus, Check, X, Search, Users, UserCheck, UserX } from 'lucide-react';
+import { friendAPI, userAPI } from '../services/api';
+import { User, Friend } from './types';
 
-export default function Frontpage() {
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-sans">
-      {/* 1. Top News Ticker */}
-      <Carousel />
+export default function FriendList() {
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<Friend[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
+  const [activeTab, setActiveTab] = useState<'friends' | 'requests' | 'find'>('friends');
 
-      {/* 2. Hero Section */}
-      <div className="relative overflow-hidden">
-        {/* Background Gradients */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-green-600/20 rounded-full blur-[128px]"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-[128px]"></div>
+  useEffect(() => {
+    loadFriends();
+  }, []);
 
-        <nav className="relative z-10 container mx-auto px-6 py-6 flex justify-between items-center">
-          <div className="text-2xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">
-            SCOREX
-          </div>
-          <div className="flex gap-4">
-            <Link to="/login" className="px-4 py-2 text-sm font-medium hover:text-green-400 transition">Log In</Link>
-            <Link to="/register" className="px-4 py-2 text-sm font-bold bg-white text-black rounded-full hover:bg-gray-200 transition">
-              Get Started
-            </Link>
-          </div>
-        </nav>
+  const loadFriends = async () => {
+    try {
+      setLoading(true);
+      const res = await friendAPI.getFriends();
+      const allFriends = res.data.friends || res.data || [];
+      
+      // Separate accepted friends and pending requests
+      const accepted = allFriends.filter((f: Friend) => f.status === 'accepted');
+      const pending = allFriends.filter((f: Friend) => f.status === 'pending');
+      
+      setFriends(accepted);
+      setPendingRequests(pending);
+    } catch (error) {
+      console.error('Failed to load friends:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        <div className="relative z-10 container mx-auto px-6 pt-20 pb-32 text-center">
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-            The Future of <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600">
-              Cricket Scoring
-            </span>
-          </h1>
-          <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-            Professional scorecards, live streaming overlays, and tournament management in one powerful platform.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link to="/register" className="flex items-center justify-center gap-2 px-8 py-4 bg-green-600 rounded-full font-bold text-lg hover:bg-green-700 transition shadow-lg shadow-green-900/20">
-              Create Tournament <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link to="/matches/live" className="flex items-center justify-center gap-2 px-8 py-4 bg-gray-800 border border-gray-700 rounded-full font-bold text-lg hover:bg-gray-700 transition">
-              <Play className="w-5 h-5 fill-current" /> Watch Live
-            </Link>
-          </div>
-        </div>
+  const searchUsers = async () => {
+    if (!searchQuery.trim()) return;
+    try {
+      setSearching(true);
+      const res = await userAPI.searchUsers(searchQuery);
+      setSearchResults(res.data.users || res.data || []);
+    } catch (error) {
+      console.error('Failed to search users:', error);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const sendFriendRequest = async (userId: string) => {
+    try {
+      await friendAPI.sendRequest(userId);
+      // Remove from search results after sending request
+      setSearchResults(searchResults.filter(u => u._id !== userId));
+      alert('Friend request sent!');
+    } catch (error) {
+      console.error('Failed to send friend request:', error);
+    }
+  };
+
+  const acceptRequest = async (friendId: string) => {
+    try {
+      await friendAPI.acceptRequest(friendId);
+      loadFriends();
+    } catch (error) {
+      console.error('Failed to accept request:', error);
+    }
+  };
+
+  const rejectRequest = async (friendId: string) => {
+    try {
+      await friendAPI.rejectRequest(friendId);
+      loadFriends();
+    } catch (error) {
+      console.error('Failed to reject request:', error);
+    }
+  };
+
+  const removeFriend = async (friendId: string) => {
+    if (!window.confirm('Are you sure you want to remove this friend?')) return;
+    try {
+      await friendAPI.removeFriend(friendId);
+      loadFriends();
+    } catch (error) {
+      console.error('Failed to remove friend:', error);
+    }
+  };
+
+  // Get the other user from a friend object
+  const getOtherUser = (friend: Friend) => {
+    return friend.to?._id ? friend.to : friend.from;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400"></div>
       </div>
+    );
+  }
 
-      {/* 3. Features Grid */}
-      <div className="bg-gray-900/50 py-24 border-y border-gray-800">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <FeatureCard 
-              icon={<BarChart3 className="w-8 h-8 text-blue-400" />}
-              title="Pro Analytics"
-              desc="Deep dive into player run rates, wagon wheels, and bowling economy."
-            />
-            <FeatureCard 
-              icon={<Zap className="w-8 h-8 text-yellow-400" />}
-              title="Live Overlays"
-              desc="Broadcast-quality animated overlays for your YouTube or OBS streams."
-            />
-            <FeatureCard 
-              icon={<ShieldCheck className="w-8 h-8 text-green-400" />}
-              title="Secure Management"
-              desc="Role-based access for organizers, scorers, and team managers."
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Footer */}
-      <footer className="py-12 border-t border-gray-800 mt-auto">
-        <div className="container mx-auto px-6 text-center text-gray-500 text-sm">
-          <p>&copy; 2025 ScoreX Sports. All rights reserved.</p>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-function FeatureCard({ icon, title, desc }: any) {
   return (
-    <div className="p-8 bg-gray-800/40 rounded-2xl border border-gray-700 hover:border-green-500/50 transition duration-300">
-      <div className="mb-4 bg-gray-900 w-fit p-3 rounded-lg">{icon}</div>
-      <h3 className="text-xl font-bold mb-3 text-white">{title}</h3>
-      <p className="text-gray-400 leading-relaxed">{desc}</p>
+    <div className="min-h-screen bg-gray-900 text-white p-4 md:p-6">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6">Friends</h1>
+
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab('friends')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium ${
+              activeTab === 'friends' ? 'bg-green-600' : 'bg-gray-700'
+            }`}
+          >
+            <Users className="w-5 h-5" />
+            Friends ({friends.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('requests')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium ${
+              activeTab === 'requests' ? 'bg-green-600' : 'bg-gray-700'
+            }`}
+          >
+            <UserCheck className="w-5 h-5" />
+            Requests ({pendingRequests.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('find')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium ${
+              activeTab === 'find' ? 'bg-green-600' : 'bg-gray-700'
+            }`}
+          >
+            <UserPlus className="w-5 h-5" />
+            Find Friends
+          </button>
+        </div>
+
+        {/* Friends List */}
+        {activeTab === 'friends' && (
+          <div className="space-y-4">
+            {friends.length === 0 ? (
+              <div className="text-center py-12 text-gray-400">
+                <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p>No friends yet</p>
+                <p className="text-sm">Find friends to connect with!</p>
+              </div>
+            ) : (
+              friends.map((friend) => {
+                const user = getOtherUser(friend);
+                return (
+                  <div key={friend._id} className="bg-gray-800 p-4 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center font-bold text-lg">
+                        {user?.username?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div>
+                        <h3 className="font-bold">{user?.username || 'Unknown User'}</h3>
+                        <p className="text-sm text-gray-400">{user?.email || ''}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => removeFriend(friend._id)}
+                      className="p-2 text-gray-400 hover:text-red-400 transition"
+                      title="Remove friend"
+                    >
+                      <UserX className="w-5 h-5" />
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* Pending Requests */}
+        {activeTab === 'requests' && (
+          <div className="space-y-4">
+            {pendingRequests.length === 0 ? (
+              <div className="text-center py-12 text-gray-400">
+                <UserCheck className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p>No pending requests</p>
+              </div>
+            ) : (
+              pendingRequests.map((friend) => {
+                const user = getOtherUser(friend);
+                return (
+                  <div key={friend._id} className="bg-gray-800 p-4 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center font-bold text-lg">
+                        {user?.username?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div>
+                        <h3 className="font-bold">{user?.username || 'Unknown User'}</h3>
+                        <p className="text-sm text-gray-400">Wants to connect</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => acceptRequest(friend._id)}
+                        className="p-2 bg-green-600 hover:bg-green-700 rounded-lg transition"
+                        title="Accept"
+                      >
+                        <Check className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => rejectRequest(friend._id)}
+                        className="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition"
+                        title="Reject"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* Find Friends */}
+        {activeTab === 'find' && (
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by username or email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && searchUsers()}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-green-500"
+                />
+              </div>
+              <button
+                onClick={searchUsers}
+                disabled={searching}
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-medium disabled:opacity-50"
+              >
+                {searching ? 'Searching...' : 'Search'}
+              </button>
+            </div>
+
+            <div className="space-y-4 mt-4">
+              {searchResults.map((user) => (
+                <div key={user._id} className="bg-gray-800 p-4 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center font-bold text-lg">
+                      {user.username?.charAt(0).toUpperCase() || '?'}
+                    </div>
+                    <div>
+                      <h3 className="font-bold">{user.username}</h3>
+                      <p className="text-sm text-gray-400">{user.email}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => sendFriendRequest(user._id)}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition"
+                  >
+                    <UserPlus className="w-5 h-5" />
+                    Add
+                  </button>
+                </div>
+              ))}
+              
+              {searchQuery && searchResults.length === 0 && !searching && (
+                <p className="text-center text-gray-400 py-8">No users found</p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

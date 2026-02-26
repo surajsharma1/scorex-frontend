@@ -2,58 +2,113 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body class="{{THEME_CLASS}}">
+    <title>Lvl 2 - Daylight</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
+        /* TOP SCORECARD */
+        .top-card {
+            position: fixed; top: 20px; left: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: flex; overflow: hidden;
+            height: 60px;
+            animation: dropIn 0.5s ease;
+        }
+        .tc-team {
+            background: #0984e3; color: white; width: 80px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 24px;
+        }
+        .tc-data {
+            padding: 0 20px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .tc-score { font-size: 28px; font-weight: 800; color: #2d3436; line-height: 1; }
+        .tc-meta { font-size: 12px; color: #636e72; font-weight: 600; }
+
+        /* BOTTOM STRIP */
+        .btm-strip {
+            position: fixed; bottom: 20px; left: 5%; width: 90%; height: 50px;
+            background: white; border-radius: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            display: flex; align-items: center; padding: 0 5px;
+            animation: slideUp 0.6s ease;
+        }
+
+        .btm-pill {
+            background: #f1f2f6; padding: 5px 15px; border-radius: 20px;
+            margin-right: 10px; font-size: 13px; font-weight: 700; color: #2d3436;
+            display: flex; gap: 5px;
+        }
+        .btm-val { color: #0984e3; }
+        
+        .ball-circle {
+            width: 30px; height: 30px; border-radius: 50%; background: #2d3436;
+            color: white; display: grid; place-items: center; font-weight: bold; font-size: 12px;
+            margin-left: auto; margin-right: 5px;
+        }
+
+        @keyframes dropIn { from { transform: translateY(-100px); } to { transform: translateY(0); } }
+        @keyframes slideUp { from { transform: translateY(100px); } to { transform: translateY(0); } }
+        
+        .highlight { animation: pop 0.2s; }
+        @keyframes pop { 50% { transform: scale(1.2); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-card">
+        <div class="tc-team" id="team">...</div>
+        <div class="tc-data">
+            <div class="tc-score" id="score">0/0</div>
+            <div class="tc-meta" id="overs">0.0 OVERS</div>
         </div>
-        <div class="notif-flare"></div>
     </div>
 
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
-            </div>
+    <div class="btm-strip">
+        <div class="btm-pill">
+            <span id="p1">Striker</span> <span class="btm-val" id="s1">0</span>
         </div>
-
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
-            </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
-            </div>
+        <div class="btm-pill" style="opacity: 0.6">
+            <span id="p2">NonStr</span> <span class="btm-val" id="s2">0</span>
         </div>
-
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
-            </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
-            </div>
+        <div style="flex:1"></div>
+        <div class="btm-pill">
+            <span id="bl">Bowler</span> <span class="btm-val" id="bs">0-0</span>
         </div>
-
-        <div class="p-section p-balls" id="ballsContainer">
-            </div>
+        <div class="ball-circle" id="lastBall">.</div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        const ch = new BroadcastChannel('cricket_score_updates');
+        ch.onmessage = (e) => {
+            const d = e.data; if(!d.team1) return;
+            const t = d.team1.isBatting ? d.team1 : d.team2;
+
+            document.getElementById('team').innerText = t.shortName;
+            
+            const sc = document.getElementById('score');
+            if(sc.innerText !== `${t.score}/${t.wickets}`) {
+                sc.innerText = `${t.score}/${t.wickets}`;
+                sc.classList.remove('highlight'); void sc.offsetWidth; sc.classList.add('highlight');
+            }
+            
+            document.getElementById('overs').innerText = `${t.overs} OVERS | RR ${d.stats.currentRunRate}`;
+
+            document.getElementById('p1').innerText = d.striker.name;
+            document.getElementById('s1').innerText = d.striker.runs;
+            document.getElementById('p2').innerText = d.nonStriker.name;
+            document.getElementById('s2').innerText = d.nonStriker.runs;
+            
+            document.getElementById('bl').innerText = d.bowler.name;
+            document.getElementById('bs').innerText = `${d.bowler.wickets}-${d.bowler.runs}`;
+
+            // Show last ball event
+            const last = d.type === 'RUN' ? d.runs : d.type === 'WICKET' ? 'W' : '.';
+            document.getElementById('lastBall').innerText = last;
         };
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>

@@ -84,6 +84,7 @@ export interface Match {
   matchType: string;
   tossWinner?: string;
   tossChoice?: 'bat' | 'bowl';
+  winner?: Team;
   
   // Live Score Data
   score1?: number;
@@ -98,12 +99,18 @@ export interface Match {
   target?: number;
   
   videoLink?: string;
+  videoLinks?: string[];
   liveStreamUrl?: string;
   
   liveScores?: LiveScores;
   
   // Added for live tracking
   battingTeam?: 'team1' | 'team2';
+  
+  // Player names for display
+  strikerName?: string;
+  nonStrikerName?: string;
+  bowlerName?: string;
 }
 
 // Complex Scoring Types

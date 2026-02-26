@@ -2,58 +2,234 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lvl 2 - Strike Bar</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Chakra+Petch:wght@700&display=swap');
+
+        :root {
+            --neon: #00e5ff;
+            --dark: #09090b;
+            --panel-bg: #121214;
+            --text-main: #ffffff;
+            --push-speed: 0.35s;
+        }
+
+        body { margin: 0; overflow: hidden; font-family: 'Rajdhani', sans-serif; }
+
+        .overlay {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: var(--dark);
+            border-top: 3px solid var(--neon);
+            display: grid;
+            grid-template-columns: 80px 1.5fr 1fr 110px;
+            color: var(--text-main);
+            box-shadow: 0 -4px 20px rgba(0, 229, 255, 0.15);
+        }
+
+        .module {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 15%;
+            height: 70%;
+            width: 1px;
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* Team Module */
+        .team-box {
+            background: var(--neon);
+            color: var(--dark);
+            align-items: center;
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 20px;
+            font-weight: 900;
+            text-transform: uppercase;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+            padding-right: 20px; 
+            margin-right: -10px; /* Overlap effect */
+            z-index: 2;
+        }
+
+        /* Scores */
+        .score-box {
+            align-items: flex-end;
+            text-align: right;
+            padding-right: 15px;
+        }
+        .main-score {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 28px;
+            line-height: 1;
+            font-weight: 700;
+        }
+        .overs {
+            font-size: 14px;
+            color: #888;
+            font-weight: 600;
+        }
+
+        /* Batsman/Bowler Info */
+        .info-box {
+            justify-content: center;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+        .info-row { display: flex; align-items: center; }
+        .label { 
+            color: var(--neon); 
+            font-weight: bold; 
+            font-size: 10px; 
+            margin-right: 6px; 
+            width: 25px; 
+        }
+        .val { font-weight: 600; white-space: nowrap; }
+
+        /* Ball Tracker */
+        .balls-box {
+            align-items: center;
+            padding: 0;
+        }
+        .balls-grid {
+            display: flex;
+            gap: 4px;
+        }
+        .ball-dot {
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 2px; /* Square dots */
+            display: grid;
+            place-items: center;
+            font-size: 8px;
+            font-weight: bold;
+            color: #aaa;
+        }
+        .ball-dot.active { background: #fff; color: #000; }
+        .ball-dot.boundary { background: var(--neon); color: #000; box-shadow: 0 0 5px var(--neon); }
+        .ball-dot.wicket { background: #ff0055; color: #fff; }
+
+        /* --- PUSH ANIMATION UTILS --- */
+        .anim-wrap {
+            display: inline-block;
+            height: 1.1em;
+            overflow: hidden;
+            vertical-align: bottom;
+        }
+        .anim-content {
+            display: block;
+            transition: transform var(--push-speed) cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .anim-content span { display: block; }
+
+    </style>
 </head>
-<body class="{{THEME_CLASS}}">
+<body>
 
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
-        </div>
-        <div class="notif-flare"></div>
-    </div>
-
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
+    <div class="overlay">
+        <div class="module team-box" id="teamName">---</div>
+        
+        <div class="module info-box">
+            <div class="info-row">
+                <span class="label">BAT</span>
+                <div id="striker" class="val">---</div>
+            </div>
+            <div class="info-row">
+                <span class="label">BWL</span>
+                <div id="bowler" class="val">---</div>
             </div>
         </div>
 
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
-            </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
-            </div>
+        <div class="module score-box">
+            <div id="score" class="main-score">0/0</div>
+            <div id="overs" class="overs">0.0</div>
         </div>
 
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
-            </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
+        <div class="module balls-box">
+            <div class="balls-grid" id="balls">
+                <div class="ball-dot"></div><div class="ball-dot"></div><div class="ball-dot"></div>
+                <div class="ball-dot"></div><div class="ball-dot"></div><div class="ball-dot"></div>
             </div>
         </div>
-
-        <div class="p-section p-balls" id="ballsContainer">
-            </div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        // --- Animation Helper ---
+        function animateText(id, newVal) {
+            const el = document.getElementById(id);
+            if (!el || el.getAttribute('data-val') === newVal) return;
+            
+            // Only create wrapper if not exists
+            if (!el.querySelector('.anim-content')) {
+                el.innerHTML = `<div class="anim-wrap"><div class="anim-content"><span>${el.innerText}</span><span>${newVal}</span></div></div>`;
+            } else {
+                const content = el.querySelector('.anim-content');
+                content.children[1].innerText = newVal;
+            }
+
+            const content = el.querySelector('.anim-content');
+            
+            // Trigger Push
+            requestAnimationFrame(() => {
+                content.style.transform = 'translateY(-50%)';
+            });
+
+            // Reset after animation
+            setTimeout(() => {
+                content.style.transition = 'none';
+                content.children[0].innerText = newVal;
+                content.style.transform = 'translateY(0)';
+                el.setAttribute('data-val', newVal);
+                requestAnimationFrame(() => {
+                    content.style.transition = ''; // Restore transition
+                });
+            }, 350);
+        }
+
+        // --- Data Listener ---
+        const channel = new BroadcastChannel('cricket_score_updates');
+        channel.onmessage = (e) => {
+            const d = e.data;
+            if(!d.team1) return;
+
+            const batTeam = d.team1.isBatting ? d.team1 : d.team2;
+            
+            animateText('teamName', batTeam.shortName);
+            animateText('score', `${batTeam.score}/${batTeam.wickets}`);
+            animateText('overs', `(${batTeam.overs})`);
+            
+            animateText('striker', `${d.striker.name} ${d.striker.runs}`);
+            animateText('bowler', d.bowler.name);
+
+            // Simple ball update
+            renderBalls(batTeam.overs);
         };
+
+        function renderBalls(overs) {
+            const balls = parseInt(String(overs).split('.')[1]) || 0;
+            let html = '';
+            for(let i=0; i<6; i++) {
+                // Determine class based on index (simplified logic)
+                let c = 'ball-dot';
+                if(i < balls) c += ' active';
+                html += `<div class="${c}"></div>`;
+            }
+            document.getElementById('balls').innerHTML = html;
+        }
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>

@@ -2,58 +2,151 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body class="{{THEME_CLASS}}">
+    <title>Lvl 2 - Glass Future</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
 
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
-        </div>
-        <div class="notif-flare"></div>
+        body { margin: 0; font-family: 'Inter', sans-serif; color: white; overflow: hidden; }
+
+        /* Reusable Glass Class */
+        .glass {
+            background: rgba(40, 40, 40, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* TOP FLOATER */
+        .top-floater {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            padding: 8px 30px;
+            border-radius: 40px;
+            display: flex; align-items: center; gap: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .tf-team { font-weight: 800; font-size: 18px; color: #4facfe; }
+        .tf-score { font-weight: 800; font-size: 24px; }
+        .tf-overs { font-size: 12px; color: #ccc; }
+
+        /* BOTTOM DOCK */
+        .bottom-dock {
+            position: fixed; bottom: 20px; left: 5%; width: 90%; height: 70px;
+            border-radius: 20px;
+            display: flex; align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+        }
+
+        /* Player Section */
+        .player-group { display: flex; flex-direction: column; justify-content: center; min-width: 150px; }
+        .pg-label { font-size: 10px; color: #888; letter-spacing: 1px; margin-bottom: 2px; }
+        .pg-name { font-weight: 600; font-size: 14px; }
+        .pg-val { font-weight: 400; color: #4facfe; }
+
+        /* Divider */
+        .div-line { width: 1px; height: 40px; background: rgba(255,255,255,0.1); margin: 0 10px; }
+
+        /* Balls Visuals */
+        .ball-container { display: flex; gap: 6px; }
+        .glass-ball {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: bold;
+        }
+        .glass-ball.run { background: rgba(255,255,255,0.9); color: black; }
+        .glass-ball.boundary { background: #4facfe; color: white; }
+        .glass-ball.out { background: #ff5252; color: white; }
+
+        /* Update Animation */
+        .update-flash { animation: flash-white 0.3s ease-out; }
+        @keyframes flash-white {
+            0% { background: rgba(255,255,255,0.6); }
+            100% { background: rgba(40, 40, 40, 0.6); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="glass top-floater" id="topBar">
+        <span class="tf-team" id="teamName">---</span>
+        <span class="tf-score" id="mainScore">0 - 0</span>
+        <span class="tf-overs" id="mainOvers">(0.0)</span>
     </div>
 
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
-            </div>
+    <div class="glass bottom-dock">
+        <div class="player-group">
+            <span class="pg-label">STRIKER</span>
+            <div><span class="pg-name" id="striker">P1</span> <span class="pg-val" id="sRun">0</span></div>
         </div>
 
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
-            </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
-            </div>
+        <div class="div-line"></div>
+
+        <div class="player-group">
+            <span class="pg-label">NON-STRIKER</span>
+            <div><span class="pg-name" id="nonStriker">P2</span> <span class="pg-val" id="nsRun">0</span></div>
         </div>
 
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
-            </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
-            </div>
+        <div class="div-line"></div>
+
+        <div class="player-group">
+            <span class="pg-label">BOWLER</span>
+            <div><span class="pg-name" id="bowler">B1</span> <span class="pg-val" id="bFig">0/0</span></div>
         </div>
 
-        <div class="p-section p-balls" id="ballsContainer">
-            </div>
+        <div class="ball-container" id="balls">
+            <div class="glass-ball"></div>
+        </div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        const ch = new BroadcastChannel('cricket_score_updates');
+
+        function flash(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('update-flash');
+            void el.offsetWidth;
+            el.classList.add('update-flash');
+        }
+
+        ch.onmessage = (e) => {
+            const d = e.data;
+            if(!d.team1) return;
+            const t = d.team1.isBatting ? d.team1 : d.team2;
+
+            // Flash top bar on score change
+            const scoreText = `${t.score} - ${t.wickets}`;
+            if(document.getElementById('mainScore').innerText !== scoreText) {
+                flash('topBar');
+            }
+
+            document.getElementById('teamName').innerText = t.shortName;
+            document.getElementById('mainScore').innerText = scoreText;
+            document.getElementById('mainOvers').innerText = `(${t.overs})`;
+
+            document.getElementById('striker').innerText = d.striker.name;
+            document.getElementById('sRun').innerText = d.striker.runs;
+            
+            document.getElementById('nonStriker').innerText = d.nonStriker.name;
+            document.getElementById('nsRun').innerText = d.nonStriker.runs;
+
+            document.getElementById('bowler').innerText = d.bowler.name;
+            document.getElementById('bFig').innerText = `${d.bowler.wickets}-${d.bowler.runs}`;
+
+            // Balls logic
+            const b = parseInt(t.balls || 0);
+            let html = '';
+            for(let i=0; i<6; i++) {
+                // Mock logic for colors (you'd use real ball data here)
+                let c = 'glass-ball';
+                if(i<b) c += ' run';
+                html += `<div class="${c}"></div>`;
+            }
+            document.getElementById('balls').innerHTML = html;
         };
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>

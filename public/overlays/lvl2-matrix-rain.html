@@ -2,58 +2,171 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <title>Lvl 2 - Zenith Top</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto:wght@500;900&display=swap');
+
+        body { margin: 0; overflow: hidden; font-family: 'Roboto', sans-serif; }
+
+        /* Main Bar */
+        .zenith-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 65px;
+            background: linear-gradient(90deg, #0d1b2a 0%, #1b263b 40%, #0d1b2a 100%);
+            display: flex;
+            align-items: center;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border-bottom: 2px solid #e0e1dd;
+            transform: translateY(-100%);
+            animation: slideDown 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        @keyframes slideDown { to { transform: translateY(0); } }
+
+        /* Team Section */
+        .z-team {
+            width: 80px;
+            height: 100%;
+            background: #e63946;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Oswald', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%);
+            padding-right: 10px;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+        }
+
+        /* Score Section */
+        .z-score-box {
+            display: flex;
+            flex-direction: column;
+            padding: 0 15px;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .z-score {
+            font-size: 32px;
+            font-weight: 900;
+            line-height: 0.9;
+            background: -webkit-linear-gradient(#fff, #a8dadc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .z-crr { font-size: 10px; color: #a8dadc; letter-spacing: 1px; }
+
+        /* Stats Area */
+        .z-stats {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            font-size: 13px;
+        }
+
+        .z-player { display: flex; flex-direction: column; }
+        .z-player span { font-weight: bold; color: #fff; }
+        .z-player small { font-size: 10px; color: #8d99ae; text-transform: uppercase; }
+
+        /* Ball Tracker */
+        .z-balls {
+            display: flex;
+            gap: 4px;
+            margin-right: 15px;
+        }
+        .z-ball {
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            color: #1b263b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 900;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .z-ball.boundary { background: #e63946; color: white; }
+        .z-ball.wicket { background: #e63946; color: white; animation: pulse 1s infinite; }
+
+        @keyframes pulse { 50% { transform: scale(1.2); } }
+
+        /* FLIP ANIMATION CLASS */
+        .flip-in { animation: flipX 0.4s ease-in; }
+        @keyframes flipX {
+            0% { transform: perspective(400px) rotateX(90deg); opacity: 0; }
+            100% { transform: perspective(400px) rotateX(0deg); opacity: 1; }
+        }
+
+    </style>
 </head>
-<body class="{{THEME_CLASS}}">
-
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
-        </div>
-        <div class="notif-flare"></div>
-    </div>
-
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
-            </div>
+<body>
+    <div class="zenith-bar">
+        <div class="z-team" id="team">...</div>
+        
+        <div class="z-score-box">
+            <div class="z-score" id="score">0/0</div>
+            <div class="z-crr">CRR <span id="crr">0.0</span></div>
         </div>
 
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
+        <div class="z-stats">
+            <div class="z-player">
+                <small>Batting</small>
+                <span id="batsman">...</span>
             </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
+            <div class="z-player" style="text-align: right;">
+                <small>Bowling</small>
+                <span id="bowler">...</span>
             </div>
         </div>
 
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
-            </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
-            </div>
-        </div>
-
-        <div class="p-section p-balls" id="ballsContainer">
+        <div class="z-balls" id="ballsTracker">
             </div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        const channel = new BroadcastChannel('cricket_score_updates');
+
+        function updateFlip(id, text) {
+            const el = document.getElementById(id);
+            if(el.innerText !== text) {
+                el.classList.remove('flip-in');
+                void el.offsetWidth;
+                el.innerText = text;
+                el.classList.add('flip-in');
+            }
+        }
+
+        channel.onmessage = (e) => {
+            const d = e.data;
+            if(!d.team1) return;
+            const t = d.team1.isBatting ? d.team1 : d.team2;
+
+            document.getElementById('team').innerText = t.shortName;
+            updateFlip('score', `${t.score}/${t.wickets}`);
+            document.getElementById('crr').innerText = d.stats.currentRunRate;
+            
+            updateFlip('batsman', `${d.striker.name} ${d.striker.runs}*`);
+            updateFlip('bowler', `${d.bowler.name} ${d.bowler.wickets}-${d.bowler.runs}`);
+
+            // Render Balls
+            const b = parseInt(t.balls || 0);
+            let html = '';
+            // Just visualization logic for demo
+            for(let i=0; i<6; i++) {
+                if(i < b) html += `<div class="z-ball">${i+1}</div>`;
+                else html += `<div class="z-ball" style="opacity:0.3; background:#888"></div>`;
+            }
+            document.getElementById('ballsTracker').innerHTML = html;
         };
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>

@@ -2,58 +2,169 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lvl 2 - Kinetic Angle</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,700;1,700&family=Inter:wght@500;800&display=swap');
+
+        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+
+        .container {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            height: 60px;
+            display: flex;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+        }
+
+        .skew-box {
+            transform: skewX(-15deg);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border-right: 2px solid rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .skew-content {
+            transform: skewX(15deg); /* Un-skew text */
+            text-align: center;
+            width: 100%;
+        }
+
+        /* 1. Team Name (Red) */
+        .box-team {
+            background: #d63031;
+            color: white;
+            width: 25%;
+            border-radius: 8px 0 0 8px;
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 700;
+            font-size: 22px;
+        }
+
+        /* 2. Score (White) */
+        .box-score {
+            width: 30%;
+            background: #f1f2f6;
+            color: #2d3436;
+        }
+        .score-val { font-size: 26px; font-weight: 800; color: #2d3436; }
+        .rr-val { font-size: 11px; color: #636e72; font-weight: 600; }
+
+        /* 3. Players (Dark) */
+        .box-players {
+            flex-grow: 1;
+            background: #2d3436;
+            color: white;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 20px;
+            align-items: flex-start;
+        }
+        .p-row { display: flex; justify-content: space-between; width: 100%; padding: 2px 0; }
+        .p-role { color: #fdcb6e; font-weight: bold; margin-right: 10px; }
+
+        /* 4. Overs (Yellow) */
+        .box-balls {
+            width: 15%;
+            background: #fdcb6e;
+            color: #2d3436;
+            border-radius: 0 8px 8px 0;
+            font-weight: bold;
+        }
+
+        /* --- DIAGONAL PUSH ANIMATION --- */
+        .push-wrapper {
+            position: relative;
+            height: 1.2em;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: bottom;
+        }
+        .push-inner {
+            display: block;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+    </style>
 </head>
-<body class="{{THEME_CLASS}}">
+<body>
 
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
+    <div class="container">
+        <div class="skew-box box-team">
+            <div class="skew-content" id="teamName">TEAM</div>
         </div>
-        <div class="notif-flare"></div>
-    </div>
 
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
+        <div class="skew-box box-score">
+            <div class="skew-content">
+                <div class="score-val" id="score">0-0</div>
+                <div class="rr-val">CRR: <span id="crr">0.0</span></div>
             </div>
         </div>
 
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
-            </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
-            </div>
-        </div>
-
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
-            </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
+        <div class="skew-box box-players">
+            <div class="skew-content" style="text-align: left;">
+                <div class="p-row">
+                    <span class="p-role">BAT</span>
+                    <span id="batsman">Player 1</span>
+                </div>
+                <div class="p-row">
+                    <span class="p-role">BWL</span>
+                    <span id="bowler">Player 2</span>
+                </div>
             </div>
         </div>
 
-        <div class="p-section p-balls" id="ballsContainer">
+        <div class="skew-box box-balls">
+            <div class="skew-content">
+                <div style="font-size:10px; opacity:0.7">OVERS</div>
+                <div id="overs" style="font-size:20px">0.0</div>
             </div>
+        </div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        const channel = new BroadcastChannel('cricket_score_updates');
+
+        function pushUpdate(id, text) {
+            const el = document.getElementById(id);
+            if(!el) return;
+            // Simple innerHTML replace for this specific design to keep it lightweight
+            // Real animation would involve the wrapper logic from Design 1
+            // Adding a simple fade effect here for variety
+            if(el.innerText !== text) {
+                el.style.opacity = 0;
+                setTimeout(() => {
+                    el.innerText = text;
+                    el.style.opacity = 1;
+                }, 150);
+            }
+        }
+        // Use CSS Transition for opacity
+        document.querySelectorAll('[id]').forEach(el => el.style.transition = 'opacity 0.15s');
+
+        channel.onmessage = (event) => {
+            const d = event.data;
+            if(!d.team1) return;
+            
+            const activeTeam = d.team1.isBatting ? d.team1 : d.team2;
+
+            pushUpdate('teamName', activeTeam.shortName);
+            pushUpdate('score', `${activeTeam.score}/${activeTeam.wickets}`);
+            pushUpdate('crr', d.stats.currentRunRate);
+            pushUpdate('batsman', `${d.striker.name} ${d.striker.status}`);
+            pushUpdate('bowler', d.bowler.name);
+            pushUpdate('overs', activeTeam.overs);
         };
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>

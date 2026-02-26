@@ -12,7 +12,8 @@ import OverlayEditor from './OverlayEditor';
 
 type Dismissal = 'bowled' | 'caught' | 'lbw' | 'runOut' | 'stumped' | 'hitWicket' | 'handledBall' | 'timedOut' | null;
 
-interface Player {
+// Local player interface for cricket scoring
+interface CricketPlayer {
   id: string;
   name: string;
   runsScored: number;
@@ -25,7 +26,7 @@ interface Innings {
   battingTeam: string;
   totalRuns: number;
   wickets: number;
-  totalBalls: number; // Cumulative legal balls
+  totalBalls: number;
   extras: {
     wides: number;
     noBalls: number;
@@ -34,10 +35,9 @@ interface Innings {
   };
   strikerIndex: number;
   nonStrikerIndex: number;
-  lineup: Player[];
+  lineup: CricketPlayer[];
 }
 
-// Out type options with constraints
 const outTypes = [
   { type: 'bowled', label: 'Bowled', canBeNoBall: false, canBeWide: false },
   { type: 'caught', label: 'Caught', canBeNoBall: false, canBeWide: false },
@@ -58,6 +58,7 @@ export default function TournamentDetail() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [scoreHistory, setScoreHistory] = useState<Innings[]>([]);
 
+  // Match form with videoLinks support
   const [matchForm, setMatchForm] = useState({
     tournament: '',
     team1: '',
@@ -67,22 +68,40 @@ export default function TournamentDetail() {
     tossWinner: '',
     tossChoice: '',
     matchType: 'League',
+    videoLink: '',
+    videoLinks: [] as string[],
   });
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [newVideoUrl, setNewVideoUrl] = useState('');
 
-  // Wicket selection modal
   const [showWicketModal, setShowWicketModal] = useState(false);
   const [pendingWicketType, setPendingWicketType] = useState<string>('');
   const [deliveryKind, setDeliveryKind] = useState<'normal' | 'noBall' | 'wide'>('normal');
 
-  // Cricket innings state
   const [innings, setInnings] = useState<Innings>(() => createDefaultInnings());
   const [selectedTeamForUpdate, setSelectedTeamForUpdate] = useState<'team1' | 'team2'>('team1');
 
-  function createDefaultInnings(): Innings {
+  // Create innings with actual team players
+  function createDefaultInnings(teamPlayers?: any[]): Innings {
+    const players = teamPlayers && teamPlayers.length > 0 
+      ? teamPlayers.map((p, i) => ({
+          id: p.id || p._id || String(i),
+          name: p.name || `Player ${i + 1}`,
+          runsScored: 0,
+          ballsFaced: 0,
+          isOut: false,
+        }))
+      : Array.from({ length: 11 }, (_, i) => ({
+          id: String(i + 1),
+          name: `Player ${i + 1}`,
+          runsScored: 0,
+          ballsFaced: 0,
+          isOut: false,
+        }));
+
     return {
       battingTeam: 'team1',
       totalRuns: 0,
@@ -91,42 +110,28 @@ export default function TournamentDetail() {
       extras: { wides: 0, noBalls: 0, byes: 0, legByes: 0 },
       strikerIndex: 0,
       nonStrikerIndex: 1,
-      lineup: [
-        { id: '1', name: 'Batsman 1', runsScored: 0, ballsFaced: 0, isOut: false },
-        { id: '2', name: 'Batsman 2', runsScored: 0, ballsFaced: 0, isOut: false },
-        { id: '3', name: 'Batsman 3', runsScored: 0, ballsFaced: 0, isOut: false },
-        { id: '4', name: 'Batsman 4', runsScored: 0, ballsFaced: 0, isOut: false },
-        { id: '5', name: 'Batsman 5', runsScored: 0, ballsFaced: 0, isOut: false },
-        { id: '6', name: 'Batsman 6', runsScored: 0, ballsFaced: 0, isOut: false },
-        { id: '7', name: 'Batsman 7', runsScored: 0, ballsFaced: 0, isOut: false },
-        { id: '8', name: 'Batsman 8', runsScored: 0, ballsFaced: 0, isOut: false },
-        { id: '9', name: 'Batsman 9', runsScored: 0, ballsFaced: 0, isOut: false },
-        { id: '10', name: 'Batsman 10', runsScored: 0, ballsFaced: 0, isOut: false },
-        { id: '11', name: 'Batsman 11', runsScored: 0, ballsFaced: 0, isOut: false },
-      ],
+      lineup: players,
     };
   }
 
-  // Safe array length check helper
   const safeLength = (arr: any[] | undefined | null): number => {
     return Array.isArray(arr) ? arr.length : 0;
   };
 
-  // Safe array access helper
   const safeAccess = <T,>(arr: T[] | undefined | null, index: number): T | undefined => {
     return Array.isArray(arr) ? arr[index] : undefined;
   };
 
-  // ============================================
-  // CRICKET ENGINE CORE LOGIC
-  // ============================================
-  
-  // Auto-save score to backend after each delivery
   const autoSaveScore = async (inningsData: Innings, teamKey: 'team1' | 'team2') => {
     if (!selectedMatch) return;
     
     try {
       const overs = Math.floor(inningsData.totalBalls / 6) + (inningsData.totalBalls % 6) / 10;
+      
+      // Save player names for display
+      const strikerName = inningsData.lineup[inningsData.strikerIndex]?.name || '';
+      const nonStrikerName = inningsData.lineup[inningsData.nonStrikerIndex]?.name || '';
+      
       await matchAPI.updateMatchScore(selectedMatch._id, {
         score1: teamKey === 'team1' ? inningsData.totalRuns : 0,
         score2: teamKey === 'team2' ? inningsData.totalRuns : 0,
@@ -134,9 +139,10 @@ export default function TournamentDetail() {
         wickets2: teamKey === 'team2' ? inningsData.wickets : 0,
         overs1: teamKey === 'team1' ? parseFloat(overs.toFixed(1)) : 0,
         overs2: teamKey === 'team2' ? parseFloat(overs.toFixed(1)) : 0,
-        status: 'ongoing'
+        status: 'ongoing',
+        strikerName,
+        nonStrikerName,
       });
-      console.log('Score auto-saved successfully');
     } catch (error) {
       console.error('Failed to auto-save score:', error);
     }
@@ -149,54 +155,44 @@ export default function TournamentDetail() {
     let striker = newInnings.lineup[newInnings.strikerIndex];
     let nonStriker = newInnings.lineup[newInnings.nonStrikerIndex];
 
-    // 1. Handle Extras and Scoring
     if (deliveryType === 'wide') {
-      // Wide: runs + 1 (the wide itself), NO ball counted
       newInnings.totalRuns += (1 + runs);
       newInnings.extras.wides += 1;
     } else if (deliveryType === 'noBall') {
-      // No Ball: runs + 1 (the no ball itself), NO ball counted
       newInnings.totalRuns += (1 + runs);
       newInnings.extras.noBalls += 1;
     } else if (deliveryType === 'bye') {
-      // Bye: runs added, ball counted, but NOT to striker
       newInnings.totalRuns += runs;
       newInnings.extras.byes += runs;
       newInnings.totalBalls += 1;
     } else if (deliveryType === 'legBye') {
-      // Leg Bye: runs added, ball counted, but NOT to striker
       newInnings.totalRuns += runs;
       newInnings.extras.legByes += runs;
       newInnings.totalBalls += 1;
     } else {
-      // Normal delivery
       newInnings.totalRuns += runs;
       striker.runsScored += runs;
       striker.ballsFaced += 1;
       newInnings.totalBalls += 1;
     }
 
-    // 2. Handle Wicket
     if (wicket) {
       newInnings.wickets += 1;
       striker.isOut = true;
       striker.dismissal = wicket;
       
-      // Bring next player to crease
       const nextPlayerIndex = Math.max(newInnings.strikerIndex, newInnings.nonStrikerIndex) + 1;
       if (nextPlayerIndex < newInnings.lineup.length) {
         newInnings.strikerIndex = nextPlayerIndex;
       }
     }
 
-    // 3. Strike Rotation (odd runs)
     if (deliveryType === 'normal' && runs % 2 !== 0) {
       const temp = newInnings.strikerIndex;
       newInnings.strikerIndex = newInnings.nonStrikerIndex;
       newInnings.nonStrikerIndex = temp;
     }
 
-    // 4. Over End (6 legal balls) - swap striker
     if (deliveryType === 'normal' && newInnings.totalBalls % 6 === 0) {
       const temp = newInnings.strikerIndex;
       newInnings.strikerIndex = newInnings.nonStrikerIndex;
@@ -204,20 +200,14 @@ export default function TournamentDetail() {
     }
 
     setInnings(newInnings);
-    
-    // Auto-save score after each delivery
     autoSaveScore(newInnings, selectedTeamForUpdate);
   };
 
-  // Handle wicket with selection - Track if this was a noBall or wide delivery
   const handleWicket = (dismissal: Dismissal, deliveryKind: 'normal' | 'noBall' | 'wide' = 'normal') => {
-    // Determine if this is a legal ball delivery
     if (deliveryKind === 'noBall' || deliveryKind === 'wide') {
-      // On no-ball or wide, only certain dismissals allowed
       if (dismissal === 'stumped' || dismissal === 'runOut') {
         processDelivery(0, deliveryKind, dismissal);
       } else {
-        // Can't be bowled, caught, lbw on no-ball/wide - treat as run out if they try
         processDelivery(0, deliveryKind, 'runOut');
       }
     } else {
@@ -228,14 +218,12 @@ export default function TournamentDetail() {
     setPendingWicketType('');
   };
 
-  // Open wicket modal
   const openWicketModal = (type: 'normal' | 'runOut', deliveryType: 'normal' | 'noBall' | 'wide' = 'normal') => {
     setPendingWicketType(type);
     setDeliveryKind(deliveryType);
     setShowWicketModal(true);
   };
 
-  // Undo last action
   const undoLastAction = () => {
     if (scoreHistory.length > 0) {
       const lastState = scoreHistory[scoreHistory.length - 1];
@@ -244,26 +232,43 @@ export default function TournamentDetail() {
     }
   };
 
-  // Format overs for display
   const formatOvers = (): string => {
     const overs = Math.floor(innings.totalBalls / 6);
     const balls = innings.totalBalls % 6;
     return `${overs}.${balls}`;
   };
 
-  // Reset innings
-  const resetInnings = () => {
-    setInnings(createDefaultInnings());
+  const resetInnings = (teamKey: 'team1' | 'team2' = selectedTeamForUpdate) => {
+    // Get players from the selected team
+    const selectedTeam = teamKey === 'team1' ? selectedMatch?.team1 : selectedMatch?.team2;
+    const teamPlayers = selectedTeam?.players || [];
+    setInnings(createDefaultInnings(teamPlayers));
     setScoreHistory([]);
   };
 
-  // Switch batting team
   const switchInnings = () => {
-    setInnings({
-      ...createDefaultInnings(),
-      battingTeam: selectedTeamForUpdate === 'team1' ? 'team2' : 'team1',
+    const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
+    setSelectedTeamForUpdate(newTeamKey);
+    resetInnings(newTeamKey);
+  };
+
+  // Add video URL to the list
+  const addVideoUrl = () => {
+    if (newVideoUrl.trim()) {
+      setMatchForm({
+        ...matchForm,
+        videoLinks: [...matchForm.videoLinks, newVideoUrl.trim()],
+      });
+      setNewVideoUrl('');
+    }
+  };
+
+  // Remove video URL from the list
+  const removeVideoUrl = (index: number) => {
+    setMatchForm({
+      ...matchForm,
+      videoLinks: matchForm.videoLinks.filter((_, i) => i !== index),
     });
-    setScoreHistory([]);
   };
 
   useEffect(() => {
@@ -280,6 +285,13 @@ export default function TournamentDetail() {
     return () => { newSocket.close(); };
   }, []);
 
+  // Update innings when selectedTeamForUpdate changes
+  useEffect(() => {
+    if (selectedMatch) {
+      resetInnings(selectedTeamForUpdate);
+    }
+  }, [selectedTeamForUpdate]);
+
   const fetchTournament = async () => {
     if (!id) return;
     try {
@@ -292,7 +304,6 @@ export default function TournamentDetail() {
     }
   };
 
-  // Helper function to safely extract array from API response
   const extractArray = (response: any): any[] => {
     if (!response) return [];
     if (Array.isArray(response.data)) return response.data;
@@ -333,9 +344,26 @@ export default function TournamentDetail() {
     if (!id) return;
     setLoading(true);
     try {
-      await matchAPI.createMatch({ ...matchForm, tournament: id });
+      const matchData = {
+        tournament: id,
+        team1: matchForm.team1,
+        team2: matchForm.team2,
+        date: matchForm.date,
+        venue: matchForm.venue,
+        tossWinner: matchForm.tossWinner,
+        tossChoice: matchForm.tossChoice,
+        matchType: matchForm.matchType,
+        // Use the first URL as primary videoLink, and store all in videoLinks
+        videoLink: matchForm.videoLinks[0] || matchForm.videoLink,
+        videoLinks: matchForm.videoLinks,
+      };
+      await matchAPI.createMatch(matchData);
       setShowMatchForm(false);
-      setMatchForm({ tournament: '', team1: '', team2: '', date: '', venue: '', tossWinner: '', tossChoice: '', matchType: 'League' });
+      setMatchForm({ 
+        tournament: '', team1: '', team2: '', date: '', venue: '', 
+        tossWinner: '', tossChoice: '', matchType: 'League', 
+        videoLink: '', videoLinks: [] 
+      });
       fetchMatches();
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to create match');
@@ -349,6 +377,9 @@ export default function TournamentDetail() {
     setLoading(true);
     try {
       const overs = Math.floor(innings.totalBalls / 6) + (innings.totalBalls % 6) / 10;
+      const strikerName = innings.lineup[innings.strikerIndex]?.name || '';
+      const nonStrikerName = innings.lineup[innings.nonStrikerIndex]?.name || '';
+      
       await matchAPI.updateMatchScore(selectedMatch._id, {
         score1: selectedTeamForUpdate === 'team1' ? innings.totalRuns : 0,
         score2: selectedTeamForUpdate === 'team2' ? innings.totalRuns : 0,
@@ -356,7 +387,9 @@ export default function TournamentDetail() {
         wickets2: selectedTeamForUpdate === 'team2' ? innings.wickets : 0,
         overs1: selectedTeamForUpdate === 'team1' ? parseFloat(overs.toFixed(1)) : 0,
         overs2: selectedTeamForUpdate === 'team2' ? parseFloat(overs.toFixed(1)) : 0,
-        status: 'ongoing'
+        status: 'ongoing',
+        strikerName,
+        nonStrikerName,
       });
       setSelectedMatch(null);
       fetchMatches();
@@ -405,7 +438,6 @@ export default function TournamentDetail() {
 
   return (
     <div className="animate-fade-in bg-gray-900 text-white min-h-screen p-4 md:p-6">
-      {/* Header */}
       <div className="mb-6">
         <button onClick={() => navigate('/tournaments')} className="btn-secondary mb-4">← Back</button>
         <h1 className="text-3xl font-bold text-gradient">{tournament.name}</h1>
@@ -414,7 +446,6 @@ export default function TournamentDetail() {
 
       {error && <div className="bg-red-900 text-red-300 px-4 py-2 rounded mb-4">{error}</div>}
 
-      {/* Tabs */}
       <div className="flex space-x-2 mb-6">
         {['overview', 'matches', 'teams', 'overlays'].map((tab) => (
           <button
@@ -427,7 +458,6 @@ export default function TournamentDetail() {
         ))}
       </div>
 
-      {/* Tab Content */}
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-gray-800 p-6 rounded-lg">
@@ -461,7 +491,6 @@ export default function TournamentDetail() {
             <button onClick={() => setShowMatchForm(true)} className="btn-primary">Schedule Match</button>
           </div>
 
-          {/* Match List */}
           <div className="space-y-4">
             {matches.length === 0 ? (
               <p className="text-gray-400 text-center py-8">No matches yet</p>
@@ -473,12 +502,18 @@ export default function TournamentDetail() {
                     <p className="text-sm text-gray-400">
                       {match.score1 !== undefined ? `${match.score1}/${match.wickets1} (${match.overs1})` : 'Not started'}
                     </p>
+                    {match.videoLink && (
+                      <a href={match.videoLink} target="_blank" rel="noreferrer" className="text-sm text-blue-400 hover:underline">
+                        Watch Live
+                      </a>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
                         setSelectedMatch(match);
-                        resetInnings();
+                        setSelectedTeamForUpdate('team1');
+                        resetInnings('team1');
                       }}
                       className="btn-secondary text-sm"
                     >
@@ -506,7 +541,135 @@ export default function TournamentDetail() {
       )}
 
       {/* ============================================ */}
-      {/* CRICKET SCOREBOARD MODAL - COMPLETE DESIGN */}
+      {/* MATCH CREATION FORM MODAL */}
+      {/* ============================================ */}
+      {showMatchForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 overflow-y-auto">
+          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">Schedule New Match</h3>
+              <button onClick={() => setShowMatchForm(false)} className="bg-gray-600 px-3 py-1 rounded">Close</button>
+            </div>
+
+            <form onSubmit={handleCreateMatch} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm mb-1">Team 1</label>
+                  <select
+                    value={matchForm.team1}
+                    onChange={(e) => setMatchForm({...matchForm, team1: e.target.value})}
+                    className="w-full p-2 bg-gray-700 rounded"
+                    required
+                  >
+                    <option value="">Select Team 1</option>
+                    {teams.map((team) => (
+                      <option key={team._id} value={team._id}>{team.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Team 2</label>
+                  <select
+                    value={matchForm.team2}
+                    onChange={(e) => setMatchForm({...matchForm, team2: e.target.value})}
+                    className="w-full p-2 bg-gray-700 rounded"
+                    required
+                  >
+                    <option value="">Select Team 2</option>
+                    {teams.map((team) => (
+                      <option key={team._id} value={team._id}>{team.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm mb-1">Date</label>
+                  <input
+                    type="datetime-local"
+                    value={matchForm.date}
+                    onChange={(e) => setMatchForm({...matchForm, date: e.target.value})}
+                    className="w-full p-2 bg-gray-700 rounded"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Venue</label>
+                  <input
+                    type="text"
+                    value={matchForm.venue}
+                    onChange={(e) => setMatchForm({...matchForm, venue: e.target.value})}
+                    className="w-full p-2 bg-gray-700 rounded"
+                    placeholder="Enter venue"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm mb-1">Match Type</label>
+                <select
+                  value={matchForm.matchType}
+                  onChange={(e) => setMatchForm({...matchForm, matchType: e.target.value})}
+                  className="w-full p-2 bg-gray-700 rounded"
+                >
+                  <option value="League">League</option>
+                  <option value="Quarter-Final">Quarter-Final</option>
+                  <option value="Semi-Final">Semi-Final</option>
+                  <option value="Final">Final</option>
+                  <option value="Playoff">Playoff</option>
+                </select>
+              </div>
+
+              {/* Video URLs Section */}
+              <div>
+                <label className="block text-sm mb-1">Video Stream URLs (Optional)</label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="url"
+                    value={newVideoUrl}
+                    onChange={(e) => setNewVideoUrl(e.target.value)}
+                    placeholder="https://example.com/stream"
+                    className="flex-1 p-2 bg-gray-700 rounded"
+                  />
+                  <button
+                    type="button"
+                    onClick={addVideoUrl}
+                    className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
+                  >
+                    Add URL
+                  </button>
+                </div>
+                
+                {matchForm.videoLinks.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    <p className="text-sm text-gray-400">Added URLs:</p>
+                    {matchForm.videoLinks.map((url, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-700 p-2 rounded">
+                        <span className="text-sm truncate flex-1">{url}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeVideoUrl(index)}
+                          className="text-red-400 hover:text-red-300 ml-2"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <button type="submit" disabled={loading} className="w-full bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold">
+                {loading ? 'Creating...' : 'Create Match'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================ */}
+      {/* CRICKET SCOREBOARD MODAL */}
       {/* ============================================ */}
       {selectedMatch && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 overflow-y-auto">
@@ -521,23 +684,21 @@ export default function TournamentDetail() {
               </div>
             </div>
 
-            {/* Team Selection */}
             <div className="mb-4 flex gap-2">
               <button
-                onClick={() => { setSelectedTeamForUpdate('team1'); resetInnings(); }}
+                onClick={() => { setSelectedTeamForUpdate('team1'); }}
                 className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team1' ? 'bg-green-600' : 'bg-gray-700'}`}
               >
                 {selectedMatch.team1?.name || 'Team 1'}
               </button>
               <button
-                onClick={() => { setSelectedTeamForUpdate('team2'); resetInnings(); }}
+                onClick={() => { setSelectedTeamForUpdate('team2'); }}
                 className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team2' ? 'bg-green-600' : 'bg-gray-700'}`}
               >
                 {selectedMatch.team2?.name || 'Team 2'}
               </button>
             </div>
 
-            {/* Score Display */}
             <div className="bg-gray-900 p-4 rounded-lg mb-4 text-center">
               <div className="text-5xl font-bold text-yellow-400">
                 {innings.totalRuns}/{innings.wickets}
@@ -550,7 +711,6 @@ export default function TournamentDetail() {
               </div>
             </div>
 
-            {/* Batsmen Display */}
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className={`p-3 rounded-lg ${innings.strikerIndex >= 0 ? 'bg-green-900 border-2 border-green-500' : 'bg-gray-700'}`}>
                 <div className="text-sm text-gray-400">Striker</div>
@@ -568,11 +728,6 @@ export default function TournamentDetail() {
               </div>
             </div>
 
-            {/* ============================================ */}
-            {/* SCORING BUTTONS - COMPLETE SET */}
-            {/* ============================================ */}
-            
-            {/* Normal Runs */}
             <div className="mb-4">
               <h4 className="text-sm font-medium text-gray-400 mb-2">RUNS</h4>
               <div className="grid grid-cols-6 gap-2">
@@ -585,7 +740,6 @@ export default function TournamentDetail() {
               </div>
             </div>
 
-            {/* WIDE - Opens modal with run options */}
             <div className="mb-4">
               <h4 className="text-sm font-medium text-gray-400 mb-2">WIDE</h4>
               <div className="grid grid-cols-6 gap-2">
@@ -594,11 +748,10 @@ export default function TournamentDetail() {
                 <button onClick={() => processDelivery(2, 'wide')} className="bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded font-bold">Wd+2</button>
                 <button onClick={() => processDelivery(3, 'wide')} className="bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded font-bold">Wd+3</button>
                 <button onClick={() => processDelivery(4, 'wide')} className="bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded font-bold">Wd+4</button>
-<button onClick={() => openWicketModal('runOut', 'wide')} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">Wd+Wkt</button>
+                <button onClick={() => openWicketModal('runOut', 'wide')} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">Wd+Wkt</button>
               </div>
             </div>
 
-            {/* NO BALL - Opens modal with run options */}
             <div className="mb-4">
               <h4 className="text-sm font-medium text-gray-400 mb-2">NO BALL</h4>
               <div className="grid grid-cols-6 gap-2">
@@ -611,7 +764,6 @@ export default function TournamentDetail() {
               </div>
             </div>
 
-            {/* BYE */}
             <div className="mb-4">
               <h4 className="text-sm font-medium text-gray-400 mb-2">BYE</h4>
               <div className="grid grid-cols-6 gap-2">
@@ -620,11 +772,10 @@ export default function TournamentDetail() {
                 <button onClick={() => processDelivery(2, 'bye')} className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-bold">B+2</button>
                 <button onClick={() => processDelivery(3, 'bye')} className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-bold">B+3</button>
                 <button onClick={() => processDelivery(4, 'bye')} className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-bold">B+4</button>
-<button onClick={() => openWicketModal('runOut', 'normal')} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">B+Wkt</button>
+                <button onClick={() => openWicketModal('runOut', 'normal')} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">B+Wkt</button>
               </div>
             </div>
 
-            {/* LEG BYE */}
             <div className="mb-4">
               <h4 className="text-sm font-medium text-gray-400 mb-2">LEG BYE</h4>
               <div className="grid grid-cols-6 gap-2">
@@ -633,24 +784,22 @@ export default function TournamentDetail() {
                 <button onClick={() => processDelivery(2, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+2</button>
                 <button onClick={() => processDelivery(3, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+3</button>
                 <button onClick={() => processDelivery(4, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+4</button>
-<button onClick={() => openWicketModal('runOut', 'normal')} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">LB+Wkt</button>
+                <button onClick={() => openWicketModal('runOut', 'normal')} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">LB+Wkt</button>
               </div>
             </div>
 
-            {/* WICKET BUTTON */}
             <div className="mb-4">
               <h4 className="text-sm font-medium text-gray-400 mb-2">WICKET (Legal Delivery)</h4>
               <button
-onClick={() => openWicketModal('normal', 'normal')}
+                onClick={() => openWicketModal('normal', 'normal')}
                 className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-bold text-xl"
               >
                 OUT - Select Dismissal Type
               </button>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-2 mt-6">
-              <button onClick={resetInnings} className="flex-1 bg-red-700 hover:bg-red-800 py-3 rounded-lg font-bold">Reset</button>
+              <button onClick={() => resetInnings(selectedTeamForUpdate)} className="flex-1 bg-red-700 hover:bg-red-800 py-3 rounded-lg font-bold">Reset</button>
               <button onClick={switchInnings} className="flex-1 bg-purple-700 hover:bg-purple-800 py-3 rounded-lg font-bold">Switch Innings</button>
               <button onClick={handleUpdateScore} disabled={loading} className="flex-1 bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold">
                 {loading ? 'Saving...' : 'Save Score'}
@@ -673,7 +822,6 @@ onClick={() => openWicketModal('normal', 'normal')}
             
             <div className="space-y-2">
               {outTypes.map((out) => {
-                // Filter based on whether it's no-ball/wide
                 const isAllowed = deliveryKind !== 'normal' ? out.canBeNoBall : true;
                 
                 return (
@@ -706,8 +854,3 @@ onClick={() => openWicketModal('normal', 'normal')}
     </div>
   );
 }
-
-function setIsNoBallOrWide(arg0: boolean) {
-  throw new Error('Function not implemented.');
-}
-

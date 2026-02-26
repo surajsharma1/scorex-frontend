@@ -2,58 +2,135 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lvl 2 - Midnight Neon</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Inter:wght@400;600&display=swap');
+
+        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+
+        .neon-dock {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 94%;
+            height: 65px;
+            background: rgba(0,0,0,0.9);
+            border: 1px solid #00f2ff;
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2), inset 0 0 20px rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            color: #fff;
+        }
+
+        .section { height: 100%; display: flex; align-items: center; padding: 0 20px; border-right: 1px solid #333; }
+
+        /* Team */
+        .sec-team {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: 900;
+            color: #00f2ff;
+            text-shadow: 0 0 10px #00f2ff;
+            min-width: 80px;
+            justify-content: center;
+        }
+
+        /* Score */
+        .sec-score {
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            min-width: 100px;
+        }
+        .sc-val { font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: bold; line-height: 1; }
+        .sc-rr { font-size: 10px; color: #ff0055; font-weight: bold; margin-top: 4px; }
+
+        /* Info */
+        .sec-info { flex: 1; justify-content: space-between; font-size: 13px; }
+        .p-name { font-weight: 600; color: #e0e0e0; }
+        .p-stat { color: #00f2ff; font-weight: bold; }
+
+        /* Balls */
+        .sec-balls { border: none; font-family: monospace; letter-spacing: 5px; color: #555; }
+        .active-ball { color: #fff; text-shadow: 0 0 5px white; }
+
+        /* Glitch Animation */
+        .glitch-anim { animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite; }
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+
+    </style>
 </head>
-<body class="{{THEME_CLASS}}">
+<body>
 
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
-        </div>
-        <div class="notif-flare"></div>
-    </div>
-
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
-            </div>
+    <div class="neon-dock">
+        <div class="section sec-team" id="team">XXX</div>
+        
+        <div class="section sec-score">
+            <div class="sc-val" id="score">0-0</div>
+            <div class="sc-rr" id="crr">CRR: 0.0</div>
         </div>
 
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
+        <div class="section sec-info">
+            <div>
+                <div style="font-size:10px; color:#555">STRIKING</div>
+                <span class="p-name" id="batName">Player</span> <span class="p-stat" id="batScore">0</span>
             </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
+            <div style="text-align:right">
+                <div style="font-size:10px; color:#555">BOWLING</div>
+                <span class="p-name" id="bowlName">Player</span> <span class="p-stat" id="bowlScore">0-0</span>
             </div>
         </div>
 
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
-            </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
-            </div>
+        <div class="section sec-balls" id="balls">
+            ......
         </div>
-
-        <div class="p-section p-balls" id="ballsContainer">
-            </div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        const ch = new BroadcastChannel('cricket_score_updates');
+        
+        function update(id, text) {
+            const el = document.getElementById(id);
+            if(el.innerText !== text) {
+                el.innerText = text;
+                el.classList.add('glitch-anim');
+                setTimeout(() => el.classList.remove('glitch-anim'), 300);
+            }
+        }
+
+        ch.onmessage = (e) => {
+            const d = e.data;
+            if(!d.team1) return;
+            const t = d.team1.isBatting ? d.team1 : d.team2;
+
+            update('team', t.shortName);
+            update('score', `${t.score}/${t.wickets}`);
+            document.getElementById('crr').innerText = `CRR: ${d.stats.currentRunRate}`;
+            
+            update('batName', d.striker.name);
+            update('batScore', `${d.striker.runs}(${d.striker.balls})`);
+            
+            update('bowlName', d.bowler.name);
+            update('bowlScore', `${d.bowler.wickets}-${d.bowler.runs}`);
+
+            // Balls visual
+            const b = parseInt(t.balls || 0);
+            let s = '';
+            for(let i=0; i<6; i++) {
+                s += (i < b) ? '<span class="active-ball">O</span>' : '.';
+            }
+            document.getElementById('balls').innerHTML = s;
         };
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>

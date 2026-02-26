@@ -2,58 +2,151 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lvl 2 - Pro Sport Angle</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@1,800&family=Roboto+Condensed:wght@700&display=swap');
+
+        body { margin: 0; overflow: hidden; font-family: 'Roboto Condensed', sans-serif; }
+
+        .container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            height: 60px;
+            display: flex;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.6));
+        }
+
+        .block {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: skewX(-15deg);
+            border-right: 2px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .unskew { transform: skewX(15deg); }
+
+        /* 1. TEAM (Gradient Red) */
+        .b-team {
+            width: 90px;
+            background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+            color: white;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 24px;
+            z-index: 5;
+        }
+
+        /* 2. SCORE (White/Metal) */
+        .b-score {
+            width: 130px;
+            background: linear-gradient(180deg, #ffffff 0%, #e0e0e0 100%);
+            color: #1d3557;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 34px;
+            font-weight: 800;
+            z-index: 4;
+        }
+
+        /* 3. DETAILS (Dark Blue) */
+        .b-details {
+            flex: 1;
+            background: linear-gradient(90deg, #1d3557 0%, #457b9d 100%);
+            color: white;
+            justify-content: flex-start;
+            padding-left: 30px;
+            z-index: 3;
+            margin-left: -10px; /* Connect */
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            font-size: 14px;
+        }
+        .stat-item { display: flex; align-items: center; gap: 5px; }
+        .stat-val { color: #a8dadc; font-weight: 400; }
+
+        /* 4. BALLS (End Cap) */
+        .b-balls {
+            width: 100px;
+            background: #1d3557;
+            border-left: 2px solid #e63946;
+            z-index: 2;
+        }
+
+        .ball-row { display: flex; gap: 3px; }
+        .ball { width: 10px; height: 10px; background: #457b9d; border-radius: 50%; }
+        .ball.fill { background: #e63946; box-shadow: 0 0 5px #e63946; }
+
+        /* Animations */
+        .pulse-up { animation: scorePulse 0.3s ease-out; }
+        @keyframes scorePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); color: #e63946; }
+            100% { transform: scale(1); }
+        }
+
+    </style>
 </head>
-<body class="{{THEME_CLASS}}">
+<body>
 
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
+    <div class="container">
+        <div class="block b-team">
+            <div class="unskew" id="teamName">AUS</div>
         </div>
-        <div class="notif-flare"></div>
-    </div>
-
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
+        <div class="block b-score">
+            <div class="unskew"><span id="scoreVal">156/4</span></div>
+        </div>
+        <div class="block b-details">
+            <div class="unskew stat-grid">
+                <div class="stat-item">BAT: <span class="stat-val" id="batsman">Smith 45*</span></div>
+                <div class="stat-item">BWL: <span class="stat-val" id="bowler">Boult</span></div>
             </div>
         </div>
-
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
-            </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
-            </div>
+        <div class="block b-balls">
+            <div class="unskew ball-row" id="ballContainer">
+                </div>
         </div>
-
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
-            </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
-            </div>
-        </div>
-
-        <div class="p-section p-balls" id="ballsContainer">
-            </div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        const channel = new BroadcastChannel('cricket_score_updates');
+
+        channel.onmessage = (e) => {
+            const d = e.data;
+            if(!d.team1) return;
+            const t = d.team1.isBatting ? d.team1 : d.team2;
+
+            document.getElementById('teamName').innerText = t.shortName;
+            
+            const sEl = document.getElementById('scoreVal');
+            const newScore = `${t.score}/${t.wickets}`;
+            
+            if(sEl.innerText !== newScore) {
+                sEl.innerText = newScore;
+                // Add class to parent unskew div to pulse without breaking skew
+                sEl.classList.remove('pulse-up');
+                void sEl.offsetWidth; 
+                sEl.classList.add('pulse-up');
+            }
+
+            document.getElementById('batsman').innerText = `${d.striker.name} ${d.striker.runs}*`;
+            document.getElementById('bowler').innerText = `${d.bowler.name}`;
+
+            // Balls logic
+            const b = parseInt(t.balls || 0);
+            document.getElementById('ballContainer').innerHTML = Array(6).fill(0).map((_,i) => 
+                `<div class="ball ${i<b?'fill':''}"></div>`
+            ).join('');
         };
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>
