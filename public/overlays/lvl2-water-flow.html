@@ -2,58 +2,154 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ScoreX Premium Overlay</title>
-    <link rel="stylesheet" href="lvl2-styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body class="{{THEME_CLASS}}">
+    <title>Lvl 2 - Sapphire Stream</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
 
-    <div id="notificationArea" class="notification-popup">
-        <div class="notif-content">
-            <span id="notificationText">WICKET!</span>
-        </div>
-        <div class="notif-flare"></div>
+        body { margin: 0; font-family: 'Inter', sans-serif; overflow: hidden; }
+
+        /* Color Palette */
+        :root {
+            --bg-grad: linear-gradient(135deg, #021B79 0%, #0575E6 100%);
+            --accent: #4ae8c4;
+            --text: #fff;
+        }
+
+        /* TOP CAPSULE */
+        .top-capsule {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: white; color: #021B79;
+            padding: 8px 24px; border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-weight: 700; font-size: 14px;
+            display: flex; gap: 15px;
+            animation: dropIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .cap-div { width: 1px; background: #ddd; }
+
+        /* BOTTOM PANEL */
+        .btm-panel {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 94%; height: 75px;
+            background: var(--bg-grad);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(2, 27, 121, 0.4);
+            display: flex; align-items: center;
+            padding: 0 20px; color: white;
+            box-sizing: border-box;
+            border: 1px solid rgba(255,255,255,0.2);
+            animation: flyUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s forwards;
+        }
+
+        /* Sections */
+        .sap-score {
+            display: flex; flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.2);
+            padding-right: 20px; margin-right: 20px;
+            min-width: 80px;
+        }
+        .sap-team { font-size: 12px; opacity: 0.8; letter-spacing: 1px; font-weight: 600; }
+        .sap-main { font-size: 32px; font-weight: 800; line-height: 1; }
+
+        .sap-players {
+            flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            font-size: 13px;
+        }
+        .pl-row { display: flex; flex-direction: column; }
+        .pl-role { font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; }
+        .pl-val { font-weight: 600; }
+
+        .sap-balls {
+            display: flex; gap: 4px; margin-left: 15px;
+        }
+        .s-dot {
+            width: 8px; height: 8px; background: rgba(255,255,255,0.3); border-radius: 50%;
+            transition: all 0.3s;
+        }
+        .s-dot.fill { background: var(--accent); transform: scale(1.2); }
+
+        @keyframes dropIn { from { top: -50px; opacity: 0; } }
+        @keyframes flyUp { from { bottom: -100px; opacity: 0; } }
+        
+        .update-flash { animation: fadeWhite 0.3s; }
+        @keyframes fadeWhite { 0% { color: var(--accent); } 100% { color: white; } }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-capsule">
+        <span id="tournament">MATCH LIVE</span>
+        <div class="cap-div"></div>
+        <span id="crr">CRR 0.0</span>
+        <div class="cap-div"></div>
+        <span id="overs">0.0 Ov</span>
     </div>
 
-    <div class="premium-bar">
-        <div class="p-section p-teams">
-            <div class="p-team-box">
-                <span id="battingTeam">IND</span> 
-                <span class="vs-marker">vs</span> 
-                <span id="bowlingTeam">AUS</span>
+    <div class="btm-panel">
+        <div class="sap-score">
+            <span class="sap-team" id="teamName">TEAM</span>
+            <span class="sap-main" id="score">0/0</span>
+        </div>
+
+        <div class="sap-players">
+            <div class="pl-row">
+                <span class="pl-role">Striking</span>
+                <span class="pl-val" id="striker">Player</span>
+            </div>
+            <div class="pl-row" style="text-align: right;">
+                <span class="pl-role">Non-Striker</span>
+                <span class="pl-val" id="nonStriker">Player</span>
+            </div>
+            <div class="pl-row">
+                <span class="pl-role">Bowling</span>
+                <span class="pl-val" id="bowler">Player</span>
+            </div>
+            <div class="pl-row" style="text-align: right;">
+                <span class="pl-role">Figures</span>
+                <span class="pl-val" id="figs">0-0</span>
             </div>
         </div>
 
-        <div class="p-section p-score">
-            <div class="score-wrapper">
-                <span id="runs" class="score-val">0</span>/<span id="wickets" class="wicket-val">0</span>
-            </div>
-            <div class="over-wrapper">
-                <span id="overs">0.0</span> Ovs
-            </div>
-        </div>
-
-        <div class="p-section p-details">
-            <div class="p-row">
-                <span id="striker" class="highlight">Striker 0*</span>
-                <span id="nonStriker">Non-Striker 0</span>
-            </div>
-            <div class="p-row sub-row">
-                <span id="bowler">Bowler</span>
-                <span id="crr">CRR 0.0</span>
-            </div>
-        </div>
-
-        <div class="p-section p-balls" id="ballsContainer">
-            </div>
+        <div class="sap-balls" id="ballsContainer"></div>
     </div>
 
     <script>
-        window.OVERLAY_CONFIG = window.OVERLAY_CONFIG || { 
-            apiBaseUrl: 'http://localhost:5000/api/v1',
-            level: 2 
+        const ch = new BroadcastChannel('cricket_score_updates');
+
+        function flash(id, text) {
+            const el = document.getElementById(id);
+            if(el.innerText !== text) {
+                el.innerText = text;
+                el.classList.remove('update-flash');
+                void el.offsetWidth;
+                el.classList.add('update-flash');
+            }
+        }
+
+        ch.onmessage = (e) => {
+            const d = e.data; if(!d.team1) return;
+            const t = d.team1.isBatting ? d.team1 : d.team2;
+
+            document.getElementById('tournament').innerText = d.tournament.name || "LIVE";
+            document.getElementById('crr').innerText = `CRR ${d.stats.currentRunRate}`;
+            document.getElementById('overs').innerText = `${t.overs} Ov`;
+
+            document.getElementById('teamName').innerText = t.shortName;
+            flash('score', `${t.score}/${t.wickets}`);
+
+            flash('striker', `${d.striker.name} ${d.striker.runs}*`);
+            flash('nonStriker', `${d.nonStriker.name} ${d.nonStriker.runs}`);
+            
+            flash('bowler', d.bowler.name);
+            flash('figs', `${d.bowler.wickets}-${d.bowler.runs}`);
+
+            // Balls
+            const b = parseInt(t.balls || 0);
+            let h = '';
+            for(let i=0; i<6; i++) h += `<div class="s-dot ${i<b?'fill':''}"></div>`;
+            document.getElementById('ballsContainer').innerHTML = h;
         };
     </script>
-    <script src="engine.js"></script>
 </body>
 </html>
