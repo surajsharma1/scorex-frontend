@@ -316,7 +316,8 @@ export default function TournamentDetail() {
   const fetchMatches = async () => {
     if (!id) return;
     try {
-      const response = await matchAPI.getMatches(id);
+      // Use getMatchesByTournament to fetch matches for this tournament
+      const response = await matchAPI.getMatchesByTournament(id);
       const matchesArray = extractArray(response);
       setMatches(matchesArray);
     } catch (error) {

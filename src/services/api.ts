@@ -72,6 +72,8 @@ export const tournamentAPI = {
 export const matchAPI = {
   getAllMatches: () => api.get('/matches'),
   getMatches: (id: string) => api.get(`/matches/${id}`),
+  // Get matches by tournament ID (uses query param)
+  getMatchesByTournament: (tournamentId: string) => api.get(`/matches?tournament=${tournamentId}`),
   createMatch: (data: any) => api.post('/matches', data),
   updateMatch: (id: string, data: any) => api.put(`/matches/${id}`, data),
   deleteMatch: (id: string) => api.delete(`/matches/${id}`),

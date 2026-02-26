@@ -24,8 +24,25 @@ export default function MatchDetails() {
     if (!id) return;
     try {
       const response = await matchAPI.getMatches(id);
+      
+      // Check if the response indicates the match wasn't found
+      if (response.status === 404 || (response.data && response.data.message === 'Match not found')) {
+        setMatch(null);
+        setLoading(false);
+        return;
+      }
+      
       // Handle potential API response structures
       const data = response.data.match || response.data;
+      
+      // Validate that we actually got match data
+      if (!data || !data._id) {
+        console.error('Invalid match data received');
+        setMatch(null);
+        setLoading(false);
+        return;
+      }
+      
       setMatch(data);
       setVideoLink(data.videoLink || data.liveStreamUrl || '');
       
@@ -35,8 +52,15 @@ export default function MatchDetails() {
         const tRes = await tournamentAPI.getTournament(tId);
         setTournament(tRes.data);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch match details', error);
+      
+      // Handle different error types
+      if (error.response) {
+        if (error.response.status === 404) {
+          setMatch(null);
+        }
+      }
     } finally {
       setLoading(false);
     }
