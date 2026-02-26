@@ -91,37 +91,37 @@ export default function OverlayForm() {
               required
             >
               <option value="">Select Template</option>
-              {/* Free Templates */}
-              <option value="vintage.html">Vintage Cricket</option>
-              <option value="gate-minimal-dark.html">Minimal Dark</option>
-              <option value="slate-gold-ashes.html">Slate Gold</option>
-              <option value="minimalist-split-bar.html">Minimalist Split</option>
-              {/* Premium Basic */}
-              <option value="gradient-monolith.html">Gradient Monolith</option>
-              <option value="neon-vector-replay.html">Neon Vector</option>
-              <option value="circuit-node-neon.html">Circuit Node</option>
-              <option value="cyber-shield.html">Cyber Shield</option>
-              <option value="hex-perimeter.html">Hex Perimeter</option>
-              <option value="grid-sunset-red.html">Grid Sunset</option>
-              <option value="titan-perimeter.html">Titan Perimeter</option>
-              <option value="prism-pop-desert.html">Prism Pop</option>
-              <option value="modern-monolith-slab.html">Modern Monolith</option>
-              {/* Premium Collection - New Overlay Templates */}
-              <option value="orbital-overlay.html">Orbital Overlay</option>
-              <option value="fragment-overlay.html">Fragment Overlay</option>
-              <option value="nebula-overlay.html">Nebula Overlay</option>
-              <option value="aether-overlay.html">Aether Overlay</option>
-              <option value="vector-overlay.html">Vector Overlay</option>
-              <option value="vector-shift.html">Vector Shift</option>
-              <option value="zenith-overlay.html">Zenith Overlay</option>
-              <option value="chronos-overlay.html">Chronos Overlay</option>
-              <option value="obsidian-overlay.html">Obsidian Overlay</option>
-              <option value="vanguard-overlay.html">Vanguard Overlay</option>
-              <option value="fractal-overlay.html">Fractal Overlay</option>
-              <option value="glitch-overlay.html">Glitch Overlay</option>
-              <option value="titan-overlay.html">Titan Overlay</option>
-              <option value="prism-overlay.html">Prism Overlay</option>
-              <option value="octane-overlay.html">Octane Overlay</option>
+              {/* Level 1 - Basic Templates */}
+              <option value="lvl1-broadcast-bar.html">Broadcast Bar</option>
+              <option value="lvl1-curved-compact.html">Curved Compact</option>
+              <option value="lvl1-dark-angular.html">Dark Angular</option>
+              <option value="lvl1-grass-theme.html">Grass Theme</option>
+              <option value="lvl1-high-vis.html">High Visibility</option>
+              <option value="lvl1-minimal-dark.html">Minimal Dark</option>
+              <option value="lvl1-modern-bar.html">Modern Bar</option>
+              <option value="lvl1-modern-blue.html">Modern Blue</option>
+              <option value="lvl1-paper-style.html">Paper Style</option>
+              <option value="lvl1-red-card.html">Red Card</option>
+              <option value="lvl1-retro-board.html">Retro Board</option>
+              <option value="lvl1-side-panel.html">Side Panel</option>
+              <option value="lvl1-simple-text.html">Simple Text</option>
+              {/* Level 2 - Advanced Templates */}
+              <option value="lvl2-broadcast-pro.html">Broadcast Pro</option>
+              <option value="lvl2-cosmic-orbit.html">Cosmic Orbit</option>
+              <option value="lvl2-cyber-glitch.html">Cyber Glitch</option>
+              <option value="lvl2-flame-thrower.html">Flame Thrower</option>
+              <option value="lvl2-glass-morphism.html">Glass Morphism</option>
+              <option value="lvl2-gold-rush.html">Gold Rush</option>
+              <option value="lvl2-hologram.html">Hologram</option>
+              <option value="lvl2-matrix-rain.html">Matrix Rain</option>
+              <option value="lvl2-neon-pulse.html">Neon Pulse</option>
+              <option value="lvl2-particle-storm.html">Particle Storm</option>
+              <option value="lvl2-rgb-split.html">RGB Split</option>
+              <option value="lvl2-speed-racer.html">Speed Racer</option>
+              <option value="lvl2-tech-hud.html">Tech HUD</option>
+              <option value="lvl2-thunder-strike.html">Thunder Strike</option>
+              <option value="lvl2-vinyl-spin.html">Vinyl Spin</option>
+              <option value="lvl2-water-flow.html">Water Flow</option>
             </select>
           </div>
           <div>
