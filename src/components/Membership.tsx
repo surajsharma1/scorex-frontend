@@ -189,10 +189,10 @@ export default function Membership() {
     if (membership === 'free') {
       return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
-    if (membership.includes('level1')) {
+    if (membership.includes('lv1')) {
       return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
     }
-    if (membership.includes('level2')) {
+    if (membership.includes('lv2')) {
       return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
     }
     return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
@@ -200,8 +200,20 @@ export default function Membership() {
 
   const getMembershipName = (membership: string) => {
     if (membership === 'free') return 'Free Plan';
-    if (membership === 'premium-level1') return 'Premium Level 1';
-    if (membership === 'premium-level2') return 'Premium Level 2';
+    if (membership.includes('lv1')) {
+      // Parse duration from plan name
+      if (membership.includes('1-day')) return 'Premium LV1 - 1 Day';
+      if (membership.includes('1-week')) return 'Premium LV1 - 1 Week';
+      if (membership.includes('1-month')) return 'Premium LV1 - 1 Month';
+      return 'Premium Level 1';
+    }
+    if (membership.includes('lv2')) {
+      // Parse duration from plan name
+      if (membership.includes('1-day')) return 'Premium LV2 - 1 Day';
+      if (membership.includes('1-week')) return 'Premium LV2 - 1 Week';
+      if (membership.includes('1-month')) return 'Premium LV2 - 1 Month';
+      return 'Premium Level 2';
+    }
     return membership.charAt(0).toUpperCase() + membership.slice(1);
   };
 

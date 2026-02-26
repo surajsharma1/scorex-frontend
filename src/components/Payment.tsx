@@ -17,11 +17,12 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
   const [loading, setLoading] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState<'lv1' | 'lv2'>('lv1');
   const [selectedDuration, setSelectedDuration] = useState<'1-day' | '1-week' | '1-month'>('1-month');
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'razorpay'>('razorpay');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'razorpay'>('card');
   
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiry, setExpiry] = useState('');
-  const [cvc, setCvc] = useState('');
+  // Test card details - Pre-filled for free membership purchase
+  const [cardNumber, setCardNumber] = useState('8871474139');
+  const [expiry, setExpiry] = useState('2609');
+  const [cvc, setCvc] = useState('123');
 
   // Pricing configuration
   const pricing = {
@@ -281,7 +282,7 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
             {paymentMethod === 'card' ? (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Card Number (Enter ADMINFREEPASS for free access)</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Card Number </label>
                   <div className="relative">
                     <CreditCard className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                     <input 
