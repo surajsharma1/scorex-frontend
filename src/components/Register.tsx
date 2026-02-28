@@ -43,7 +43,6 @@ interface FieldErrors {
 }
 
 export default function Register() {
-  const [step, setStep] = useState<'details' | 'otp'>('details');
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -62,7 +61,6 @@ export default function Register() {
     password: null,
     confirmPassword: null
   });
-  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -113,7 +111,7 @@ export default function Register() {
     return !usernameError && !emailError && !passwordError && !confirmPasswordError;
   };
 
-  // Step 1: Submit Details & Request OTP
+  // Submit Registration - auto-verify users now
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -145,15 +143,19 @@ export default function Register() {
     setError('');
     
     try {
-      // This endpoint should create a temporary user/record and send OTP via Nodemailer
-      await authAPI.register({
+      // Registration now returns token directly (auto-verify)
+      const res = await authAPI.register({
         username: formData.username,
         email: formData.email,
         password: formData.password
       });
       
-      setStep('otp');
-      alert(`OTP sent to ${formData.email}. Please check your inbox (and spam folder).`);
+      // Store token and user directly - no OTP needed!
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       // Handle backend validation errors
       if (err.response?.data?.errors) {
@@ -172,41 +174,15 @@ export default function Register() {
     }
   };
 
-  // Step 2: Verify OTP
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const res = await authAPI.verifyEmailOTP({
-        email: formData.email,
-        otp: otp
-      });
-
-      if (res.data.token) {
-        localStorage.setItem('token', res.data.token);
-        localStorage.setItem('user', JSON.stringify(res.data.user));
-        navigate('/dashboard');
-      } else {
-        navigate('/login');
-      }
-    } catch (err: any) {
-      setError('Invalid OTP. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
       <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
-            {step === 'details' ? 'Create Account' : 'Verify Email'}
+            Create Account
           </h1>
           <p className="text-gray-400">
-            {step === 'details' ? 'Join ScoreX today' : `Enter OTP sent to ${formData.email}`}
+            Join ScoreX today
           </p>
         </div>
 
@@ -216,189 +192,151 @@ export default function Register() {
           </div>
         )}
 
-        {step === 'details' ? (
-          <form onSubmit={handleRegister} className="space-y-4">
-            {/* Username Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Username</label>
-              <div className="relative">
-                <User className={`absolute left-3 top-3 w-5 h-5 ${fieldErrors.username ? 'text-red-500' : touched.username && !fieldErrors.username ? 'text-green-500' : 'text-gray-500'}`} />
-                <input 
-                  type="text" 
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className={`w-full pl-10 p-3 bg-gray-700 border rounded-xl focus:ring-2 outline-none transition-colors ${
-                    fieldErrors.username 
-                      ? 'border-red-500 focus:ring-red-500' 
-                      : touched.username && !fieldErrors.username 
-                        ? 'border-green-500 focus:ring-green-500' 
-                        : 'border-gray-600 focus:ring-green-500'
-                  }`}
-                  placeholder="cricket_fan_99"
-                />
-                {touched.username && !fieldErrors.username && formData.username && (
-                  <Check className="absolute right-3 top-3 w-5 h-5 text-green-500" />
-                )}
-              </div>
-              {fieldErrors.username && touched.username && (
-                <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  {fieldErrors.username}
-                </p>
-              )}
-              <p className="mt-1 text-xs text-gray-500">3-50 characters, letters, numbers, and underscores only</p>
-            </div>
-
-            {/* Email Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
-              <div className="relative">
-                <Mail className={`absolute left-3 top-3 w-5 h-5 ${fieldErrors.email ? 'text-red-500' : touched.email && !fieldErrors.email ? 'text-green-500' : 'text-gray-500'}`} />
-                <input 
-                  type="email" 
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className={`w-full pl-10 p-3 bg-gray-700 border rounded-xl focus:ring-2 outline-none transition-colors ${
-                    fieldErrors.email 
-                      ? 'border-red-500 focus:ring-red-500' 
-                      : touched.email && !fieldErrors.email 
-                        ? 'border-green-500 focus:ring-green-500' 
-                        : 'border-gray-600 focus:ring-green-500'
-                  }`}
-                  placeholder="you@example.com"
-                />
-                {touched.email && !fieldErrors.email && formData.email && (
-                  <Check className="absolute right-3 top-3 w-5 h-5 text-green-500" />
-                )}
-              </div>
-              {fieldErrors.email && touched.email && (
-                <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  {fieldErrors.email}
-                </p>
+        <form onSubmit={handleRegister} className="space-y-4">
+          {/* Username Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Username</label>
+            <div className="relative">
+              <User className={`absolute left-3 top-3 w-5 h-5 ${fieldErrors.username ? 'text-red-500' : touched.username && !fieldErrors.username ? 'text-green-500' : 'text-gray-500'}`} />
+              <input 
+                type="text" 
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`w-full pl-10 p-3 bg-gray-700 border rounded-xl focus:ring-2 outline-none transition-colors ${
+                  fieldErrors.username 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : touched.username && !fieldErrors.username 
+                      ? 'border-green-500 focus:ring-green-500' 
+                      : 'border-gray-600 focus:ring-green-500'
+                }`}
+                placeholder="cricket_fan_99"
+              />
+              {touched.username && !fieldErrors.username && formData.username && (
+                <Check className="absolute right-3 top-3 w-5 h-5 text-green-500" />
               )}
             </div>
-
-            {/* Password Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
-              <div className="relative">
-                <Lock className={`absolute left-3 top-3 w-5 h-5 ${fieldErrors.password ? 'text-red-500' : touched.password && !fieldErrors.password ? 'text-green-500' : 'text-gray-500'}`} />
-                <input 
-                  type="password" 
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className={`w-full pl-10 p-3 bg-gray-700 border rounded-xl focus:ring-2 outline-none transition-colors ${
-                    fieldErrors.password 
-                      ? 'border-red-500 focus:ring-red-500' 
-                      : touched.password && !fieldErrors.password 
-                        ? 'border-green-500 focus:ring-green-500' 
-                        : 'border-gray-600 focus:ring-green-500'
-                  }`}
-                  placeholder="Min 6 chars with letter, number & special char"
-                />
-                {touched.password && !fieldErrors.password && formData.password && (
-                  <Check className="absolute right-3 top-3 w-5 h-5 text-green-500" />
-                )}
-              </div>
-              {fieldErrors.password && touched.password && (
-                <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  {fieldErrors.password}
-                </p>
-              )}
-            </div>
-
-            {/* Confirm Password Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label>
-              <div className="relative">
-                <CheckCircle className={`absolute left-3 top-3 w-5 h-5 ${fieldErrors.confirmPassword ? 'text-red-500' : touched.confirmPassword && !fieldErrors.confirmPassword ? 'text-green-500' : 'text-gray-500'}`} />
-                <input 
-                  type="password" 
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className={`w-full pl-10 p-3 bg-gray-700 border rounded-xl focus:ring-2 outline-none transition-colors ${
-                    fieldErrors.confirmPassword 
-                      ? 'border-red-500 focus:ring-red-500' 
-                      : touched.confirmPassword && !fieldErrors.confirmPassword 
-                        ? 'border-green-500 focus:ring-green-500' 
-                        : 'border-gray-600 focus:ring-green-500'
-                  }`}
-                  placeholder="Retype password"
-                />
-                {touched.confirmPassword && !fieldErrors.confirmPassword && formData.confirmPassword && (
-                  <Check className="absolute right-3 top-3 w-5 h-5 text-green-500" />
-                )}
-              </div>
-              {fieldErrors.confirmPassword && touched.confirmPassword && (
-                <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  {fieldErrors.confirmPassword}
-                </p>
-              )}
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full py-3 mt-4 bg-green-600 hover:bg-green-700 rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <>Next Step <ArrowRight className="w-5 h-5" /></>}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleVerifyOTP} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">One-Time Password (OTP)</label>
-              <div className="relative">
-                <KeyRound className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
-                <input 
-                  type="text" 
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="w-full pl-10 p-3 bg-gray-700 border border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 outline-none tracking-widest text-center text-xl font-mono"
-                  placeholder="123456"
-                  maxLength={6}
-                  required 
-                />
-              </div>
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full py-3 bg-green-600 hover:bg-green-700 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
-            >
-              {loading ? <Loader2 className="animate-spin w-5 h-5" /> : 'Verify & Create Account'}
-            </button>
-
-            <button 
-              type="button" 
-              onClick={() => setStep('details')}
-              className="w-full text-sm text-gray-400 hover:text-white"
-            >
-              Back to Details
-            </button>
-          </form>
-        )}
-
-        {step === 'details' && (
-          <div className="mt-6 text-center text-sm text-gray-400">
-            Already have an account?{' '}
-            <Link to="/login" className="text-green-400 hover:text-green-300 font-bold">
-              Log In
-            </Link>
+            {fieldErrors.username && touched.username && (
+              <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {fieldErrors.username}
+              </p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">3-50 characters, letters, numbers, and underscores only</p>
           </div>
-        )}
+
+          {/* Email Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+            <div className="relative">
+              <Mail className={`absolute left-3 top-3 w-5 h-5 ${fieldErrors.email ? 'text-red-500' : touched.email && !fieldErrors.email ? 'text-green-500' : 'text-gray-500'}`} />
+              <input 
+                type="email" 
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`w-full pl-10 p-3 bg-gray-700 border rounded-xl focus:ring-2 outline-none transition-colors ${
+                  fieldErrors.email 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : touched.email && !fieldErrors.email 
+                      ? 'border-green-500 focus:ring-green-500' 
+                      : 'border-gray-600 focus:ring-green-500'
+                }`}
+                placeholder="you@example.com"
+              />
+              {touched.email && !fieldErrors.email && formData.email && (
+                <Check className="absolute right-3 top-3 w-5 h-5 text-green-500" />
+              )}
+            </div>
+            {fieldErrors.email && touched.email && (
+              <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {fieldErrors.email}
+              </p>
+            )}
+          </div>
+
+          {/* Password Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
+            <div className="relative">
+              <Lock className={`absolute left-3 top-3 w-5 h-5 ${fieldErrors.password ? 'text-red-500' : touched.password && !fieldErrors.password ? 'text-green-500' : 'text-gray-500'}`} />
+              <input 
+                type="password" 
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`w-full pl-10 p-3 bg-gray-700 border rounded-xl focus:ring-2 outline-none transition-colors ${
+                  fieldErrors.password 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : touched.password && !fieldErrors.password 
+                      ? 'border-green-500 focus:ring-green-500' 
+                      : 'border-gray-600 focus:ring-green-500'
+                }`}
+                placeholder="Min 6 chars with letter, number & special char"
+              />
+              {touched.password && !fieldErrors.password && formData.password && (
+                <Check className="absolute right-3 top-3 w-5 h-5 text-green-500" />
+              )}
+            </div>
+            {fieldErrors.password && touched.password && (
+              <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {fieldErrors.password}
+              </p>
+            )}
+          </div>
+
+          {/* Confirm Password Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label>
+            <div className="relative">
+              <CheckCircle className={`absolute left-3 top-3 w-5 h-5 ${fieldErrors.confirmPassword ? 'text-red-500' : touched.confirmPassword && !fieldErrors.confirmPassword ? 'text-green-500' : 'text-gray-500'}`} />
+              <input 
+                type="password" 
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`w-full pl-10 p-3 bg-gray-700 border rounded-xl focus:ring-2 outline-none transition-colors ${
+                  fieldErrors.confirmPassword 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : touched.confirmPassword && !fieldErrors.confirmPassword 
+                      ? 'border-green-500 focus:ring-green-500' 
+                      : 'border-gray-600 focus:ring-green-500'
+                }`}
+                placeholder="Retype password"
+              />
+              {touched.confirmPassword && !fieldErrors.confirmPassword && formData.confirmPassword && (
+                <Check className="absolute right-3 top-3 w-5 h-5 text-green-500" />
+              )}
+            </div>
+            {fieldErrors.confirmPassword && touched.confirmPassword && (
+              <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {fieldErrors.confirmPassword}
+              </p>
+            )}
+          </div>
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full py-3 mt-4 bg-green-600 hover:bg-green-700 rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <>Create Account <ArrowRight className="w-5 h-5" /></>}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center text-sm text-gray-400">
+          Already have an account?{' '}
+          <Link to="/login" className="text-green-400 hover:text-green-300 font-bold">
+            Log In
+          </Link>
+        </div>
       </div>
     </div>
   );
