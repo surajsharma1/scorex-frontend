@@ -6,6 +6,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .bg-primary {
+    background-color: #34729c;
+  }
+  .bg-primary-600 {
+    background-color: #2a5c7e;
+  }
+}
+
 :root {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
