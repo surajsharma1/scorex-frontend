@@ -49,11 +49,19 @@ export default function Login() {
       // Store the token
       localStorage.setItem('token', token);
       
-      // Clean up URL
-      window.history.replaceState({}, document.title, '/dashboard');
-      
-      // Redirect to dashboard
-      navigate('/dashboard');
+      // Fetch user data using the token
+      authAPI.getCurrentUser()
+        .then((res) => {
+          localStorage.setItem('user', JSON.stringify(res.data));
+          // Clean up URL and redirect to dashboard
+          window.history.replaceState({}, document.title, '/dashboard');
+          navigate('/dashboard');
+        })
+        .catch(() => {
+          // If failed to get user, still try to go to dashboard
+          window.history.replaceState({}, document.title, '/dashboard');
+          navigate('/dashboard');
+        });
     }
   }, [navigate]);
 
