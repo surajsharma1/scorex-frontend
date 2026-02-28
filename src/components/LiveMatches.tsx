@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { matchAPI } from '../services/api';
 import { Match } from './types';
-import { Play, Calendar, MapPin, TrendingUp, MonitorPlay, Clock, Trophy } from 'lucide-react';
+import { Play, Calendar, MapPin, TrendingUp, MonitorPlay, Clock, Trophy, Search, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function LiveMatches() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'completed'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadAllMatches();
@@ -28,13 +29,32 @@ export default function LiveMatches() {
   };
 
   const filteredMatches = matches.filter(m => {
-    if (filter === 'all') return true;
-    return m.status === filter;
+    // First apply status filter
+    if (filter !== 'all' && m.status !== filter) return false;
+    
+    // Then apply search filter (by tournament name)
+    if (searchQuery) {
+      const tournamentName = typeof m.tournament === 'string' ? '' : (m.tournament?.name || '').toLowerCase();
+      const team1Name = (m.team1?.name || '').toLowerCase();
+      const team2Name = (m.team2?.name || '').toLowerCase();
+      const query = searchQuery.toLowerCase();
+      
+      return tournamentName.includes(query) || team1Name.includes(query) || team2Name.includes(query);
+    }
+    
+    return true;
   });
 
   const liveMatches = matches.filter(m => m.status === 'ongoing');
   const upcomingMatches = matches.filter(m => m.status === 'upcoming' || m.status === 'scheduled');
   const completedMatches = matches.filter(m => m.status === 'completed');
+
+  // Get unique tournament names for the search dropdown
+  const tournamentNames = [...new Set(matches.map(m => 
+    typeof m.tournament === 'string' ? '' : (m.tournament?.name || '')
+  ).filter(name => name))];
+
+  const clearSearch = () => setSearchQuery('');
 
   if (loading) return <div className="p-8 text-center dark:text-white">Loading matches...</div>;
 
@@ -52,6 +72,52 @@ export default function LiveMatches() {
           )}
         </div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Matches</h1>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by tournament or team name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-10 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+          {searchQuery && (
+            <button 
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+        {/* Tournament Quick Filters */}
+        {tournamentNames.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            <button
+              onClick={() => setSearchQuery('')}
+              className={`px-3 py-1 rounded-full text-sm ${
+                !searchQuery ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              All
+            </button>
+            {tournamentNames.slice(0, 8).map((name) => (
+              <button
+                key={name}
+                onClick={() => setSearchQuery(name)}
+                className={`px-3 py-1 rounded-full text-sm ${
+                  searchQuery === name ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Quick Stats */}
@@ -111,9 +177,16 @@ export default function LiveMatches() {
       {filteredMatches.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
           <p className="text-xl text-gray-500 dark:text-gray-400">
-            {filter === 'all' ? 'No matches available.' : `No ${filter} matches.`}
+            {searchQuery ? `No matches found for "${searchQuery}"` : (filter === 'all' ? 'No matches available.' : `No ${filter} matches.`)}
           </p>
-          <Link to="/tournaments" className="text-green-600 hover:underline mt-2 inline-block">Browse Tournaments</Link>
+          {searchQuery && (
+            <button 
+              onClick={clearSearch}
+              className="text-green-600 hover:underline mt-2 inline-block"
+            >
+              Clear search
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -213,23 +286,56 @@ export default function LiveMatches() {
                   </div>
                 )}
 
-                {/* Action Buttons */}
+                {/* Action Buttons - Updated for new requirements */}
                 <div className="grid grid-cols-2 gap-3">
-                  <Link 
-                    to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`}
-                    className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
-                  >
-                    <TrendingUp className="w-4 h-4" /> Scorecard
-                  </Link>
-                  {match.videoLink && match.status === 'ongoing' && (
+                  {match.status === 'ongoing' && match.videoLink ? (
+                    // Watch Live button - opens in new tab
                     <a 
-                      href={match.videoLink} 
-                      target="_blank" 
-                      rel="noreferrer"
+                      href={match.videoLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
                     >
                       <Play className="w-4 h-4" /> Watch Live
                     </a>
+                  ) : match.status === 'completed' ? (
+                    // Completed matches - view scorecard
+                    <Link 
+                      to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`}
+                      className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <TrendingUp className="w-4 h-4" /> Scorecard
+                    </Link>
+                  ) : (
+                    // Upcoming - just show status
+                    <div className="flex items-center justify-center gap-2 bg-gray-600 text-white py-2.5 rounded-lg text-sm font-medium">
+                      <Clock className="w-4 h-4" /> Upcoming
+                    </div>
+                  )}
+                  
+                  {/* Second button - always show tournament link for ongoing/completed */}
+                  {(match.status === 'ongoing' || match.status === 'completed') && (
+                    <Link 
+                      to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`}
+                      className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <Trophy className="w-4 h-4" /> Details
+                    </Link>
+                  )}
+                  
+                  {/* For upcoming - show both buttons */}
+                  {match.status === 'upcoming' && (
+                    <>
+                      <div className="flex items-center justify-center gap-2 bg-gray-600 text-white py-2.5 rounded-lg text-sm font-medium">
+                        <Calendar className="w-4 h-4" /> Scheduled
+                      </div>
+                      <Link 
+                        to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`}
+                        className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
+                      >
+                        <Trophy className="w-4 h-4" /> Tournament
+                      </Link>
+                    </>
                   )}
                 </div>
               </div>
