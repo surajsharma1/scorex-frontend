@@ -24,7 +24,7 @@ export default {
         'dark-accent': '#178582',
         'dark-light': '#bfa181',
 
-        // Primary color - must use object format for utilities
+        // Primary color - using object format for utilities
         primary: {
           DEFAULT: '#34729c',
           light: '#6cb1da',
@@ -40,6 +40,9 @@ export default {
           800: '#18303f',
           900: '#0f1a20',
         },
+        
+        // Simple primary color for @apply
+        'primary': '#34729c',
         
         secondary: {
           DEFAULT: '#6ec1d1',
