@@ -50,9 +50,22 @@ const DashboardLayout = () => {
 // Router is already in main.tsx, this just defines routes
 function App() {
   const token = localStorage.getItem('token');
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
-  const isAdmin = user?.role === 'admin';
+  
+  // Safely parse user from localStorage - handle "undefined" string case
+  let user = null;
+  let isAdmin = false;
+  try {
+    const userStr = localStorage.getItem('user');
+    // Check if userStr is not null AND not the string "undefined"
+    if (userStr && userStr !== "undefined") {
+      user = JSON.parse(userStr);
+      isAdmin = user?.role === 'admin';
+    }
+  } catch (e) {
+    console.error("Error parsing user data from localStorage:", e);
+    // Clear invalid data
+    localStorage.removeItem('user');
+  }
 
   return (
     <Routes>
