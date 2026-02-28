@@ -1,9 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { 
   BarChart3, Trophy, Radio, TrendingUp, Users, 
-  Users2, Crown, User, LogOut, X, Sun, Moon 
+  Users2, Crown, User, LogOut, X, Sun, Moon, Shield 
 } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
+import { getCurrentUser } from '../utils/auth';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -13,6 +14,8 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
+  const user = getCurrentUser();
+  const isAdmin = user?.role === 'admin';
 
   const handleLogout = () => {
     if(confirm("Are you sure you want to logout?")) {
@@ -32,6 +35,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
     { path: '/overlays', icon: Radio, label: 'Broadcast Studio' },
     { path: '/membership', icon: Crown, label: 'Membership' },
     { path: '/profile', icon: User, label: 'Profile' },
+    ...(isAdmin ? [{ path: '/admin', icon: Shield, label: 'Admin Panel' }] : []),
   ];
 
   return (

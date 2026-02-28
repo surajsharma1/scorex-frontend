@@ -61,6 +61,7 @@ export const userAPI = {
   banUser: (userId: string) => api.put(`/users/${userId}/ban`), // Admin - ban user
   unbanUser: (userId: string) => api.put(`/users/${userId}/unban`), // Admin - unban user
   updateUserRole: (userId: string, role: string) => api.put(`/users/${userId}/role`, { role }), // Admin - update user role
+  updateUserMembership: (userId: string, data: { level: number, durationMonths?: number }) => api.put(`/users/${userId}/membership`, data), // Admin - update user membership with custom duration
 };
 
 export const tournamentAPI = {
