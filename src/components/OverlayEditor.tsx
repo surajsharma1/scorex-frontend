@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Eye, Download, Settings, Crown, ExternalLink, Zap } from 'lucide-react';
+import { Eye, Zap, X, Maximize2, Minimize2 } from 'lucide-react';
 import { overlayAPI, matchAPI, tournamentAPI } from '../services/api';
 import { Overlay, Match, Tournament } from './types';
 
@@ -40,36 +40,30 @@ const LEVEL2_OVERLAYS = [
   { id: 'lvl2-water-flow', name: 'Water Flow', file: 'lvl2-water-flow.html', category: 'Replay/Effects', color: 'from-blue-400 to-cyan-600' },
 ];
 
-// Special overlays
-const SPECIAL_OVERLAYS = [
-  { id: 'titan-dark-ribbon', name: 'Titan Dark Ribbon', file: 'titan-dark-ribbon.html', category: 'Special', color: 'from-orange-600 to-red-900' },
-  { id: 'broadcast-score-bug', name: 'Broadcast Score Bug', file: 'broadcast-score-bug.html', category: 'Special', color: 'from-blue-600 to-indigo-900' },
-  { id: 'double-rail-broadcast', name: 'Double Rail Broadcast', file: 'Double-Rail-Broadcast.html', category: 'Special', color: 'from-slate-600 to-slate-900' },
-  { id: 'metallic-eclipse-lens', name: 'Metallic Eclipse', file: 'metallic-eclipse-lens.html', category: 'Special', color: 'from-gray-400 to-gray-700' },
-  { id: 'mono-cyberpunk', name: 'Mono Cyberpunk', file: 'mono-cyberpunk.html', category: 'Special', color: 'from-pink-500 to-purple-900' },
-  { id: 'news-ticker-broadcast', name: 'News Ticker', file: 'news-ticker-broadcast.html', category: 'Special', color: 'from-red-600 to-red-800' },
-  { id: 'retro-glitch-hud', name: 'Retro Glitch HUD', file: 'retro-glitch-hud.html', category: 'Special', color: 'from-green-500 to-teal-700' },
-  { id: 'fire-win-predictor', name: 'Fire Win Predictor', file: 'fire-win-predictor.html', category: 'Special', color: 'from-red-500 to-orange-700' },
-  { id: 'storm-flare-rail', name: 'Storm Flare Rail', file: 'storm-flare-rail.html', category: 'Special', color: 'from-purple-600 to-pink-800' },
-  { id: 'velocity-frame', name: 'Velocity Frame', file: 'velocity-frame.html', category: 'Special', color: 'from-blue-500 to-cyan-700' },
-  { id: 'apex-cradle-gold', name: 'Apex Cradle Gold', file: 'apex-cradle-gold.html', category: 'Special', color: 'from-yellow-600 to-amber-900' },
-  { id: 'vertical-slice-ashes', name: 'Vertical Slice Ashes', file: 'vertical-slice-ashes.html', category: 'Special', color: 'from-gray-600 to-gray-900' },
-  { id: 'wooden2', name: 'Wooden Theme', file: 'wooden2.html', category: 'Special', color: 'from-amber-700 to-yellow-900' },
-];
 
 // Combine all overlays
 const OVERLAY_TEMPLATES = [
   ...LEVEL1_OVERLAYS,
   ...LEVEL2_OVERLAYS,
-  ...SPECIAL_OVERLAYS,
+];
+
+// Category options for dropdown
+const CATEGORIES = [
+  { value: 'all', label: 'All Overlays' },
+  { value: 'Scoreboard', label: 'Level 1 - Scoreboard' },
+  { value: 'Replay/Effects', label: 'Level 2 - Replay/Effects' },
+  { value: 'Special', label: 'Special' },
 ];
 
 export default function OverlayEditor() {
   const [selectedTemplate, setSelectedTemplate] = useState(OVERLAY_TEMPLATES[0]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedMatchId, setSelectedMatchId] = useState<string>('');
-  const [openedWindow, setOpenedWindow] = useState<Window | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const channelRef = useRef<BroadcastChannel | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     loadLiveMatches();
@@ -83,7 +77,7 @@ export default function OverlayEditor() {
 
   // Listen for match updates from the server to auto-update overlay
   useEffect(() => {
-     if (!selectedMatchId) return;
+     if (!selectedMatchId || !showOverlay) return;
      
      const interval = setInterval(async () => {
          try {
@@ -96,7 +90,7 @@ export default function OverlayEditor() {
      }, 2000); // Sync every 2 seconds
 
      return () => clearInterval(interval);
-  }, [selectedMatchId]);
+  }, [selectedMatchId, showOverlay]);
 
   const loadLiveMatches = async () => {
     try {
@@ -108,10 +102,12 @@ export default function OverlayEditor() {
     }
   };
 
-  const launchOverlay = () => {
-    const url = `/overlays/${selectedTemplate.file}`;
-    const win = window.open(url, 'ScoreX_Overlay', 'width=1920,height=1080,menubar=no,toolbar=no');
-    setOpenedWindow(win);
+  const toggleOverlay = () => {
+    setShowOverlay(!showOverlay);
+  };
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
   };
   
   const pushDataToOverlay = (match: Match) => {
@@ -170,9 +166,14 @@ export default function OverlayEditor() {
       });
   };
 
+  // Filter overlays by selected category
+  const filteredOverlays = selectedCategory === 'all' 
+    ? OVERLAY_TEMPLATES 
+    : OVERLAY_TEMPLATES.filter(o => o.category === selectedCategory);
+
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Broadcast Controller</h1>
           <p className="text-gray-500">Manage your live stream graphics in real-time</p>
@@ -191,125 +192,49 @@ export default function OverlayEditor() {
                 Test Wicket
             </button>
             <button 
-                onClick={launchOverlay}
-                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold shadow-lg"
+                onClick={toggleOverlay}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-bold shadow-lg ${
+                    showOverlay 
+                        ? 'bg-red-600 text-white hover:bg-red-700' 
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
             >
-                <ExternalLink className="w-5 h-5" /> Launch Overlay
+                {showOverlay ? <><X className="w-5 h-5" /> Hide Overlay</> : <><Eye className="w-5 h-5" /> Show Overlay</>}
             </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Template Selection */}
-        <div className="lg:col-span-2 space-y-6">
-            <h2 className="text-xl font-bold dark:text-white">Select Theme</h2>
-            
-            {/* Level 1 Overlays */}
-            <div>
-                <h3 className="text-lg font-semibold dark:text-white mb-3">Level 1 - Scoreboard Overlays</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {LEVEL1_OVERLAYS.map(template => (
-                        <div 
-                            key={template.id}
-                            onClick={() => setSelectedTemplate(template)}
-                            className={`cursor-pointer border-2 rounded-xl overflow-hidden relative transition-all transform hover:scale-105 ${
-                                selectedTemplate.id === template.id 
-                                    ? 'border-green-500 ring-2 ring-green-300' 
-                                    : 'border-gray-200 dark:border-gray-700'
-                            }`}
-                        >
-                            <div className={`h-24 bg-gradient-to-br ${template.color} flex items-center justify-center`}>
-                                <span className="text-white font-black text-2xl tracking-widest">{template.name.substring(0,3)}</span>
-                            </div>
-                            <div className="p-3 bg-white dark:bg-gray-800">
-                                <h3 className="font-bold text-gray-900 dark:text-white text-sm">{template.name}</h3>
-                                <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800">
-                                    Scoreboard
-                                </span>
-                            </div>
-                            {selectedTemplate.id === template.id && (
-                                <div className="absolute top-2 right-2 bg-green-500 text-white p-1 rounded-full">
-                                    <Zap className="w-4 h-4" />
-                                </div>
-                            )}
-                        </div>
-                    ))}
+      {/* Main Content - Split View */}
+      <div className={`grid gap-6 ${showOverlay ? (isFullscreen ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3') : 'grid-cols-1'}`}>
+        
+        {/* Controls Panel */}
+        <div className={`${showOverlay && !isFullscreen ? 'lg:col-span-1' : 'col-span-1'}`}>
+            {/* Category Dropdown */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm mb-6">
+                <h2 className="text-xl font-bold mb-4 dark:text-white">Select Overlay</h2>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Overlay Category
+                    </label>
+                    <select 
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white"
+                    >
+                        {CATEGORIES.map(cat => (
+                            <option key={cat.value} value={cat.value}>{cat.label}</option>
+                        ))}
+                    </select>
                 </div>
             </div>
 
-            {/* Level 2 Overlays */}
-            <div>
-                <h3 className="text-lg font-semibold dark:text-white mb-3">Level 2 - Replay/Effects Overlays</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {LEVEL2_OVERLAYS.map(template => (
-                        <div 
-                            key={template.id}
-                            onClick={() => setSelectedTemplate(template)}
-                            className={`cursor-pointer border-2 rounded-xl overflow-hidden relative transition-all transform hover:scale-105 ${
-                                selectedTemplate.id === template.id 
-                                    ? 'border-green-500 ring-2 ring-green-300' 
-                                    : 'border-gray-200 dark:border-gray-700'
-                            }`}
-                        >
-                            <div className={`h-24 bg-gradient-to-br ${template.color} flex items-center justify-center`}>
-                                <span className="text-white font-black text-2xl tracking-widest">{template.name.substring(0,3)}</span>
-                            </div>
-                            <div className="p-3 bg-white dark:bg-gray-800">
-                                <h3 className="font-bold text-gray-900 dark:text-white text-sm">{template.name}</h3>
-                                <span className="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-800">
-                                    Replay/Effects
-                                </span>
-                            </div>
-                            {selectedTemplate.id === template.id && (
-                                <div className="absolute top-2 right-2 bg-green-500 text-white p-1 rounded-full">
-                                    <Zap className="w-4 h-4" />
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Special Overlays */}
-            <div>
-                <h3 className="text-lg font-semibold dark:text-white mb-3">Special Overlays</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {SPECIAL_OVERLAYS.map(template => (
-                        <div 
-                            key={template.id}
-                            onClick={() => setSelectedTemplate(template)}
-                            className={`cursor-pointer border-2 rounded-xl overflow-hidden relative transition-all transform hover:scale-105 ${
-                                selectedTemplate.id === template.id 
-                                    ? 'border-green-500 ring-2 ring-green-300' 
-                                    : 'border-gray-200 dark:border-gray-700'
-                            }`}
-                        >
-                            <div className={`h-24 bg-gradient-to-br ${template.color} flex items-center justify-center`}>
-                                <span className="text-white font-black text-2xl tracking-widest">{template.name.substring(0,3)}</span>
-                            </div>
-                            <div className="p-3 bg-white dark:bg-gray-800">
-                                <h3 className="font-bold text-gray-900 dark:text-white text-sm">{template.name}</h3>
-                                <span className="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-800">
-                                    Special
-                                </span>
-                            </div>
-                            {selectedTemplate.id === template.id && (
-                                <div className="absolute top-2 right-2 bg-green-500 text-white p-1 rounded-full">
-                                    <Zap className="w-4 h-4" />
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-
-        {/* Data Source Control */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm h-fit">
-            <h2 className="text-xl font-bold mb-4 dark:text-white">Data Source</h2>
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sync with Live Match</label>
+            {/* Match Selection Dropdown */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm mb-6">
+                <h2 className="text-xl font-bold mb-4 dark:text-white">Data Source</h2>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Sync with Live Match
+                    </label>
                     <select 
                         value={selectedMatchId}
                         onChange={(e) => setSelectedMatchId(e.target.value)}
@@ -328,14 +253,78 @@ export default function OverlayEditor() {
                     <p className="flex items-center gap-2">
                         <Zap className="w-4 h-4" />
                         <strong>Status:</strong> 
-                        {openedWindow ? ' Overlay Active' : ' Ready to Launch'}
+                        {selectedMatchId ? ' Auto-syncing' : ' Manual Mode'}
                     </p>
-                    <p className="mt-2 text-xs opacity-80">
-                        Select a match above to automatically sync scores to the overlay window.
-                    </p>
+                    {selectedMatchId && (
+                        <p className="mt-2 text-xs opacity-80">
+                            Scores will automatically sync every 2 seconds.
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            {/* Overlay Grid */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+                <h2 className="text-xl font-bold mb-4 dark:text-white">Available Overlays ({filteredOverlays.length})</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                    {filteredOverlays.map(template => (
+                        <div 
+                            key={template.id}
+                            onClick={() => setSelectedTemplate(template)}
+                            className={`cursor-pointer border-2 rounded-xl overflow-hidden relative transition-all transform hover:scale-105 ${
+                                selectedTemplate.id === template.id 
+                                    ? 'border-green-500 ring-2 ring-green-300' 
+                                    : 'border-gray-200 dark:border-gray-700'
+                            }`}
+                        >
+                            <div className={`h-16 bg-gradient-to-br ${template.color} flex items-center justify-center`}>
+                                <span className="text-white font-black text-xl tracking-widest">{template.name.substring(0,3)}</span>
+                            </div>
+                            <div className="p-2 bg-white dark:bg-gray-800">
+                                <h3 className="font-bold text-gray-900 dark:text-white text-xs">{template.name}</h3>
+                            </div>
+                            {selectedTemplate.id === template.id && (
+                                <div className="absolute top-1 right-1 bg-green-500 text-white p-0.5 rounded-full">
+                                    <Zap className="w-3 h-3" />
+                                </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
+
+        {/* Overlay Preview Panel */}
+        {showOverlay && (
+            <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-black p-4' : 'lg:col-span-2'} bg-gray-900 rounded-xl overflow-hidden`}>
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-white font-bold">
+                        {selectedTemplate.name} Preview
+                    </h3>
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={toggleFullscreen}
+                            className="p-2 bg-gray-700 text-white rounded hover:bg-gray-600"
+                        >
+                            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                        </button>
+                        <button 
+                            onClick={() => setShowOverlay(false)}
+                            className="p-2 bg-red-600 text-white rounded hover:bg-red-700"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+                <iframe
+                    ref={iframeRef}
+                    src={`/overlays/${selectedTemplate.file}`}
+                    className="w-full bg-black rounded-lg"
+                    style={{ height: isFullscreen ? 'calc(100vh - 80px)' : '500px' }}
+                    title="Overlay Preview"
+                />
+            </div>
+        )}
       </div>
     </div>
   );

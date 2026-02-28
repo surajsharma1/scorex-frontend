@@ -22,7 +22,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   };
 
   const menuItems = [
-    { path: '/', icon: BarChart3, label: 'Dashboard' },
+    { path: '/dashboard', icon: BarChart3, label: 'Dashboard' },
     { path: '/tournaments', icon: Trophy, label: 'Tournaments' },
     { path: '/live-matches', icon: Radio, label: 'Live Matches' },
     { path: '/leaderboard', icon: TrendingUp, label: 'Leaderboard' },
