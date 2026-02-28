@@ -57,6 +57,10 @@ export const userAPI = {
   updateProfile: (data: any) => api.put('/users/profile', data),
   searchUsers: (query: string) => api.get(`/users/search?query=${query}`),
   getUsers: () => api.get('/users'), // Admin only
+  getAllUsers: () => api.get('/users/all'), // Admin - get all users including deleted
+  banUser: (userId: string) => api.put(`/users/${userId}/ban`), // Admin - ban user
+  unbanUser: (userId: string) => api.put(`/users/${userId}/unban`), // Admin - unban user
+  updateUserRole: (userId: string, role: string) => api.put(`/users/${userId}/role`, { role }), // Admin - update user role
 };
 
 export const tournamentAPI = {

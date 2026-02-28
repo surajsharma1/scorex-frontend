@@ -17,6 +17,7 @@ import FriendList from './FriendList';
 import ClubManagement from './ClubManagement';
 import Membership from './Membership';
 import Profile from './Profile';
+import AdminPanel from './AdminPanel';
 import { Menu } from 'lucide-react';
 
 // --- Dashboard Layout Wrapper ---
@@ -72,6 +73,7 @@ function App() {
         <Route path="/membership" element={<Membership />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/live-matches" element={<LiveMatches />} />
+        <Route path="/admin" element={<AdminPanel />} />
         <Route path="/upgrade" element={
           <div className="flex items-center justify-center h-full">
             <Payment onClose={() => window.history.back()} onSuccess={() => alert('Upgraded!')} />
