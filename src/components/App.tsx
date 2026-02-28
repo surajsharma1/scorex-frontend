@@ -50,6 +50,9 @@ const DashboardLayout = () => {
 // Router is already in main.tsx, this just defines routes
 function App() {
   const token = localStorage.getItem('token');
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const isAdmin = user?.role === 'admin';
 
   return (
     <Routes>
@@ -73,7 +76,8 @@ function App() {
         <Route path="/membership" element={<Membership />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/live-matches" element={<LiveMatches />} />
-        <Route path="/admin" element={<AdminPanel />} />
+        {/* Admin route - only accessible to admins */}
+        {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
         <Route path="/upgrade" element={
           <div className="flex items-center justify-center h-full">
             <Payment onClose={() => window.history.back()} onSuccess={() => alert('Upgraded!')} />
