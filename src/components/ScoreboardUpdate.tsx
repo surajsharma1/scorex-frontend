@@ -102,6 +102,8 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   
   // Toss states
   const [tossWinner, setTossWinner] = useState<'team1' | 'team2' | null>(null);
@@ -150,6 +152,24 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
         setAvailablePlayers(playersList);
     }
   }, [liveScores.battingTeam, teams]);
+
+  // Auto-save scores to backend when they change
+  useEffect(() => {
+    if (!autoSaveEnabled || !tossWinner || loading) return;
+    
+    // Debounce: wait 2 seconds after last change before saving
+    const timer = setTimeout(async () => {
+      try {
+        await tournamentAPI.updateLiveScores(tournament._id, liveScores);
+        setLastSaved(new Date());
+        onUpdate();
+      } catch (err) {
+        console.error('Auto-save failed:', err);
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [liveScores, autoSaveEnabled, tossWinner, tournament._id]);
 
   // Get current batting team
   const currentTeam = liveScores[liveScores.battingTeam];
@@ -1008,6 +1028,11 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
       {/* Action Buttons */}
       <div className="flex justify-end gap-4 pt-4">
         {error && <p className="text-red-400 self-center mr-auto">{error}</p>}
+        {lastSaved && (
+          <p className="text-green-400 self-center mr-auto text-sm">
+            ✓ Auto-saved at {lastSaved.toLocaleTimeString()}
+          </p>
+        )}
         <button
           onClick={() => resetInnings()}
           className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-white transition-all"
@@ -1027,7 +1052,7 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
           disabled={loading}
           className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 rounded-lg font-bold text-white transition-all shadow-lg"
         >
-          {loading ? 'Saving...' : <><Save className="w-5 h-5" /> UPDATE LIVE SCORE</>}
+          {loading ? 'Saving...' : <><Save className="w-5 h-5" /> SAVE NOW</>}
         </button>
       </div>
 
