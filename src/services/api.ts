@@ -48,7 +48,6 @@ export const authAPI = {
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
   resetPassword: (token: string, password: string) => api.post(`/auth/reset-password/${token}`, { password }),
   verifyEmail: (token: string) => api.get(`/auth/verify-email/${token}`),
-  verifyEmailOTP: (data: { email: string, otp: string }) => api.post('/auth/verify-otp', data), // New Endpoint
   googleLogin: (token: string) => api.post('/auth/google', { token }),
   getCurrentUser: () => api.get('/auth/me'),
 };
