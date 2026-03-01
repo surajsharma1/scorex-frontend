@@ -94,7 +94,7 @@ export default function LiveMatchPage() {
   }
 
   const hasVideo = match.videoLink || (match.videoLinks && match.videoLinks.length > 0);
-  const videoUrl = match.videoLink || (match.videoLinks && match.videoLinks[0]);
+  const videoUrl = match.videoLink || (match.videoLinks && match.videoLinks[0]) || '';
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
