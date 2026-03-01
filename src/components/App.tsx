@@ -74,12 +74,12 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/matches/live" element={<LiveMatches />} />
-      <Route path="/tournaments" element={<TournamentList />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
 
       {/* --- PROTECTED ROUTES (Require Login) --- */}
       <Route element={token ? <DashboardLayout /> : <Navigate to="/login" replace />}>
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/tournaments" element={<TournamentList />} />
         <Route path="/tournaments/create" element={<TournamentForm />} />
         <Route path="/tournaments/:id" element={<TournamentDetail />} />
         <Route path="/overlays" element={<OverlayEditor />} />
