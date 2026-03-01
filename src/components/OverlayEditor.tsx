@@ -77,6 +77,7 @@ export default function OverlayEditor() {
 
   useEffect(() => {
     loadLiveMatches();
+    loadTournaments();
     // Initialize Broadcast Channel
     channelRef.current = new BroadcastChannel('cricket_score_updates');
     
