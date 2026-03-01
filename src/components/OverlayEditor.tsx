@@ -58,10 +58,20 @@ const CATEGORIES = [
 export default function OverlayEditor() {
   const [selectedTemplate, setSelectedTemplate] = useState(OVERLAY_TEMPLATES[0]);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedMatchId, setSelectedMatchId] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showOverlay, setShowOverlay] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // Create overlay modal state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    name: '',
+    template: selectedTemplate?.file || '',
+    tournament: ''
+  });
+  const [createLoading, setCreateLoading] = useState(false);
+  
   const channelRef = useRef<BroadcastChannel | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
