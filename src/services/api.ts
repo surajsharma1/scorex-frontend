@@ -100,8 +100,12 @@ export const bracketAPI = {
 
 export const overlayAPI = {
   getOverlays: () => api.get('/overlays'),
+  getOverlay: (id: string) => api.get(`/overlays/${id}`),
   createOverlay: (data: any) => api.post('/overlays', data),
   updateOverlay: (id: string, data: any) => api.put(`/overlays/${id}`, data),
+  deleteOverlay: (id: string) => api.delete(`/overlays/${id}`),
+  getTemplates: () => api.get('/overlays/templates'),
+  getMembershipStatus: () => api.get('/overlays/membership-status'),
 };
 
 export const friendAPI = {
@@ -125,7 +129,7 @@ export const clubAPI = {
   joinClub: (id: string) => api.post(`/clubs/${id}/join`),
 };
 
-export const leaderboardAPI = {
+  export const leaderboardAPI = {
   getBattingLeaderboard: (tournamentId?: string) => api.get('/leaderboard/batting', { params: { tournament: tournamentId } }),
   getBowlingLeaderboard: (tournamentId?: string) => api.get('/leaderboard/bowling', { params: { tournament: tournamentId } }),
   getTeamLeaderboard: (tournamentId?: string) => api.get('/leaderboard/teams', { params: { tournament: tournamentId } }),
