@@ -177,29 +177,37 @@ const Leaderboard: React.FC = () => {
                         {entry.player?.name || entry.team?.name || 'Unknown'}
                     </td>
                     <td className="px-6 py-4 text-gray-500">
-                            <td className="px-6 py-4 text-right">{entry.stats.average?.toFixed(2) || '-'}</td>
-                            <td className="px-6 py-4 text-right">{entry.stats.strikeRate?.toFixed(2) || '-'}</td>
+                        {entry.team?.name || '-'}
+                    </td>
+                    
+                    {/* Stats Columns */}
+                    {activeTab === 'batting' && (
+                        <>
+                            <td className="px-6 py-4 text-right font-black text-xl">{stats.runs || 0}</td>
+                            <td className="px-6 py-4 text-right">{stats.matches || 0}</td>
+                            <td className="px-6 py-4 text-right">{stats.average?.toFixed(2) || '-'}</td>
+                            <td className="px-6 py-4 text-right">{stats.strikeRate?.toFixed(2) || '-'}</td>
                         </>
                     )}
                     {activeTab === 'bowling' && (
                         <>
-                            <td className="px-6 py-4 text-right font-black text-xl">{entry.stats.wickets || 0}</td>
-                            <td className="px-6 py-4 text-right">{entry.stats.overs || 0}</td>
-                            <td className="px-6 py-4 text-right">{entry.stats.economy?.toFixed(2) || '-'}</td>
+                            <td className="px-6 py-4 text-right font-black text-xl">{stats.wickets || 0}</td>
+                            <td className="px-6 py-4 text-right">{stats.overs || 0}</td>
+                            <td className="px-6 py-4 text-right">{stats.economy?.toFixed(2) || '-'}</td>
                             <td className="px-6 py-4 text-right">-</td>
                         </>
                     )}
                     {activeTab === 'teams' && (
                         <>
-                            <td className="px-6 py-4 text-right font-black text-xl">{(entry.stats.wins || 0) * 2}</td>
-                            <td className="px-6 py-4 text-right">{entry.stats.matches || 0}</td>
-                            <td className="px-6 py-4 text-right text-green-600">{entry.stats.wins || 0}</td>
-                            <td className="px-6 py-4 text-right text-red-600">{entry.stats.losses || 0}</td>
+                            <td className="px-6 py-4 text-right font-black text-xl">{(stats.wins || 0) * 2}</td>
+                            <td className="px-6 py-4 text-right">{stats.matches || 0}</td>
+                            <td className="px-6 py-4 text-right text-green-600">{stats.wins || 0}</td>
+                            <td className="px-6 py-4 text-right text-red-600">{stats.losses || 0}</td>
                             <td className="px-6 py-4 text-right font-mono">{(Math.random() * 2 - 1).toFixed(3)}</td>
                         </>
                     )}
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
