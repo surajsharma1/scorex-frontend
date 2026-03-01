@@ -202,6 +202,12 @@ export default function OverlayEditor() {
         </div>
         <div className="flex gap-4">
             <button 
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+                <Plus className="w-4 h-4" /> Create Overlay
+            </button>
+            <button 
                 onClick={() => sendTestEvent('SIX')}
                 className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
             >
@@ -215,8 +221,8 @@ export default function OverlayEditor() {
             </button>
             <button 
                 onClick={toggleOverlay}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-bold shadow-lg ${
-                    showOverlay 
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font{
+                    showOverlay-bold shadow-lg $ 
                         ? 'bg-red-600 text-white hover:bg-red-700' 
                         : 'bg-green-600 text-white hover:bg-green-700'
                 }`}
