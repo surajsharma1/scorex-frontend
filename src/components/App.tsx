@@ -9,6 +9,7 @@ import TournamentList from './TournamentList';
 import TournamentForm from './TournamentForm';
 import TournamentDetail from './TournamentDetail';
 import LiveMatches from './LiveMatches';
+import LiveMatchPage from './LiveMatchPage';
 import OverlayEditor from './OverlayEditor';
 import Payment from './Payment';
 import Leaderboard from './Leaderboard';
@@ -74,6 +75,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/matches/live" element={<LiveMatches />} />
+      <Route path="/live/:id" element={<LiveMatchPage />} />
 
       {/* --- PROTECTED ROUTES (Require Login) --- */}
       <Route element={token ? <DashboardLayout /> : <Navigate to="/login" replace />}>

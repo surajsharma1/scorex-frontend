@@ -122,18 +122,29 @@ export default function MatchDetails() {
               {match.status === 'scheduled' && (
                   <button 
                     onClick={() => updateStatus('ongoing')}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 animate-pulse"
                   >
-                      <Play className="w-4 h-4" /> Start Match
+                      <Play className="w-4 h-4" /> Go Live
                   </button>
               )}
               {match.status === 'ongoing' && (
-                  <button 
-                    onClick={() => updateStatus('completed')}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                  >
-                      <CheckCircle className="w-4 h-4" /> End Match
-                  </button>
+                  <>
+                      <button 
+                        onClick={() => updateStatus('completed')}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                      >
+                          <CheckCircle className="w-4 h-4" /> End Match
+                      </button>
+                      {/* Link to watch live on dedicated page */}
+                      <a 
+                        href={`/live/${match._id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                      >
+                          <Video className="w-4 h-4" /> Watch Live
+                      </a>
+                  </>
               )}
           </div>
       </div>
