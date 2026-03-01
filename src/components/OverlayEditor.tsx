@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Eye, Zap, X, Maximize2, Minimize2, Plus, Save } from 'lucide-react';
+import { Eye, Zap, X, Maximize2, Minimize2, Plus, Save, Trash2, Edit } from 'lucide-react';
 import { overlayAPI, matchAPI, tournamentAPI } from '../services/api';
-import { Overlay, Match, Tournament } from './types';
+import { Overlay, Match, Tournament, CreatedOverlay } from './types';
 
 // Level 1 (Scoreboard) overlays
 const LEVEL1_OVERLAYS = [
@@ -72,12 +72,17 @@ export default function OverlayEditor() {
   });
   const [createLoading, setCreateLoading] = useState(false);
   
+  // State for created overlays
+  const [createdOverlays, setCreatedOverlays] = useState<CreatedOverlay[]>([]);
+  const [overlaysLoading, setOverlaysLoading] = useState(false);
+  
   const channelRef = useRef<BroadcastChannel | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     loadLiveMatches();
     loadTournaments();
+    loadCreatedOverlays();
     // Initialize Broadcast Channel
     channelRef.current = new BroadcastChannel('cricket_score_updates');
     
@@ -121,6 +126,78 @@ export default function OverlayEditor() {
     } catch (error) {
       console.error('Failed to fetch tournaments');
       setTournaments([]);
+    }
+  };
+
+  const loadCreatedOverlays = async () => {
+    try {
+      setOverlaysLoading(true);
+      const res = await overlayAPI.getOverlays();
+      const overlaysData = res.data.overlays || res.data || [];
+      setCreatedOverlays(Array.isArray(overlaysData) ? overlaysData : []);
+    } catch (error) {
+      console.error('Failed to fetch created overlays');
+      setCreatedOverlays([]);
+    } finally {
+      setOverlaysLoading(false);
+    }
+  };
+
+  const handleCreateOverlay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!createFormData.name.trim()) {
+      alert('Please enter an overlay name');
+      return;
+    }
+    
+    if (!createFormData.template) {
+      alert('Please select a template');
+      return;
+    }
+    
+    if (!createFormData.tournament) {
+      alert('Please select a tournament');
+      return;
+    }
+    
+    setCreateLoading(true);
+    try {
+      const overlayData = {
+        name: createFormData.name.trim(),
+        template: createFormData.template,
+        tournament: createFormData.tournament,
+        config: {
+          backgroundColor: '#16a34a',
+          opacity: 90,
+          fontFamily: 'Inter',
+          position: 'top',
+          showAnimations: true,
+          autoUpdate: true,
+        },
+        elements: [],
+      };
+      await overlayAPI.createOverlay(overlayData);
+      setShowCreateModal(false);
+      setCreateFormData({ name: '', template: '', tournament: '' });
+      loadCreatedOverlays(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to create overlay:', error);
+      alert('Failed to create overlay. Please try again.');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleDeleteOverlay = async (overlayId: string) => {
+    if (!confirm('Are you sure you want to delete this overlay?')) return;
+    
+    try {
+      await overlayAPI.deleteOverlay(overlayId);
+      loadCreatedOverlays(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to delete overlay:', error);
+      alert('Failed to delete overlay. Please try again.');
     }
   };
 
@@ -221,8 +298,8 @@ export default function OverlayEditor() {
             </button>
             <button 
                 onClick={toggleOverlay}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font{
-                    showOverlay-bold shadow-lg $ 
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-bold shadow-lg ${
+                    showOverlay 
                         ? 'bg-red-600 text-white hover:bg-red-700' 
                         : 'bg-green-600 text-white hover:bg-green-700'
                 }`}
@@ -354,6 +431,149 @@ export default function OverlayEditor() {
             </div>
         )}
       </div>
+
+      {/* Created Overlays List */}
+      <div className="mt-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+        <h2 className="text-xl font-bold mb-4 dark:text-white">My Overlays ({createdOverlays.length})</h2>
+        {overlaysLoading ? (
+          <p className="text-gray-500 dark:text-gray-400">Loading overlays...</p>
+        ) : createdOverlays.length === 0 ? (
+          <p className="text-gray-500 dark:text-gray-400">No overlays created yet. Click "Create Overlay" to get started.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {createdOverlays.map((overlay) => (
+              <div 
+                key={overlay._id}
+                className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-bold text-gray-900 dark:text-white">{overlay.name}</h3>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => handleDeleteOverlay(overlay._id!)}
+                      className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                      title="Delete overlay"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                  Template: {overlay.template}
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  Created: {overlay.createdAt ? new Date(overlay.createdAt).toLocaleDateString() : 'N/A'}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Create Overlay Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Create New Overlay</h2>
+              <button 
+                onClick={() => setShowCreateModal(false)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateOverlay} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Overlay Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="My Custom Overlay"
+                  value={createFormData.name}
+                  onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Template <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={createFormData.template}
+                  onChange={(e) => setCreateFormData({ ...createFormData, template: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  required
+                >
+                  <option value="">Select Template</option>
+                  {/* Level 1 - Basic Templates */}
+                  <optgroup label="Level 1 - Scoreboard">
+                    <option value="lvl1-broadcast-bar.html">Broadcast Bar</option>
+                    <option value="lvl1-curved-compact.html">Curved Compact</option>
+                    <option value="lvl1-dark-angular.html">Dark Angular</option>
+                    <option value="lvl1-grass-theme.html">Grass Theme</option>
+                    <option value="lvl1-high-vis.html">High Visibility</option>
+                    <option value="lvl1-minimal-dark.html">Minimal Dark</option>
+                    <option value="lvl1-modern-bar.html">Modern Bar</option>
+                    <option value="lvl1-modern-blue.html">Modern Blue</option>
+                    <option value="lvl1-paper-style.html">Paper Style</option>
+                    <option value="lvl1-red-card.html">Red Card</option>
+                    <option value="lvl1-retro-board.html">Retro Board</option>
+                    <option value="lvl1-side-panel.html">Side Panel</option>
+                    <option value="lvl1-simple-text.html">Simple Text</option>
+                  </optgroup>
+                  {/* Level 2 - Advanced Templates */}
+                  <optgroup label="Level 2 - Replay/Effects">
+                    <option value="lvl2-broadcast-pro.html">Broadcast Pro</option>
+                    <option value="lvl2-cosmic-orbit.html">Cosmic Orbit</option>
+                    <option value="lvl2-cyber-glitch.html">Cyber Glitch</option>
+                    <option value="lvl2-flame-thrower.html">Flame Thrower</option>
+                    <option value="lvl2-glass-morphism.html">Glass Morphism</option>
+                    <option value="lvl2-gold-rush.html">Gold Rush</option>
+                    <option value="lvl2-hologram.html">Hologram</option>
+                    <option value="lvl2-matrix-rain.html">Matrix Rain</option>
+                    <option value="lvl2-neon-pulse.html">Neon Pulse</option>
+                    <option value="lvl2-particle-storm.html">Particle Storm</option>
+                    <option value="lvl2-rgb-split.html">RGB Split</option>
+                    <option value="lvl2-speed-racer.html">Speed Racer</option>
+                    <option value="lvl2-tech-hud.html">Tech HUD</option>
+                    <option value="lvl2-thunder-strike.html">Thunder Strike</option>
+                    <option value="lvl2-vinyl-spin.html">Vinyl Spin</option>
+                    <option value="lvl2-water-flow.html">Water Flow</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Tournament
+                </label>
+                <select
+                  value={createFormData.tournament}
+                  onChange={(e) => setCreateFormData({ ...createFormData, tournament: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  required
+                >
+                  <option value="">Select Tournament</option>
+                  {tournaments.map((tournament) => (
+                    <option key={tournament._id} value={tournament._id}>
+                      {tournament.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="submit"
+                disabled={createLoading}
+                className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {createLoading ? 'Creating...' : 'Create Overlay'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

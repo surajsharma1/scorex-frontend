@@ -197,10 +197,36 @@ export interface Club {
   admin: string;
 }
 
+// Overlay template type (for template selection in UI)
 export interface Overlay {
   id: string;
   name: string;
   file: string;
   type: 'free' | 'premium';
   color: string;
+}
+
+// Created overlay type (from backend database)
+export interface CreatedOverlay {
+  _id: string;
+  name: string;
+  template: string;
+  publicId: string;
+  config: {
+    backgroundColor?: string;
+    opacity?: number;
+    fontFamily?: string;
+    position?: string;
+    showAnimations?: boolean;
+    autoUpdate?: boolean;
+    [key: string]: any;
+  };
+  elements: any[];
+  tournament?: string;
+  match?: string;
+  createdBy: string;
+  requiredMembershipLevel: number;
+  membershipAtCreation: number;
+  createdAt: string;
+  updatedAt: string;
 }
