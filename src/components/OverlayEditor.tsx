@@ -112,6 +112,17 @@ export default function OverlayEditor() {
     }
   };
 
+  const loadTournaments = async () => {
+    try {
+      const response = await tournamentAPI.getTournaments();
+      const tournamentsData = response.data.tournaments || response.data || [];
+      setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
+    } catch (error) {
+      console.error('Failed to fetch tournaments');
+      setTournaments([]);
+    }
+  };
+
   const toggleOverlay = () => {
     setShowOverlay(!showOverlay);
   };
