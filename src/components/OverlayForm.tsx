@@ -13,9 +13,12 @@ export default function OverlayForm() {
     const fetchTournaments = async () => {
       try {
         const response = await tournamentAPI.getTournaments();
-        setTournaments(response.data);
+        // Handle both response formats: { tournaments: [...] } or direct array
+        const tournamentsData = response.data.tournaments || response.data || [];
+        setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
       } catch (error) {
         console.error('Failed to fetch tournaments');
+        setTournaments([]); // Set empty array on error
       }
     };
     fetchTournaments();
