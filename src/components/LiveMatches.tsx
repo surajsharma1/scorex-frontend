@@ -12,7 +12,7 @@ export default function LiveMatches() {
 
   useEffect(() => {
     loadAllMatches();
-    const interval = setInterval(loadAllMatches, 10000); // Poll every 10s
+    const interval = setInterval(loadAllMatches, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -29,19 +29,14 @@ export default function LiveMatches() {
   };
 
   const filteredMatches = matches.filter(m => {
-    // First apply status filter
     if (filter !== 'all' && m.status !== filter) return false;
-    
-    // Then apply search filter (by tournament name)
     if (searchQuery) {
       const tournamentName = typeof m.tournament === 'string' ? '' : (m.tournament?.name || '').toLowerCase();
       const team1Name = (m.team1?.name || '').toLowerCase();
       const team2Name = (m.team2?.name || '').toLowerCase();
       const query = searchQuery.toLowerCase();
-      
       return tournamentName.includes(query) || team1Name.includes(query) || team2Name.includes(query);
     }
-    
     return true;
   });
 
@@ -49,18 +44,26 @@ export default function LiveMatches() {
   const upcomingMatches = matches.filter(m => m.status === 'upcoming' || m.status === 'scheduled');
   const completedMatches = matches.filter(m => m.status === 'completed');
 
-  // Get unique tournament names for the search dropdown
   const tournamentNames = [...new Set(matches.map(m => 
     typeof m.tournament === 'string' ? '' : (m.tournament?.name || '')
   ).filter(name => name))];
 
   const clearSearch = () => setSearchQuery('');
 
+  const goLive = async (matchId: string) => {
+    if(!confirm('Go Live? This will start the match and make it visible to all users.')) return;
+    try {
+      await matchAPI.updateMatch(matchId, { status: 'ongoing' });
+      loadAllMatches();
+    } catch (err) {
+      alert('Failed to go live');
+    }
+  };
+
   if (loading) return <div className="p-8 text-center dark:text-white">Loading matches...</div>;
 
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <div className="relative">
           <MonitorPlay className="w-8 h-8 text-red-600" />
@@ -74,7 +77,6 @@ export default function LiveMatches() {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Matches</h1>
       </div>
 
-      {/* Search Bar */}
       <div className="mb-6">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -86,22 +88,16 @@ export default function LiveMatches() {
             className="w-full pl-10 pr-10 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
           />
           {searchQuery && (
-            <button 
-              onClick={clearSearch}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
+            <button onClick={clearSearch} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
               <X className="w-5 h-5" />
             </button>
           )}
         </div>
-        {/* Tournament Quick Filters */}
         {tournamentNames.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-3">
             <button
               onClick={() => setSearchQuery('')}
-              className={`px-3 py-1 rounded-full text-sm ${
-                !searchQuery ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
+              className={`px-3 py-1 rounded-full text-sm ${!searchQuery ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
             >
               All
             </button>
@@ -109,9 +105,7 @@ export default function LiveMatches() {
               <button
                 key={name}
                 onClick={() => setSearchQuery(name)}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  searchQuery === name ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
+                className={`px-3 py-1 rounded-full text-sm ${searchQuery === name ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
               >
                 {name}
               </button>
@@ -120,34 +114,22 @@ export default function LiveMatches() {
         )}
       </div>
 
-      {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div 
-          onClick={() => setFilter('ongoing')}
-          className={`p-4 rounded-xl cursor-pointer transition ${filter === 'ongoing' ? 'bg-red-600' : 'bg-gray-800'}`}
-        >
+        <div onClick={() => setFilter('ongoing')} className={`p-4 rounded-xl cursor-pointer transition ${filter === 'ongoing' ? 'bg-red-600' : 'bg-gray-800'}`}>
           <div className="flex items-center gap-2 text-white mb-1">
             <Play className="w-4 h-4" />
             <span className="font-medium">Live</span>
           </div>
           <div className="text-2xl font-bold text-white">{liveMatches.length}</div>
         </div>
-        
-        <div 
-          onClick={() => setFilter('upcoming')}
-          className={`p-4 rounded-xl cursor-pointer transition ${filter === 'upcoming' ? 'bg-blue-600' : 'bg-gray-800'}`}
-        >
+        <div onClick={() => setFilter('upcoming')} className={`p-4 rounded-xl cursor-pointer transition ${filter === 'upcoming' ? 'bg-blue-600' : 'bg-gray-800'}`}>
           <div className="flex items-center gap-2 text-white mb-1">
             <Clock className="w-4 h-4" />
             <span className="font-medium">Upcoming</span>
           </div>
           <div className="text-2xl font-bold text-white">{upcomingMatches.length}</div>
         </div>
-        
-        <div 
-          onClick={() => setFilter('completed')}
-          className={`p-4 rounded-xl cursor-pointer transition ${filter === 'completed' ? 'bg-green-600' : 'bg-gray-800'}`}
-        >
+        <div onClick={() => setFilter('completed')} className={`p-4 rounded-xl cursor-pointer transition ${filter === 'completed' ? 'bg-green-600' : 'bg-gray-800'}`}>
           <div className="flex items-center gap-2 text-white mb-1">
             <Trophy className="w-4 h-4" />
             <span className="font-medium">Completed</span>
@@ -156,34 +138,25 @@ export default function LiveMatches() {
         </div>
       </div>
 
-      {/* Filter Tabs */}
       <div className="flex gap-2 mb-6">
         {(['all', 'ongoing', 'upcoming', 'completed'] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg font-medium capitalize ${
-              filter === f 
-                ? 'bg-green-600 text-white' 
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium capitalize ${filter === f ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
           >
             {f}
           </button>
         ))}
       </div>
 
-      {/* Match List */}
       {filteredMatches.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
           <p className="text-xl text-gray-500 dark:text-gray-400">
             {searchQuery ? `No matches found for "${searchQuery}"` : (filter === 'all' ? 'No matches available.' : `No ${filter} matches.`)}
           </p>
           {searchQuery && (
-            <button 
-              onClick={clearSearch}
-              className="text-green-600 hover:underline mt-2 inline-block"
-            >
+            <button onClick={clearSearch} className="text-green-600 hover:underline mt-2 inline-block">
               Clear search
             </button>
           )}
@@ -192,14 +165,8 @@ export default function LiveMatches() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredMatches.map((match) => (
             <div key={match._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden relative">
-              
-              {/* Header with Status */}
               <div className={`p-4 text-white flex justify-between items-center ${
-                match.status === 'ongoing' 
-                  ? 'bg-gradient-to-r from-red-600 to-red-700' 
-                  : match.status === 'completed'
-                  ? 'bg-gradient-to-r from-green-600 to-green-700'
-                  : 'bg-gradient-to-r from-blue-600 to-blue-700'
+                match.status === 'ongoing' ? 'bg-gradient-to-r from-red-600 to-red-700' : match.status === 'completed' ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-blue-600 to-blue-700'
               }`}>
                 <span className="text-xs uppercase tracking-wider font-semibold opacity-70">
                   {typeof match.tournament === 'string' ? 'Tournament Match' : match.tournament?.name}
@@ -215,10 +182,8 @@ export default function LiveMatches() {
                 )}
               </div>
 
-              {/* Score Display */}
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  {/* Team 1 */}
                   <div className="text-center w-1/3">
                     <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-2 font-bold text-2xl text-gray-600 dark:text-gray-300">
                       {match.team1?.shortName || match.team1?.name?.substring(0,2) || 'T1'}
@@ -234,15 +199,10 @@ export default function LiveMatches() {
                   <div className="text-center w-1/3 px-2">
                     <span className="text-gray-400 text-xs font-bold block mb-1">VS</span>
                     {match.status === 'ongoing' && match.battingTeam && (
-                      match.battingTeam === 'team1' ? (
-                        <div className="text-green-600 text-xs">◀ Batting</div>
-                      ) : (
-                        <div className="text-green-600 text-xs">Batting ▶</div>
-                      )
+                      match.battingTeam === 'team1' ? <div className="text-green-600 text-xs">◀ Batting</div> : <div className="text-green-600 text-xs">Batting ▶</div>
                     )}
                   </div>
 
-                  {/* Team 2 */}
                   <div className="text-center w-1/3">
                     <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-2 font-bold text-2xl text-gray-600 dark:text-gray-300">
                       {match.team2?.shortName || match.team2?.name?.substring(0,2) || 'T2'}
@@ -256,12 +216,10 @@ export default function LiveMatches() {
                   </div>
                 </div>
 
-                {/* Match Status / Target */}
                 {match.status === 'ongoing' && match.target ? (
                   <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg text-center mb-4">
                     <p className="text-sm text-gray-700 dark:text-gray-200">
-                      Target: <span className="font-bold">{match.target}</span> | 
-                      Need <span className="font-bold">{match.target - (match.battingTeam === 'team1' ? (match.score1||0) : (match.score2||0))}</span> runs
+                      Target: <span className="font-bold">{match.target}</span> | Need <span className="font-bold">{match.target - (match.battingTeam === 'team1' ? (match.score1||0) : (match.score2||0))}</span> runs
                     </p>
                     <p className="text-xs text-gray-500 mt-1">CRR: {match.currentRunRate || '0.00'}</p>
                   </div>
@@ -286,56 +244,31 @@ export default function LiveMatches() {
                   </div>
                 )}
 
-                {/* Action Buttons - Updated for new requirements */}
                 <div className="grid grid-cols-2 gap-3">
                   {match.status === 'ongoing' && match.videoLink ? (
-                    // Watch Live button - opens in new tab
-                    <a 
-                      href={match.videoLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
-                    >
+                    <a href={match.videoLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors">
                       <Play className="w-4 h-4" /> Watch Live
                     </a>
                   ) : match.status === 'completed' ? (
-                    // Completed matches - view scorecard
-                    <Link 
-                      to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`}
-                      className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
-                    >
+                    <Link to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`} className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors">
                       <TrendingUp className="w-4 h-4" /> Scorecard
                     </Link>
                   ) : (
-                    // Upcoming - just show status
-                    <div className="flex items-center justify-center gap-2 bg-gray-600 text-white py-2.5 rounded-lg text-sm font-medium">
-                      <Clock className="w-4 h-4" /> Upcoming
-                    </div>
+                    <button onClick={() => goLive(match._id)} className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors animate-pulse">
+                      <Play className="w-4 h-4" /> Go Live
+                    </button>
                   )}
                   
-                  {/* Second button - always show tournament link for ongoing/completed */}
                   {(match.status === 'ongoing' || match.status === 'completed') && (
-                    <Link 
-                      to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`}
-                      className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
-                    >
+                    <Link to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`} className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors">
                       <Trophy className="w-4 h-4" /> Details
                     </Link>
                   )}
                   
-                  {/* For upcoming - show both buttons */}
-                  {match.status === 'upcoming' && (
-                    <>
-                      <div className="flex items-center justify-center gap-2 bg-gray-600 text-white py-2.5 rounded-lg text-sm font-medium">
-                        <Calendar className="w-4 h-4" /> Scheduled
-                      </div>
-                      <Link 
-                        to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`}
-                        className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
-                      >
-                        <Trophy className="w-4 h-4" /> Tournament
-                      </Link>
-                    </>
+                  {(match.status === 'upcoming' || match.status === 'scheduled') && (
+                    <Link to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`} className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors">
+                      <Trophy className="w-4 h-4" /> Tournament
+                    </Link>
                   )}
                 </div>
               </div>
