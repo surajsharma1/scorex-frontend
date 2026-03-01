@@ -44,11 +44,11 @@ const LEVEL2_OVERLAYS = [
 // Combine all overlays
 const OVERLAY_TEMPLATES = [
   ...LEVEL1_OVERLAYS,
-  ...LEVEL2_OVERLAYS,
+  ...LEVEL2_OVERLAYS,                                                                   
 ];
 
 // Category options for dropdown
-const CATEGORIES = [
+const CATEGORIES = [                                  
   { value: 'all', label: 'All Overlays' },
   { value: 'Scoreboard', label: 'Level 1 - Scoreboard' },
   { value: 'Replay/Effects', label: 'Level 2 - Replay/Effects' },
