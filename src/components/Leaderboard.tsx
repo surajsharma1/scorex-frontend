@@ -26,9 +26,10 @@ const Leaderboard: React.FC = () => {
     try {
       const response = await tournamentAPI.getTournaments();
       const list = response.data.tournaments || response.data || [];
-      setTournaments(list);
+      setTournaments(Array.isArray(list) ? list : []);
     } catch (err) {
-      console.error('Failed to load tournaments');
+      console.error('Failed to load tournaments', err);
+      setTournaments([]);
     }
   };
 
@@ -44,18 +45,23 @@ const Leaderboard: React.FC = () => {
         response = await leaderboardAPI.getTeamLeaderboard(selectedTournament);
       }
       
-      const data = response.data.leaderboard || response.data || [];
-      // Safety sort if API doesn't
+      // Ensure data is an array
+      const rawData = response.data.leaderboard || response.data || [];
+      const data = Array.isArray(rawData) ? rawData : [];
+      
+      // Safety sort if API doesn't - with null checks
       const sortedData = [...data].sort((a, b) => {
-          if (activeTab === 'batting') return (b.stats.runs || 0) - (a.stats.runs || 0);
-          if (activeTab === 'bowling') return (b.stats.wickets || 0) - (a.stats.wickets || 0);
-          return (b.stats.wins || 0) - (a.stats.wins || 0);
+          const aStats = a?.stats || {};
+          const bStats = b?.stats || {};
+          if (activeTab === 'batting') return (bStats.runs || 0) - (aStats.runs || 0);
+          if (activeTab === 'bowling') return (bStats.wickets || 0) - (aStats.wickets || 0);
+          return (bStats.wins || 0) - (aStats.wins || 0);
       });
       
       setEntries(sortedData);
     } catch (err) {
       console.error('Failed to load leaderboard', err);
-      setEntries([]); // Clear on error
+      setEntries([]);
     } finally {
       setLoading(false);
     }
@@ -158,7 +164,9 @@ const Leaderboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {entries.map((entry, index) => (
+                {entries.map((entry, index) => {
+                  const stats = entry?.stats || {};
+                  return (
                   <tr key={entry._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-4">
                         <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 w-10 h-10 rounded-full">
@@ -169,14 +177,6 @@ const Leaderboard: React.FC = () => {
                         {entry.player?.name || entry.team?.name || 'Unknown'}
                     </td>
                     <td className="px-6 py-4 text-gray-500">
-                        {entry.team?.name || '-'}
-                    </td>
-                    
-                    {/* Stats Columns */}
-                    {activeTab === 'batting' && (
-                        <>
-                            <td className="px-6 py-4 text-right font-black text-xl">{entry.stats.runs || 0}</td>
-                            <td className="px-6 py-4 text-right">{entry.stats.matches || 0}</td>
                             <td className="px-6 py-4 text-right">{entry.stats.average?.toFixed(2) || '-'}</td>
                             <td className="px-6 py-4 text-right">{entry.stats.strikeRate?.toFixed(2) || '-'}</td>
                         </>
