@@ -180,6 +180,12 @@ export default function OverlayEditor() {
           <p className="text-gray-500">Manage your live stream graphics in real-time</p>
         </div>
         <div className="flex gap-4">
+            <Link 
+                to="/overlays/create"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+                <Plus className="w-5 h-5" /> Create Overlay
+            </Link>
             <button 
                 onClick={() => sendTestEvent('SIX')}
                 className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
