@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Eye, Zap, X, Maximize2, Minimize2 } from 'lucide-react';
+import { Eye, Zap, X, Maximize2, Minimize2, Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { overlayAPI, matchAPI, tournamentAPI } from '../services/api';
 import { Overlay, Match, Tournament } from './types';
 

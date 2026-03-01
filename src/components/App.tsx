@@ -11,6 +11,7 @@ import TournamentDetail from './TournamentDetail';
 import LiveMatches from './LiveMatches';
 import LiveMatchPage from './LiveMatchPage';
 import OverlayEditor from './OverlayEditor';
+import OverlayForm from './OverlayForm';
 import Payment from './Payment';
 import Leaderboard from './Leaderboard';
 import TeamManagement from './TeamManagement';
@@ -85,6 +86,7 @@ function App() {
         <Route path="/tournaments/create" element={<TournamentForm />} />
         <Route path="/tournaments/:id" element={<TournamentDetail />} />
         <Route path="/overlays" element={<OverlayEditor />} />
+        <Route path="/overlays/create" element={<OverlayForm />} />
         <Route path="/teams" element={<TeamManagement />} />
         <Route path="/friends" element={<FriendList />} />
         <Route path="/clubs" element={<ClubManagement />} />
