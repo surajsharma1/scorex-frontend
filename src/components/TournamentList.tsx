@@ -29,7 +29,7 @@ export default function TournamentList() {
     }
   };
 
-  const filteredTournaments = Array.isArray(tournaments) ? tournaments.filter(t => {
+  const filteredTournaments = (Array.isArray(tournaments) ? tournaments : []).filter((t: Tournament) => {
     const matchesSearch = t.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = statusFilter === 'all' || t.status === statusFilter;
     return matchesSearch && matchesFilter;
