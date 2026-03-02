@@ -77,7 +77,7 @@ export default function TournamentDetail() {
   const [error, setError] = useState('');
   const [newVideoUrl, setNewVideoUrl] = useState('');
 
-const [showWicketModal, setShowWicketModal] = useState(false);
+  const [showWicketModal, setShowWicketModal] = useState(false);
   const [pendingWicketType, setPendingWicketType] = useState<string>('');
   const [deliveryKind, setDeliveryKind] = useState<'normal' | 'noBall' | 'wide'>('normal');
   
@@ -138,12 +138,12 @@ const [showWicketModal, setShowWicketModal] = useState(false);
       const nonStrikerName = inningsData.lineup[inningsData.nonStrikerIndex]?.name || '';
       
       await matchAPI.updateMatchScore(selectedMatch._id, {
-        score1: teamKey === 'team1' ? inningsData.totalRuns : 0,
-        score2: teamKey === 'team2' ? inningsData.totalRuns : 0,
-        wickets1: teamKey === 'team1' ? inningsData.wickets : 0,
-        wickets2: teamKey === 'team2' ? inningsData.wickets : 0,
-        overs1: teamKey === 'team1' ? parseFloat(overs.toFixed(1)) : 0,
-        overs2: teamKey === 'team2' ? parseFloat(overs.toFixed(1)) : 0,
+        score1: teamKey === 'team1' ? inningsData.totalRuns : (selectedMatch.score1 || 0),
+        score2: teamKey === 'team2' ? inningsData.totalRuns : (selectedMatch.score2 || 0),
+        wickets1: teamKey === 'team1' ? inningsData.wickets : (selectedMatch.wickets1 || 0),
+        wickets2: teamKey === 'team2' ? inningsData.wickets : (selectedMatch.wickets2 || 0),
+        overs1: teamKey === 'team1' ? parseFloat(overs.toFixed(1)) : (selectedMatch.overs1 || 0),
+        overs2: teamKey === 'team2' ? parseFloat(overs.toFixed(1)) : (selectedMatch.overs2 || 0),
         status: 'ongoing',
         strikerName,
         nonStrikerName,
@@ -243,7 +243,7 @@ const [showWicketModal, setShowWicketModal] = useState(false);
     return `${overs}.${balls}`;
   };
 
-const resetInnings = (teamKey: 'team1' | 'team2' = selectedTeamForUpdate, loadExisting = true) => {
+  const resetInnings = (teamKey: 'team1' | 'team2' = selectedTeamForUpdate, loadExisting = true) => {
     // Load existing match data when opening scoreboard (loadExisting = true by default)
     if (loadExisting && selectedMatch) {
       const isTeam1 = teamKey === 'team1';
@@ -328,6 +328,32 @@ const resetInnings = (teamKey: 'team1' | 'team2' = selectedTeamForUpdate, loadEx
   useEffect(() => {
     const newSocket = io(import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000');
     setSocket(newSocket);
+    
+    // Listen for live score updates from other scorers
+    newSocket.on('scoreUpdate', (data: { matchId: string; match: any }) => {
+      if (selectedMatch && data.matchId === selectedMatch._id) {
+        // Update the match data in real-time
+        setSelectedMatch((prev: Match | null) => prev ? { ...prev, ...data.match } : null);
+        
+        // Also update the innings data if score changed
+        if (selectedTeamForUpdate === 'team1' && data.match.score1 !== undefined) {
+          const newInnings = { ...innings };
+          newInnings.totalRuns = data.match.score1 || 0;
+          newInnings.wickets = data.match.wickets1 || 0;
+          const overs = data.match.overs1 || 0;
+          newInnings.totalBalls = Math.floor(overs) * 6 + Math.round((overs % 1) * 10);
+          setInnings(newInnings);
+        } else if (selectedTeamForUpdate === 'team2' && data.match.score2 !== undefined) {
+          const newInnings = { ...innings };
+          newInnings.totalRuns = data.match.score2 || 0;
+          newInnings.wickets = data.match.wickets2 || 0;
+          const overs = data.match.overs2 || 0;
+          newInnings.totalBalls = Math.floor(overs) * 6 + Math.round((overs % 1) * 10);
+          setInnings(newInnings);
+        }
+      }
+    });
+    
     return () => { newSocket.close(); };
   }, []);
 
@@ -427,18 +453,23 @@ const resetInnings = (teamKey: 'team1' | 'team2' = selectedTeamForUpdate, loadEx
       const strikerName = innings.lineup[innings.strikerIndex]?.name || '';
       const nonStrikerName = innings.lineup[innings.nonStrikerIndex]?.name || '';
       
+      // Keep existing values for the other team
+      const otherTeamScore = selectedTeamForUpdate === 'team1' 
+        ? { score2: selectedMatch.score2 || 0, wickets2: selectedMatch.wickets2 || 0, overs2: selectedMatch.overs2 || 0 }
+        : { score1: selectedMatch.score1 || 0, wickets1: selectedMatch.wickets1 || 0, overs1: selectedMatch.overs1 || 0 };
+      
       await matchAPI.updateMatchScore(selectedMatch._id, {
-        score1: selectedTeamForUpdate === 'team1' ? innings.totalRuns : 0,
-        score2: selectedTeamForUpdate === 'team2' ? innings.totalRuns : 0,
-        wickets1: selectedTeamForUpdate === 'team1' ? innings.wickets : 0,
-        wickets2: selectedTeamForUpdate === 'team2' ? innings.wickets : 0,
-        overs1: selectedTeamForUpdate === 'team1' ? parseFloat(overs.toFixed(1)) : 0,
-        overs2: selectedTeamForUpdate === 'team2' ? parseFloat(overs.toFixed(1)) : 0,
+        score1: selectedTeamForUpdate === 'team1' ? innings.totalRuns : (selectedMatch.score1 || 0),
+        score2: selectedTeamForUpdate === 'team2' ? innings.totalRuns : (selectedMatch.score2 || 0),
+        wickets1: selectedTeamForUpdate === 'team1' ? innings.wickets : (selectedMatch.wickets1 || 0),
+        wickets2: selectedTeamForUpdate === 'team2' ? innings.wickets : (selectedMatch.wickets2 || 0),
+        overs1: selectedTeamForUpdate === 'team1' ? parseFloat(overs.toFixed(1)) : (selectedMatch.overs1 || 0),
+        overs2: selectedTeamForUpdate === 'team2' ? parseFloat(overs.toFixed(1)) : (selectedMatch.overs2 || 0),
         status: 'ongoing',
         strikerName,
         nonStrikerName,
       });
-      setSelectedMatch(null);
+      // Keep the scoreboard open after saving - don't setSelectedMatch(null)
       fetchMatches();
     } catch (error) {
       setError('Failed to update score');
@@ -505,276 +536,90 @@ const resetInnings = (teamKey: 'team1' | 'team2' = selectedTeamForUpdate, loadEx
         ))}
       </div>
 
-      {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-gray-800 p-6 rounded-lg">
-            <h2 className="text-xl font-bold mb-4">Tournament Details</h2>
-            <div className="space-y-2">
-              <p>Format: {tournament.format}</p>
-              <p>Status: {tournament.status}</p>
-              <p>Teams: {tournament.numberOfTeams}</p>
-            </div>
-          </div>
-          <div className="bg-gray-800 p-6 rounded-lg">
-            <h2 className="text-xl font-bold mb-4">Quick Stats</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-gray-700 rounded">
-                <div className="text-2xl font-bold">{matches.length}</div>
-                <div className="text-sm text-gray-400">Matches</div>
-              </div>
-              <div className="text-center p-4 bg-gray-700 rounded">
-                <div className="text-2xl font-bold">{teams.length}</div>
-                <div className="text-sm text-gray-400">Teams</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {activeTab === 'matches' && (
         <div className="bg-gray-800 p-6 rounded-lg">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Matches</h2>
             <button onClick={() => setShowMatchForm(true)} className="btn-primary">Schedule Match</button>
           </div>
-
           <div className="space-y-4">
-            {matches.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No matches yet</p>
-            ) : (
-              matches.map((match) => (
-                <div key={match._id} className="p-4 bg-gray-700 rounded-lg flex justify-between items-center">
-                  <div>
-                    <h4 className="font-semibold">{match.team1?.name} vs {match.team2?.name}</h4>
-                    <p className="text-sm text-gray-400">
-                      {match.score1 !== undefined ? `${match.score1}/${match.wickets1} (${match.overs1})` : 'Not started'}
-                    </p>
-                    {match.videoLink && (
-                      <a href={match.videoLink} target="_blank" rel="noreferrer" className="text-sm text-blue-400 hover:underline">
-                        Watch Live
-                      </a>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setSelectedMatch(match);
-                        setSelectedTeamForUpdate('team1');
-                        resetInnings('team1');
-                      }}
-                      className="btn-secondary text-sm"
-                    >
-                      Score
-                    </button>
-                    <button onClick={() => handleDeleteMatch(match._id)} className="bg-red-600 px-3 py-1 rounded text-sm">Delete</button>
-                  </div>
+            {matches.length === 0 ? <p className="text-gray-400 text-center py-8">No matches yet</p> : matches.map((match) => (
+              <div key={match._id} className="p-4 bg-gray-700 rounded-lg flex justify-between items-center">
+                <div>
+                  <h4 className="font-semibold">{match.team1?.name} vs {match.team2?.name}</h4>
+                  <p className="text-sm text-gray-400">{match.score1 !== undefined ? `${match.score1}/${match.wickets1} (${match.overs1})` : 'Not started'}</p>
                 </div>
-              ))
-            )}
+                <div className="flex gap-2">
+                  <button onClick={() => { setSelectedMatch(match); setSelectedTeamForUpdate('team1'); resetInnings('team1'); }} className="btn-secondary text-sm">Score</button>
+                  <button onClick={() => handleDeleteMatch(match._id)} className="bg-red-600 px-3 py-1 rounded text-sm">Delete</button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {activeTab === 'teams' && (
-        <div className="bg-gray-800 p-6 rounded-lg">
-          <TeamManagement selectedTournament={tournament} />
-        </div>
-      )}
+      {activeTab === 'teams' && <div className="bg-gray-800 p-6 rounded-lg"><TeamManagement selectedTournament={tournament} /></div>}
+      {activeTab === 'overlays' && <div className="bg-gray-800 p-6 rounded-lg"><OverlayEditor /></div>}
 
-      {activeTab === 'overlays' && (
-        <div className="bg-gray-800 p-6 rounded-lg">
-          <OverlayEditor />
-        </div>
-      )}
-
-      {/* ============================================ */}
-      {/* MATCH CREATION FORM MODAL */}
-      {/* ============================================ */}
       {showMatchForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
           <div className="bg-gray-800 p-6 rounded-lg w-full max-w-2xl">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">Schedule New Match</h3>
               <button onClick={() => setShowMatchForm(false)} className="bg-gray-600 px-3 py-1 rounded">Close</button>
             </div>
-
             <form onSubmit={handleCreateMatch} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm mb-1">Team 1</label>
-                  <select
-                    value={matchForm.team1}
-                    onChange={(e) => setMatchForm({...matchForm, team1: e.target.value})}
-                    className="w-full p-2 bg-gray-700 rounded"
-                    required
-                  >
+                  <select value={matchForm.team1} onChange={(e) => setMatchForm({...matchForm, team1: e.target.value})} className="w-full p-2 bg-gray-700 rounded" required>
                     <option value="">Select Team 1</option>
-                    {teams.map((team) => (
-                      <option key={team._id} value={team._id}>{team.name}</option>
-                    ))}
+                    {teams.map((team) => <option key={team._id} value={team._id}>{team.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm mb-1">Team 2</label>
-                  <select
-                    value={matchForm.team2}
-                    onChange={(e) => setMatchForm({...matchForm, team2: e.target.value})}
-                    className="w-full p-2 bg-gray-700 rounded"
-                    required
-                  >
+                  <select value={matchForm.team2} onChange={(e) => setMatchForm({...matchForm, team2: e.target.value})} className="w-full p-2 bg-gray-700 rounded" required>
                     <option value="">Select Team 2</option>
-                    {teams.map((team) => (
-                      <option key={team._id} value={team._id}>{team.name}</option>
-                    ))}
+                    {teams.map((team) => <option key={team._id} value={team._id}>{team.name}</option>)}
                   </select>
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm mb-1">Date</label>
-                  <input
-                    type="datetime-local"
-                    value={matchForm.date}
-                    onChange={(e) => setMatchForm({...matchForm, date: e.target.value})}
-                    className="w-full p-2 bg-gray-700 rounded"
-                    required
-                  />
+                  <input type="datetime-local" value={matchForm.date} onChange={(e) => setMatchForm({...matchForm, date: e.target.value})} className="w-full p-2 bg-gray-700 rounded" required />
                 </div>
                 <div>
                   <label className="block text-sm mb-1">Venue</label>
-                  <input
-                    type="text"
-                    value={matchForm.venue}
-                    onChange={(e) => setMatchForm({...matchForm, venue: e.target.value})}
-                    className="w-full p-2 bg-gray-700 rounded"
-                    placeholder="Enter venue"
-                  />
+                  <input type="text" value={matchForm.venue} onChange={(e) => setMatchForm({...matchForm, venue: e.target.value})} className="w-full p-2 bg-gray-700 rounded" />
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm mb-1">Match Type</label>
-                <select
-                  value={matchForm.matchType}
-                  onChange={(e) => setMatchForm({...matchForm, matchType: e.target.value})}
-                  className="w-full p-2 bg-gray-700 rounded"
-                >
-                  <option value="League">League</option>
-                  <option value="Quarter-Final">Quarter-Final</option>
-                  <option value="Semi-Final">Semi-Final</option>
-                  <option value="Final">Final</option>
-                  <option value="Playoff">Playoff</option>
-                </select>
-              </div>
-
-              {/* Video URLs Section */}
-              <div>
-                <label className="block text-sm mb-1">Video Stream URLs (Optional)</label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="url"
-                    value={newVideoUrl}
-                    onChange={(e) => setNewVideoUrl(e.target.value)}
-                    placeholder="https://example.com/stream"
-                    className="flex-1 p-2 bg-gray-700 rounded"
-                  />
-                  <button
-                    type="button"
-                    onClick={addVideoUrl}
-                    className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
-                  >
-                    Add URL
-                  </button>
-                </div>
-                
-                {matchForm.videoLinks.length > 0 && (
-                  <div className="space-y-2 mt-2">
-                    <p className="text-sm text-gray-400">Added URLs:</p>
-                    {matchForm.videoLinks.map((url, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-700 p-2 rounded">
-                        <span className="text-sm truncate flex-1">{url}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeVideoUrl(index)}
-                          className="text-red-400 hover:text-red-300 ml-2"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <button type="submit" disabled={loading} className="w-full bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold">
-                {loading ? 'Creating...' : 'Create Match'}
-              </button>
+              <button type="submit" disabled={loading} className="w-full bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold">{loading ? 'Creating...' : 'Create Match'}</button>
             </form>
           </div>
         </div>
       )}
 
-      {/* ============================================ */}
-      {/* CRICKET SCOREBOARD MODAL */}
-      {/* ============================================ */}
       {selectedMatch && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
           <div className="bg-gray-800 p-4 md:p-6 rounded-lg w-full max-w-4xl">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">
-                {selectedMatch.team1?.name} vs {selectedMatch.team2?.name}
-              </h3>
+              <h3 className="text-xl font-bold">{selectedMatch.team1?.name} vs {selectedMatch.team2?.name}</h3>
               <div className="flex gap-2">
                 <button onClick={undoLastAction} disabled={scoreHistory.length === 0} className="btn-secondary text-sm">Undo</button>
                 <button onClick={() => setSelectedMatch(null)} className="bg-gray-600 px-3 py-1 rounded">Close</button>
               </div>
             </div>
-
             <div className="mb-4 flex gap-2">
-              <button
-                onClick={() => { setSelectedTeamForUpdate('team1'); }}
-                className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team1' ? 'bg-green-600' : 'bg-gray-700'}`}
-              >
-                {selectedMatch.team1?.name || 'Team 1'}
-              </button>
-              <button
-                onClick={() => { setSelectedTeamForUpdate('team2'); }}
-                className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team2' ? 'bg-green-600' : 'bg-gray-700'}`}
-              >
-                {selectedMatch.team2?.name || 'Team 2'}
-              </button>
+              <button onClick={() => setSelectedTeamForUpdate('team1')} className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team1' ? 'bg-green-600' : 'bg-gray-700'}`}>{selectedMatch.team1?.name || 'Team 1'}</button>
+              <button onClick={() => setSelectedTeamForUpdate('team2')} className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team2' ? 'bg-green-600' : 'bg-gray-700'}`}>{selectedMatch.team2?.name || 'Team 2'}</button>
             </div>
-
             <div className="bg-gray-900 p-4 rounded-lg mb-4 text-center">
-              <div className="text-5xl font-bold text-yellow-400">
-                {innings.totalRuns}/{innings.wickets}
-              </div>
-              <div className="text-2xl text-gray-300">
-                {formatOvers()} overs
-              </div>
-              <div className="text-sm text-gray-400 mt-2">
-                Extras: Wd({innings.extras.wides}) NB({innings.extras.noBalls}) B({innings.extras.byes}) LB({innings.extras.legByes})
-              </div>
+              <div className="text-5xl font-bold text-yellow-400">{innings.totalRuns}/{innings.wickets}</div>
+              <div className="text-2xl text-gray-300">{formatOvers()} overs</div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className={`p-3 rounded-lg ${innings.strikerIndex >= 0 ? 'bg-green-900 border-2 border-green-500' : 'bg-gray-700'}`}>
-                <div className="text-sm text-gray-400">Striker</div>
-                <div className="font-bold">{innings.lineup[innings.strikerIndex]?.name || '...'}</div>
-                <div className="text-lg">
-                  {innings.lineup[innings.strikerIndex]?.runsScored || 0} ({innings.lineup[innings.strikerIndex]?.ballsFaced || 0})
-                </div>
-              </div>
-              <div className="p-3 rounded-lg bg-gray-700">
-                <div className="text-sm text-gray-400">Non-Striker</div>
-                <div className="font-bold">{innings.lineup[innings.nonStrikerIndex]?.name || '...'}</div>
-                <div className="text-lg">
-                  {innings.lineup[innings.nonStrikerIndex]?.runsScored || 0} ({innings.lineup[innings.nonStrikerIndex]?.ballsFaced || 0})
-                </div>
-              </div>
-            </div>
-
             <div className="mb-4">
               <h4 className="text-sm font-medium text-gray-400 mb-2">RUNS</h4>
               <div className="grid grid-cols-6 gap-2">
@@ -786,187 +631,88 @@ const resetInnings = (teamKey: 'team1' | 'team2' = selectedTeamForUpdate, loadEx
                 <button onClick={() => processDelivery(6, 'normal')} className="btn-accent py-3">6</button>
               </div>
             </div>
-
-            {/* NEW MOBILE-FRIENDLY EXTRA BUTTONS */}
             <div className="mb-4">
               <h4 className="text-xs text-gray-400 uppercase mb-2 tracking-wider">Extras</h4>
               <div className="grid grid-cols-4 gap-2">
-                <button 
-                  onClick={() => { setPendingExtraType('wide'); setShowExtraModal(true); }}
-                  className="py-4 bg-yellow-500 hover:bg-yellow-400 rounded-lg font-bold text-black text-lg"
-                >
-                  Wide
-                </button>
-                <button 
-                  onClick={() => { setPendingExtraType('noBall'); setShowExtraModal(true); }}
-                  className="py-4 bg-orange-500 hover:bg-orange-400 rounded-lg font-bold text-white text-lg"
-                >
-                  NB
-                </button>
-                <button 
-                  onClick={() => { setPendingExtraType('bye'); setShowExtraModal(true); }}
-                  className="py-4 bg-violet-600 hover:bg-violet-500 rounded-lg font-bold text-white text-lg"
-                >
-                  Bye
-                </button>
-                <button 
-                  onClick={() => { setPendingExtraType('legBye'); setShowExtraModal(true); }}
-                  className="py-4 bg-pink-500 hover:bg-pink-400 rounded-lg font-bold text-white text-lg"
-                >
-                  LB
-                </button>
+                <button onClick={() => { setPendingExtraType('wide'); setShowExtraModal(true); }} className="py-4 bg-yellow-500 hover:bg-yellow-400 rounded-lg font-bold text-black text-lg">Wide</button>
+                <button onClick={() => { setPendingExtraType('noBall'); setShowExtraModal(true); }} className="py-4 bg-orange-500 hover:bg-orange-400 rounded-lg font-bold text-white text-lg">NB</button>
+                <button onClick={() => { setPendingExtraType('bye'); setShowExtraModal(true); }} className="py-4 bg-violet-600 hover:bg-violet-500 rounded-lg font-bold text-white text-lg">Bye</button>
+                <button onClick={() => { setPendingExtraType('legBye'); setShowExtraModal(true); }} className="py-4 bg-pink-500 hover:bg-pink-400 rounded-lg font-bold text-white text-lg">LB</button>
               </div>
             </div>
-
             <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-400 mb-2">WICKET (Legal Delivery)</h4>
-              <button
-                onClick={() => openWicketModal('normal', 'normal')}
-                className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-bold text-xl"
-              >
-                OUT - Select Dismissal Type
-              </button>
+              <button onClick={() => openWicketModal('normal', 'normal')} className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-bold text-xl">OUT</button>
             </div>
-
             <div className="flex gap-2 mt-6">
               <button onClick={() => resetInnings(selectedTeamForUpdate)} className="flex-1 bg-red-700 hover:bg-red-800 py-3 rounded-lg font-bold">Reset</button>
-              <button onClick={switchInnings} className="flex-1 bg-purple-700 hover:bg-purple-800 py-3 rounded-lg font-bold">Switch Innings</button>
-              <button onClick={handleUpdateScore} disabled={loading} className="flex-1 bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold">
-                {loading ? 'Saving...' : 'Save Score'}
-              </button>
+              <button onClick={switchInnings} className="flex-1 bg-purple-700 hover:bg-purple-800 py-3 rounded-lg font-bold">Switch</button>
+              <button onClick={handleUpdateScore} disabled={loading} className="flex-1 bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold">{loading ? 'Saving...' : 'Save'}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ============================================ */}
-      {/* WICKET SELECTION MODAL */}
-      {/* ============================================ */}
       {showWicketModal && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-[60] p-4">
           <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4 text-center">
-              Select Dismissal Type
-              {deliveryKind !== 'normal' && <span className="text-yellow-400 block text-sm">({deliveryKind})</span>}
-            </h3>
-            
+            <h3 className="text-xl font-bold mb-4 text-center">Select Dismissal</h3>
             <div className="space-y-2">
-              {outTypes.map((out) => {
-                const isAllowed = deliveryKind !== 'normal' ? out.canBeNoBall : true;
-                
-                return (
-                  <button
-                    key={out.type}
-                    onClick={() => handleWicket(out.type as Dismissal, deliveryKind)}
-                    disabled={!isAllowed}
-                    className={`w-full py-3 rounded-lg font-bold ${
-                      isAllowed 
-                        ? 'bg-red-600 hover:bg-red-700 text-white' 
-                        : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    {out.label}
-                    {!isAllowed && <span className="text-xs block">(Not allowed on {deliveryKind !== 'normal' ? deliveryKind : 'legal ball'})</span>}
-                  </button>
-                );
-              })}
+              {outTypes.map((out) => <button key={out.type} onClick={() => handleWicket(out.type as Dismissal, deliveryKind)} className="w-full py-3 rounded-lg font-bold bg-red-600 hover:bg-red-700 text-white">{out.label}</button>)}
             </div>
-
-            <button
-              onClick={() => { setShowWicketModal(false); setDeliveryKind('normal'); }}
-              className="w-full mt-4 bg-gray-600 hover:bg-gray-700 py-2 rounded-lg"
-            >
-Cancel
-            </button>
+            <button onClick={() => setShowWicketModal(false)} className="w-full mt-4 bg-gray-600 hover:bg-gray-700 py-2 rounded-lg">Cancel</button>
           </div>
         </div>
       )}
 
-      {/* ============================================ */}
-      {/* EXTRA SELECTION MODAL - NEW MOBILE DESIGN */}
-      {/* ============================================ */}
-      {showExtraModal && pendingExtraType && (
+      {showExtraModal && pendingExtraType && !showOutOptionsInExtra && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-[70] p-4">
           <div className="bg-gray-800 p-4 rounded-lg w-full max-w-sm">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">
-                {pendingExtraType === 'wide' && 'Wide'}
-                {pendingExtraType === 'noBall' && 'No Ball'}
-                {pendingExtraType === 'bye' && 'Bye'}
-                {pendingExtraType === 'legBye' && 'Leg Bye'}
-              </h3>
-              <button 
-                onClick={() => { setShowExtraModal(false); setShowOutOptionsInExtra(false); }}
-                className="text-gray-400 hover:text-white text-xl"
-              >
-                ×
+              <h3 className="text-lg font-bold">{pendingExtraType === 'wide' ? 'Wide' : pendingExtraType === 'noBall' ? 'No Ball' : pendingExtraType === 'bye' ? 'Bye' : 'Leg Bye'}</h3>
+              <button onClick={() => setShowExtraModal(false)} className="text-gray-400 hover:text-white text-xl">×</button>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {pendingExtraType === 'wide' ? (
+                <>
+                  <button onClick={() => { processDelivery(1, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 py-3 rounded-lg font-bold">+1</button>
+                  <button onClick={() => { processDelivery(2, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 py-3 rounded-lg font-bold">+2</button>
+                  <button onClick={() => { processDelivery(3, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 py-3 rounded-lg font-bold">+3</button>
+                  <button onClick={() => { processDelivery(4, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 py-3 rounded-lg font-bold">+4</button>
+                  <button onClick={() => { processDelivery(5, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 py-3 rounded-lg font-bold">+5</button>
+                  <button onClick={() => { processDelivery(0, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 py-3 rounded-lg font-bold">+0</button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => { processDelivery(0, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 py-3 rounded-lg font-bold">+0</button>
+                  <button onClick={() => { processDelivery(1, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 py-3 rounded-lg font-bold">+1</button>
+                  <button onClick={() => { processDelivery(2, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 py-3 rounded-lg font-bold">+2</button>
+                  <button onClick={() => { processDelivery(3, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 py-3 rounded-lg font-bold">+3</button>
+                  <button onClick={() => { processDelivery(4, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 py-3 rounded-lg font-bold">+4</button>
+                  <button onClick={() => { processDelivery(6, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 py-3 rounded-lg font-bold">+6</button>
+                </>
+              )}
+            </div>
+            <button onClick={() => setShowOutOptionsInExtra(true)} className="w-full bg-red-600 py-3 rounded-lg font-bold">OUT</button>
+          </div>
+        </div>
+      )}
+
+      {showExtraModal && pendingExtraType && showOutOptionsInExtra && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-[80] p-4">
+          <div className="bg-gray-800 p-4 rounded-lg w-full max-w-sm">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">{pendingExtraType === 'wide' ? 'Wide + Out' : pendingExtraType === 'noBall' ? 'No Ball + Out' : pendingExtraType === 'bye' ? 'Bye + Out' : 'Leg Bye + Out'}</h3>
+              <button onClick={() => { setShowOutOptionsInExtra(false); setShowExtraModal(false); }} className="text-gray-400 hover:text-white text-xl">×</button>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              <button onClick={() => { handleWicket('runOut', pendingExtraType as 'wide' | 'noBall' | 'bye' | 'legBye'); setShowOutOptionsInExtra(false); setShowExtraModal(false); }} className="w-full py-3 rounded-lg font-bold bg-red-600 hover:bg-red-700 text-white">
+                {pendingExtraType === 'wide' ? 'Wide + Run Out' : pendingExtraType === 'noBall' ? 'No Ball + Run Out' : 'Run Out'}
+              </button>
+              <button onClick={() => { handleWicket('stumped', pendingExtraType as 'wide' | 'noBall' | 'bye' | 'legBye'); setShowOutOptionsInExtra(false); setShowExtraModal(false); }} className="w-full py-3 rounded-lg font-bold bg-red-600 hover:bg-red-700 text-white">
+                {pendingExtraType === 'wide' ? 'Wide + Stumped' : pendingExtraType === 'noBall' ? 'No Ball + Stumped' : 'Stumped'}
               </button>
             </div>
-
-            {!showOutOptionsInExtra ? (
-              <>
-                {/* Run options */}
-                <div className="grid grid-cols-3 gap-2 mb-3">
-                  {pendingExtraType === 'wide' ? (
-                    <>
-                      <button onClick={() => { processDelivery(1, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-lg font-bold">+1</button>
-                      <button onClick={() => { processDelivery(2, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-lg font-bold">+2</button>
-                      <button onClick={() => { processDelivery(3, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-lg font-bold">+3</button>
-                      <button onClick={() => { processDelivery(4, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-lg font-bold">+4</button>
-                      <button onClick={() => { processDelivery(5, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-lg font-bold">+5</button>
-                      <button onClick={() => { processDelivery(0, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-lg font-bold">+0</button>
-                    </>
-                  ) : (
-                    <>
-                      <button onClick={() => { processDelivery(0, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">+0</button>
-                      <button onClick={() => { processDelivery(1, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">+1</button>
-                      <button onClick={() => { processDelivery(2, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">+2</button>
-                      <button onClick={() => { processDelivery(3, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">+3</button>
-                      <button onClick={() => { processDelivery(4, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">+4</button>
-                      <button onClick={() => { processDelivery(6, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">+6</button>
-                    </>
-                  )}
-                </div>
-                
-                {/* OUT button */}
-                <button 
-                  onClick={() => setShowOutOptionsInExtra(true)}
-                  className="w-full bg-red-600 hover:bg-red-500 py-3 rounded-lg font-bold text-lg"
-                >
-                  OUT
-                </button>
-              </>
-            ) : (
-              <>
-                {/* Out type options */}
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-400 mb-2">Select dismissal type:</p>
-                  {pendingExtraType === 'wide' && (
-                    <button onClick={() => { processDelivery(0, 'wide', 'runOut'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">Wide + Run Out</button>
-                  )}
-                  {pendingExtraType === 'noBall' && (
-                    <>
-                      <button onClick={() => { processDelivery(0, 'noBall', 'bowled'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">NB + Bowled</button>
-                      <button onClick={() => { processDelivery(0, 'noBall', 'caught'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">NB + Caught</button>
-                      <button onClick={() => { processDelivery(0, 'noBall', 'lbw'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">NB + LBW</button>
-                      <button onClick={() => { processDelivery(0, 'noBall', 'stumped'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">NB + Stumped</button>
-                      <button onClick={() => { processDelivery(0, 'noBall', 'runOut'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">NB + Run Out</button>
-                      <button onClick={() => { processDelivery(0, 'noBall', 'hitWicket'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">NB + Hit Wicket</button>
-                    </>
-                  )}
-                  {(pendingExtraType === 'bye' || pendingExtraType === 'legBye') && (
-                    <button onClick={() => { processDelivery(0, pendingExtraType, 'runOut'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">{pendingExtraType === 'bye' ? 'Bye' : 'Leg Bye'} + Run Out</button>
-                  )}
-                </div>
-                
-                <button 
-                  onClick={() => setShowOutOptionsInExtra(false)}
-                  className="w-full mt-3 bg-gray-600 hover:bg-gray-500 py-2 rounded-lg"
-                >
-                  ← Back
-                </button>
-              </>
-            )}
+            <button onClick={() => setShowOutOptionsInExtra(false)} className="w-full mt-3 bg-gray-600 py-2 rounded-lg">Back</button>
           </div>
         </div>
       )}
