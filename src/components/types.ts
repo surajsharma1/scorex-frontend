@@ -212,6 +212,7 @@ export interface CreatedOverlay {
   name: string;
   template: string;
   publicId: string;
+  publicUrl?: string;
   config: {
     backgroundColor?: string;
     opacity?: number;
@@ -227,6 +228,8 @@ export interface CreatedOverlay {
   createdBy: string;
   requiredMembershipLevel: number;
   membershipAtCreation: number;
+  urlExpiresAt?: string;
+  isUrlExpired?: boolean;
   createdAt: string;
   updatedAt: string;
 }

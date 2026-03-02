@@ -106,6 +106,7 @@ export const overlayAPI = {
   deleteOverlay: (id: string) => api.delete(`/overlays/${id}`),
   getTemplates: () => api.get('/overlays/templates'),
   getMembershipStatus: () => api.get('/overlays/membership-status'),
+  regenerateOverlay: (id: string) => api.post(`/overlays/${id}/regenerate`),
 };
 
 export const friendAPI = {
