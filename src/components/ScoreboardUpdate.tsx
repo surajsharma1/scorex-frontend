@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Save, Coins, RotateCcw, X, Target } from 'lucide-react';
-import { tournamentAPI } from '../services/api';
+import { tournamentAPI, matchAPI } from '../services/api';
 import { Tournament, Team, LiveScores, Batsman, Bowler } from './types';
 
 // Types for cricket scoring
@@ -15,6 +15,7 @@ interface Player {
 
 interface ScoreboardUpdateProps {
   tournament: Tournament;
+  matchId?: string;  // Add matchId for saving to match instead of tournament
   onUpdate: () => void;
 }
 
@@ -67,7 +68,7 @@ const createDefaultBowler = (): Bowler => ({
   wickets: 0,
 });
 
-export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpdateProps) {
+export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: ScoreboardUpdateProps) {
   // Ensure teams is treated as an array
   const teams = Array.isArray(tournament.teams) ? tournament.teams : [];
   
@@ -163,7 +164,12 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     
     isSavingRef.current = true;
     try {
-      await tournamentAPI.updateLiveScores(tournament._id, scores);
+      // If matchId is provided, save to match API, otherwise save to tournament API
+      if (matchId) {
+        await matchAPI.updateMatchScore(matchId, scores);
+      } else {
+        await tournamentAPI.updateLiveScores(tournament._id, scores);
+      }
       setLastSaved(new Date());
       onUpdate();
     } catch (err) {
@@ -171,7 +177,7 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     } finally {
       isSavingRef.current = false;
     }
-  }, [tournament._id, onUpdate]);
+  }, [tournament._id, matchId, onUpdate]);
 
   // Debounced auto-save: save immediately when scores change (with small debounce to prevent too many requests)
   useEffect(() => {
@@ -574,7 +580,12 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     try {
       setLoading(true);
       setError('');
-      await tournamentAPI.updateLiveScores(tournament._id, liveScores);
+      // If matchId is provided, save to match API, otherwise save to tournament API
+      if (matchId) {
+        await matchAPI.updateMatchScore(matchId, liveScores);
+      } else {
+        await tournamentAPI.updateLiveScores(tournament._id, liveScores);
+      }
       onUpdate();
       setLastSaved(new Date());
     } catch (err: unknown) {

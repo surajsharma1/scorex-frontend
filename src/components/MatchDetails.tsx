@@ -167,6 +167,7 @@ export default function MatchDetails() {
               ) : (
                   <ScoreboardUpdate 
                     tournament={{...tournament!, liveScores: match.liveScores}} 
+                    matchId={match._id}
                     onUpdate={refreshData}
                   />
               )}
