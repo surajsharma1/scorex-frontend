@@ -123,10 +123,11 @@ export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: Scor
   const [selectedBatsmanIndex, setSelectedBatsmanIndex] = useState(0);
 
   // Modal states
-  const [showExtraModal, setShowExtraModal] = useState(false);
+const [showExtraModal, setShowExtraModal] = useState(false);
   const [showExtrasModal, setShowExtrasModal] = useState(false);
   const [showOutModal, setShowOutModal] = useState(false);
   const [pendingExtraType, setPendingExtraType] = useState<ExtraType>(null);
+  const [showOutOptionsInExtra, setShowOutOptionsInExtra] = useState(false);
 
   // Initialize Broadcast Channel once
   useEffect(() => {
@@ -670,8 +671,8 @@ export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: Scor
         </div>
       </div>
       
-      {/* Run Buttons */}
-      <div className="grid grid-cols-7 gap-2">
+{/* Run Buttons - Mobile friendly 3-column grid */}
+      <div className="grid grid-cols-3 gap-2">
         {[0, 1, 2, 3, 4, 6].map((run) => (
           <button
             key={run}
@@ -690,72 +691,47 @@ export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: Scor
     </div>
   );
 
-// Render extra buttons
+// Render extra buttons - Mobile optimized with 4 main buttons
   const renderExtraButtons = () => (
     <div className="space-y-2 mt-2">
-      <div>
-        <label className="text-xs text-gray-400 uppercase mb-1 block">Wide (Run + Wide)</label>
-        <div className="grid grid-cols-5 gap-1">
-          {wideRunOptions.map((run) => (
-            <button
-              key={`wide-${run}`}
-              onClick={() => {
-                setPendingExtraType('wide');
-                addExtraRuns(run);
-              }}
-              className="py-2 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-semibold text-white text-sm"
-            >
-              W+{run}
-            </button>
-          ))}
-        </div>
-      </div>
-      
-      <div className="flex gap-2 mt-2">
-        <div className="relative flex-1">
-          <button
-            onClick={() => setShowExtrasModal(!showExtrasModal)}
-            className="w-full py-3 bg-gradient-to-r from-orange-600 to-pink-600 hover:from-orange-500 hover:to-pink-500 rounded-lg font-semibold text-white flex items-center justify-center gap-2"
-          >
-            <span>Extras</span>
-            <span className="text-xs">▼</span>
-          </button>
-          
-          {showExtrasModal && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-800 rounded-lg border border-gray-600 p-2 shadow-xl z-10">
-              <button
-                onClick={() => {
-                  setPendingExtraType('noBall');
-                  setShowExtrasModal(false);
-                  setShowExtraModal(true);
-                }}
-                className="w-full py-2 bg-orange-600 hover:bg-orange-500 rounded-lg font-medium text-white mb-1"
-              >
-                No Ball (+0 to +6)
-              </button>
-              <button
-                onClick={() => {
-                  setPendingExtraType('bye');
-                  setShowExtrasModal(false);
-                  setShowExtraModal(true);
-                }}
-                className="w-full py-2 bg-purple-600 hover:bg-purple-500 rounded-lg font-medium text-white mb-1"
-              >
-                Bye (+0 to +6)
-              </button>
-              <button
-                onClick={() => {
-                  setPendingExtraType('legBye');
-                  setShowExtrasModal(false);
-                  setShowExtraModal(true);
-                }}
-                className="w-full py-2 bg-pink-600 hover:bg-pink-500 rounded-lg font-medium text-white"
-              >
-                Leg Bye (+0 to +6)
-              </button>
-            </div>
-          )}
-        </div>
+      {/* 4 Main Extra Buttons */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          onClick={() => {
+            setPendingExtraType('wide');
+            setShowExtraModal(true);
+          }}
+          className="py-4 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-bold text-white text-lg"
+        >
+          Wide
+        </button>
+        <button
+          onClick={() => {
+            setPendingExtraType('noBall');
+            setShowExtraModal(true);
+          }}
+          className="py-4 bg-orange-600 hover:bg-orange-500 rounded-lg font-bold text-white text-lg"
+        >
+          No Ball
+        </button>
+        <button
+          onClick={() => {
+            setPendingExtraType('bye');
+            setShowExtraModal(true);
+          }}
+          className="py-4 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold text-white text-lg"
+        >
+          Bye
+        </button>
+        <button
+          onClick={() => {
+            setPendingExtraType('legBye');
+            setShowExtraModal(true);
+          }}
+          className="py-4 bg-pink-600 hover:bg-pink-500 rounded-lg font-bold text-white text-lg"
+        >
+          Leg Bye
+        </button>
       </div>
     </div>
   );
@@ -797,33 +773,91 @@ export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: Scor
     </>
   );
 
-  // Render extra runs modal
+// Render extra runs modal with run options and OUT options
   const renderExtraModal = () => (
     showExtraModal && (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-        <div className="bg-gray-800 p-6 rounded-xl w-full max-w-md border border-yellow-500">
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="bg-gray-800 p-4 rounded-xl w-full max-w-md border border-yellow-500 max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-bold text-yellow-400">
               {pendingExtraType === 'wide' ? 'Wide' : 
                pendingExtraType === 'noBall' ? 'No Ball' : 
-               pendingExtraType === 'bye' ? 'Bye' : 'Leg Bye'} - Select Runs
+               pendingExtraType === 'bye' ? 'Bye' : 'Leg Bye'}
             </h3>
-            <button onClick={() => { setShowExtraModal(false); setPendingExtraType(null); }} className="text-gray-400 hover:text-white">
+            <button onClick={() => { setShowExtraModal(false); setPendingExtraType(null); setShowOutOptionsInExtra(false); }} className="text-gray-400 hover:text-white">
               <X className="w-6 h-6" />
             </button>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            {extraRunOptions.map((run) => (
+          
+          {!showOutOptionsInExtra ? (
+            <>
+              {/* Run Options */}
+              <div className="mb-4">
+                <p className="text-sm text-gray-400 mb-2">Add Runs:</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {(pendingExtraType === 'wide' ? [1, 2, 3, 4, 5] : extraRunOptions).map((run) => (
+                    <button
+                      key={run}
+                      onClick={() => addExtraRuns(run)}
+                      className="py-3 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-bold text-lg text-white flex flex-col items-center"
+                    >
+                      <span>+{run}</span>
+                      <span className="text-xs font-normal">{extraRunLabels[run]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* OUT Button */}
               <button
-                key={run}
-                onClick={() => addExtraRuns(run)}
-                className="py-4 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-bold text-xl text-white flex flex-col items-center"
+                onClick={() => setShowOutOptionsInExtra(true)}
+                className="w-full py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-white"
               >
-                <span>+{run}</span>
-                <span className="text-xs font-normal">{extraRunLabels[run]}</span>
+                OUT!
               </button>
-            ))}
-          </div>
+            </>
+          ) : (
+            <>
+              {/* Back button */}
+              <button
+                onClick={() => setShowOutOptionsInExtra(false)}
+                className="mb-3 text-gray-400 hover:text-white text-sm flex items-center gap-1"
+              >
+                ← Back to runs
+              </button>
+              
+              {/* Out Options with Extra Type Labels */}
+              <p className="text-sm text-gray-400 mb-2">
+                {pendingExtraType === 'wide' ? 'Wide + ' : 
+                 pendingExtraType === 'noBall' ? 'No Ball + ' : 
+                 pendingExtraType === 'bye' ? 'Bye + ' : 'Leg Bye + '}Select OUT Type:
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {outTypes.map((out) => (
+                  <button
+                    key={out.type}
+                    onClick={() => {
+                      // Handle the extra + out combination
+                      const extraLabel = pendingExtraType === 'wide' ? 'Wide' : 
+                                        pendingExtraType === 'noBall' ? 'No Ball' : 
+                                        pendingExtraType === 'bye' ? 'Bye' : 'Leg Bye';
+                      const message = `${extraLabel} + ${out.label}`;
+                      triggerWicketAnimation(message);
+                      processWicket(out.type);
+                      setShowExtraModal(false);
+                      setPendingExtraType(null);
+                      setShowOutOptionsInExtra(false);
+                    }}
+                    className="py-3 bg-red-700 hover:bg-red-600 rounded-lg font-semibold text-white text-sm"
+                  >
+                    {pendingExtraType === 'wide' ? 'Wide + ' : 
+                     pendingExtraType === 'noBall' ? 'NB + ' : 
+                     pendingExtraType === 'bye' ? 'Bye + ' : 'LB + '}{out.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     )
