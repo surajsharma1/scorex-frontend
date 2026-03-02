@@ -173,11 +173,15 @@ export default function LiveScoring() {
     }
   };
 
-  // Auto-save function
+  // Auto-save function - FIXED overs calculation to avoid floating point issues
   const autoSaveScore = async (inningsData: Innings) => {
     if (!match) return;
     try {
-      const overs = Math.floor(inningsData.totalBalls / 6) + (inningsData.totalBalls % 6) / 10;
+      // Calculate overs properly: overs.balls format (e.g., 5.3 = 5 overs 3 balls)
+      const overs = Math.floor(inningsData.totalBalls / 6);
+      const balls = inningsData.totalBalls % 6;
+      const oversFormatted = parseFloat(`${overs}.${balls}`);
+      
       const strikerName = inningsData.lineup[inningsData.strikerIndex]?.name || battingPlayers.striker || '';
       const nonStrikerName = inningsData.lineup[inningsData.nonStrikerIndex]?.name || battingPlayers.nonStriker || '';
       
@@ -186,8 +190,8 @@ export default function LiveScoring() {
         score2: selectedTeam === 'team2' ? inningsData.totalRuns : (match.score2 || 0),
         wickets1: selectedTeam === 'team1' ? inningsData.wickets : (match.wickets1 || 0),
         wickets2: selectedTeam === 'team2' ? inningsData.wickets : (match.wickets2 || 0),
-        overs1: selectedTeam === 'team1' ? parseFloat(overs.toFixed(1)) : (match.overs1 || 0),
-        overs2: selectedTeam === 'team2' ? parseFloat(overs.toFixed(1)) : (match.overs2 || 0),
+        overs1: selectedTeam === 'team1' ? oversFormatted : (match.overs1 || 0),
+        overs2: selectedTeam === 'team2' ? oversFormatted : (match.overs2 || 0),
         status: 'ongoing',
         strikerName,
         nonStrikerName,
