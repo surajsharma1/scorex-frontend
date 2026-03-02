@@ -111,6 +111,9 @@ export interface Match {
   strikerName?: string;
   nonStrikerName?: string;
   bowlerName?: string;
+  
+  // Overlay linked to this match
+  overlayId?: string;
 }
 
 // Complex Scoring Types
