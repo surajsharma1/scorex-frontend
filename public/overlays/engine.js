@@ -5,7 +5,15 @@ const socket = io(window.OVERLAY_CONFIG.apiBaseUrl || '/');
 const matchId = window.OVERLAY_CONFIG.matchId;
 const config = window.OVERLAY_CONFIG || {};
 
-// 2. DOM Elements Cache - Common elements across all templates
+// 2. BroadcastChannel for same-browser communication (from ScoreboardUpdate)
+let broadcastChannel = null;
+try {
+    broadcastChannel = new BroadcastChannel('cricket_score_updates');
+} catch (e) {
+    console.log('BroadcastChannel not supported in this context');
+}
+
+// 3. DOM Elements Cache - Common elements across all templates
 const els = {
     // Score elements
     team1Name: document.getElementById('team1Name') || document.getElementById('teamName') || document.getElementById('battingTeam'),
@@ -46,10 +54,60 @@ const els = {
     notificationText: document.getElementById('notificationText')
 };
 
-// 3. Fetch initial match data on load
+// 4. Listen for BroadcastChannel messages (from ScoreboardUpdate in same browser)
+if (broadcastChannel) {
+    broadcastChannel.onmessage = (event) => {
+        console.log('BroadcastChannel message received:', event.data);
+        handleScoreUpdate(event.data);
+    };
+}
+
+// 5. Handle score updates from any source
+function handleScoreUpdate(data) {
+    // Handle different message types
+    if (data.type === 'RUN') {
+        // Just a run event, fetch latest data
+        console.log(`Run event: ${data.runs}`);
+        // The full data should follow in next message or we fetch
+    } else if (data.type === 'EXTRA') {
+        console.log(`Extra event: ${data.extraType}`);
+    } else if (data.type === 'WICKET' || data.type === 'PUSH_EVENT') {
+        // Wicket event - show notification
+        showNotification(data.message || 'WICKET!');
+    } else if (data.tournament || data.team1 || data.team2) {
+        // Full score update data
+        updateBoard(data);
+    } else if (data.match) {
+        // Socket.io format
+        updateBoard(data.match);
+    }
+}
+
+// Show notification for events
+function showNotification(message) {
+    if (!els.notification || !els.notificationText) return;
+    
+    els.notificationText.innerText = message;
+    els.notification.className = 'notification-active';
+    
+    if (message.includes('4')) {
+        els.notification.classList.add('notif-4');
+    } else if (message.includes('6')) {
+        els.notification.classList.add('notif-6');
+    } else if (message.includes('WICKET') || message.includes('OUT')) {
+        els.notification.classList.add('notif-w');
+    }
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+        els.notification.className = '';
+    }, 3000);
+}
+
+// 6. Fetch initial match data on load
 async function fetchInitialMatchData() {
     if (!matchId) {
-        console.log('No matchId provided, waiting for socket events...');
+        console.log('No matchId provided, waiting for BroadcastChannel events...');
         return;
     }
     
@@ -69,7 +127,7 @@ async function fetchInitialMatchData() {
     }
 }
 
-// 4. Connect to socket
+// 7. Connect to socket
 socket.on('connect', () => {
     console.log('Connected to ScoreX Live');
     if (matchId) {
@@ -79,7 +137,7 @@ socket.on('connect', () => {
     fetchInitialMatchData();
 });
 
-// 5. Listen for score updates (correct event name from backend)
+// 8. Listen for score updates (correct event name from backend)
 socket.on('scoreUpdate', (data) => {
     console.log('Score update received:', data);
     if (data.match) {
@@ -96,10 +154,130 @@ socket.on('match_update', (data) => {
     updateBoard(data);
 });
 
-// 6. Update UI Function
+// 9. Update UI Function - Updated to handle ScoreboardUpdate format
 function updateBoard(data) {
     if (!data) return;
     
+    // Handle ScoreboardUpdate format (nested team objects)
+    const isScoreboardFormat = data.team1 && typeof data.team1 === 'object';
+    
+    if (isScoreboardFormat) {
+        // ScoreboardUpdate format
+        updateBoardScoreboardFormat(data);
+    } else {
+        // Legacy/Match format
+        updateBoardLegacyFormat(data);
+    }
+    
+    // Trigger pulse animation for changed values
+    triggerPulseAnimations();
+}
+
+// Handle ScoreboardUpdate format (from ScoreboardUpdate.tsx)
+function updateBoardScoreboardFormat(data) {
+    const team1Data = data.team1 || {};
+    const team2Data = data.team2 || {};
+    
+    // Update team names
+    if (els.team1Name) {
+        els.team1Name.innerText = team1Data.name || 'Team 1';
+    }
+    if (els.team2Name) {
+        els.team2Name.innerText = team2Data.name || 'Team 2';
+    }
+    
+    // Update scores
+    if (els.team1Score) {
+        els.team1Score.innerText = `${team1Data.score || 0}/${team1Data.wickets || 0}`;
+    }
+    if (els.team2Score) {
+        els.team2Score.innerText = `${team2Data.score || 0}/${team2Data.wickets || 0}`;
+    }
+    
+    // Update overs - handle both string and number formats
+    if (els.team1Overs) {
+        const overs1 = team1Data.overs || 0;
+        els.team1Overs.innerText = typeof overs1 === 'string' ? overs1 : formatOvers(overs1);
+    }
+    if (els.team2Overs) {
+        const overs2 = team2Data.overs || 0;
+        els.team2Overs.innerText = typeof overs2 === 'string' ? overs2 : formatOvers(overs2);
+    }
+    
+    // Update wickets
+    if (els.team1Wickets) {
+        els.team1Wickets.innerText = team1Data.wickets || 0;
+    }
+    
+    // Update striker
+    const striker = data.striker || {};
+    if (els.striker) {
+        els.striker.innerText = `${striker.name || 'Striker'} ${striker.runs || 0}${striker.status || ''}`;
+    }
+    if (els.strikerRuns) {
+        els.strikerRuns.innerText = striker.runs || 0;
+    }
+    if (els.strikerBalls) {
+        els.strikerBalls.innerText = striker.balls || 0;
+    }
+    
+    // Update non-striker
+    const nonStriker = data.nonStriker || {};
+    if (els.nonStriker) {
+        els.nonStriker.innerText = `${nonStriker.name || 'Non-Striker'} ${nonStriker.runs || 0}`;
+    }
+    if (els.nonStrikerRuns) {
+        els.nonStrikerRuns.innerText = nonStriker.runs || 0;
+    }
+    if (els.nonStrikerBalls) {
+        els.nonStrikerBalls.innerText = nonStriker.balls || 0;
+    }
+    
+    // Update bowler
+    const bowler = data.bowler || {};
+    if (els.bowler) {
+        els.bowler.innerText = bowler.name || 'Bowler';
+    }
+    if (els.bowlerOvers) {
+        els.bowlerOvers.innerText = bowler.overs || 0;
+    }
+    if (els.bowlerRuns) {
+        els.bowlerRuns.innerText = bowler.runs || 0;
+    }
+    if (els.bowlerWickets) {
+        els.bowlerWickets.innerText = bowler.wickets || 0;
+    }
+    
+    // Update run rates
+    const stats = data.stats || {};
+    if (els.crr) {
+        els.crr.innerText = `CRR: ${stats.currentRunRate?.toFixed(2) || '0.00'}`;
+    }
+    if (els.rrr) {
+        els.rrr.innerText = `RRR: ${stats.requiredRunRate?.toFixed(2) || '0.00'}`;
+    }
+    if (els.target) {
+        els.target.innerText = `Target: ${stats.target || '-'}`;
+    }
+    
+    // Update tournament
+    if (els.tournament && data.tournament) {
+        els.tournament.innerText = data.tournament.name || 'Tournament';
+    }
+    
+    // Update match status
+    if (els.matchStatus) {
+        els.matchStatus.innerText = data.status || 'Live';
+    }
+    
+    // Update balls tracker
+    if (els.ballsContainer && stats.last5Overs) {
+        updateBallsTracker(stats.last5Overs);
+    }
+}
+
+// Handle legacy/match format
+function updateBoardLegacyFormat(data) {
     // Update team 1 (batting team - usually team1)
     if (els.team1Name) {
         els.team1Name.innerText = data.team1?.name || data.team1?.shortName || 'Team 1';
@@ -213,9 +391,6 @@ function updateBoard(data) {
     if (els.ballsContainer && data.lastFiveOvers) {
         updateBallsTracker(data.lastFiveOvers);
     }
-    
-    // Trigger pulse animation for changed values
-    triggerPulseAnimations();
 }
 
 // Helper: Format overs properly
@@ -292,7 +467,7 @@ function updateText(element, newValue) {
     }
 }
 
-// 7. Handle Notifications (Wicket/4/6)
+// 10. Handle Notifications (Wicket/4/6)
 function handleNotification(event) {
     if (!event || !els.notification) return;
     

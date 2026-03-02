@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Save, Coins, RotateCcw, X, Target } from 'lucide-react';
 import { tournamentAPI } from '../services/api';
 import { Tournament, Team, LiveScores, Batsman, Bowler } from './types';
@@ -73,6 +73,10 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
   
   // Use a ref for the BroadcastChannel to persist across renders
   const channelRef = useRef<BroadcastChannel | null>(null);
+  
+  // Track if we need to save
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSavingRef = useRef(false);
 
   const [liveScores, setLiveScores] = useState<LiveScores>(() => {
     const existing = tournament.liveScores;
@@ -153,23 +157,42 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     }
   }, [liveScores.battingTeam, teams]);
 
-  // Auto-save scores to backend when they change
+  // Function to save scores to backend immediately
+  const saveScoresToBackend = useCallback(async (scores: LiveScores) => {
+    if (isSavingRef.current) return;
+    
+    isSavingRef.current = true;
+    try {
+      await tournamentAPI.updateLiveScores(tournament._id, scores);
+      setLastSaved(new Date());
+      onUpdate();
+    } catch (err) {
+      console.error('Auto-save failed:', err);
+    } finally {
+      isSavingRef.current = false;
+    }
+  }, [tournament._id, onUpdate]);
+
+  // Debounced auto-save: save immediately when scores change (with small debounce to prevent too many requests)
   useEffect(() => {
     if (!autoSaveEnabled || !tossWinner || loading) return;
     
-    // Debounce: wait 2 seconds after last change before saving
-    const timer = setTimeout(async () => {
-      try {
-        await tournamentAPI.updateLiveScores(tournament._id, liveScores);
-        setLastSaved(new Date());
-        onUpdate();
-      } catch (err) {
-        console.error('Auto-save failed:', err);
-      }
-    }, 2000);
+    // Clear any pending save
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    // Save after a short delay (500ms) to batch rapid changes
+    saveTimeoutRef.current = setTimeout(() => {
+      saveScoresToBackend(liveScores);
+    }, 500);
 
-    return () => clearTimeout(timer);
-  }, [liveScores, autoSaveEnabled, tossWinner, tournament._id]);
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [liveScores, autoSaveEnabled, tossWinner, loading, saveScoresToBackend]);
 
   // Get current batting team
   const currentTeam = liveScores[liveScores.battingTeam];
@@ -253,10 +276,10 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
 
   // Broadcast comprehensive score data whenever liveScores changes
   useEffect(() => {
-    if (channelRef.current) {
+    if (channelRef.current && tossWinner) {
         channelRef.current.postMessage(createOverlayData);
     }
-  }, [createOverlayData]);
+  }, [createOverlayData, tossWinner]);
 
   // Trigger Wicket Animation
   const triggerWicketAnimation = (message: string) => {
@@ -546,13 +569,14 @@ export default function ScoreboardUpdate({ tournament, onUpdate }: ScoreboardUpd
     }
   };
 
-  // Save scores
+  // Save scores (manual save)
   const handleScoreUpdate = async () => {
     try {
       setLoading(true);
       setError('');
       await tournamentAPI.updateLiveScores(tournament._id, liveScores);
       onUpdate();
+      setLastSaved(new Date());
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update scores';
       setError(errorMessage);
