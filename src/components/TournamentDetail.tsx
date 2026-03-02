@@ -243,8 +243,49 @@ const [showWicketModal, setShowWicketModal] = useState(false);
     return `${overs}.${balls}`;
   };
 
-  const resetInnings = (teamKey: 'team1' | 'team2' = selectedTeamForUpdate) => {
-    // Get players from the selected team
+const resetInnings = (teamKey: 'team1' | 'team2' = selectedTeamForUpdate, loadExisting = true) => {
+    // Load existing match data when opening scoreboard (loadExisting = true by default)
+    if (loadExisting && selectedMatch) {
+      const isTeam1 = teamKey === 'team1';
+      const existingRuns = isTeam1 ? (selectedMatch.score1 || 0) : (selectedMatch.score2 || 0);
+      const existingWickets = isTeam1 ? (selectedMatch.wickets1 || 0) : (selectedMatch.wickets2 || 0);
+      const existingOvers = isTeam1 ? (selectedMatch.overs1 || 0) : (selectedMatch.overs2 || 0);
+      const existingBalls = Math.floor(existingOvers) * 6 + Math.round((existingOvers % 1) * 10);
+      
+      const selectedTeam = teamKey === 'team1' ? selectedMatch?.team1 : selectedMatch?.team2;
+      const teamPlayers = selectedTeam?.players || [];
+      
+      const players = teamPlayers.length > 0 
+        ? teamPlayers.map((p: any, i: number) => ({
+            id: p.id || p._id || String(i),
+            name: p.name || `Player ${i + 1}`,
+            runsScored: 0,
+            ballsFaced: 0,
+            isOut: false,
+          }))
+        : Array.from({ length: 11 }, (_, i) => ({
+            id: String(i + 1),
+            name: `Player ${i + 1}`,
+            runsScored: 0,
+            ballsFaced: 0,
+            isOut: false,
+          }));
+
+      setInnings({
+        battingTeam: teamKey,
+        totalRuns: existingRuns,
+        wickets: existingWickets,
+        totalBalls: existingBalls,
+        extras: { wides: 0, noBalls: 0, byes: 0, legByes: 0 },
+        strikerIndex: 0,
+        nonStrikerIndex: 1,
+        lineup: players,
+      });
+      setScoreHistory([]);
+      return;
+    }
+    
+    // Default behavior - create new innings (loadExisting = false for reset button)
     const selectedTeam = teamKey === 'team1' ? selectedMatch?.team1 : selectedMatch?.team2;
     const teamPlayers = selectedTeam?.players || [];
     setInnings(createDefaultInnings(teamPlayers));
