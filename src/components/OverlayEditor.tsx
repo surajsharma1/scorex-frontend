@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Eye, Zap, X, Maximize2, Minimize2, Plus, Save, Trash2, Edit } from 'lucide-react';
+import { Eye, Zap, X, Maximize2, Minimize2, Plus, Save, Trash2, Edit, Copy, RefreshCw, ExternalLink, Link } from 'lucide-react';
 import { overlayAPI, matchAPI, tournamentAPI } from '../services/api';
 import { Overlay, Match, Tournament, CreatedOverlay } from './types';
 
@@ -40,7 +40,6 @@ const LEVEL2_OVERLAYS = [
   { id: 'lvl2-water-flow', name: 'Water Flow', file: 'lvl2-water-flow.html', category: 'Replay/Effects', color: 'from-blue-400 to-cyan-600' },
 ];
 
-
 // Combine all overlays
 const OVERLAY_TEMPLATES = [
   ...LEVEL1_OVERLAYS,
@@ -55,6 +54,11 @@ const CATEGORIES = [
   { value: 'Special', label: 'Special' },
 ];
 
+// Helper function to get API base URL
+const getApiBaseUrl = (): string => {
+  return import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || 'http://localhost:5000';
+};
+
 export default function OverlayEditor() {
   const [selectedTemplate, setSelectedTemplate] = useState(OVERLAY_TEMPLATES[0]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -63,6 +67,7 @@ export default function OverlayEditor() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showOverlay, setShowOverlay] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  
   // Create overlay modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createFormData, setCreateFormData] = useState({
@@ -76,8 +81,25 @@ export default function OverlayEditor() {
   const [createdOverlays, setCreatedOverlays] = useState<CreatedOverlay[]>([]);
   const [overlaysLoading, setOverlaysLoading] = useState(false);
   
+  // Preview modal state
+  const [previewOverlay, setPreviewOverlay] = useState<CreatedOverlay | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  
+  // Edit modal state
+  const [editOverlay, setEditOverlay] = useState<CreatedOverlay | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({ name: '' });
+  const [editLoading, setEditLoading] = useState(false);
+  
+  // Regenerate loading state
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  
+  // Copy to clipboard feedback
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  
   const channelRef = useRef<BroadcastChannel | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     loadLiveMatches();
@@ -134,7 +156,26 @@ export default function OverlayEditor() {
       setOverlaysLoading(true);
       const res = await overlayAPI.getOverlays();
       const overlaysData = res.data.overlays || res.data || [];
-      setCreatedOverlays(Array.isArray(overlaysData) ? overlaysData : []);
+      
+      // Add computed fields for each overlay
+      const overlaysWithComputed = (Array.isArray(overlaysData) ? overlaysData : []).map((overlay: CreatedOverlay) => {
+        const baseUrl = getApiBaseUrl();
+        const publicUrl = `${baseUrl}/api/v1/overlays/public/${overlay.publicId}`;
+        
+        // Check if URL is expired
+        let isUrlExpired = false;
+        if (overlay.urlExpiresAt) {
+          isUrlExpired = new Date(overlay.urlExpiresAt) < new Date();
+        }
+        
+        return {
+          ...overlay,
+          publicUrl,
+          isUrlExpired
+        };
+      });
+      
+      setCreatedOverlays(overlaysWithComputed);
     } catch (error) {
       console.error('Failed to fetch created overlays');
       setCreatedOverlays([]);
@@ -198,6 +239,64 @@ export default function OverlayEditor() {
     } catch (error) {
       console.error('Failed to delete overlay:', error);
       alert('Failed to delete overlay. Please try again.');
+    }
+  };
+
+  const handleRegenerateUrl = async (overlayId: string) => {
+    if (!confirm('Are you sure you want to regenerate the URL? The old URL will stop working immediately.')) return;
+    
+    setRegeneratingId(overlayId);
+    try {
+      const res = await overlayAPI.regenerateOverlay(overlayId);
+      alert('URL regenerated successfully! The new URL is valid for 24 hours.');
+      loadCreatedOverlays(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to regenerate URL:', error);
+      alert('Failed to regenerate URL. Please try again.');
+    } finally {
+      setRegeneratingId(null);
+    }
+  };
+
+  const handleCopyUrl = async (overlay: CreatedOverlay) => {
+    try {
+      await navigator.clipboard.writeText(overlay.publicUrl || '');
+      setCopiedId(overlay._id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy URL:', error);
+    }
+  };
+
+  const handlePreviewOverlay = (overlay: CreatedOverlay) => {
+    setPreviewOverlay(overlay);
+    setShowPreviewModal(true);
+  };
+
+  const handleEditOverlay = (overlay: CreatedOverlay) => {
+    setEditOverlay(overlay);
+    setEditFormData({ name: overlay.name });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editOverlay || !editFormData.name.trim()) {
+      alert('Please enter an overlay name');
+      return;
+    }
+    
+    setEditLoading(true);
+    try {
+      await overlayAPI.updateOverlay(editOverlay._id, { name: editFormData.name.trim() });
+      setShowEditModal(false);
+      setEditOverlay(null);
+      setEditFormData({ name: '' });
+      loadCreatedOverlays(); // Refresh the list
+    } catch (error) {
+      console.error('Failed to update overlay:', error);
+      alert('Failed to update overlay. Please try again.');
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -269,6 +368,24 @@ export default function OverlayEditor() {
   const filteredOverlays = selectedCategory === 'all' 
     ? OVERLAY_TEMPLATES 
     : OVERLAY_TEMPLATES.filter(o => o.category === selectedCategory);
+
+  // Format time remaining
+  const formatTimeRemaining = (expiresAt?: string) => {
+    if (!expiresAt) return null;
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diff = expiry.getTime() - now.getTime();
+    
+    if (diff <= 0) return 'Expired';
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
 
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -432,7 +549,7 @@ export default function OverlayEditor() {
         )}
       </div>
 
-      {/* Created Overlays List */}
+      {/* Created Overlays List - With URL, Preview, Edit, Delete, Regenerate */}
       <div className="mt-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
         <h2 className="text-xl font-bold mb-4 dark:text-white">My Overlays ({createdOverlays.length})</h2>
         {overlaysLoading ? (
@@ -450,6 +567,20 @@ export default function OverlayEditor() {
                   <h3 className="font-bold text-gray-900 dark:text-white">{overlay.name}</h3>
                   <div className="flex gap-1">
                     <button
+                      onClick={() => handlePreviewOverlay(overlay)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                      title="Preview overlay"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleEditOverlay(overlay)}
+                      className="p-1.5 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded"
+                      title="Edit overlay"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
                       onClick={() => handleDeleteOverlay(overlay._id!)}
                       className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                       title="Delete overlay"
@@ -461,7 +592,71 @@ export default function OverlayEditor() {
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                   Template: {overlay.template}
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">
+                
+                {/* URL Section */}
+                <div className="mb-2">
+                  <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <Link className="w-3 h-3 inline mr-1" />
+                    Overlay URL
+                  </label>
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      readOnly
+                      value={overlay.publicUrl || ''}
+                      className="flex-1 text-xs px-2 py-1.5 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-gray-600 dark:text-gray-300 truncate"
+                    />
+                    <button
+                      onClick={() => handleCopyUrl(overlay)}
+                      className="p-1.5 text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 rounded"
+                      title="Copy URL"
+                    >
+                      {copiedId === overlay._id ? (
+                        <span className="text-green-600 text-xs font-bold">✓</span>
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                    <a
+                      href={overlay.publicUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1.5 text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 rounded"
+                      title="Open in new tab"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                    <button
+                      onClick={() => handleRegenerateUrl(overlay._id!)}
+                      disabled={regeneratingId === overlay._id}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded disabled:opacity-50"
+                      title="Regenerate URL (24h expiry)"
+                    >
+                      {regeneratingId === overlay._id ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                
+                {/* URL Expiry Status */}
+                <div className="flex items-center justify-between text-xs">
+                  <span className={`px-2 py-0.5 rounded ${
+                    overlay.isUrlExpired 
+                      ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                      : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  }`}>
+                    {overlay.isUrlExpired ? '⚠️ Expired' : '✓ Active'}
+                  </span>
+                  {overlay.urlExpiresAt && (
+                    <span className="text-gray-500 dark:text-gray-400">
+                      {formatTimeRemaining(overlay.urlExpiresAt)} remaining
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
                   Created: {overlay.createdAt ? new Date(overlay.createdAt).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
@@ -571,6 +766,86 @@ export default function OverlayEditor() {
                 {createLoading ? 'Creating...' : 'Create Overlay'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {showPreviewModal && previewOverlay && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-5xl mx-4 h-[80vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Preview: {previewOverlay.name}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Template: {previewOverlay.template}</p>
+              </div>
+              <div className="flex gap-2">
+                <a
+                  href={previewOverlay.publicUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                >
+                  <ExternalLink className="w-4 h-4" /> Open Full
+                </a>
+                <button 
+                  onClick={() => setShowPreviewModal(false)}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 bg-gray-900 p-4">
+              <iframe
+                ref={previewIframeRef}
+                src={previewOverlay.publicUrl}
+                className="w-full h-full rounded-lg"
+                title="Overlay Preview"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && editOverlay && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Overlay</h2>
+              <button 
+                onClick={() => setShowEditModal(false)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Overlay Name
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  required
+                />
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                <p>Template: {editOverlay.template}</p>
+                <p>Created: {editOverlay.createdAt ? new Date(editOverlay.createdAt).toLocaleDateString() : 'N/A'}</p>
+              </div>
+              <button
+                onClick={handleSaveEdit}
+                disabled={editLoading}
+                className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {editLoading ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
           </div>
         </div>
       )}
