@@ -550,8 +550,7 @@ export default function TournamentDetail() {
                   <p className="text-sm text-gray-400">{match.score1 !== undefined ? `${match.score1}/${match.wickets1} (${match.overs1})` : 'Not started'}</p>
                 </div>
 <div className="flex gap-2">
-                  <Link to={`/live-scoring/${match._id}`} className="bg-green-600 px-3 py-1 rounded text-sm">Live Score</Link>
-                  <button onClick={() => { setSelectedMatch(match); setSelectedTeamForUpdate('team1'); resetInnings('team1'); }} className="btn-secondary text-sm">Score</button>
+                  <Link to={`/live-scoring/${match._id}`} className="bg-green-600 px-3 py-1 rounded text-sm flex-1 text-center">Live Score</Link>
                   <button onClick={() => handleDeleteMatch(match._id)} className="bg-red-600 px-3 py-1 rounded text-sm">Delete</button>
                 </div>
               </div>
