@@ -705,10 +705,20 @@ export default function TournamentDetail() {
               <button onClick={() => { setShowOutOptionsInExtra(false); setShowExtraModal(false); }} className="text-gray-400 hover:text-white text-xl">×</button>
             </div>
             <div className="grid grid-cols-1 gap-2">
-              <button onClick={() => { handleWicket('runOut', pendingExtraType as 'wide' | 'noBall' | 'bye' | 'legBye'); setShowOutOptionsInExtra(false); setShowExtraModal(false); }} className="w-full py-3 rounded-lg font-bold bg-red-600 hover:bg-red-700 text-white">
+              <button onClick={() => { 
+                const deliveryType = pendingExtraType === 'wide' ? 'wide' : pendingExtraType === 'noBall' ? 'noBall' : 'normal';
+                handleWicket('runOut', deliveryType); 
+                setShowOutOptionsInExtra(false); 
+                setShowExtraModal(false); 
+              }} className="w-full py-3 rounded-lg font-bold bg-red-600 hover:bg-red-700 text-white">
                 {pendingExtraType === 'wide' ? 'Wide + Run Out' : pendingExtraType === 'noBall' ? 'No Ball + Run Out' : 'Run Out'}
               </button>
-              <button onClick={() => { handleWicket('stumped', pendingExtraType as 'wide' | 'noBall' | 'bye' | 'legBye'); setShowOutOptionsInExtra(false); setShowExtraModal(false); }} className="w-full py-3 rounded-lg font-bold bg-red-600 hover:bg-red-700 text-white">
+              <button onClick={() => { 
+                const deliveryType = pendingExtraType === 'wide' ? 'wide' : pendingExtraType === 'noBall' ? 'noBall' : 'normal';
+                handleWicket('stumped', deliveryType); 
+                setShowOutOptionsInExtra(false); 
+                setShowExtraModal(false); 
+              }} className="w-full py-3 rounded-lg font-bold bg-red-600 hover:bg-red-700 text-white">
                 {pendingExtraType === 'wide' ? 'Wide + Stumped' : pendingExtraType === 'noBall' ? 'No Ball + Stumped' : 'Stumped'}
               </button>
             </div>
