@@ -77,9 +77,14 @@ export default function TournamentDetail() {
   const [error, setError] = useState('');
   const [newVideoUrl, setNewVideoUrl] = useState('');
 
-  const [showWicketModal, setShowWicketModal] = useState(false);
+const [showWicketModal, setShowWicketModal] = useState(false);
   const [pendingWicketType, setPendingWicketType] = useState<string>('');
   const [deliveryKind, setDeliveryKind] = useState<'normal' | 'noBall' | 'wide'>('normal');
+  
+  // Extra modal state for new mobile-friendly design
+  const [showExtraModal, setShowExtraModal] = useState(false);
+  const [pendingExtraType, setPendingExtraType] = useState<'wide' | 'noBall' | 'bye' | 'legBye' | null>(null);
+  const [showOutOptionsInExtra, setShowOutOptionsInExtra] = useState(false);
 
   const [innings, setInnings] = useState<Innings>(() => createDefaultInnings());
   const [selectedTeamForUpdate, setSelectedTeamForUpdate] = useState<'team1' | 'team2'>('team1');
@@ -741,51 +746,34 @@ export default function TournamentDetail() {
               </div>
             </div>
 
+            {/* NEW MOBILE-FRIENDLY EXTRA BUTTONS */}
             <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-400 mb-2">WIDE</h4>
-              <div className="grid grid-cols-6 gap-2">
-                <button onClick={() => processDelivery(0, 'wide')} className="bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded font-bold">Wd+0</button>
-                <button onClick={() => processDelivery(1, 'wide')} className="bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded font-bold">Wd+1</button>
-                <button onClick={() => processDelivery(2, 'wide')} className="bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded font-bold">Wd+2</button>
-                <button onClick={() => processDelivery(3, 'wide')} className="bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded font-bold">Wd+3</button>
-                <button onClick={() => processDelivery(4, 'wide')} className="bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded font-bold">Wd+4</button>
-                <button onClick={() => openWicketModal('runOut', 'wide')} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">Wd+Wkt</button>
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-400 mb-2">NO BALL</h4>
-              <div className="grid grid-cols-6 gap-2">
-                <button onClick={() => processDelivery(0, 'noBall')} className="bg-orange-600 hover:bg-orange-700 text-white py-3 rounded font-bold">NB+0</button>
-                <button onClick={() => processDelivery(1, 'noBall')} className="bg-orange-600 hover:bg-orange-700 text-white py-3 rounded font-bold">NB+1</button>
-                <button onClick={() => processDelivery(2, 'noBall')} className="bg-orange-600 hover:bg-orange-700 text-white py-3 rounded font-bold">NB+2</button>
-                <button onClick={() => processDelivery(3, 'noBall')} className="bg-orange-600 hover:bg-orange-700 text-white py-3 rounded font-bold">NB+3</button>
-                <button onClick={() => processDelivery(4, 'noBall')} className="bg-orange-600 hover:bg-orange-700 text-white py-3 rounded font-bold">NB+4</button>
-                <button onClick={() => processDelivery(6, 'noBall')} className="bg-orange-600 hover:bg-orange-700 text-white py-3 rounded font-bold">NB+6</button>
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-400 mb-2">BYE</h4>
-              <div className="grid grid-cols-6 gap-2">
-                <button onClick={() => processDelivery(0, 'bye')} className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-bold">B+0</button>
-                <button onClick={() => processDelivery(1, 'bye')} className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-bold">B+1</button>
-                <button onClick={() => processDelivery(2, 'bye')} className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-bold">B+2</button>
-                <button onClick={() => processDelivery(3, 'bye')} className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-bold">B+3</button>
-                <button onClick={() => processDelivery(4, 'bye')} className="bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-bold">B+4</button>
-                <button onClick={() => openWicketModal('runOut', 'normal')} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">B+Wkt</button>
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-400 mb-2">LEG BYE</h4>
-              <div className="grid grid-cols-6 gap-2">
-                <button onClick={() => processDelivery(0, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+0</button>
-                <button onClick={() => processDelivery(1, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+1</button>
-                <button onClick={() => processDelivery(2, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+2</button>
-                <button onClick={() => processDelivery(3, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+3</button>
-                <button onClick={() => processDelivery(4, 'legBye')} className="bg-pink-600 hover:bg-pink-700 text-white py-3 rounded font-bold">LB+4</button>
-                <button onClick={() => openWicketModal('runOut', 'normal')} className="bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">LB+Wkt</button>
+              <h4 className="text-xs text-gray-400 uppercase mb-2 tracking-wider">Extras</h4>
+              <div className="grid grid-cols-4 gap-2">
+                <button 
+                  onClick={() => { setPendingExtraType('wide'); setShowExtraModal(true); }}
+                  className="py-4 bg-yellow-500 hover:bg-yellow-400 rounded-lg font-bold text-black text-lg"
+                >
+                  Wide
+                </button>
+                <button 
+                  onClick={() => { setPendingExtraType('noBall'); setShowExtraModal(true); }}
+                  className="py-4 bg-orange-500 hover:bg-orange-400 rounded-lg font-bold text-white text-lg"
+                >
+                  NB
+                </button>
+                <button 
+                  onClick={() => { setPendingExtraType('bye'); setShowExtraModal(true); }}
+                  className="py-4 bg-violet-600 hover:bg-violet-500 rounded-lg font-bold text-white text-lg"
+                >
+                  Bye
+                </button>
+                <button 
+                  onClick={() => { setPendingExtraType('legBye'); setShowExtraModal(true); }}
+                  className="py-4 bg-pink-500 hover:bg-pink-400 rounded-lg font-bold text-white text-lg"
+                >
+                  LB
+                </button>
               </div>
             </div>
 
@@ -847,8 +835,97 @@ export default function TournamentDetail() {
               onClick={() => { setShowWicketModal(false); setDeliveryKind('normal'); }}
               className="w-full mt-4 bg-gray-600 hover:bg-gray-700 py-2 rounded-lg"
             >
-              Cancel
+Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================ */}
+      {/* EXTRA SELECTION MODAL - NEW MOBILE DESIGN */}
+      {/* ============================================ */}
+      {showExtraModal && pendingExtraType && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-[70] p-4">
+          <div className="bg-gray-800 p-4 rounded-lg w-full max-w-sm">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">
+                {pendingExtraType === 'wide' && 'Wide'}
+                {pendingExtraType === 'noBall' && 'No Ball'}
+                {pendingExtraType === 'bye' && 'Bye'}
+                {pendingExtraType === 'legBye' && 'Leg Bye'}
+              </h3>
+              <button 
+                onClick={() => { setShowExtraModal(false); setShowOutOptionsInExtra(false); }}
+                className="text-gray-400 hover:text-white text-xl"
+              >
+                ×
+              </button>
+            </div>
+
+            {!showOutOptionsInExtra ? (
+              <>
+                {/* Run options */}
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  {pendingExtraType === 'wide' ? (
+                    <>
+                      <button onClick={() => { processDelivery(1, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-lg font-bold">+1</button>
+                      <button onClick={() => { processDelivery(2, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-lg font-bold">+2</button>
+                      <button onClick={() => { processDelivery(3, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-lg font-bold">+3</button>
+                      <button onClick={() => { processDelivery(4, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-lg font-bold">+4</button>
+                      <button onClick={() => { processDelivery(5, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-lg font-bold">+5</button>
+                      <button onClick={() => { processDelivery(0, 'wide'); setShowExtraModal(false); }} className="bg-yellow-600 hover:bg-yellow-500 py-3 rounded-lg font-bold">+0</button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => { processDelivery(0, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">+0</button>
+                      <button onClick={() => { processDelivery(1, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">+1</button>
+                      <button onClick={() => { processDelivery(2, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">+2</button>
+                      <button onClick={() => { processDelivery(3, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">+3</button>
+                      <button onClick={() => { processDelivery(4, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">+4</button>
+                      <button onClick={() => { processDelivery(6, pendingExtraType); setShowExtraModal(false); }} className="bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold">+6</button>
+                    </>
+                  )}
+                </div>
+                
+                {/* OUT button */}
+                <button 
+                  onClick={() => setShowOutOptionsInExtra(true)}
+                  className="w-full bg-red-600 hover:bg-red-500 py-3 rounded-lg font-bold text-lg"
+                >
+                  OUT
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Out type options */}
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-400 mb-2">Select dismissal type:</p>
+                  {pendingExtraType === 'wide' && (
+                    <button onClick={() => { processDelivery(0, 'wide', 'runOut'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">Wide + Run Out</button>
+                  )}
+                  {pendingExtraType === 'noBall' && (
+                    <>
+                      <button onClick={() => { processDelivery(0, 'noBall', 'bowled'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">NB + Bowled</button>
+                      <button onClick={() => { processDelivery(0, 'noBall', 'caught'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">NB + Caught</button>
+                      <button onClick={() => { processDelivery(0, 'noBall', 'lbw'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">NB + LBW</button>
+                      <button onClick={() => { processDelivery(0, 'noBall', 'stumped'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">NB + Stumped</button>
+                      <button onClick={() => { processDelivery(0, 'noBall', 'runOut'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">NB + Run Out</button>
+                      <button onClick={() => { processDelivery(0, 'noBall', 'hitWicket'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">NB + Hit Wicket</button>
+                    </>
+                  )}
+                  {(pendingExtraType === 'bye' || pendingExtraType === 'legBye') && (
+                    <button onClick={() => { processDelivery(0, pendingExtraType, 'runOut'); setShowExtraModal(false); setShowOutOptionsInExtra(false); }} className="w-full bg-red-700 hover:bg-red-600 py-2 rounded-lg font-bold">{pendingExtraType === 'bye' ? 'Bye' : 'Leg Bye'} + Run Out</button>
+                  )}
+                </div>
+                
+                <button 
+                  onClick={() => setShowOutOptionsInExtra(false)}
+                  className="w-full mt-3 bg-gray-600 hover:bg-gray-500 py-2 rounded-lg"
+                >
+                  ← Back
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
