@@ -10,6 +10,7 @@ import TournamentForm from './TournamentForm';
 import TournamentDetail from './TournamentDetail';
 import LiveMatches from './LiveMatches';
 import LiveMatchPage from './LiveMatchPage';
+import LiveScoring from './LiveScoring';
 import OverlayEditor from './OverlayEditor';
 import OverlayForm from './OverlayForm';
 import Payment from './Payment';
@@ -23,24 +24,18 @@ import AdminPanel from './AdminPanel';
 import { Menu } from 'lucide-react';
 
 // --- Dashboard Layout Wrapper ---
-// This component handles the Sidebar and Mobile Menu for all protected pages
 const DashboardLayout = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white overflow-hidden">
-      {/* Mobile Menu Button */}
       <button 
         className="fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md md:hidden"
         onClick={() => setSidebarOpen(!isSidebarOpen)}
       >
         <Menu className="w-6 h-6" />
       </button>
-
-      {/* Sidebar Component */}
       <Sidebar isOpen={isSidebarOpen} onToggle={() => setSidebarOpen(false)} />
-
-      {/* Main Content */}
       <main className="flex-1 md:ml-64 h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
         <Outlet />
       </main>
@@ -48,24 +43,19 @@ const DashboardLayout = () => {
   );
 };
 
-// --- Main App Component ---
-// Router is already in main.tsx, this just defines routes
 function App() {
   const token = localStorage.getItem('token');
   
-  // Safely parse user from localStorage - handle "undefined" string case
   let user = null;
   let isAdmin = false;
   try {
     const userStr = localStorage.getItem('user');
-    // Check if userStr is not null AND not the string "undefined"
     if (userStr && userStr !== "undefined") {
       user = JSON.parse(userStr);
       isAdmin = user?.role === 'admin';
     }
   } catch (e) {
     console.error("Error parsing user data from localStorage:", e);
-    // Clear invalid data
     localStorage.removeItem('user');
   }
 
@@ -77,8 +67,9 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/matches/live" element={<LiveMatches />} />
       <Route path="/live/:id" element={<LiveMatchPage />} />
+      <Route path="/live-scoring/:id" element={<LiveScoring />} />
 
-      {/* --- PROTECTED ROUTES (Require Login) --- */}
+      {/* --- PROTECTED ROUTES --- */}
       <Route element={token ? <DashboardLayout /> : <Navigate to="/login" replace />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tournaments" element={<TournamentList />} />
@@ -93,7 +84,6 @@ function App() {
         <Route path="/membership" element={<Membership />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/live-matches" element={<LiveMatches />} />
-        {/* Admin route - only accessible to admins */}
         {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
         <Route path="/upgrade" element={
           <div className="flex items-center justify-center h-full">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { Tournament, Match, Team } from './types';
 import io, { Socket } from 'socket.io-client';
@@ -549,7 +549,8 @@ export default function TournamentDetail() {
                   <h4 className="font-semibold">{match.team1?.name} vs {match.team2?.name}</h4>
                   <p className="text-sm text-gray-400">{match.score1 !== undefined ? `${match.score1}/${match.wickets1} (${match.overs1})` : 'Not started'}</p>
                 </div>
-                <div className="flex gap-2">
+<div className="flex gap-2">
+                  <Link to={`/live-scoring/${match._id}`} className="bg-green-600 px-3 py-1 rounded text-sm">Live Score</Link>
                   <button onClick={() => { setSelectedMatch(match); setSelectedTeamForUpdate('team1'); resetInnings('team1'); }} className="btn-secondary text-sm">Score</button>
                   <button onClick={() => handleDeleteMatch(match._id)} className="bg-red-600 px-3 py-1 rounded text-sm">Delete</button>
                 </div>
