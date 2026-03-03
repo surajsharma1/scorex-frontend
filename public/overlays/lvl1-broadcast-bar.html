@@ -65,6 +65,8 @@
     </div>
 
 <script>
+        console.log('Overlay script started - lvl1-broadcast-bar');
+        
         const config = window.OVERLAY_CONFIG || { apiBaseUrl: 'http://localhost:5000/api/v1' };
         const socket = io(config.apiBaseUrl);
         if(config.matchId) socket.emit('join_match', config.matchId);
@@ -83,18 +85,22 @@
 
         // ========== POST MESSAGE (from LiveScoring.tsx via iframe) ==========
         window.addEventListener('message', (event) => {
-            console.log('PostMessage received:', event.data);
+            console.log('PostMessage received in overlay:', event.data);
             if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
+                console.log('Calling handleScoreUpdate with:', event.data.data);
                 handleScoreUpdate(event.data.data);
             }
         });
 
         // ========== UNIFIED UPDATE HANDLER ==========
         function handleScoreUpdate(d) {
+            console.log('handleScoreUpdate called with:', d);
+            
             if (!d) return;
             
             // Handle ScoreboardUpdate format (team1/team2 objects with nested data - has batsmen array)
             if (d.team1 && typeof d.team1 === 'object' && d.team1.batsmen) {
+                console.log('Detected ScoreboardUpdate format');
                 // Determine which team is batting
                 const battingTeam = d.battingTeam || 'team1';
                 const battingData = d[battingTeam] || {};
@@ -149,6 +155,7 @@
             }
             // Handle LiveScoring format (flat team1Score, team2Score, etc.)
             else if (d.team1Score !== undefined || d.team2Score !== undefined) {
+                console.log('Detected LiveScoring format - Score:', d.team1Score, 'Striker:', d.strikerName);
                 // Team 1 is batting
                 document.getElementById('sc').innerText = d.team1Score || 0;
                 document.getElementById('wk').innerText = d.team1Wickets || 0;
@@ -167,9 +174,12 @@
                 // Update bowler
                 document.getElementById('bname').innerText = d.bowlerName || 'Bowler';
                 document.getElementById('bfig').innerText = `${d.bowlerWickets || 0}/${d.bowlerRuns || 0}`;
+                
+                console.log('Updated DOM with LiveScoring format - Score:', d.team1Score, 'Striker:', d.strikerName);
             }
             // Handle legacy socket format
             else if (d.score !== undefined) {
+                console.log('Detected legacy socket format');
                 document.getElementById('sc').innerText = d.score;
                 document.getElementById('wk').innerText = d.wickets;
                 document.getElementById('ov').innerText = d.overs;
@@ -197,13 +207,18 @@
                     b.innerText = r;
                     v.appendChild(b);
                 });
+            } else {
+                console.log('Data format not recognized - keys:', Object.keys(d));
             }
         }
 
         // Keep original socket listener for backward compatibility
         socket.on('match_update', d => {
+            console.log('Socket match_update received:', d);
             handleScoreUpdate(d);
         });
+        
+        console.log('Overlay listeners registered');
     </script>
 </body>
 </html>

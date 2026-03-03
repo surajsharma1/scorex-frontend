@@ -179,10 +179,18 @@ export default function LiveScoring() {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [showOverlay, match, innings, bowler, battingPlayers, selectedTeam]);
+  }, [showOverlay, match, innings, bowler, battingPlayers, selectedTeam, tournament]);
 
   const pushDataToOverlay = () => {
-    if (!overlayIframeRef.current || !match) return;
+    if (!overlayIframeRef.current) {
+      console.log('Overlay iframe ref is null');
+      return;
+    }
+    
+    if (!match) {
+      console.log('Match is null');
+      return;
+    }
 
     const overlayData = {
       team1Name: match.team1?.name || 'Team 1',
@@ -207,11 +215,19 @@ export default function LiveScoring() {
       tournamentName: tournament?.name || 'Tournament',
     };
 
+    // Debug log
+    console.log('Sending overlay update:', overlayData);
+    
     // Send data to iframe via postMessage
-    overlayIframeRef.current.contentWindow?.postMessage(
-      { type: 'UPDATE_SCORE', data: overlayData },
-      '*'
-    );
+    try {
+      overlayIframeRef.current.contentWindow?.postMessage(
+        { type: 'UPDATE_SCORE', data: overlayData },
+        '*'
+      );
+      console.log('PostMessage sent successfully');
+    } catch (error) {
+      console.error('Error sending postMessage:', error);
+    }
   };
 
   const fetchMatch = async () => {
