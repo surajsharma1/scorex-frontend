@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { overlayAPI, tournamentAPI } from '../services/api';
-import { Tournament } from './types';
+import { overlayAPI, tournamentAPI, matchAPI } from '../services/api';
+import { Tournament, Match } from './types';
 
 export default function OverlayForm() {
-  const [formData, setFormData] = useState({ name: '', template: '', tournament: '' });
+  const [formData, setFormData] = useState({ name: '', template: '', tournament: '', match: '' });
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMatches, setLoadingMatches] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,6 +25,29 @@ export default function OverlayForm() {
     };
     fetchTournaments();
   }, []);
+
+  // Fetch matches when tournament is selected
+  useEffect(() => {
+    const fetchMatches = async () => {
+      if (!formData.tournament) {
+        setMatches([]);
+        return;
+      }
+      
+      setLoadingMatches(true);
+      try {
+        const response = await matchAPI.getMatches(formData.tournament);
+        const matchesData = response.data.matches || response.data || [];
+        setMatches(Array.isArray(matchesData) ? matchesData : []);
+      } catch (error) {
+        console.error('Failed to fetch matches');
+        setMatches([]);
+      } finally {
+        setLoadingMatches(false);
+      }
+    };
+    fetchMatches();
+  }, [formData.tournament]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +70,7 @@ export default function OverlayForm() {
     
     setLoading(true);
     try {
-      const overlayData = {
+      const overlayData: any = {
         name: formData.name.trim(),
         template: formData.template,
         tournament: formData.tournament,
@@ -59,6 +84,12 @@ export default function OverlayForm() {
         },
         elements: [],
       };
+      
+      // Add match if selected
+      if (formData.match) {
+        overlayData.match = formData.match;
+      }
+      
       await overlayAPI.createOverlay(overlayData);
       navigate('/overlays');
     } catch (error) {
@@ -131,7 +162,7 @@ export default function OverlayForm() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tournament</label>
             <select
               value={formData.tournament}
-              onChange={(e) => setFormData({ ...formData, tournament: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, tournament: e.target.value, match: '' })}
               className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               required
             >
@@ -143,6 +174,27 @@ export default function OverlayForm() {
               ))}
             </select>
           </div>
+          
+          {/* Match Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Match (Optional)</label>
+            <select
+              value={formData.match}
+              onChange={(e) => setFormData({ ...formData, match: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              disabled={!formData.tournament || loadingMatches}
+            >
+              <option value="">
+                {loadingMatches ? 'Loading matches...' : (formData.tournament ? 'Select Match (Optional)' : 'Select a tournament first')}
+              </option>
+              {matches.map((matchItem) => (
+                <option key={matchItem._id} value={matchItem._id}>
+                  {matchItem.team1?.name || 'Team 1'} vs {matchItem.team2?.name || 'Team 2'} ({matchItem.status || 'scheduled'})
+                </option>
+              ))}
+            </select>
+          </div>
+          
           <button
             type="submit"
             disabled={loading}
