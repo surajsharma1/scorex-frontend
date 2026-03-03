@@ -97,6 +97,14 @@ if (broadcastChannel) {
     };
 }
 
+// postMessage listener for iframe communication
+window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
+        console.log('postMessage received in engine:', event.data.data);
+        handleScoreUpdate(event.data.data);
+    }
+});
+
 // Main score update handler - dispatches to multiple channels
 function handleScoreUpdate(data) {
     if (!data) return;
