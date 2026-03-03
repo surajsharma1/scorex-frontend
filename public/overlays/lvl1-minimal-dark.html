@@ -1,11 +1,73 @@
 <style>
     .ov-container { position: fixed; bottom: 15px; left: 5%; width: 90%; height: 60px; background: #fff; border-radius: 4px; overflow: hidden; display: flex; color: #111; border-bottom: 4px solid #0984e3; }
     .ov-left { background: #0984e3; color: white; padding: 0 20px; display: flex; flex-direction: column; justify-content: center; clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%); width: 30%; }
-  </style>
-  <div class="ov-container">
+</style>
+<div class="ov-container">
     <div class="ov-left"><span id="teamName" style="font-weight:bold">TEAM</span><span id="scores" style="font-size:18px">0/0</span></div>
     <div style="flex:1; display:flex; align-items:center; padding: 0 10px;">
       <div style="font-size:12px; flex:1"><b id="batsmanName">Player Name*</b><br><span id="bowlerName">Bowler Name</span></div>
       <div id="ballsTracker" style="background:#f1f2f6; padding: 5px; border-radius: 3px;">. . . . . .</div>
     </div>
-  </div>
+</div>
+
+<script>
+    // ========== BROADCAST CHANNEL (from ScoreboardUpdate.tsx) ==========
+    let broadcastChannel = null;
+    try {
+        broadcastChannel = new BroadcastChannel('cricket_score_updates');
+        broadcastChannel.onmessage = (event) => {
+            console.log('BroadcastChannel message received:', event.data);
+            handleScoreUpdate(event.data);
+        };
+    } catch (e) {
+        console.log('BroadcastChannel not supported');
+    }
+
+    // ========== POST MESSAGE (from LiveScoring.tsx via iframe) ==========
+    window.addEventListener('message', (event) => {
+        console.log('PostMessage received:', event.data);
+        if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
+            handleScoreUpdate(event.data.data);
+        }
+    });
+
+    // ========== UNIFIED UPDATE HANDLER ==========
+    function handleScoreUpdate(d) {
+        if (!d) return;
+        
+        // Handle ScoreboardUpdate format (team1/team2 objects with nested data)
+        if (d.team1 && typeof d.team1 === 'object') {
+            const battingTeam = d.battingTeam || 'team1';
+            const battingData = d[battingTeam] || {};
+            
+            // Update team name
+            document.getElementById('teamName').innerText = battingData.name || 'Team';
+            
+            // Update score
+            document.getElementById('scores').innerText = `${battingData.score || 0}/${battingData.wickets || 0}`;
+            
+            // Update batsman
+            if (battingData.batsmen && battingData.batsmen[0]) {
+                document.getElementById('batsmanName').innerText = `${battingData.batsmen[0].name || 'Player'}*`;
+            }
+            
+            // Update bowler
+            if (battingData.bowler) {
+                document.getElementById('bowlerName').innerText = battingData.bowler.name || 'Bowler';
+            }
+            
+            // Update balls tracker
+            const last5 = d.stats?.last5Overs || d.lastFiveOvers || '';
+            if (typeof last5 === 'string') {
+                document.getElementById('ballsTracker').innerText = last5.split('').join(' ');
+            }
+        }
+        // Handle LiveScoring format (flat team1Score, team2Score, etc.)
+        else if (d.team1Score !== undefined || d.team2Score !== undefined) {
+            document.getElementById('teamName').innerText = d.team1Name || 'Team 1';
+            document.getElementById('scores').innerText = `${d.team1Score || 0}/${d.team1Wickets || 0}`;
+            document.getElementById('batsmanName').innerText = `${d.strikerName || 'Player'}*`;
+            document.getElementById('bowlerName').innerText = d.bowlerName || 'Bowler';
+        }
+    }
+</script>

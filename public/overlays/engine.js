@@ -62,6 +62,73 @@ if (broadcastChannel) {
     };
 }
 
+// 4b. POST MESSAGE - Listen for messages from parent window (from LiveScoring.tsx via iframe)
+window.addEventListener('message', (event) => {
+    console.log('PostMessage received:', event.data);
+    if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
+        // Transform LiveScoring format to match format
+        const data = event.data.data;
+        const transformedData = transformLiveScoringData(data);
+        handleScoreUpdate(transformedData);
+    }
+});
+
+// Transform LiveScoring data format to match format
+function transformLiveScoringData(data) {
+    if (!data) return null;
+    
+    // Check if already in match format
+    if (data.team1Score !== undefined || data.score1 !== undefined) {
+        return data;
+    }
+    
+    // Check if already in ScoreboardUpdate format
+    if (data.team1 && typeof data.team1 === 'object') {
+        return data;
+    }
+    
+    // LiveScoring format: { team1Name, team1Score, team1Wickets, team1Overs, ... }
+    return {
+        team1: {
+            name: data.team1Name || 'Team 1',
+            score: data.team1Score || 0,
+            wickets: data.team1Wickets || 0,
+            overs: data.team1Overs || 0
+        },
+        team2: {
+            name: data.team2Name || 'Team 2',
+            score: data.team2Score || 0,
+            wickets: data.team2Wickets || 0,
+            overs: data.team2Overs || 0
+        },
+        striker: {
+            name: data.strikerName || 'Striker',
+            runs: data.strikerRuns || 0,
+            balls: data.strikerBalls || 0
+        },
+        nonStriker: {
+            name: data.nonStrikerName || 'Non-Striker',
+            runs: data.nonStrikerRuns || 0,
+            balls: data.nonStrikerBalls || 0
+        },
+        bowler: {
+            name: data.bowlerName || 'Bowler',
+            overs: data.bowlerOvers || 0,
+            runsConceded: data.bowlerRuns || 0,
+            wickets: data.bowlerWickets || 0
+        },
+        stats: {
+            currentRunRate: data.runRate || 0,
+            last5Overs: data.lastFiveOvers || ''
+        },
+        tournament: {
+            name: data.tournamentName || 'Tournament'
+        },
+        battingTeam: data.battingTeam || 'team1',
+        status: 'Live'
+    };
+}
+
 // 5. Handle score updates from any source
 function handleScoreUpdate(data) {
     // Handle different message types
