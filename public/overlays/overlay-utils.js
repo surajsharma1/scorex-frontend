@@ -1,6 +1,65 @@
 // Overlay Utilities - Team/Player Toggle and Data Management
 // Enhanced with multiple event listeners for reliable score updates
 
+// ========== UNIFIED DATA NORMALIZER ==========
+// This function normalizes data from different sources (LiveScoring.tsx, Socket, etc.)
+// to a consistent format that all overlays can use
+function normalizeScoreData(data) {
+    if (!data) return null;
+    
+    // Create normalized data object with defaults
+    const normalized = {
+        // Tournament info
+        tournament: data.tournamentName || data.tournament?.name || 'Match',
+        tournamentName: data.tournamentName || data.tournament?.name || 'Match',
+        
+        // Team 1 (batting team)
+        team1Name: data.team1Name || data.team1?.name || 'Team 1',
+        team1Short: data.team1Name?.substring(0, 3).toUpperCase() || data.team1?.shortName || 'T1',
+        team1Score: data.team1Score !== undefined ? data.team1Score : (data.team1?.score || 0),
+        team1Wickets: data.team1Wickets !== undefined ? data.team1Wickets : (data.team1?.wickets || 0),
+        team1Overs: data.team1Overs || data.team1?.overs || '0.0',
+        
+        // Team 2 (bowling team)
+        team2Name: data.team2Name || data.team2?.name || 'Team 2',
+        team2Short: data.team2Name?.substring(0, 3).toUpperCase() || data.team2?.shortName || 'T2',
+        team2Score: data.team2Score !== undefined ? data.team2Score : (data.team2?.score || 0),
+        team2Wickets: data.team2Wickets !== undefined ? data.team2Wickets : (data.team2?.wickets || 0),
+        team2Overs: data.team2Overs || data.team2?.overs || '0.0',
+        
+        // Current striker
+        strikerName: data.strikerName || data.striker?.name || 'Striker',
+        strikerRuns: data.strikerRuns !== undefined ? data.strikerRuns : (data.striker?.runs || 0),
+        strikerBalls: data.strikerBalls !== undefined ? data.strikerBalls : (data.striker?.balls || 0),
+        
+        // Current non-striker
+        nonStrikerName: data.nonStrikerName || data.nonStriker?.name || 'Non-Striker',
+        nonStrikerRuns: data.nonStrikerRuns !== undefined ? data.nonStrikerRuns : (data.nonStriker?.runs || 0),
+        nonStrikerBalls: data.nonStrikerBalls !== undefined ? data.nonStrikerBalls : (data.nonStriker?.balls || 0),
+        
+        // Current bowler
+        bowlerName: data.bowlerName || data.bowler?.name || 'Bowler',
+        bowlerOvers: data.bowlerOvers !== undefined ? data.bowlerOvers : (data.bowler?.overs || 0),
+        bowlerRuns: data.bowlerRuns !== undefined ? data.bowlerRuns : (data.bowler?.runs || 0),
+        bowlerWickets: data.bowlerWickets !== undefined ? data.bowlerWickets : (data.bowler?.wickets || 0),
+        
+        // Match stats
+        runRate: data.runRate || data.stats?.currentRunRate || '0.00',
+        requiredRunRate: data.requiredRunRate || data.stats?.requiredRunRate || '0.00',
+        target: data.target || data.stats?.target || 0,
+        
+        // Status
+        status: data.status || 'Live',
+        matchId: data.matchId || '',
+        
+        // Legacy field names (for backwards compatibility)
+        score: `${data.team1Score || 0}/${data.team1Wickets || 0}`,
+        overs: data.team1Overs || '0.0',
+    };
+    
+    return normalized;
+}
+
 // Sample match data (will be replaced by API data)
 let matchData = {
   tournament: { name: 'Tournament', logo: '' },
@@ -23,28 +82,35 @@ function initOverlay(customData = null) {
 
 // Handle score updates
 function handleScoreUpdate(data) {
-  // Update match data
-  matchData = { ...matchData, ...data };
-  
-  // Update score display if specific overlay function exists
-  if(typeof updateScoreDisplay === 'function') updateScoreDisplay();
-  
-  // Update teams panel if exists
-  if(typeof setupTeamsPanel === 'function') setupTeamsPanel();
-  
-  // Dispatch custom event for overlay-specific handling
-  const event = new CustomEvent('scoreUpdated', { detail: data });
-  window.dispatchEvent(event);
-  
-  // Call the global onScoreUpdate if it exists (legacy support)
-  if (typeof window.onScoreUpdate === 'function') {
-    window.onScoreUpdate(data);
-  }
-  
-  // Also call handleOverlayScoreUpdate if exists
-  if (typeof window.handleOverlayScoreUpdate === 'function') {
-    window.handleOverlayScoreUpdate(data);
-  }
+    // Normalize the data first
+    const normalizedData = normalizeScoreData(data);
+    
+    // Update match data
+    matchData = { ...matchData, ...normalizedData };
+    
+    // Update score display if specific overlay function exists
+    if(typeof updateScoreDisplay === 'function') updateScoreDisplay();
+    
+    // Update teams panel if exists
+    if(typeof setupTeamsPanel === 'function') setupTeamsPanel();
+    
+    // Dispatch custom event for overlay-specific handling (with normalized data)
+    const event = new CustomEvent('scoreUpdated', { detail: normalizedData });
+    window.dispatchEvent(event);
+    
+    // Also dispatch with original data for backward compatibility
+    const rawEvent = new CustomEvent('scoreUpdatedRaw', { detail: data });
+    window.dispatchEvent(rawEvent);
+    
+    // Call the global onScoreUpdate if it exists (legacy support)
+    if (typeof window.onScoreUpdate === 'function') {
+        window.onScoreUpdate(normalizedData);
+    }
+    
+    // Also call handleOverlayScoreUpdate if exists
+    if (typeof window.handleOverlayScoreUpdate === 'function') {
+        window.handleOverlayScoreUpdate(normalizedData);
+    }
 }
 
 // Initialize BroadcastChannel for real-time score updates
