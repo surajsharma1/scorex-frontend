@@ -305,6 +305,16 @@ export default function LiveScoring() {
     } catch (error) {
       console.error('Error sending postMessage:', error);
     }
+    
+    // Also send via BroadcastChannel for cross-tab support
+    try {
+      if (broadcastChannelRef.current) {
+        broadcastChannelRef.current.postMessage(overlayData);
+        console.log('BroadcastChannel message sent');
+      }
+    } catch (error) {
+      console.error('Error sending BroadcastChannel message:', error);
+    }
   };
 
   const fetchMatch = async () => {
@@ -544,6 +554,7 @@ export default function LiveScoring() {
             src={`/overlays/${selectedOverlay}`}
             className="w-full h-full"
             title="Live Overlay"
+            onLoad={handleIframeLoad}
           />
         </div>
       )}

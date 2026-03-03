@@ -1,5 +1,5 @@
 // Overlay Utilities - Team/Player Toggle and Data Management
-// COMPREHENSIVE - Supports BroadcastChannel, postMessage, and socket.io
+// Enhanced with multiple event listeners for reliable score updates
 
 // Sample match data (will be replaced by API data)
 let matchData = {
@@ -16,22 +16,34 @@ function initOverlay(customData = null) {
   if (customData) {
     matchData = { ...matchData, ...customData };
   }
+  // Safe calls to updates
   if(typeof updateScoreDisplay === 'function') updateScoreDisplay();
   if(typeof setupTeamsPanel === 'function') setupTeamsPanel();
 }
 
 // Handle score updates
 function handleScoreUpdate(data) {
+  // Update match data
   matchData = { ...matchData, ...data };
   
+  // Update score display if specific overlay function exists
   if(typeof updateScoreDisplay === 'function') updateScoreDisplay();
+  
+  // Update teams panel if exists
   if(typeof setupTeamsPanel === 'function') setupTeamsPanel();
   
+  // Dispatch custom event for overlay-specific handling
   const event = new CustomEvent('scoreUpdated', { detail: data });
   window.dispatchEvent(event);
   
+  // Call the global onScoreUpdate if it exists (legacy support)
   if (typeof window.onScoreUpdate === 'function') {
     window.onScoreUpdate(data);
+  }
+  
+  // Also call handleOverlayScoreUpdate if exists
+  if (typeof window.handleOverlayScoreUpdate === 'function') {
+    window.handleOverlayScoreUpdate(data);
   }
 }
 
@@ -42,6 +54,7 @@ window.initBroadcastChannel = function() {
   channel.onmessage = function(event) {
     const data = event.data;
     
+    // Handle wicket events
     if (data.type === 'WICKET') {
       if (typeof window.triggerPush === 'function') {
         window.triggerPush(data.message || 'OUT!', 'W');
@@ -51,8 +64,10 @@ window.initBroadcastChannel = function() {
       }
     }
     
-    if (data.tournament || data.team1 || data.team2 || data.striker || data.team1Name) {
+    // Handle regular score updates
+    if (data.tournament || data.team1 || data.team2 || data.striker) {
       handleScoreUpdate(data);
+      // Also dispatch event directly here to ensure listeners catch it
       window.dispatchEvent(new CustomEvent('scoreUpdated', { detail: data }));
     }
   };
@@ -61,52 +76,53 @@ window.initBroadcastChannel = function() {
   return channel;
 };
 
-// Listen for postMessage from parent window (LiveScoring.tsx)
-window.addEventListener('message', function(event) {
-  console.log('PostMessage received in overlay-utils:', event.data);
-  if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
-    handleScoreUpdate(event.data.data);
-    window.dispatchEvent(new CustomEvent('scoreUpdated', { detail: event.data.data }));
-  }
-});
-
 // Auto-initialize BroadcastChannel
 (function() {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initBC);
-  } else {
-    initBC();
-  }
-  
-  function initBC() {
-    setTimeout(function() {
-      if(window.initBroadcastChannel) {
-         window.initBroadcastChannel();
-         console.log('Auto-initialized BroadcastChannel');
-      }
-    }, 100);
+  try {
+    window.initBroadcastChannel();
+  } catch(e) {
+    console.log('Auto-init BroadcastChannel failed:', e);
   }
 })();
 
-// ============================================
-// COMPREHENSIVE SCORE UPDATE HANDLER
-// Updates all common overlay elements safely
-// ============================================
+// Listen for postMessage from parent window (LiveScoring.tsx)
+if (typeof window !== 'undefined') {
+  window.addEventListener('message', function(event) {
+    // Verify origin for security (optional, can be relaxed for local development)
+    // if (event.origin !== expectedOrigin) return;
+    
+    if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
+      console.log('overlay-utils: postMessage received', event.data.data);
+      handleScoreUpdate(event.data.data);
+    }
+  });
+  
+  // Listen for scoreUpdated event
+  window.addEventListener('scoreUpdated', function(e) {
+    if (e.detail) {
+      handleScoreUpdate(e.detail);
+    }
+  });
+}
 
+// Safe set text helper
+function safeSetText(id, value) {
+  if (!id || value === undefined || value === null) return;
+  
+  const el = document.getElementById(id);
+  if (el) {
+    el.textContent = value;
+  }
+}
+
+// Update overlay display from data
 window.handleOverlayScoreUpdate = function(data) {
-  const safeSetText = function(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-  };
-
-  const safeSetHTML = function(id, html) {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = html;
-  };
-
-  // 1. TOURNAMENT NAME - check multiple common selectors
+  if (!data) return;
+  
+  // 1. Tournament
   if (data.tournament) {
     safeSetText('tournament-name', data.tournament.name);
+    // Fallback selectors
     const tournamentEl = document.querySelector('.tournament-badge') || 
                          document.querySelector('.prism-header') ||
                          document.querySelector('.top-vector');
@@ -121,18 +137,16 @@ window.handleOverlayScoreUpdate = function(data) {
     safeSetText('team1-wickets', data.team1.wickets);
     safeSetText('team1-overs', data.team1.overs);
     
+    // Combined displays found in some templates
     const scoreFullEl = document.getElementById('team1-score-full');
     if(scoreFullEl) scoreFullEl.textContent = `${data.team1.score}/${data.team1.wickets}`;
   }
   
-  // Also handle flat format (from LiveScoring)
-  if (data.team1Name !== undefined) {
-    safeSetText('team1-name', data.team1Name);
-    safeSetText('team1-short', data.team1Name.substring(0, 3).toUpperCase());
-    safeSetText('team1-score', data.team1Score || 0);
-    safeSetText('team1-wickets', data.team1Wickets || 0);
-    safeSetText('team1-overs', data.team1Overs || '0.0');
-  }
+  // Direct data fields (from LiveScoring)
+  if (data.team1Name !== undefined) safeSetText('team1-name', data.team1Name);
+  if (data.team1Score !== undefined) safeSetText('team1-score', data.team1Score);
+  if (data.team1Wickets !== undefined) safeSetText('team1-wickets', data.team1Wickets);
+  if (data.team1Overs !== undefined) safeSetText('team1-overs', data.team1Overs);
   
   // 3. TEAM 2
   if (data.team2) {
@@ -143,14 +157,10 @@ window.handleOverlayScoreUpdate = function(data) {
     safeSetText('team2-overs', data.team2.overs);
   }
   
-  // Also handle flat format (from LiveScoring)
-  if (data.team2Name !== undefined) {
-    safeSetText('team2-name', data.team2Name);
-    safeSetText('team2-short', data.team2Name.substring(0, 3).toUpperCase());
-    safeSetText('team2-score', data.team2Score || 0);
-    safeSetText('team2-wickets', data.team2Wickets || 0);
-    safeSetText('team2-overs', data.team2Overs || '0.0');
-  }
+  if (data.team2Name !== undefined) safeSetText('team2-name', data.team2Name);
+  if (data.team2Score !== undefined) safeSetText('team2-score', data.team2Score);
+  if (data.team2Wickets !== undefined) safeSetText('team2-wickets', data.team2Wickets);
+  if (data.team2Overs !== undefined) safeSetText('team2-overs', data.team2Overs);
   
   // 4. STRIKER
   if (data.striker) {
@@ -159,12 +169,10 @@ window.handleOverlayScoreUpdate = function(data) {
     safeSetText('striker-stat', `${data.striker.runs} (${data.striker.balls})`);
   }
   
-  // Handle flat format
-  if (data.strikerName !== undefined) {
-    safeSetText('striker-name', data.strikerName);
-    safeSetText('striker-runs', (data.strikerRuns || 0) + '*');
-    safeSetText('striker-stat', `${data.strikerRuns || 0} (${data.strikerBalls || 0})`);
-  }
+  // Direct striker fields
+  if (data.strikerName !== undefined) safeSetText('striker-name', data.strikerName);
+  if (data.strikerRuns !== undefined) safeSetText('striker-runs', data.strikerRuns);
+  if (data.strikerBalls !== undefined) safeSetText('striker-balls', data.strikerBalls);
   
   // 5. NON-STRIKER
   if (data.nonStriker) {
@@ -173,12 +181,9 @@ window.handleOverlayScoreUpdate = function(data) {
     safeSetText('nonstriker-stat', `${data.nonStriker.runs} (${data.nonStriker.balls})`);
   }
   
-  // Handle flat format
-  if (data.nonStrikerName !== undefined) {
-    safeSetText('nonstriker-name', data.nonStrikerName);
-    safeSetText('nonstriker-runs', data.nonStrikerRuns || 0);
-    safeSetText('nonstriker-stat', `${data.nonStrikerRuns || 0} (${data.nonStrikerBalls || 0})`);
-  }
+  if (data.nonStrikerName !== undefined) safeSetText('nonstriker-name', data.nonStrikerName);
+  if (data.nonStrikerRuns !== undefined) safeSetText('nonstriker-runs', data.nonStrikerRuns);
+  if (data.nonStrikerBalls !== undefined) safeSetText('nonstriker-balls', data.nonStrikerBalls);
   
   // 6. BOWLER
   if (data.bowler) {
@@ -186,11 +191,10 @@ window.handleOverlayScoreUpdate = function(data) {
     safeSetText('bowler-stat', `${data.bowler.overs}-${data.bowler.maidens}-${data.bowler.runs}-${data.bowler.wickets}`);
   }
   
-  // Handle flat format
-  if (data.bowlerName !== undefined) {
-    safeSetText('bowler-name', data.bowlerName);
-    safeSetText('bowler-stat', `${data.bowlerOvers || 0}-${data.bowlerMaidens || 0}-${data.bowlerRuns || 0}-${data.bowlerWickets || 0}`);
-  }
+  if (data.bowlerName !== undefined) safeSetText('bowler-name', data.bowlerName);
+  if (data.bowlerOvers !== undefined) safeSetText('bowler-overs', data.bowlerOvers);
+  if (data.bowlerRuns !== undefined) safeSetText('bowler-runs', data.bowlerRuns);
+  if (data.bowlerWickets !== undefined) safeSetText('bowler-wickets', data.bowlerWickets);
   
   // 7. MATCH STATS
   if (data.stats) {
@@ -200,13 +204,9 @@ window.handleOverlayScoreUpdate = function(data) {
     if (targetEl && data.stats.target) targetEl.textContent = `TARGET ${data.stats.target}`;
   }
   
-  // Handle flat format stats
-  if (data.runRate !== undefined) {
-    safeSetText('current-run-rate', data.runRate);
-    safeSetText('required-run-rate', data.requiredRunRate || '0.00');
-    const targetEl = document.getElementById('target');
-    if (targetEl && data.target) targetEl.textContent = `TARGET ${data.target}`;
-  }
+  if (data.runRate !== undefined) safeSetText('current-run-rate', data.runRate);
+  if (data.requiredRunRate !== undefined) safeSetText('required-run-rate', data.requiredRunRate);
+  if (data.target !== undefined) safeSetText('target', data.target);
 };
 
 // Global listener
@@ -216,14 +216,4 @@ window.addEventListener('scoreUpdated', function(e) {
   }
 });
 
-// Also listen for postMessage at global level
-if (typeof window !== 'undefined') {
-  window.addEventListener('message', function(event) {
-    if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
-      if(window.handleOverlayScoreUpdate) {
-        window.handleOverlayScoreUpdate(event.data.data);
-      }
-      window.dispatchEvent(new CustomEvent('scoreUpdated', { detail: event.data.data }));
-    }
-  });
-}
+console.log('Overlay utilities loaded - enhanced with multiple event listeners');

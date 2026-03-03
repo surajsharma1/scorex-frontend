@@ -1,16 +1,169 @@
-<style>
-    .ov-container { position: fixed; bottom: 10px; left: 3%; width: 94%; height: 60px; display: flex; background: #1a1a1a; border-left: 5px solid #d4af37; color: #fff; font-family: 'Segoe UI', sans-serif; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-    .ov-sec { padding: 0 15px; display: flex; align-items: center; border-right: 1px solid #333; }
-    .ov-team { font-weight: 800; color: #d4af37; }
-    .ov-score { font-size: 22px; font-weight: bold; }
-    .ov-players { flex: 1; font-size: 13px; line-height: 1.2; justify-content: space-around; }
-  </style>
-  <div class="ov-container">
-    <div class="ov-sec ov-team" id="teamName">TEAM</div>
-    <div class="ov-sec ov-score" id="scores">0/0</div>
-    <div class="ov-sec ov-players">
-      <div id="batsmanName">Batsman*</div>
-      <div id="bowlerName" style="opacity:0.6">Bowler</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Blue Overlay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; background: transparent; }
+        
+        .ov-container {
+            position: fixed;
+            bottom: 10px;
+            left: 3%;
+            width: 94%;
+            height: 60px;
+            display: flex;
+            background: #1a1a1a;
+            border-left: 5px solid #d4af37;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        
+        .ov-sec {
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+            border-right: 1px solid #333;
+        }
+        
+        .ov-team {
+            font-weight: 800;
+            color: #d4af37;
+            min-width: 80px;
+        }
+        
+        .ov-score {
+            font-size: 22px;
+            font-weight: bold;
+            min-width: 100px;
+        }
+        
+        .ov-players {
+            flex: 1;
+            font-size: 13px;
+            line-height: 1.2;
+            justify-content: space-around;
+        }
+        
+        .ov-balls {
+            border: none;
+            color: #d4af37;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+        
+        .batsman-name, .bowler-name {
+            display: block;
+        }
+        
+        .batsman-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .bowler-name {
+            opacity: 0.6;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ov-container">
+        <div class="ov-sec ov-team" id="teamName">TEAM</div>
+        <div class="ov-sec ov-score" id="scores">0/0</div>
+        <div class="ov-sec ov-players">
+            <div>
+                <span class="batsman-name" id="batsmanName">Batsman*</span>
+            </div>
+            <div>
+                <span class="bowler-name" id="bowlerName">Bowler</span>
+            </div>
+        </div>
+        <div class="ov-sec ov-balls" id="ballsTracker">. . . . . .</div>
     </div>
-    <div class="ov-sec" style="border:none; color:#d4af37" id="ballsTracker">. . . . . .</div>
-  </div>
+
+    <script src="/overlays/engine.js"></script>
+    <script>
+        // Modern Blue Overlay - Score Update Handler
+        // Uses engine.js for data handling, with custom display logic
+        
+        console.log('Modern Blue overlay initialized with engine.js');
+        
+        // Custom update function that works with engine.js data
+        function updateModernBlue(data) {
+            console.log('Updating Modern Blue overlay:', data);
+            
+            // Handle different data formats
+            var teamName = data.team1Name || (data.team1 ? data.team1.name : null) || 'Team';
+            var score = data.team1Score || (data.team1 ? data.team1.score : null) || '0/0';
+            var batsman = data.strikerName || (data.striker ? data.striker.name : null) || 'Batsman';
+            var bowler = data.bowlerName || (data.bowler ? data.bowler.name : null) || 'Bowler';
+            
+            // Update team name
+            var teamEl = document.getElementById('teamName');
+            if (teamEl) teamEl.textContent = teamName.substring(0, 3).toUpperCase();
+            
+            // Update score
+            var scoresEl = document.getElementById('scores');
+            if (scoresEl) {
+                var s = data.team1Score || (data.team1 ? data.team1.score : null) || 0;
+                var w = data.team1Wickets || (data.team1 ? data.team1.wickets : null) || 0;
+                scoresEl.textContent = s + '/' + w;
+            }
+            
+            // Update batsman
+            var batsmanEl = document.getElementById('batsmanName');
+            if (batsmanEl) {
+                var runs = data.strikerRuns || (data.striker ? data.striker.runs : null) || 0;
+                batsmanEl.textContent = batsman + ' ' + runs + '*';
+            }
+            
+            // Update bowler
+            var bowlerEl = document.getElementById('bowlerName');
+            if (bowlerEl) {
+                var overs = data.bowlerOvers || (data.bowler ? data.bowler.overs : null) || 0;
+                var bruns = data.bowlerRuns || (data.bowler ? (data.bowler.runsConceded || data.bowler.runs) : null) || 0;
+                var wkts = data.bowlerWickets || (data.bowler ? data.bowler.wickets : null) || 0;
+                bowlerEl.textContent = bowler + ' ' + overs + '-' + bruns + '-' + wkts;
+            }
+        }
+        
+        // Listen for postMessage from parent (LiveScoring.tsx)
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
+                console.log('Modern Blue: postMessage received');
+                updateModernBlue(event.data.data);
+            }
+        });
+        
+        // Listen for BroadcastChannel events
+        if (typeof BroadcastChannel !== 'undefined') {
+            try {
+                var bc = new BroadcastChannel('cricket_score_updates');
+                bc.onmessage = function(event) {
+                    console.log('Modern Blue: BroadcastChannel message received');
+                    updateModernBlue(event.data);
+                };
+            } catch(e) {
+                console.log('BroadcastChannel not supported');
+            }
+        }
+        
+        // Listen for custom scoreUpdated event from engine.js
+        window.addEventListener('scoreUpdated', function(e) {
+            console.log('Modern Blue: scoreUpdated event');
+            if (e.detail) {
+                updateModernBlue(e.detail);
+            }
+        });
+        
+        // Also expose function for engine.js to call
+        window.updateModernBlue = updateModernBlue;
+        
+        console.log('Modern Blue overlay ready');
+    </script>
+</body>
+</html>
