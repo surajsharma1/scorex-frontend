@@ -1,18 +1,205 @@
-<style>
-    .ov-container { position: fixed; bottom: 10px; left: 2%; width: 96%; height: 65px; display: flex; font-family: 'Roboto', sans-serif; }
-    .ov-team { background: #2d3436; color: #fdcb6e; width: 25%; display: flex; align-items: center; justify-content: center; font-weight: 900; border-right: 3px solid #fdcb6e; clip-path: polygon(0 0, 90% 0, 100% 100%, 0% 100%); }
-    .ov-main { background: rgba(0,0,0,0.85); flex: 1; color: white; display: flex; align-items: center; padding: 0 15px; }
-    .ov-data { font-size: 20px; font-weight: bold; margin-right: auto; }
-    .ov-players { font-size: 13px; display: flex; flex-direction: column; text-align: left; opacity: 0.9; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ScoreX - Lvl 1 Grass Theme</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto+Condensed:wght@400;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto Condensed', sans-serif; }
+    body { background: transparent; overflow: hidden; }
+
+    /* Top Island */
+    #grass-island {
+      position: absolute;
+      top: 15px;
+      right: 50px;
+      background: #1b5e20;
+      color: white;
+      padding: 6px 20px;
+      border-radius: 4px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      border-bottom: 3px solid #fbc02d;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+    }
+
+    /* Big Event Banner */
+    #event-banner {
+      position: absolute;
+      top: 30%;
+      width: 100%;
+      text-align: center;
+      background: rgba(27, 94, 32, 0.9);
+      padding: 15px 0;
+      font-family: 'Oswald', sans-serif;
+      font-size: 70px;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 5px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      transform: scaleY(0);
+      transform-origin: center;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #event-banner.active { transform: scaleY(1); }
+
+    /* Bottom Bar */
+    #grass-bottom {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 95%;
+      height: 60px; /* Very thin */
+      display: flex;
+      background: #ffffff;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .main-score-box {
+      background: #1b5e20;
+      color: white;
+      width: 25%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+    .team-id { font-family: 'Oswald', sans-serif; font-size: 26px; }
+    .score-txt { font-family: 'Oswald', sans-serif; font-size: 34px; color: #fbc02d; }
+    .score-txt span { font-size: 20px; color: white; }
+
+    .stats-box {
+      width: 75%;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      color: #333;
+      font-size: 18px;
+    }
+
+    .bat-block { display: flex; gap: 15px; }
+    .bat-name { font-weight: 700; color: #1b5e20; }
+    .bat-runs { font-weight: 700; }
+    .bat-balls { color: #888; font-size: 14px; }
+    .strike-icon { color: #fbc02d; font-size: 14px; margin-right: 4px; }
+
+    .divider { width: 2px; height: 30px; background: #e0e0e0; }
+
+    .bowl-block { display: flex; gap: 10px; align-items: baseline;}
+    .lbl { font-size: 12px; color: #888; text-transform: uppercase;}
   </style>
-  <div class="ov-container">
-    <div class="ov-team" id="teamName">TEAM</div>
-    <div class="ov-main">
-      <div class="ov-data" id="scores">0/0 (0.0)</div>
-      <div class="ov-players">
-        <span id="batsmanName">BAT: Player*</span>
-        <span id="bowlerName">BWL: Player</span>
+</head>
+<body>
+
+  <div id="grass-island">SCOREX T20 CUP</div>
+
+  <div id="event-banner"></div>
+
+  <div id="grass-bottom">
+    <div class="main-score-box">
+      <div id="teamName" class="team-id">TEAM</div>
+      <div class="score-txt"><span id="teamScore">0</span><span>/</span><span id="teamWickets">0</span> <span>(<span id="teamOvers">0.0</span>)</span></div>
+    </div>
+    
+    <div class="stats-box">
+      <div class="bat-block">
+        <div>
+          <span class="strike-icon">▶</span>
+          <span id="strikerName" class="bat-name">Batsman 1</span>
+          <span id="strikerRuns" class="bat-runs">0</span>
+          <span class="bat-balls">(<span id="strikerBalls">0</span>)</span>
+        </div>
       </div>
-      <div style="margin-left:15px; color:#fdcb6e" id="ballsTracker">. . . . . .</div>
+
+      <div class="divider"></div>
+
+      <div class="bat-block">
+        <div>
+          <span id="nonStrikerName" class="bat-name">Batsman 2</span>
+          <span id="nonStrikerRuns" class="bat-runs">0</span>
+          <span class="bat-balls">(<span id="nonStrikerBalls">0</span>)</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="bowl-block">
+        <span class="lbl">Bowler:</span>
+        <span id="bowlerName" class="bat-name">Bowler Name</span>
+        <span class="bat-runs"><span id="bowlerWickets">0</span>/<span id="bowlerRuns">0</span></span>
+        <span class="bat-balls">(<span id="bowlerOvers">0.0</span>)</span>
+      </div>
     </div>
   </div>
+
+  <script>
+    let pScore = -1, pWickets = -1;
+    let islandToggle = true;
+    let cachePayload = {};
+
+    function set(id, val) { 
+      const e = document.getElementById(id); 
+      if(e && val !== undefined) e.innerText = val; 
+    }
+
+    function fireEvent(msg, bg) {
+      const banner = document.getElementById('event-banner');
+      banner.innerText = msg;
+      banner.style.background = bg;
+      banner.classList.add('active');
+      setTimeout(() => banner.classList.remove('active'), 3000);
+    }
+
+    // Top Island Rotation
+    setInterval(() => {
+      const el = document.getElementById('grass-island');
+      if(!cachePayload.tournamentName) return;
+      islandToggle = !islandToggle;
+      el.innerText = islandToggle ? cachePayload.tournamentName : "CRR: " + (cachePayload.runRate || "0.0");
+    }, 6000);
+
+    function handleGrassData(data) {
+      cachePayload = data;
+
+      set('teamName', data.team1Name);
+      set('teamScore', data.team1Score);
+      set('teamWickets', data.team1Wickets);
+      set('teamOvers', data.team1Overs);
+      
+      set('strikerName', data.strikerName);
+      set('strikerRuns', data.strikerRuns);
+      set('strikerBalls', data.strikerBalls);
+      
+      set('nonStrikerName', data.nonStrikerName);
+      set('nonStrikerRuns', data.nonStrikerRuns);
+      set('nonStrikerBalls', data.nonStrikerBalls);
+
+      set('bowlerName', data.bowlerName);
+      set('bowlerRuns', data.bowlerRuns);
+      set('bowlerWickets', data.bowlerWickets);
+      set('bowlerOvers', data.bowlerOvers);
+
+      // Event Logic
+      let cScore = parseInt(data.team1Score) || 0;
+      let cWickets = parseInt(data.team1Wickets) || 0;
+
+      if (pScore !== -1) {
+        if (cWickets > pWickets) fireEvent("WICKET!", "rgba(211, 47, 47, 0.95)");
+        else if (cScore - pScore === 6) fireEvent("MAXIMUM SIX!", "rgba(25, 118, 210, 0.95)");
+        else if (cScore - pScore === 4) fireEvent("FOUR RUNS!", "rgba(27, 94, 32, 0.95)");
+      }
+      pScore = cScore;
+      pWickets = cWickets;
+    }
+
+    window.addEventListener('message', e => { if (e.data && e.data.type === 'UPDATE_SCORE') handleGrassData(e.data.data); });
+    if ('BroadcastChannel' in window) {
+      new BroadcastChannel('scorex_overlay_channel').onmessage = e => { if (e.data && e.data.type === 'UPDATE_SCORE') handleGrassData(e.data.data); };
+    }
+  </script>
+</body>
+</html>

@@ -1,170 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lvl 2 - Kinetic Angle</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,700;1,700&family=Inter:wght@500;800&display=swap');
+  <meta charset="UTF-8">
+  <title>ScoreX - Lvl 2 Cyber Glitch (Thin)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap');
 
-        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; }
+    body { background: transparent; overflow: hidden; color: #0ff; }
 
-        .container {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 95%;
-            height: 60px;
-            display: flex;
-            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
-        }
+    /* Top Island HUD */
+    #cyber-island {
+      position: absolute;
+      top: 15px;
+      right: 30px;
+      background: rgba(10, 10, 15, 0.9);
+      border: 1px solid #f0f;
+      color: #fff;
+      padding: 4px 30px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+      box-shadow: 0 0 10px rgba(255, 0, 255, 0.4);
+    }
 
-        .skew-box {
-            transform: skewX(-15deg);
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fff;
-            border-right: 2px solid rgba(0,0,0,0.1);
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .skew-content {
-            transform: skewX(15deg); /* Un-skew text */
-            text-align: center;
-            width: 100%;
-        }
+    /* Event Glitch Popup */
+    #cyber-popup {
+      position: absolute;
+      top: 35%; left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 140px; font-weight: 700; color: #fff;
+      text-shadow: 4px 0 #f0f, -4px 0 #0ff;
+      opacity: 0;
+      transition: all 0.2s ease-out;
+    }
+    #cyber-popup.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 
-        /* 1. Team Name (Red) */
-        .box-team {
-            background: #d63031;
-            color: white;
-            width: 25%;
-            border-radius: 8px 0 0 8px;
-            font-family: 'Exo 2', sans-serif;
-            font-weight: 700;
-            font-size: 22px;
-        }
+    /* Thin Bottom HUD */
+    #cyber-bottom {
+      position: absolute;
+      bottom: 15px; left: 2%; width: 96%; height: 55px;
+      display: flex; gap: 10px;
+    }
 
-        /* 2. Score (White) */
-        .box-score {
-            width: 30%;
-            background: #f1f2f6;
-            color: #2d3436;
-        }
-        .score-val { font-size: 26px; font-weight: 800; color: #2d3436; }
-        .rr-val { font-size: 11px; color: #636e72; font-weight: 600; }
+    .c-seg {
+      background: rgba(10, 10, 15, 0.85);
+      border: 1px solid #0ff;
+      display: flex; align-items: center; padding: 0 20px;
+      box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.2);
+    }
 
-        /* 3. Players (Dark) */
-        .box-players {
-            flex-grow: 1;
-            background: #2d3436;
-            color: white;
-            font-size: 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 0 20px;
-            align-items: flex-start;
-        }
-        .p-row { display: flex; justify-content: space-between; width: 100%; padding: 2px 0; }
-        .p-role { color: #fdcb6e; font-weight: bold; margin-right: 10px; }
+    .seg-score { border-color: #f0f; clip-path: polygon(0 0, 95% 0, 100% 100%, 0 100%); min-width: 260px; justify-content: space-between; }
+    .seg-bat { flex: 1; clip-path: polygon(20px 0, 100% 0, calc(100% - 20px) 100%, 0 100%); justify-content: space-around; font-size: 18px; }
+    .seg-bowl { border-color: #ffeb3b; clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%); min-width: 250px; justify-content: center; gap: 15px; }
 
-        /* 4. Overs (Yellow) */
-        .box-balls {
-            width: 15%;
-            background: #fdcb6e;
-            color: #2d3436;
-            border-radius: 0 8px 8px 0;
-            font-weight: bold;
-        }
+    .c-team { font-size: 24px; font-weight: 700; color: #fff; }
+    .c-runs { font-size: 32px; font-weight: 700; color: #f0f; line-height: 1; }
+    .c-overs { font-size: 14px; color: #888; }
 
-        /* --- DIAGONAL PUSH ANIMATION --- */
-        .push-wrapper {
-            position: relative;
-            height: 1.2em;
-            overflow: hidden;
-            display: inline-block;
-            vertical-align: bottom;
-        }
-        .push-inner {
-            display: block;
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        
-    </style>
+    .p-name { color: #fff; font-weight: 700; }
+    .p-stat { color: #0ff; font-weight: 700; }
+    .p-sub { color: #555; font-size: 14px; }
+    .striker { border-bottom: 2px solid #f0f; padding-bottom: 2px; }
+
+  </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="skew-box box-team">
-            <div class="skew-content" id="teamName">TEAM</div>
-        </div>
+  <div id="cyber-island">SYSTEM: ONLINE</div>
+  <div id="cyber-popup"></div>
 
-        <div class="skew-box box-score">
-            <div class="skew-content">
-                <div class="score-val" id="score">0-0</div>
-                <div class="rr-val">CRR: <span id="crr">0.0</span></div>
-            </div>
-        </div>
-
-        <div class="skew-box box-players">
-            <div class="skew-content" style="text-align: left;">
-                <div class="p-row">
-                    <span class="p-role">BAT</span>
-                    <span id="batsman">Player 1</span>
-                </div>
-                <div class="p-row">
-                    <span class="p-role">BWL</span>
-                    <span id="bowler">Player 2</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="skew-box box-balls">
-            <div class="skew-content">
-                <div style="font-size:10px; opacity:0.7">OVERS</div>
-                <div id="overs" style="font-size:20px">0.0</div>
-            </div>
-        </div>
+  <div id="cyber-bottom">
+    <div class="c-seg seg-score">
+      <span id="teamName" class="c-team">TITANS</span>
+      <div style="text-align: right;">
+        <div class="c-runs"><span id="teamScore">204</span>/<span id="teamWickets">4</span></div>
+        <div class="c-overs">OV: <span id="teamOvers">19.1</span></div>
+      </div>
     </div>
 
-    <script>
-        const channel = new BroadcastChannel('cricket_score_updates');
+    <div class="c-seg seg-bat">
+      <div class="striker">
+        <span id="strikerName" class="p-name">A. Hales</span>
+        <span id="strikerRuns" class="p-stat" style="color:#f0f; margin-left:10px;">88</span>
+        <span class="p-sub">(<span id="strikerBalls">41</span>)</span>
+      </div>
+      <div>
+        <span id="nonStrikerName" class="p-name">B. Stokes</span>
+        <span id="nonStrikerRuns" class="p-stat" style="margin-left:10px;">24</span>
+        <span class="p-sub">(<span id="nonStrikerBalls">11</span>)</span>
+      </div>
+    </div>
 
-        function pushUpdate(id, text) {
-            const el = document.getElementById(id);
-            if(!el) return;
-            // Simple innerHTML replace for this specific design to keep it lightweight
-            // Real animation would involve the wrapper logic from Design 1
-            // Adding a simple fade effect here for variety
-            if(el.innerText !== text) {
-                el.style.opacity = 0;
-                setTimeout(() => {
-                    el.innerText = text;
-                    el.style.opacity = 1;
-                }, 150);
-            }
-        }
-        // Use CSS Transition for opacity
-        document.querySelectorAll('[id]').forEach(el => el.style.transition = 'opacity 0.15s');
+    <div class="c-seg seg-bowl">
+      <span class="p-sub">BOWL</span>
+      <span id="bowlerName" class="p-name">T. Boult</span>
+      <span class="p-stat" style="color:#ffeb3b;"><span id="bowlerWickets">2</span>-<span id="bowlerRuns">34</span></span>
+      <span class="p-sub">(<span id="bowlerOvers">3.1</span>)</span>
+    </div>
+  </div>
 
-        channel.onmessage = (event) => {
-            const d = event.data;
-            if(!d.team1) return;
-            
-            const activeTeam = d.team1.isBatting ? d.team1 : d.team2;
+  <script>
+    let cScore = -1, cWickets = -1, state = 0, pData = {};
+    const set = (id, val) => { const e = document.getElementById(id); if(e && val !== undefined) e.innerText = val; };
 
-            pushUpdate('teamName', activeTeam.shortName);
-            pushUpdate('score', `${activeTeam.score}/${activeTeam.wickets}`);
-            pushUpdate('crr', d.stats.currentRunRate);
-            pushUpdate('batsman', `${d.striker.name} ${d.striker.status}`);
-            pushUpdate('bowler', d.bowler.name);
-            pushUpdate('overs', activeTeam.overs);
-        };
-    </script>
+    function glitchEvent(text) {
+      const popup = document.getElementById('cyber-popup');
+      popup.innerText = text; popup.classList.add('show');
+      setTimeout(() => popup.classList.remove('show'), 3000);
+    }
+
+    setInterval(() => {
+      const el = document.getElementById('cyber-island');
+      if(!pData.tournamentName) return;
+      state = (state + 1) % 3;
+      if(state === 0) el.innerText = pData.tournamentName;
+      else if(state === 1) el.innerText = "CRR: " + (pData.runRate || '0.00');
+      else el.innerText = pData.target > 0 ? "REQ: " + pData.requiredRunRate : pData.status || "LIVE";
+    }, 4500);
+
+    function process(d) {
+      pData = d;
+      set('teamName', d.team1Name); set('teamScore', d.team1Score); set('teamWickets', d.team1Wickets); set('teamOvers', d.team1Overs);
+      set('strikerName', d.strikerName); set('strikerRuns', d.strikerRuns); set('strikerBalls', d.strikerBalls);
+      set('nonStrikerName', d.nonStrikerName); set('nonStrikerRuns', d.nonStrikerRuns); set('nonStrikerBalls', d.nonStrikerBalls);
+      set('bowlerName', d.bowlerName); set('bowlerRuns', d.bowlerRuns); set('bowlerWickets', d.bowlerWickets); set('bowlerOvers', d.bowlerOvers);
+
+      let ns = parseInt(d.team1Score)||0, nw = parseInt(d.team1Wickets)||0;
+      if (cScore !== -1) {
+        if (nw > cWickets) glitchEvent("SYSTEM: WICKET");
+        else if (ns - cScore === 6) glitchEvent("MAXIMUM: 6");
+        else if (ns - cScore === 4) glitchEvent("BOUNDARY: 4");
+      }
+      cScore = ns; cWickets = nw;
+    }
+
+    window.addEventListener('message', e => { if(e.data?.type === 'UPDATE_SCORE') process(e.data.data); });
+    if ('BroadcastChannel' in window) new BroadcastChannel('scorex_overlay_channel').onmessage = e => { if(e.data?.type === 'UPDATE_SCORE') process(e.data.data); };
+  </script>
 </body>
 </html>

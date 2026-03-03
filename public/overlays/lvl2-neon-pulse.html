@@ -1,190 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Lvl 2 - Cinema Scope</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Roboto:wght@400;700&display=swap');
+  <meta charset="UTF-8">
+  <title>ScoreX - Lvl 2 Neon Pulse</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&display=swap');
 
-        :root {
-            --bar-height-top: 50px;
-            --bar-height-btm: 90px;
-            --primary: #ffc107; /* Amber */
-            --bg: #111;
-        }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Teko', sans-serif; }
+    body { background: transparent; overflow: hidden; }
 
-        body { margin: 0; overflow: hidden; font-family: 'Roboto', sans-serif; color: white; }
+    /* Floating Top Island */
+    #neon-island {
+      position: absolute;
+      top: 20px;
+      left: 30px;
+      background: #0a0a0a;
+      color: #00e5ff;
+      padding: 5px 25px;
+      font-size: 22px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border: 1px solid #00e5ff;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.5), inset 0 0 5px rgba(0, 229, 255, 0.3);
+      clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    }
 
-        /* --- TOP BAR (Context) --- */
-        .top-bar {
-            position: fixed; top: 0; left: 0; width: 100%; height: var(--bar-height-top);
-            background: linear-gradient(to bottom, #000, rgba(0,0,0,0.8));
-            border-bottom: 2px solid var(--primary);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; box-sizing: border-box;
-            transform: translateY(-100%);
-            animation: slideDown 0.8s ease-out forwards;
-        }
+    /* Center Event Pulse */
+    #neon-event {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 150px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      opacity: 0;
+      transition: all 0.2s ease-out;
+      pointer-events: none;
+    }
+    #neon-event.pulse {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      animation: neon-flicker 0.5s alternate infinite;
+    }
 
-        .match-title { font-family: 'Teko', sans-serif; font-size: 24px; color: var(--primary); letter-spacing: 1px; }
-        .match-status { font-size: 14px; font-weight: bold; color: #ddd; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 4px; }
+    @keyframes neon-flicker {
+      0%, 100% { text-shadow: 0 0 10px #b026ff, 0 0 20px #b026ff, 0 0 40px #b026ff; }
+      50% { text-shadow: 0 0 5px #b026ff, 0 0 10px #b026ff; }
+    }
 
-        /* --- BOTTOM BAR (Data) --- */
-        .bottom-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--bar-height-btm);
-            background: linear-gradient(to top, #000 80%, rgba(0,0,0,0.9));
-            border-top: 2px solid var(--primary);
-            display: flex; align-items: center;
-            transform: translateY(100%);
-            animation: slideUp 0.8s ease-out 0.2s forwards;
-        }
+    /* Segmented Bottom Bar */
+    #neon-bottom {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      height: 65px;
+    }
 
-        /* Sections */
-        .team-logo-area {
-            width: 120px; height: 100%; background: var(--primary);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            color: #000; font-family: 'Teko', sans-serif;
-            clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
-            padding-right: 15px;
-        }
-        .team-name { font-size: 32px; font-weight: 700; line-height: 0.9; }
-        .team-inn { font-size: 14px; font-weight: 600; text-transform: uppercase; }
+    .neon-segment {
+      background: rgba(10, 10, 15, 0.95);
+      border: 1px solid #333;
+      border-bottom: 3px solid #b026ff;
+      display: flex;
+      align-items: center;
+      padding: 0 25px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+      clip-path: polygon(15px 0, 100% 0, calc(100% - 15px) 100%, 0 100%);
+    }
 
-        .score-area {
-            padding: 0 25px; min-width: 140px; text-align: center;
-            border-right: 1px solid rgba(255,255,255,0.2);
-        }
-        .main-score { font-family: 'Teko', sans-serif; font-size: 48px; font-weight: 700; line-height: 0.9; color: #fff; }
-        .overs-display { font-size: 14px; color: #aaa; font-weight: bold; }
+    /* specific borders for differentiation */
+    .seg-score { border-bottom-color: #00e5ff; min-width: 250px; justify-content: center;}
+    .seg-batsman { border-bottom-color: #b026ff; min-width: 300px; justify-content: space-between;}
+    .seg-bowler { border-bottom-color: #ff0055; min-width: 200px; justify-content: space-between;}
 
-        .players-grid {
-            flex: 1; display: grid; grid-template-columns: 1fr 1fr;
-            gap: 5px 20px; padding: 0 20px; font-size: 13px;
-        }
-        .p-row { display: flex; justify-content: space-between; align-items: center; }
-        .p-label { color: var(--primary); font-size: 10px; font-weight: bold; width: 30px; }
-        .p-name { font-weight: 700; white-space: nowrap; }
-        .p-stat { color: #ddd; margin-left: 8px; }
+    /* Text Styles */
+    .txt-main { color: #fff; font-size: 32px; font-weight: 600; line-height: 1;}
+    .txt-sub { color: #888; font-size: 20px; margin-left: 8px;}
+    .txt-hl { color: #00e5ff; font-weight: 700; }
+    .txt-purple { color: #b026ff; }
+    .txt-red { color: #ff0055; }
 
-        .rates-area {
-            display: flex; flex-direction: column; justify-content: center;
-            padding: 0 20px; border-left: 1px solid rgba(255,255,255,0.2);
-            text-align: right; font-size: 12px; color: #bbb;
-        }
-        .rate-val { color: #fff; font-weight: bold; font-size: 16px; }
+    .team-acr { font-size: 40px; margin-right: 15px; color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.5);}
 
-        .balls-rail {
-            width: 160px; height: 100%; background: #1a1a1a;
-            display: flex; flex-direction: column;
-        }
-        .rail-label { font-size: 10px; text-align: center; background: #333; color: #aaa; padding: 2px; }
-        .rail-dots { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; }
-        .b-dot { width: 18px; height: 18px; border-radius: 50%; background: #444; display: grid; place-items: center; font-size: 10px; font-weight: bold; }
-        .b-dot.active { background: #fff; color: #000; }
-        .b-dot.boundary { background: var(--primary); color: #000; }
-        .b-dot.wicket { background: #e53935; color: #fff; }
-
-        /* Animations */
-        @keyframes slideDown { to { transform: translateY(0); } }
-        @keyframes slideUp { to { transform: translateY(0); } }
-        .pulse { animation: pulse 0.3s ease-in-out; }
-        @keyframes pulse { 50% { transform: scale(1.1); color: var(--primary); } }
-
-    </style>
+  </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <div class="match-title" id="tournament">TOURNAMENT LIVE</div>
-        <div class="match-status" id="matchStatus">1st Innings</div>
+  <div id="neon-island">INITIALIZING...</div>
+  <div id="neon-event"></div>
+
+  <div id="neon-bottom">
+    
+    <div class="neon-segment seg-score">
+      <span id="teamName" class="team-acr">TM</span>
+      <span class="txt-main"><span id="teamScore">0</span><span class="txt-sub">/</span><span id="teamWickets" class="txt-hl">0</span></span>
+      <span class="txt-sub" style="margin-left: 15px;">OV <span id="teamOvers" class="txt-main">0.0</span></span>
     </div>
 
-    <div class="bottom-bar">
-        <div class="team-logo-area">
-            <div class="team-name" id="team">---</div>
-            <div class="team-inn">BATTING</div>
-        </div>
-
-        <div class="score-area">
-            <div class="main-score" id="score">0/0</div>
-            <div class="overs-display" id="overs">0.0 OVERS</div>
-        </div>
-
-        <div class="players-grid">
-            <div class="p-row">
-                <span class="p-label">STR</span>
-                <span class="p-name" id="striker">---</span>
-                <span class="p-stat" id="strikerStat">0(0)</span>
-            </div>
-            <div class="p-row">
-                <span class="p-label">NON</span>
-                <span class="p-name" id="nonStriker">---</span>
-                <span class="p-stat" id="nonStrikerStat">0(0)</span>
-            </div>
-            <div class="p-row">
-                <span class="p-label">BWL</span>
-                <span class="p-name" id="bowler">---</span>
-                <span class="p-stat" id="bowlerStat">0-0</span>
-            </div>
-            <div class="p-row" style="justify-content: flex-end;">
-                <span style="color:#aaa; margin-right:5px">CRR</span>
-                <span class="rate-val" id="crr">0.00</span>
-            </div>
-        </div>
-
-        <div class="balls-rail">
-            <div class="rail-label">THIS OVER</div>
-            <div class="rail-dots" id="ballsTracker"></div>
-        </div>
+    <div class="neon-segment seg-batsman">
+      <div style="display: flex; align-items: baseline;">
+        <span id="strikerName" class="txt-main">Striker</span>
+        <span class="txt-sub"><span id="strikerRuns" class="txt-main txt-purple" style="margin-left: 10px;">0</span> (<span id="strikerBalls">0</span>)</span>
+      </div>
+      <div style="display: flex; align-items: baseline;">
+        <span id="nonStrikerName" class="txt-main" style="color:#aaa;">NonStrk</span>
+        <span class="txt-sub"><span id="nonStrikerRuns" class="txt-main" style="font-size: 24px; margin-left: 5px;">0</span></span>
+      </div>
     </div>
 
-    <script>
-        const ch = new BroadcastChannel('cricket_score_updates');
+    <div class="neon-segment seg-bowler">
+      <span id="bowlerName" class="txt-main">Bowler</span>
+      <span class="txt-sub"><span id="bowlerWickets" class="txt-main txt-red">0</span>-<span id="bowlerRuns" class="txt-main">0</span></span>
+    </div>
 
-        function update(id, text) {
-            const el = document.getElementById(id);
-            if(el.innerText !== text) {
-                el.innerText = text;
-                el.classList.remove('pulse');
-                void el.offsetWidth;
-                el.classList.add('pulse');
-            }
-        }
+  </div>
 
-        ch.onmessage = (e) => {
-            const d = e.data;
-            if(!d.team1) return;
-            const t = d.team1.isBatting ? d.team1 : d.team2;
+  <script>
+    let stateScore = -1, stateWickets = -1;
+    let islandState = 0;
+    let neonData = {};
 
-            update('tournament', d.tournament.name || "LIVE MATCH");
-            update('matchStatus', d.status || "Live");
-            
-            update('team', t.shortName);
-            update('score', `${t.score}/${t.wickets}`);
-            update('overs', `OV: ${t.overs}`);
-            
-            update('striker', d.striker.name);
-            update('strikerStat', `${d.striker.runs}(${d.striker.balls})`);
-            
-            update('nonStriker', d.nonStriker.name);
-            update('nonStrikerStat', `${d.nonStriker.runs}(${d.nonStriker.balls})`);
+    function updateDOM(id, value) {
+      const el = document.getElementById(id);
+      if (el && value !== undefined) el.innerText = value;
+    }
 
-            update('bowler', d.bowler.name);
-            update('bowlerStat', `${d.bowler.wickets}-${d.bowler.runs}`);
-            
-            update('crr', d.stats.currentRunRate);
+    function triggerNeonPulse(msg) {
+      const eventEl = document.getElementById('neon-event');
+      eventEl.innerText = msg;
+      
+      // Remove class to reset animation, then add back
+      eventEl.classList.remove('pulse');
+      void eventEl.offsetWidth; // trigger reflow
+      eventEl.classList.add('pulse');
+      
+      setTimeout(() => eventEl.classList.remove('pulse'), 3000);
+    }
 
-            // Balls
-            const b = parseInt(t.balls || 0);
-            let html = '';
-            for(let i=0; i<6; i++) {
-                let cls = 'b-dot';
-                if(i < b) cls += ' active'; 
-                // In a real scenario, you'd check the specific ball result (4,6,W) here from an array
-                html += `<div class="${cls}">${i < b ? (i+1) : ''}</div>`;
-            }
-            document.getElementById('ballsTracker').innerHTML = html;
-        };
-    </script>
+    setInterval(() => {
+      if(!neonData.tournamentName) return;
+      const isl = document.getElementById('neon-island');
+      islandState = (islandState + 1) % 3;
+      if(islandState === 0) isl.innerText = neonData.tournamentName;
+      else if(islandState === 1) isl.innerText = "CRR: " + (neonData.runRate || '0.00');
+      else if(islandState === 2) isl.innerText = neonData.target > 0 ? "REQ: " + neonData.requiredRunRate : "LIVE";
+    }, 4000);
+
+    function processNeonData(payload) {
+      neonData = payload;
+
+      updateDOM('teamName', payload.team1Name ? payload.team1Name.substring(0,3).toUpperCase() : 'TM');
+      updateDOM('teamScore', payload.team1Score);
+      updateDOM('teamWickets', payload.team1Wickets);
+      updateDOM('teamOvers', payload.team1Overs);
+      
+      updateDOM('strikerName', payload.strikerName);
+      updateDOM('strikerRuns', payload.strikerRuns);
+      updateDOM('strikerBalls', payload.strikerBalls);
+      
+      updateDOM('nonStrikerName', payload.nonStrikerName);
+      updateDOM('nonStrikerRuns', payload.nonStrikerRuns);
+      
+      updateDOM('bowlerName', payload.bowlerName);
+      updateDOM('bowlerRuns', payload.bowlerRuns);
+      updateDOM('bowlerWickets', payload.bowlerWickets);
+
+      let ns = parseInt(payload.team1Score) || 0;
+      let nw = parseInt(payload.team1Wickets) || 0;
+
+      if (stateScore !== -1) {
+        if (nw > stateWickets) triggerNeonPulse("WICKET!");
+        else if (ns - stateScore === 6) triggerNeonPulse("SIX!");
+        else if (ns - stateScore === 4) triggerNeonPulse("FOUR!");
+      }
+      
+      stateScore = ns;
+      stateWickets = nw;
+    }
+
+    window.addEventListener('message', e => { if (e.data && e.data.type === 'UPDATE_SCORE') processNeonData(e.data.data); });
+    if ('BroadcastChannel' in window) {
+      new BroadcastChannel('scorex_overlay_channel').onmessage = e => { if (e.data && e.data.type === 'UPDATE_SCORE') processNeonData(e.data.data); };
+    }
+  </script>
 </body>
 </html>
