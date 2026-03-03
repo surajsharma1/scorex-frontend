@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { matchAPI, tournamentAPI, overlayAPI } from '../services/api';
-import { Match, Tournament, Team, Overlay } from './types';
+import { Match, Tournament, Team, Overlay, CreatedOverlay } from './types';
 import io, { Socket } from 'socket.io-client';
-import { ArrowLeft, Save, RotateCcw, Users, Target, LogOut, Settings, ExternalLink, Monitor } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw, Users, Target, LogOut, Settings, ExternalLink, Monitor, X } from 'lucide-react';
 
 type Dismissal = 'bowled' | 'caught' | 'lbw' | 'runOut' | 'stumped' | 'hitWicket' | 'handledBall' | 'timedOut' | null;
 
@@ -35,6 +35,41 @@ interface Bowler {
   wickets: number;
 }
 
+// All available overlay templates
+const ALL_OVERLAYS = [
+  // Level 1 - Scoreboard overlays
+  { id: 'lvl1-broadcast-bar', name: 'Broadcast Bar', file: 'lvl1-broadcast-bar.html' },
+  { id: 'lvl1-curved-compact', name: 'Curved Compact', file: 'lvl1-curved-compact.html' },
+  { id: 'lvl1-dark-angular', name: 'Dark Angular', file: 'lvl1-dark-angular.html' },
+  { id: 'lvl1-grass-theme', name: 'Grass Theme', file: 'lvl1-grass-theme.html' },
+  { id: 'lvl1-high-vis', name: 'High Visibility', file: 'lvl1-high-vis.html' },
+  { id: 'lvl1-minimal-dark', name: 'Minimal Dark', file: 'lvl1-minimal-dark.html' },
+  { id: 'lvl1-modern-bar', name: 'Modern Bar', file: 'lvl1-modern-bar.html' },
+  { id: 'lvl1-modern-blue', name: 'Modern Blue', file: 'lvl1-modern-blue.html' },
+  { id: 'lvl1-paper-style', name: 'Paper Style', file: 'lvl1-paper-style.html' },
+  { id: 'lvl1-red-card', name: 'Red Card', file: 'lvl1-red-card.html' },
+  { id: 'lvl1-retro-board', name: 'Retro Board', file: 'lvl1-retro-board.html' },
+  { id: 'lvl1-side-panel', name: 'Side Panel', file: 'lvl1-side-panel.html' },
+  { id: 'lvl1-simple-text', name: 'Simple Text', file: 'lvl1-simple-text.html' },
+  // Level 2 - Replay/Effects overlays
+  { id: 'lvl2-broadcast-pro', name: 'Broadcast Pro', file: 'lvl2-broadcast-pro.html' },
+  { id: 'lvl2-cosmic-orbit', name: 'Cosmic Orbit', file: 'lvl2-cosmic-orbit.html' },
+  { id: 'lvl2-cyber-glitch', name: 'Cyber Glitch', file: 'lvl2-cyber-glitch.html' },
+  { id: 'lvl2-flame-thrower', name: 'Flame Thrower', file: 'lvl2-flame-thrower.html' },
+  { id: 'lvl2-glass-morphism', name: 'Glass Morphism', file: 'lvl2-glass-morphism.html' },
+  { id: 'lvl2-gold-rush', name: 'Gold Rush', file: 'lvl2-gold-rush.html' },
+  { id: 'lvl2-hologram', name: 'Hologram', file: 'lvl2-hologram.html' },
+  { id: 'lvl2-matrix-rain', name: 'Matrix Rain', file: 'lvl2-matrix-rain.html' },
+  { id: 'lvl2-neon-pulse', name: 'Neon Pulse', file: 'lvl2-neon-pulse.html' },
+  { id: 'lvl2-particle-storm', name: 'Particle Storm', file: 'lvl2-particle-storm.html' },
+  { id: 'lvl2-rgb-split', name: 'RGB Split', file: 'lvl2-rgb-split.html' },
+  { id: 'lvl2-speed-racer', name: 'Speed Racer', file: 'lvl2-speed-racer.html' },
+  { id: 'lvl2-tech-hud', name: 'Tech HUD', file: 'lvl2-tech-hud.html' },
+  { id: 'lvl2-thunder-strike', name: 'Thunder Strike', file: 'lvl2-thunder-strike.html' },
+  { id: 'lvl2-vinyl-spin', name: 'Vinyl Spin', file: 'lvl2-vinyl-spin.html' },
+  { id: 'lvl2-water-flow', name: 'Water Flow', file: 'lvl2-water-flow.html' },
+];
+
 const outTypes = [
   { type: 'bowled', label: 'Bowled' },
   { type: 'caught', label: 'Caught' },
@@ -50,10 +85,15 @@ export default function LiveScoring() {
   
   const [match, setMatch] = useState<Match | null>(null);
   const [tournament, setTournament] = useState<Tournament | null>(null);
-  const [overlay, setOverlay] = useState<any>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Overlay preview states
+  const [showOverlayPreview, setShowOverlayPreview] = useState(false);
+  const [selectedOverlay, setSelectedOverlay] = useState<string>('lvl1-broadcast-bar.html');
+  const [matchOverlays, setMatchOverlays] = useState<CreatedOverlay[]>([]);
+  const overlayIframeRef = useRef<HTMLIFrameElement>(null);
   
   // Innings state
   const [innings, setInnings] = useState<Innings>(() => createDefaultInnings());
@@ -130,6 +170,74 @@ export default function LiveScoring() {
 
     return () => { newSocket.close(); };
   }, [matchId, selectedTeam]);
+
+  // Fetch overlays for this match
+  useEffect(() => {
+    if (matchId) {
+      fetchMatchOverlays();
+    }
+  }, [matchId]);
+
+  // Push data to overlay preview every 2 seconds
+  useEffect(() => {
+    if (!showOverlayPreview || !match) return;
+
+    const interval = setInterval(() => {
+      pushDataToOverlay();
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [showOverlayPreview, match, innings, bowler, battingPlayers, selectedTeam]);
+
+  const fetchMatchOverlays = async () => {
+    if (!matchId) return;
+    try {
+      const response = await overlayAPI.getOverlays();
+      const overlays = response.data.overlays || response.data || [];
+      // Filter overlays linked to this match or tournament
+      const matchRelated = overlays.filter((o: CreatedOverlay) => 
+        o.match === matchId || 
+        (match && o.tournament === (typeof match.tournament === 'string' ? match.tournament : match.tournament?._id))
+      );
+      setMatchOverlays(Array.isArray(matchRelated) ? matchRelated : []);
+    } catch (error) {
+      console.error('Failed to fetch overlays:', error);
+      setMatchOverlays([]);
+    }
+  };
+
+  const pushDataToOverlay = () => {
+    if (!overlayIframeRef.current || !match) return;
+
+    const overlayData = {
+      team1Name: match.team1?.name || 'Team 1',
+      team2Name: match.team2?.name || 'Team 2',
+      team1Score: selectedTeam === 'team1' ? innings.totalRuns : (match.score1 || 0),
+      team1Wickets: selectedTeam === 'team1' ? innings.wickets : (match.wickets1 || 0),
+      team1Overs: selectedTeam === 'team1' ? formatOvers() : (match.overs1?.toFixed(1) || '0.0'),
+      team2Score: selectedTeam === 'team2' ? innings.totalRuns : (match.score2 || 0),
+      team2Wickets: selectedTeam === 'team2' ? innings.wickets : (match.wickets2 || 0),
+      team2Overs: selectedTeam === 'team2' ? formatOvers() : (match.overs2?.toFixed(1) || '0.0'),
+      strikerName: battingPlayers.striker || innings.lineup[innings.strikerIndex]?.name || 'Striker',
+      strikerRuns: innings.lineup[innings.strikerIndex]?.runsScored || 0,
+      strikerBalls: innings.lineup[innings.strikerIndex]?.ballsFaced || 0,
+      nonStrikerName: battingPlayers.nonStriker || innings.lineup[innings.nonStrikerIndex]?.name || 'Non-Striker',
+      nonStrikerRuns: innings.lineup[innings.nonStrikerIndex]?.runsScored || 0,
+      nonStrikerBalls: innings.lineup[innings.nonStrikerIndex]?.ballsFaced || 0,
+      bowlerName: bowler.name || 'Bowler',
+      bowlerOvers: bowler.overs,
+      bowlerRuns: bowler.runs,
+      bowlerWickets: bowler.wickets,
+      runRate: innings.totalBalls > 0 ? ((innings.totalRuns) / (innings.totalBalls / 6)).toFixed(2) : '0.00',
+      tournamentName: tournament?.name || 'Tournament',
+    };
+
+    // Send data to iframe via postMessage
+    overlayIframeRef.current.contentWindow?.postMessage(
+      { type: 'UPDATE_SCORE', data: overlayData },
+      '*'
+    );
+  };
 
   const fetchMatch = async () => {
     if (!matchId) return;
@@ -329,12 +437,63 @@ export default function LiveScoring() {
           <h1 className="text-xl font-bold">{match?.team1?.name} vs {match?.team2?.name}</h1>
         </div>
         <div className="flex gap-2">
-          <Link to={`/match/${match?._id}`} className="flex items-center gap-2 px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700">
+          <button 
+            onClick={() => setShowOverlayPreview(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700"
+          >
+            <Monitor className="w-4 h-4" />
+            Overlay Preview
+          </button>
+          <Link to={`/match/${match?._id}`} className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700">
             <ExternalLink className="w-4 h-4" />
             Full Scorecard
           </Link>
         </div>
       </div>
+
+      {/* Overlay Preview Modal */}
+      {showOverlayPreview && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex flex-col">
+          <div className="bg-gray-800 p-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold">Overlay Preview</h2>
+            <div className="flex items-center gap-4">
+              <select
+                value={selectedOverlay}
+                onChange={(e) => setSelectedOverlay(e.target.value)}
+                className="px-4 py-2 bg-gray-700 rounded-lg"
+              >
+                <optgroup label="Scoreboard Overlays">
+                  {ALL_OVERLAYS.filter(o => o.id.startsWith('lvl1')).map(overlay => (
+                    <option key={overlay.id} value={overlay.file}>{overlay.name}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Effect Overlays">
+                  {ALL_OVERLAYS.filter(o => o.id.startsWith('lvl2')).map(overlay => (
+                    <option key={overlay.id} value={overlay.file}>{overlay.name}</option>
+                  ))}
+                </optgroup>
+              </select>
+              <button 
+                onClick={() => setShowOverlayPreview(false)}
+                className="p-2 hover:bg-gray-700 rounded-lg"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 p-4">
+            <iframe
+              ref={overlayIframeRef}
+              src={`/overlays/${selectedOverlay}`}
+              className="w-full h-full rounded-lg bg-black"
+              title="Overlay Preview"
+            />
+          </div>
+          <div className="bg-gray-800 p-2 text-center text-sm text-gray-400">
+            Live scores update every 2 seconds • Use this to test overlay display
+          </div>
+        </div>
+      )}
 
       {/* Overlay Display - Top Half */}
       <div className="bg-gradient-to-r from-blue-900 to-purple-900 p-6 min-h-[40vh]">
