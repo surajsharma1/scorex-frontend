@@ -5,7 +5,7 @@ const socket = io(window.OVERLAY_CONFIG.apiBaseUrl || '/');
 const matchId = window.OVERLAY_CONFIG.matchId;
 const config = window.OVERLAY_CONFIG || {};
 
-console.log('Engine.js loaded - DEBUG MODE');
+console.log('Engine.js loaded - COMPREHENSIVE DATA MODE');
 
 // 2. BroadcastChannel for same-browser communication (from ScoreboardUpdate)
 let broadcastChannel = null;
@@ -52,6 +52,9 @@ const els = {
     tournament: document.getElementById('tournament'),
     matchStatus: document.getElementById('matchStatus') || document.getElementById('status'),
     
+    // Extras
+    extras: document.getElementById('extras'),
+    
     // Notification
     notification: document.getElementById('notificationArea'),
     notificationText: document.getElementById('notificationText')
@@ -80,7 +83,7 @@ window.addEventListener('message', (event) => {
     }
 });
 
-// Transform LiveScoring data format to match format
+// COMPREHENSIVE Transform LiveScoring data format to match format - handles ALL fields
 function transformLiveScoringData(data) {
     if (!data) return null;
     
@@ -105,46 +108,104 @@ function transformLiveScoringData(data) {
     }
     
     // LiveScoring format: { team1Name, team1Score, team1Wickets, team1Overs, strikerName, ... }
-    // Transform to match format
-    console.log('Transforming from LiveScoring format');
-    return {
+    // Transform to comprehensive match format with ALL fields
+    console.log('Transforming from LiveScoring format - COMPREHENSIVE');
+    
+    // Determine which team is batting based on the data
+    const isTeam1Batting = data.battingTeam === 'team1' || !data.battingTeam;
+    
+    // Get current innings data
+    const currentOvers = isTeam1Batting ? data.team1Overs : data.team2Overs;
+    const totalBalls = Math.floor(parseFloat(currentOvers) || 0) * 6;
+    
+    // Build comprehensive transformed data
+    const transformed = {
         team1: {
             name: data.team1Name || 'Team 1',
+            shortName: (data.team1Name || 'Team 1').substring(0, 3).toUpperCase(),
             score: data.team1Score || 0,
             wickets: data.team1Wickets || 0,
-            overs: parseFloat(data.team1Overs) || 0
+            overs: parseFloat(data.team1Overs) || 0,
+            extras: data.team1Extras || { wides: 0, noBalls: 0, byes: 0, legByes: 0 },
+            isBatting: isTeam1Batting
         },
         team2: {
             name: data.team2Name || 'Team 2',
+            shortName: (data.team2Name || 'Team 2').substring(0, 3).toUpperCase(),
             score: data.team2Score || 0,
             wickets: data.team2Wickets || 0,
-            overs: parseFloat(data.team2Overs) || 0
+            overs: parseFloat(data.team2Overs) || 0,
+            extras: data.team2Extras || { wides: 0, noBalls: 0, byes: 0, legByes: 0 },
+            isBatting: !isTeam1Batting
         },
         striker: {
             name: data.strikerName || 'Striker',
             runs: data.strikerRuns || 0,
-            balls: data.strikerBalls || 0
+            balls: data.strikerBalls || 0,
+            fours: data.strikerFours || 0,
+            sixes: data.strikerSixes || 0,
+            status: '*'
         },
         nonStriker: {
             name: data.nonStrikerName || 'Non-Striker',
             runs: data.nonStrikerRuns || 0,
-            balls: data.nonStrikerBalls || 0
+            balls: data.nonStrikerBalls || 0,
+            fours: data.nonStrikerFours || 0,
+            sixes: data.nonStrikerSixes || 0,
+            status: ''
         },
         bowler: {
             name: data.bowlerName || 'Bowler',
             overs: data.bowlerOvers || 0,
+            maidens: data.bowlerMaidens || 0,
             runsConceded: data.bowlerRuns || 0,
             wickets: data.bowlerWickets || 0
         },
         stats: {
             currentRunRate: parseFloat(data.runRate) || 0,
-            last5Overs: data.lastFiveOvers || ''
+            requiredRunRate: parseFloat(data.requiredRunRate) || 0,
+            target: data.target || 0,
+            last5Overs: data.lastFiveOvers || data.last5Overs || '',
+            last6Balls: data.last6Balls || data.lastFiveOvers || ''
         },
         tournament: {
-            name: data.tournamentName || 'Tournament'
+            name: data.tournamentName || 'Tournament',
+            id: data.tournamentId || ''
         },
+        match: {
+            id: data.matchId || matchId || '',
+            status: data.status || 'Live',
+            innings: data.innings || 1,
+            result: data.result || ''
+        },
+        // Also provide flat format for overlays that use flat field names
+        team1Name: data.team1Name || 'Team 1',
+        team2Name: data.team2Name || 'Team 2',
+        score1: data.team1Score || 0,
+        score2: data.team2Score || 0,
+        wickets1: data.team1Wickets || 0,
+        wickets2: data.team2Wickets || 0,
+        overs1: data.team1Overs || '0.0',
+        overs2: data.team2Overs || '0.0',
+        striker_name: data.strikerName || 'Striker',
+        striker_runs: data.strikerRuns || 0,
+        striker_balls: data.strikerBalls || 0,
+        nonstriker_name: data.nonStrikerName || 'Non-Striker',
+        nonstriker_runs: data.nonStrikerRuns || 0,
+        nonstriker_balls: data.nonStrikerBalls || 0,
+        bowler_name: data.bowlerName || 'Bowler',
+        bowler_overs: data.bowlerOvers || 0,
+        bowler_runs: data.bowlerRuns || 0,
+        bowler_wickets: data.bowlerWickets || 0,
+        crr: data.runRate || '0.00',
+        rrr: data.requiredRunRate || '0.00',
+        lastFiveOvers: data.lastFiveOvers || data.last5Overs || '',
+        target: data.target || '-',
         status: 'Live'
     };
+    
+    console.log('Transformed data:', transformed);
+    return transformed;
 }
 
 // 5. Handle score updates from any source
@@ -154,12 +215,14 @@ function handleScoreUpdate(data) {
     // Handle different message types
     if (data.type === 'RUN') {
         console.log('Run event: ' + data.runs);
+        showNotification(data.runs + ' RUNS');
     } else if (data.type === 'EXTRA') {
         console.log('Extra event: ' + data.extraType);
+        showNotification(data.extraType.toUpperCase() + ' + ' + data.runs);
     } else if (data.type === 'WICKET' || data.type === 'PUSH_EVENT') {
         showNotification(data.message || 'WICKET!');
-    } else if (data.tournament || data.team1 || data.team2) {
-        // Full score update data
+    } else if (data.tournament || data.team1 || data.team2 || data.team1Name) {
+        // Full score update data - any format
         console.log('Calling updateBoard');
         updateBoard(data);
     } else if (data.match) {
@@ -182,7 +245,7 @@ function showNotification(message) {
         els.notification.classList.add('notif-4');
     } else if (message.includes('6')) {
         els.notification.classList.add('notif-6');
-    } else if (message.includes('WICKET') || message.includes('OUT')) {
+    } else if (message.includes('WICKET') || message.includes('OUT') || message.includes('WIDE') || message.includes('NO BALL')) {
         els.notification.classList.add('notif-w');
     }
     
@@ -238,7 +301,7 @@ socket.on('match_update', function(data) {
     updateBoard(data);
 });
 
-// 9. Update UI Function
+// 9. Update UI Function - COMPREHENSIVE
 function updateBoard(data) {
     if (!data) {
         console.log('updateBoard called with null data');
@@ -248,7 +311,7 @@ function updateBoard(data) {
     console.log('updateBoard called with data keys:', Object.keys(data));
     
     // Check if in ScoreboardUpdate format (nested team objects with batsmen)
-    var isScoreboardFormat = data.team1 && typeof data.team1 === 'object' && data.team1.batsmen;
+    var isScoreboardFormat = data.team1 && typeof data.team1 === 'object' && (data.team1.batsmen || data.team1.score !== undefined);
     
     console.log('isScoreboardFormat:', isScoreboardFormat);
     
@@ -261,64 +324,98 @@ function updateBoard(data) {
     triggerPulseAnimations();
 }
 
-// Handle ScoreboardUpdate format
+// Handle ScoreboardUpdate format - COMPREHENSIVE
 function updateBoardScoreboardFormat(data) {
-    console.log('Using ScoreboardUpdate format');
+    console.log('Using ScoreboardUpdate format - COMPREHENSIVE');
     var team1Data = data.team1 || {};
     var team2Data = data.team2 || {};
     
+    // Team Names
     if (els.team1Name) els.team1Name.innerText = team1Data.name || 'Team 1';
     if (els.team2Name) els.team2Name.innerText = team2Data.name || 'Team 2';
     
+    // Scores
     if (els.team1Score) els.team1Score.innerText = (team1Data.score || 0) + '/' + (team1Data.wickets || 0);
     if (els.team2Score) els.team2Score.innerText = (team2Data.score || 0) + '/' + (team2Data.wickets || 0);
     
+    // Overs
     if (els.team1Overs) {
         var overs1 = team1Data.overs || 0;
         els.team1Overs.innerText = typeof overs1 === 'string' ? overs1 : formatOvers(overs1);
     }
+    if (els.team2Overs) {
+        var overs2 = team2Data.overs || 0;
+        els.team2Overs.innerText = typeof overs2 === 'string' ? overs2 : formatOvers(overs2);
+    }
     
+    // Wickets
     if (els.team1Wickets) els.team1Wickets.innerText = team1Data.wickets || 0;
+    if (els.team2Wickets) els.team2Wickets.innerText = team2Data.wickets || 0;
     
+    // Striker
     var striker = data.striker || {};
-    if (els.striker) els.striker.innerText = (striker.name || 'Striker') + ' ' + (striker.runs || 0) + '*';
+    if (els.striker) els.striker.innerText = (striker.name || 'Striker') + ' ' + (striker.runs || 0) + (striker.status || '*');
     if (els.strikerRuns) els.strikerRuns.innerText = striker.runs || 0;
     if (els.strikerBalls) els.strikerBalls.innerText = striker.balls || 0;
     
+    // Non-Striker
     var nonStriker = data.nonStriker || {};
     if (els.nonStriker) els.nonStriker.innerText = (nonStriker.name || 'Non-Striker') + ' ' + (nonStriker.runs || 0);
     if (els.nonStrikerRuns) els.nonStrikerRuns.innerText = nonStriker.runs || 0;
     if (els.nonStrikerBalls) els.nonStrikerBalls.innerText = nonStriker.balls || 0;
     
+    // Bowler
     var bowler = data.bowler || {};
     if (els.bowler) els.bowler.innerText = bowler.name || 'Bowler';
     if (els.bowlerOvers) els.bowlerOvers.innerText = bowler.overs || 0;
-    if (els.bowlerRuns) els.bowlerRuns.innerText = bowler.runsConceded || 0;
+    if (els.bowlerRuns) els.bowlerRuns.innerText = bowler.runsConceded || bowler.runs || 0;
     if (els.bowlerWickets) els.bowlerWickets.innerText = bowler.wickets || 0;
     
+    // Stats
     var stats = data.stats || {};
     if (els.crr) els.crr.innerText = 'CRR: ' + (stats.currentRunRate ? stats.currentRunRate.toFixed(2) : '0.00');
     if (els.rrr) els.rrr.innerText = 'RRR: ' + (stats.requiredRunRate ? stats.requiredRunRate.toFixed(2) : '0.00');
     if (els.target) els.target.innerText = 'Target: ' + (stats.target || '-');
     
-    if (els.tournament && data.tournament) els.tournament.innerText = data.tournament.name || 'Tournament';
-    if (els.matchStatus) els.matchStatus.innerText = data.status || 'Live';
+    // Tournament
+    if (els.tournament) {
+        var tournamentName = data.tournament ? data.tournament.name : null;
+        els.tournament.innerText = tournamentName || 'Tournament';
+    }
+    if (els.matchStatus) els.matchStatus.innerText = data.status || data.match?.status || 'Live';
     
-    if (els.ballsContainer && stats.last5Overs) updateBallsTracker(stats.last5Overs);
+    // Balls tracker - try multiple keys
+    var last5Overs = stats.last5Overs || stats.last6Balls || data.lastFiveOvers || '';
+    if (els.ballsContainer && last5Overs) {
+        updateBallsTracker(last5Overs);
+    }
+    
+    // Extras (if available)
+    if (els.extras && team1Data.extras) {
+        var extras = team1Data.extras;
+        var extrasText = '';
+        if (extras.wides) extrasText += 'W:' + extras.wides + ' ';
+        if (extras.noBalls) extrasText += 'NB:' + extras.noBalls + ' ';
+        if (extras.byes) extrasText += 'B:' + extras.byes + ' ';
+        if (extras.legByes) extrasText += 'LB:' + extras.legByes + ' ';
+        els.extras.innerText = extrasText.trim() || 'Extras: 0';
+    }
 }
 
-// Handle legacy/match format
+// Handle legacy/match format - COMPREHENSIVE
 function updateBoardLegacyFormat(data) {
-    console.log('Using legacy/match format');
+    console.log('Using legacy/match format - COMPREHENSIVE');
     
+    // Team Names - check multiple formats
     if (els.team1Name) {
-        els.team1Name.innerText = (data.team1 ? data.team1.name : null) || (data.team1 ? data.team1.shortName : null) || 'Team 1';
+        els.team1Name.innerText = data.team1Name || (data.team1 ? data.team1.name : null) || (data.team1 ? data.team1.shortName : null) || 'Team 1';
     }
     
     if (els.team2Name) {
-        els.team2Name.innerText = (data.team2 ? data.team2.name : null) || (data.team2 ? data.team2.shortName : null) || 'Team 2';
+        els.team2Name.innerText = data.team2Name || (data.team2 ? data.team2.name : null) || (data.team2 ? data.team2.shortName : null) || 'Team 2';
     }
     
+    // Scores
     if (els.team1Score) {
         var score1 = data.score1 || (data.team1 ? data.team1.score : null) || 0;
         var wickets1 = data.wickets1 || (data.team1 ? data.team1.wickets : null) || 0;
@@ -331,6 +428,7 @@ function updateBoardLegacyFormat(data) {
         els.team2Score.innerText = score2 + '/' + wickets2;
     }
     
+    // Overs
     if (els.team1Overs) {
         var overs1 = data.overs1 || (data.team1 ? data.team1.overs : null) || '0.0';
         els.team1Overs.innerText = formatOvers(overs1);
@@ -341,34 +439,52 @@ function updateBoardLegacyFormat(data) {
         els.team2Overs.innerText = formatOvers(overs2);
     }
     
+    // Wickets
     if (els.team1Wickets) els.team1Wickets.innerText = data.wickets1 || (data.team1 ? data.team1.wickets : null) || 0;
+    if (els.team2Wickets) els.team2Wickets.innerText = data.wickets2 || (data.team2 ? data.team2.wickets : null) || 0;
     
-    var strikerName = data.striker_name || (data.striker ? data.striker.name : null) || 'Striker';
-    var strikerRuns = data.striker_runs || (data.striker ? data.striker.runs : null) || 0;
+    // Striker - check multiple formats
+    var strikerName = data.strikerName || data.striker_name || (data.striker ? data.striker.name : null) || 'Striker';
+    var strikerRuns = data.strikerRuns || data.striker_runs || (data.striker ? data.striker.runs : null) || 0;
+    var strikerBalls = data.strikerBalls || data.striker_balls || (data.striker ? data.striker.balls : null) || 0;
     if (els.striker) els.striker.innerText = strikerName + ' ' + strikerRuns + '*';
-    if (els.strikerRuns) els.strikerRuns.innerText = data.striker_runs || (data.striker ? data.striker.runs : null) || 0;
-    if (els.strikerBalls) els.strikerBalls.innerText = data.striker_balls || (data.striker ? data.striker.balls : null) || 0;
+    if (els.strikerRuns) els.strikerRuns.innerText = strikerRuns;
+    if (els.strikerBalls) els.strikerBalls.innerText = strikerBalls;
     
-    var nonStrikerName = data.nonstriker_name || (data.nonStriker ? data.nonStriker.name : null) || 'Non-Striker';
-    var nonStrikerRuns = data.nonstriker_runs || (data.nonStriker ? data.nonStriker.runs : null) || 0;
+    // Non-Striker - check multiple formats
+    var nonStrikerName = data.nonStrikerName || data.nonstriker_name || (data.nonStriker ? data.nonStriker.name : null) || 'Non-Striker';
+    var nonStrikerRuns = data.nonStrikerRuns || data.nonstriker_runs || (data.nonStriker ? data.nonStriker.runs : null) || 0;
+    var nonStrikerBalls = data.nonStrikerBalls || data.nonstriker_balls || (data.nonStriker ? data.nonStriker.balls : null) || 0;
     if (els.nonStriker) els.nonStriker.innerText = nonStrikerName + ' ' + nonStrikerRuns;
-    if (els.nonStrikerRuns) els.nonStrikerRuns.innerText = data.nonstriker_runs || (data.nonStriker ? data.nonStriker.runs : null) || 0;
-    if (els.nonStrikerBalls) els.nonStrikerBalls.innerText = data.nonstriker_balls || (data.nonStriker ? data.nonStriker.balls : null) || 0;
+    if (els.nonStrikerRuns) els.nonStrikerRuns.innerText = nonStrikerRuns;
+    if (els.nonStrikerBalls) els.nonStrikerBalls.innerText = nonStrikerBalls;
     
-    var bowlerName = data.bowler_name || (data.bowler ? data.bowler.name : null) || 'Bowler';
+    // Bowler - check multiple formats
+    var bowlerName = data.bowlerName || data.bowler_name || (data.bowler ? data.bowler.name : null) || 'Bowler';
+    var bowlerOvers = data.bowlerOvers || data.bowler_overs || (data.bowler ? data.bowler.overs : null) || 0;
+    var bowlerRuns = data.bowlerRuns || data.bowler_runs || (data.bowler ? data.bowler.runsConceded : null) || 0;
+    var bowlerWickets = data.bowlerWickets || data.bowler_wickets || (data.bowler ? data.bowler.wickets : null) || 0;
     if (els.bowler) els.bowler.innerText = bowlerName;
-    if (els.bowlerOvers) els.bowlerOvers.innerText = data.bowler_overs || (data.bowler ? data.bowler.overs : null) || 0;
-    if (els.bowlerRuns) els.bowlerRuns.innerText = data.bowler_runs || (data.bowler ? data.bowler.runsConceded : null) || 0;
-    if (els.bowlerWickets) els.bowlerWickets.innerText = data.bowler_wickets || (data.bowler ? data.bowler.wickets : null) || 0;
+    if (els.bowlerOvers) els.bowlerOvers.innerText = bowlerOvers;
+    if (els.bowlerWickets) els.bowlerWickets.innerText = bowlerWickets;
+    // Handle bowler runs - might be runsConceded or runs
+    var bowlerRunsEl = document.getElementById('bowlerRuns');
+    if (bowlerRunsEl) bowlerRunsEl.innerText = bowlerRuns;
     
-    if (els.crr) els.crr.innerText = 'CRR: ' + (data.crr || '0.00');
-    if (els.rrr) els.rrr.innerText = 'RRR: ' + (data.rrr || '0.00');
+    // Run rates
+    if (els.crr) els.crr.innerText = 'CRR: ' + (data.crr || data.runRate || '0.00');
+    if (els.rrr) els.rrr.innerText = 'RRR: ' + (data.rrr || data.requiredRunRate || '0.00');
     if (els.target) els.target.innerText = 'Target: ' + (data.target || '-');
     
-    if (els.tournament) els.tournament.innerText = (data.tournament ? data.tournament.name : null) || 'Tournament';
+    // Tournament
+    if (els.tournament) els.tournament.innerText = data.tournamentName || (data.tournament ? data.tournament.name : null) || 'Tournament';
     if (els.matchStatus) els.matchStatus.innerText = data.status || 'Live';
     
-    if (els.ballsContainer && data.lastFiveOvers) updateBallsTracker(data.lastFiveOvers);
+    // Balls tracker - try multiple keys
+    var lastFive = data.lastFiveOvers || data.last5Overs || data.last6Balls || '';
+    if (els.ballsContainer && lastFive) {
+        updateBallsTracker(lastFive);
+    }
 }
 
 function formatOvers(overs) {
@@ -464,4 +580,4 @@ if (typeof document !== 'undefined' && !document.getElementById('overlay-engine-
     document.head.appendChild(style);
 }
 
-console.log('ScoreX Overlay Engine initialized - DEBUG MODE', { matchId: matchId, config: config });
+console.log('ScoreX Overlay Engine initialized - COMPREHENSIVE DATA MODE', { matchId: matchId, config: config });

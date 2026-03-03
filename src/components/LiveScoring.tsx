@@ -212,31 +212,66 @@ export default function LiveScoring() {
       return;
     }
 
+    // Calculate comprehensive overlay data
+    const currentOver = formatOvers();
+    const totalBalls = innings.totalBalls;
+    const runRate = totalBalls > 0 ? ((innings.totalRuns) / (totalBalls / 6)).toFixed(2) : '0.00';
+    
+    // Build comprehensive data object - includes ALL details for overlays
     const overlayData = {
+      // Team 1 details
       team1Name: match.team1?.name || 'Team 1',
-      team2Name: match.team2?.name || 'Team 2',
       team1Score: selectedTeam === 'team1' ? innings.totalRuns : (match.score1 || 0),
       team1Wickets: selectedTeam === 'team1' ? innings.wickets : (match.wickets1 || 0),
-      team1Overs: selectedTeam === 'team1' ? formatOvers() : (match.overs1?.toFixed(1) || '0.0'),
+      team1Overs: selectedTeam === 'team1' ? currentOver : (match.overs1?.toFixed(1) || '0.0'),
+      team1Extras: innings.extras,
+      
+      // Team 2 details
+      team2Name: match.team2?.name || 'Team 2',
       team2Score: selectedTeam === 'team2' ? innings.totalRuns : (match.score2 || 0),
       team2Wickets: selectedTeam === 'team2' ? innings.wickets : (match.wickets2 || 0),
-      team2Overs: selectedTeam === 'team2' ? formatOvers() : (match.overs2?.toFixed(1) || '0.0'),
+      team2Overs: selectedTeam === 'team2' ? currentOver : (match.overs2?.toFixed(1) || '0.0'),
+      team2Extras: { wides: 0, noBalls: 0, byes: 0, legByes: 0 },
+      
+      // Striker details
       strikerName: battingPlayers.striker || innings.lineup[innings.strikerIndex]?.name || 'Striker',
       strikerRuns: innings.lineup[innings.strikerIndex]?.runsScored || 0,
       strikerBalls: innings.lineup[innings.strikerIndex]?.ballsFaced || 0,
+      strikerFours: innings.lineup[innings.strikerIndex]?.fours || Math.floor((innings.lineup[innings.strikerIndex]?.runsScored || 0) / 4),
+      strikerSixes: innings.lineup[innings.strikerIndex]?.sixes || Math.floor((innings.lineup[innings.strikerIndex]?.runsScored || 0) / 6),
+      
+      // Non-striker details
       nonStrikerName: battingPlayers.nonStriker || innings.lineup[innings.nonStrikerIndex]?.name || 'Non-Striker',
       nonStrikerRuns: innings.lineup[innings.nonStrikerIndex]?.runsScored || 0,
       nonStrikerBalls: innings.lineup[innings.nonStrikerIndex]?.ballsFaced || 0,
+      nonStrikerFours: innings.lineup[innings.nonStrikerIndex]?.fours || 0,
+      nonStrikerSixes: innings.lineup[innings.nonStrikerIndex]?.sixes || 0,
+      
+      // Bowler details
       bowlerName: bowler.name || 'Bowler',
       bowlerOvers: bowler.overs,
+      bowlerMaidens: bowler.maidens || 0,
       bowlerRuns: bowler.runs,
       bowlerWickets: bowler.wickets,
-      runRate: innings.totalBalls > 0 ? ((innings.totalRuns) / (innings.totalBalls / 6)).toFixed(2) : '0.00',
+      
+      // Stats
+      runRate: runRate,
+      requiredRunRate: '0.00',
+      target: 0,
+      lastFiveOvers: '', // Can be populated from score history
+      last5Overs: '',
+      battingTeam: selectedTeam,
+      innings: 1,
+      status: 'Live',
+      
+      // Match info
+      matchId: match._id || '',
       tournamentName: tournament?.name || 'Tournament',
+      tournamentId: tournament?._id || '',
     };
 
     // Debug log
-    console.log('Sending overlay update:', overlayData);
+    console.log('Sending comprehensive overlay update:', overlayData);
     
     // Send data to iframe via postMessage
     try {
