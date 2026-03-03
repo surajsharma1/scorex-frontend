@@ -89,10 +89,9 @@ export default function LiveScoring() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
-  // Overlay preview states
-  const [showOverlayPreview, setShowOverlayPreview] = useState(false);
+  // Overlay display state - now inline
+  const [showOverlay, setShowOverlay] = useState(true);
   const [selectedOverlay, setSelectedOverlay] = useState<string>('lvl1-broadcast-bar.html');
-  const [matchOverlays, setMatchOverlays] = useState<CreatedOverlay[]>([]);
   const overlayIframeRef = useRef<HTMLIFrameElement>(null);
   
   // Innings state
@@ -171,40 +170,16 @@ export default function LiveScoring() {
     return () => { newSocket.close(); };
   }, [matchId, selectedTeam]);
 
-  // Fetch overlays for this match
+  // Push data to overlay every 2 seconds when overlay is shown
   useEffect(() => {
-    if (matchId) {
-      fetchMatchOverlays();
-    }
-  }, [matchId]);
-
-  // Push data to overlay preview every 2 seconds
-  useEffect(() => {
-    if (!showOverlayPreview || !match) return;
+    if (!showOverlay || !match) return;
 
     const interval = setInterval(() => {
       pushDataToOverlay();
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [showOverlayPreview, match, innings, bowler, battingPlayers, selectedTeam]);
-
-  const fetchMatchOverlays = async () => {
-    if (!matchId) return;
-    try {
-      const response = await overlayAPI.getOverlays();
-      const overlays = response.data.overlays || response.data || [];
-      // Filter overlays linked to this match or tournament
-      const matchRelated = overlays.filter((o: CreatedOverlay) => 
-        o.match === matchId || 
-        (match && o.tournament === (typeof match.tournament === 'string' ? match.tournament : match.tournament?._id))
-      );
-      setMatchOverlays(Array.isArray(matchRelated) ? matchRelated : []);
-    } catch (error) {
-      console.error('Failed to fetch overlays:', error);
-      setMatchOverlays([]);
-    }
-  };
+  }, [showOverlay, match, innings, bowler, battingPlayers, selectedTeam]);
 
   const pushDataToOverlay = () => {
     if (!overlayIframeRef.current || !match) return;
@@ -282,11 +257,10 @@ export default function LiveScoring() {
     }
   };
 
-  // Auto-save function - FIXED overs calculation to avoid floating point issues
+  // Auto-save function
   const autoSaveScore = async (inningsData: Innings) => {
     if (!match) return;
     try {
-      // Calculate overs properly: overs.balls format (e.g., 5.3 = 5 overs 3 balls)
       const overs = Math.floor(inningsData.totalBalls / 6);
       const balls = inningsData.totalBalls % 6;
       const oversFormatted = parseFloat(`${overs}.${balls}`);
@@ -338,7 +312,6 @@ export default function LiveScoring() {
       striker.ballsFaced += 1;
       newInnings.totalBalls += 1;
       
-      // Update bowler
       setBowler(prev => ({
         ...prev,
         runs: prev.runs + runs,
@@ -346,23 +319,18 @@ export default function LiveScoring() {
       }));
     }
 
-    // Handle wicket
     if (wicket) {
       newInnings.wickets += 1;
       striker.isOut = true;
       striker.dismissal = wicket;
       striker.name = battingPlayers.striker;
-      
-      // Update bowler wickets
       setBowler(prev => ({ ...prev, wickets: prev.wickets + 1 }));
     }
 
-    // Handle over completion
     if (deliveryType === 'normal' && newInnings.totalBalls % 6 === 0) {
       setBowler(prev => ({ ...prev, overs: Math.floor(prev.overs) + 1 + (prev.overs % 1) }));
     }
 
-    // Swap strike on odd runs
     if (deliveryType === 'normal' && runs % 2 !== 0) {
       const temp = newInnings.strikerIndex;
       newInnings.strikerIndex = newInnings.nonStrikerIndex;
@@ -408,7 +376,6 @@ export default function LiveScoring() {
     autoSaveScore(createDefaultInnings());
   };
 
-  // Get team players
   const getTeamPlayers = (teamKey: 'team1' | 'team2') => {
     const team = teamKey === 'team1' ? match?.team1 : match?.team2;
     return team?.players || [];
@@ -437,12 +404,13 @@ export default function LiveScoring() {
           <h1 className="text-xl font-bold">{match?.team1?.name} vs {match?.team2?.name}</h1>
         </div>
         <div className="flex gap-2">
+          {/* Toggle Overlay Display */}
           <button 
-            onClick={() => setShowOverlayPreview(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700"
+            onClick={() => setShowOverlay(!showOverlay)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg ${showOverlay ? 'bg-purple-600' : 'bg-gray-600'}`}
           >
             <Monitor className="w-4 h-4" />
-            Overlay Preview
+            {showOverlay ? 'Hide Overlay' : 'Show Overlay'}
           </button>
           <Link to={`/match/${match?._id}`} className="flex items-center gap-2 px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700">
             <ExternalLink className="w-4 h-4" />
@@ -451,52 +419,44 @@ export default function LiveScoring() {
         </div>
       </div>
 
-      {/* Overlay Preview Modal */}
-      {showOverlayPreview && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex flex-col">
-          <div className="bg-gray-800 p-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold">Overlay Preview</h2>
-            <div className="flex items-center gap-4">
-              <select
-                value={selectedOverlay}
-                onChange={(e) => setSelectedOverlay(e.target.value)}
-                className="px-4 py-2 bg-gray-700 rounded-lg"
-              >
-                <optgroup label="Scoreboard Overlays">
-                  {ALL_OVERLAYS.filter(o => o.id.startsWith('lvl1')).map(overlay => (
-                    <option key={overlay.id} value={overlay.file}>{overlay.name}</option>
-                  ))}
-                </optgroup>
-                <optgroup label="Effect Overlays">
-                  {ALL_OVERLAYS.filter(o => o.id.startsWith('lvl2')).map(overlay => (
-                    <option key={overlay.id} value={overlay.file}>{overlay.name}</option>
-                  ))}
-                </optgroup>
-              </select>
-              <button 
-                onClick={() => setShowOverlayPreview(false)}
-                className="p-2 hover:bg-gray-700 rounded-lg"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-          <div className="flex-1 p-4">
-            <iframe
-              ref={overlayIframeRef}
-              src={`/overlays/${selectedOverlay}`}
-              className="w-full h-full rounded-lg bg-black"
-              title="Overlay Preview"
-            />
-          </div>
-          <div className="bg-gray-800 p-2 text-center text-sm text-gray-400">
-            Live scores update every 2 seconds • Use this to test overlay display
-          </div>
+      {/* Overlay Selector - shown when overlay is enabled */}
+      {showOverlay && (
+        <div className="bg-gray-700 px-4 py-2 flex items-center gap-4">
+          <span className="text-sm text-gray-300">Overlay:</span>
+          <select
+            value={selectedOverlay}
+            onChange={(e) => setSelectedOverlay(e.target.value)}
+            className="px-3 py-1 bg-gray-600 rounded text-sm"
+          >
+            <optgroup label="Scoreboard Overlays">
+              {ALL_OVERLAYS.filter(o => o.id.startsWith('lvl1')).map(overlay => (
+                <option key={overlay.id} value={overlay.file}>{overlay.name}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Effect Overlays">
+              {ALL_OVERLAYS.filter(o => o.id.startsWith('lvl2')).map(overlay => (
+                <option key={overlay.id} value={overlay.file}>{overlay.name}</option>
+              ))}
+            </optgroup>
+          </select>
+          <span className="text-xs text-gray-400">Live scores sync automatically</span>
         </div>
       )}
 
-      {/* Overlay Display - Top Half */}
-      <div className="bg-gradient-to-r from-blue-900 to-purple-900 p-6 min-h-[40vh]">
+      {/* Overlay Display - Inline at Top */}
+      {showOverlay && (
+        <div className="w-full h-[200px] bg-black">
+          <iframe
+            ref={overlayIframeRef}
+            src={`/overlays/${selectedOverlay}`}
+            className="w-full h-full"
+            title="Live Overlay"
+          />
+        </div>
+      )}
+
+      {/* Regular Score Display - Below overlay */}
+      <div className="bg-gradient-to-r from-blue-900 to-purple-900 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-4">
             <div className="text-sm text-gray-300">{tournament?.name}</div>
@@ -527,10 +487,6 @@ export default function LiveScoring() {
                   ? ((innings.totalRuns) / (innings.totalBalls / 6)).toFixed(2)
                   : '0.00'}
               </div>
-            </div>
-            <div className="text-center">
-              <div className="text-gray-400 text-sm">This Over</div>
-              <div className="font-bold text-green-400">0 0 0 0 0 0</div>
             </div>
           </div>
 
@@ -671,7 +627,7 @@ export default function LiveScoring() {
             </div>
           </div>
 
-          {/* Extra Buttons - 4 Main Buttons */}
+          {/* Extra Buttons */}
           <div className="mb-4">
             <h4 className="text-xs text-gray-400 uppercase mb-2 tracking-wider">Extras</h4>
             <div className="grid grid-cols-2 gap-2">
