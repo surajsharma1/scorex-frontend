@@ -12,6 +12,8 @@ interface CricketPlayer {
   name: string;
   runsScored: number;
   ballsFaced: number;
+  fours: number;
+  sixes: number;
   isOut: boolean;
   dismissal?: Dismissal;
 }
@@ -128,6 +130,8 @@ export default function LiveScoring() {
         name: `Player ${i + 1}`,
         runsScored: 0,
         ballsFaced: 0,
+        fours: 0,
+        sixes: 0,
         isOut: false,
       })),
     };
