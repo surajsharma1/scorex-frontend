@@ -41,9 +41,6 @@ export default {
           900: '#0f1a20',
         },
         
-        // Simple primary color for @apply
-        'primary': '#34729c',
-        
         secondary: {
           DEFAULT: '#6ec1d1',
           light: '#cbeaec',
