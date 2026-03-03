@@ -153,9 +153,9 @@ function handleScoreUpdate(data) {
     
     // Handle different message types
     if (data.type === 'RUN') {
-        console.log(`Run event: ${data.runs}`);
+        console.log('Run event: ' + data.runs);
     } else if (data.type === 'EXTRA') {
-        console.log(`Extra event: ${data.extraType}`);
+        console.log('Extra event: ' + data.extraType);
     } else if (data.type === 'WICKET' || data.type === 'PUSH_EVENT') {
         showNotification(data.message || 'WICKET!');
     } else if (data.tournament || data.team1 || data.team2) {
@@ -186,7 +186,7 @@ function showNotification(message) {
         els.notification.classList.add('notif-w');
     }
     
-    setTimeout(() => {
+    setTimeout(function() {
         els.notification.className = '';
     }, 3000);
 }
@@ -199,14 +199,14 @@ async function fetchInitialMatchData() {
     }
     
     try {
-        const apiBaseUrl = config.apiBaseUrl || '/api/v1';
-        const response = await fetch(`${apiBaseUrl}/matches/${matchId}`);
+        var apiBaseUrl = config.apiBaseUrl || '/api/v1';
+        var response = await fetch(apiBaseUrl + '/matches/' + matchId);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error('HTTP error! status: ' + response.status);
         }
         
-        const matchData = await response.json();
+        var matchData = await response.json();
         console.log('Initial match data fetched:', matchData);
         updateBoard(matchData);
     } catch (error) {
@@ -215,7 +215,7 @@ async function fetchInitialMatchData() {
 }
 
 // 7. Connect to socket
-socket.on('connect', () => {
+socket.on('connect', function() {
     console.log('Connected to ScoreX Live');
     if (matchId) {
         socket.emit('join_match', matchId);
@@ -224,7 +224,7 @@ socket.on('connect', () => {
 });
 
 // 8. Listen for score updates
-socket.on('scoreUpdate', (data) => {
+socket.on('scoreUpdate', function(data) {
     console.log('Score update received:', data);
     if (data.match) {
         updateBoard(data.match);
@@ -233,7 +233,7 @@ socket.on('scoreUpdate', (data) => {
     }
 });
 
-socket.on('match_update', (data) => {
+socket.on('match_update', function(data) {
     console.log('Match update received:', data);
     updateBoard(data);
 });
@@ -248,7 +248,7 @@ function updateBoard(data) {
     console.log('updateBoard called with data keys:', Object.keys(data));
     
     // Check if in ScoreboardUpdate format (nested team objects with batsmen)
-    const isScoreboardFormat = data.team1 && typeof data.team1 === 'object' && data.team1.batsmen;
+    var isScoreboardFormat = data.team1 && typeof data.team1 === 'object' && data.team1.batsmen;
     
     console.log('isScoreboardFormat:', isScoreboardFormat);
     
@@ -264,42 +264,42 @@ function updateBoard(data) {
 // Handle ScoreboardUpdate format
 function updateBoardScoreboardFormat(data) {
     console.log('Using ScoreboardUpdate format');
-    const team1Data = data.team1 || {};
-    const team2Data = data.team2 || {};
+    var team1Data = data.team1 || {};
+    var team2Data = data.team2 || {};
     
     if (els.team1Name) els.team1Name.innerText = team1Data.name || 'Team 1';
     if (els.team2Name) els.team2Name.innerText = team2Data.name || 'Team 2';
     
-    if (els.team1Score) els.team1Score.innerText = `${team1Data.score || 0}/${team1Data.wickets || 0}`;
-    if (els.team2Score) els.team2Score.innerText = `${team2Data.score || 0}/${team2Data.wickets || 0}`;
+    if (els.team1Score) els.team1Score.innerText = (team1Data.score || 0) + '/' + (team1Data.wickets || 0);
+    if (els.team2Score) els.team2Score.innerText = (team2Data.score || 0) + '/' + (team2Data.wickets || 0);
     
     if (els.team1Overs) {
-        const overs1 = team1Data.overs || 0;
+        var overs1 = team1Data.overs || 0;
         els.team1Overs.innerText = typeof overs1 === 'string' ? overs1 : formatOvers(overs1);
     }
     
     if (els.team1Wickets) els.team1Wickets.innerText = team1Data.wickets || 0;
     
-    const striker = data.striker || {};
-    if (els.striker) els.striker.innerText = `${striker.name || 'Striker'} ${striker.runs || 0}*`;
+    var striker = data.striker || {};
+    if (els.striker) els.striker.innerText = (striker.name || 'Striker') + ' ' + (striker.runs || 0) + '*';
     if (els.strikerRuns) els.strikerRuns.innerText = striker.runs || 0;
     if (els.strikerBalls) els.strikerBalls.innerText = striker.balls || 0;
     
-    const nonStriker = data.nonStriker || {};
-    if (els.nonStriker) els.nonStriker.innerText = `${nonStriker.name || 'Non-Striker'} ${nonStriker.runs || 0}`;
+    var nonStriker = data.nonStriker || {};
+    if (els.nonStriker) els.nonStriker.innerText = (nonStriker.name || 'Non-Striker') + ' ' + (nonStriker.runs || 0);
     if (els.nonStrikerRuns) els.nonStrikerRuns.innerText = nonStriker.runs || 0;
     if (els.nonStrikerBalls) els.nonStrikerBalls.innerText = nonStriker.balls || 0;
     
-    const bowler = data.bowler || {};
+    var bowler = data.bowler || {};
     if (els.bowler) els.bowler.innerText = bowler.name || 'Bowler';
     if (els.bowlerOvers) els.bowlerOvers.innerText = bowler.overs || 0;
     if (els.bowlerRuns) els.bowlerRuns.innerText = bowler.runsConceded || 0;
     if (els.bowlerWickets) els.bowlerWickets.innerText = bowler.wickets || 0;
     
-    const stats = data.stats || {};
-    if (els.crr) els.crr.innerText = `CRR: ${stats.currentRunRate?.toFixed(2) || '0.00'}`;
-    if (els.rrr) els.rrr.innerText = `RRR: ${stats.requiredRunRate?.toFixed(2) || '0.00'}`;
-    if (els.target) els.target.innerText = `Target: ${stats.target || '-'}`;
+    var stats = data.stats || {};
+    if (els.crr) els.crr.innerText = 'CRR: ' + (stats.currentRunRate ? stats.currentRunRate.toFixed(2) : '0.00');
+    if (els.rrr) els.rrr.innerText = 'RRR: ' + (stats.requiredRunRate ? stats.requiredRunRate.toFixed(2) : '0.00');
+    if (els.target) els.target.innerText = 'Target: ' + (stats.target || '-');
     
     if (els.tournament && data.tournament) els.tournament.innerText = data.tournament.name || 'Tournament';
     if (els.matchStatus) els.matchStatus.innerText = data.status || 'Live';
@@ -312,60 +312,60 @@ function updateBoardLegacyFormat(data) {
     console.log('Using legacy/match format');
     
     if (els.team1Name) {
-        els.team1Name.innerText = data.team1?.name || data.team1?.shortName || 'Team 1';
+        els.team1Name.innerText = (data.team1 ? data.team1.name : null) || (data.team1 ? data.team1.shortName : null) || 'Team 1';
     }
     
     if (els.team2Name) {
-        els.team2Name.innerText = data.team2?.name || data.team2?.shortName || 'Team 2';
+        els.team2Name.innerText = (data.team2 ? data.team2.name : null) || (data.team2 ? data.team2.shortName : null) || 'Team 2';
     }
     
     if (els.team1Score) {
-        const score1 = data.score1 || data.team1?.score || 0;
-        const wickets1 = data.wickets1 || data.team1?.wickets || 0;
-        els.team1Score.innerText = `${score1}/${wickets1}`;
+        var score1 = data.score1 || (data.team1 ? data.team1.score : null) || 0;
+        var wickets1 = data.wickets1 || (data.team1 ? data.team1.wickets : null) || 0;
+        els.team1Score.innerText = score1 + '/' + wickets1;
     }
     
     if (els.team2Score) {
-        const score2 = data.score2 || data.team2?.score || 0;
-        const wickets2 = data.wickets2 || data.team2?.wickets || 0;
-        els.team2Score.innerText = `${score2}/${wickets2}`;
+        var score2 = data.score2 || (data.team2 ? data.team2.score : null) || 0;
+        var wickets2 = data.wickets2 || (data.team2 ? data.team2.wickets : null) || 0;
+        els.team2Score.innerText = score2 + '/' + wickets2;
     }
     
     if (els.team1Overs) {
-        const overs1 = data.overs1 || data.team1?.overs || '0.0';
+        var overs1 = data.overs1 || (data.team1 ? data.team1.overs : null) || '0.0';
         els.team1Overs.innerText = formatOvers(overs1);
     }
     
     if (els.team2Overs) {
-        const overs2 = data.overs2 || data.team2?.overs || '0.0';
+        var overs2 = data.overs2 || (data.team2 ? data.team2.overs : null) || '0.0';
         els.team2Overs.innerText = formatOvers(overs2);
     }
     
-    if (els.team1Wickets) els.team1Wickets.innerText = data.wickets1 || data.team1?.wickets || 0;
+    if (els.team1Wickets) els.team1Wickets.innerText = data.wickets1 || (data.team1 ? data.team1.wickets : null) || 0;
     
-    const strikerName = data.striker_name || data.striker?.name || 'Striker';
-    const strikerRuns = data.striker_runs || data.striker?.runs || 0;
-    if (els.striker) els.striker.innerText = `${strikerName} ${strikerRuns}*`;
-    if (els.strikerRuns) els.strikerRuns.innerText = data.striker_runs || data.striker?.runs || 0;
-    if (els.strikerBalls) els.strikerBalls.innerText = data.striker_balls || data.striker?.balls || 0;
+    var strikerName = data.striker_name || (data.striker ? data.striker.name : null) || 'Striker';
+    var strikerRuns = data.striker_runs || (data.striker ? data.striker.runs : null) || 0;
+    if (els.striker) els.striker.innerText = strikerName + ' ' + strikerRuns + '*';
+    if (els.strikerRuns) els.strikerRuns.innerText = data.striker_runs || (data.striker ? data.striker.runs : null) || 0;
+    if (els.strikerBalls) els.strikerBalls.innerText = data.striker_balls || (data.striker ? data.striker.balls : null) || 0;
     
-    const nonStrikerName = data.nonstriker_name || data.nonStriker?.name || 'Non-Striker';
-    const nonStrikerRuns = data.nonstriker_runs || data.nonStriker?.runs || 0;
-    if (els.nonStriker) els.nonStriker.innerText = `${nonStrikerName} ${nonStrikerRuns}`;
-    if (els.nonStrikerRuns) els.nonStrikerRuns.innerText = data.nonstriker_runs || data.nonStriker?.runs || 0;
-    if (els.nonStrikerBalls) els.nonStrikerBalls.innerText = data.nonstriker_balls || data.nonStriker?.balls || 0;
+    var nonStrikerName = data.nonstriker_name || (data.nonStriker ? data.nonStriker.name : null) || 'Non-Striker';
+    var nonStrikerRuns = data.nonstriker_runs || (data.nonStriker ? data.nonStriker.runs : null) || 0;
+    if (els.nonStriker) els.nonStriker.innerText = nonStrikerName + ' ' + nonStrikerRuns;
+    if (els.nonStrikerRuns) els.nonStrikerRuns.innerText = data.nonstriker_runs || (data.nonStriker ? data.nonStriker.runs : null) || 0;
+    if (els.nonStrikerBalls) els.nonStrikerBalls.innerText = data.nonstriker_balls || (data.nonStriker ? data.nonStriker.balls : null) || 0;
     
-    const bowlerName = data.bowler_name || data.bowler?.name || 'Bowler';
+    var bowlerName = data.bowler_name || (data.bowler ? data.bowler.name : null) || 'Bowler';
     if (els.bowler) els.bowler.innerText = bowlerName;
-    if (els.bowlerOvers) els.bowlerOvers.innerText = data.bowler_overs || data.bowler?.overs || 0;
-    if (els.bowlerRuns) els.bowlerRuns.innerText = data.bowler_runs || data.bowler?.runsConceded || 0;
-    if (els.bowlerWickets) els.bowlerWickets.innerText = data.bowler_wickets || data.bowler?.wickets || 0;
+    if (els.bowlerOvers) els.bowlerOvers.innerText = data.bowler_overs || (data.bowler ? data.bowler.overs : null) || 0;
+    if (els.bowlerRuns) els.bowlerRuns.innerText = data.bowler_runs || (data.bowler ? data.bowler.runsConceded : null) || 0;
+    if (els.bowlerWickets) els.bowlerWickets.innerText = data.bowler_wickets || (data.bowler ? data.bowler.wickets : null) || 0;
     
-    if (els.crr) els.crr.innerText = `CRR: ${data.crr || '0.00'}`;
-    if (els.rrr) els.rrr.innerText = `RRR: ${data.rrr || '0.00'}`;
-    if (els.target) els.target.innerText = `Target: ${data.target || '-'}`;
+    if (els.crr) els.crr.innerText = 'CRR: ' + (data.crr || '0.00');
+    if (els.rrr) els.rrr.innerText = 'RRR: ' + (data.rrr || '0.00');
+    if (els.target) els.target.innerText = 'Target: ' + (data.target || '-');
     
-    if (els.tournament) els.tournament.innerText = data.tournament?.name || 'Tournament';
+    if (els.tournament) els.tournament.innerText = (data.tournament ? data.tournament.name : null) || 'Tournament';
     if (els.matchStatus) els.matchStatus.innerText = data.status || 'Live';
     
     if (els.ballsContainer && data.lastFiveOvers) updateBallsTracker(data.lastFiveOvers);
@@ -374,9 +374,9 @@ function updateBoardLegacyFormat(data) {
 function formatOvers(overs) {
     if (typeof overs === 'string') return overs;
     if (typeof overs === 'number') {
-        const wholeOvers = Math.floor(overs);
-        const balls = Math.round((overs - wholeOvers) * 10);
-        return `${wholeOvers}.${balls}`;
+        var wholeOvers = Math.floor(overs);
+        var balls = Math.round((overs - wholeOvers) * 10);
+        return wholeOvers + '.' + balls;
     }
     return '0.0';
 }
@@ -386,26 +386,26 @@ function updateBallsTracker(lastFiveOvers) {
     
     els.ballsContainer.innerHTML = '';
     
-    let balls = [];
+    var balls = [];
     if (typeof lastFiveOvers === 'string') {
-        balls = lastFiveOvers.split('').filter(b => ['0', '1', '2', '3', '4', '6', 'W', 'w'].includes(b));
+        balls = lastFiveOvers.split('').filter(function(b) { return ['0', '1', '2', '3', '4', '6', 'W', 'w'].indexOf(b) !== -1; });
     } else if (Array.isArray(lastFiveOvers)) {
         balls = lastFiveOvers;
     }
     
-    const lastOver = balls.slice(-6);
+    var lastOver = balls.slice(-6);
     
-    lastOver.forEach((ball, i) => {
-        const bDiv = document.createElement('div');
-        bDiv.className = `ball-item ball-${ball.toString().toLowerCase()}`;
+    lastOver.forEach(function(ball, i) {
+        var bDiv = document.createElement('div');
+        bDiv.className = 'ball-item ball-' + ball.toString().toLowerCase();
         
-        if (['4', '6'].includes(ball.toString())) bDiv.classList.add('boundary');
-        if (['W', 'w'].includes(ball.toString())) bDiv.classList.add('wicket');
+        if (['4', '6'].indexOf(ball.toString()) !== -1) bDiv.classList.add('boundary');
+        if (['W', 'w'].indexOf(ball.toString()) !== -1) bDiv.classList.add('wicket');
         
         bDiv.innerText = ball;
         
         if (config.level >= 2) {
-            bDiv.style.animationDelay = `${i * 0.1}s`;
+            bDiv.style.animationDelay = (i * 0.1) + 's';
         }
         
         els.ballsContainer.appendChild(bDiv);
@@ -413,8 +413,8 @@ function updateBallsTracker(lastFiveOvers) {
 }
 
 function triggerPulseAnimations() {
-    const elements = document.querySelectorAll('#score, #overs, #wickets, #crr, #striker, #bowler');
-    elements.forEach(el => {
+    var elements = document.querySelectorAll('#score, #overs, #wickets, #crr, #striker, #bowler');
+    elements.forEach(function(el) {
         if (el) {
             el.classList.remove('pulse');
             void el.offsetWidth;
@@ -425,7 +425,7 @@ function triggerPulseAnimations() {
 
 function updateText(element, newValue) {
     if (!element) return;
-    if (element.innerText != newValue) {
+    if (element.innerText !== newValue) {
         element.classList.remove('pulse-update');
         void element.offsetWidth;
         element.innerText = newValue;
@@ -436,43 +436,32 @@ function updateText(element, newValue) {
 function handleNotification(event) {
     if (!event || !els.notification) return;
     
-    const notif = els.notification;
-    const text = els.notificationText;
+    var notif = els.notification;
+    var text = els.notificationText;
     
     if (!text) return;
     
-    let message = "";
-    let className = "";
+    var message = '';
+    var className = '';
     
-    if (event === '4') { message = "FOUR RUNS!"; className = "notif-4"; }
-    else if (event === '6') { message = "HUGE SIX!"; className = "notif-6"; }
-    else if (['W', 'w', 'WICKET'].includes(event)) { message = "WICKET!"; className = "notif-w"; }
+    if (event === '4') { message = 'FOUR RUNS!'; className = 'notif-4'; }
+    else if (event === '6') { message = 'HUGE SIX!'; className = 'notif-6'; }
+    else if (['W', 'w', 'WICKET'].indexOf(event) !== -1) { message = 'WICKET!'; className = 'notif-w'; }
     else return;
     
     text.innerText = message;
-    notif.className = `notification-active ${className}`;
+    notif.className = 'notification-active ' + className;
     
-    setTimeout(() => {
+    setTimeout(function() {
         notif.className = '';
     }, 3000);
 }
 
 if (typeof document !== 'undefined' && !document.getElementById('overlay-engine-styles')) {
-    const style = document.createElement('style');
+    var style = document.createElement('style');
     style.id = 'overlay-engine-styles';
-    style.textContent = `
-        .pulse, .pulse-update { animation: pulse 0.3s ease-in-out; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-        .ball-item { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; margin: 2px; font-size: 12px; font-weight: bold; background: #444; color: white; }
-        .ball-item.boundary { background: #ffc107; color: #000; }
-        .ball-item.wicket, .ball-item.ball-w { background: #e53935; color: white; }
-        .notification-active { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; border-radius: 10px; font-size: 24px; font-weight: bold; z-index: 9999; animation: popIn 0.3s ease-out; }
-        .notif-4 { background: #4caf50; color: white; }
-        .notif-6 { background: #ff9800; color: white; }
-        .notif-w { background: #f44336; color: white; }
-        @keyframes popIn { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
-    `;
+    style.textContent = '.pulse, .pulse-update { animation: pulse 0.3s ease-in-out; } @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } .ball-item { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; margin: 2px; font-size: 12px; font-weight: bold; background: #444; color: white; } .ball-item.boundary { background: #ffc107; color: #000; } .ball-item.wicket, .ball-item.ball-w { background: #e53935; color: white; } .notification-active { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; border-radius: 10px; font-size: 24px; font-weight: bold; z-index: 9999; animation: popIn 0.3s ease-out; } .notif-4 { background: #4caf50; color: white; } .notif-6 { background: #ff9800; color: white; } .notif-w { background: #f44336; color: white; } @keyframes popIn { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }';
     document.head.appendChild(style);
 }
 
-console.log('ScoreX Overlay Engine initialized - DEBUG MODE', { matchId, config });
+console.log('ScoreX Overlay Engine initialized - DEBUG MODE', { matchId: matchId, config: config });

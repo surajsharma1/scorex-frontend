@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Neon Minimal</title>
+    <title>Broadcast Bar</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <style>
@@ -64,161 +64,102 @@
         </div>
     </div>
 
-<script>
-        console.log('Overlay script started - lvl1-broadcast-bar');
+    <script>
+        console.log('lvl1-broadcast-bar.html loaded - DEBUG MODE');
         
         const config = window.OVERLAY_CONFIG || { apiBaseUrl: 'http://localhost:5000/api/v1' };
         const socket = io(config.apiBaseUrl);
-        if(config.matchId) socket.emit('join_match', config.matchId);
-
-        // ========== BROADCAST CHANNEL (from ScoreboardUpdate.tsx) ==========
-        let broadcastChannel = null;
-        try {
-            broadcastChannel = new BroadcastChannel('cricket_score_updates');
-            broadcastChannel.onmessage = (event) => {
-                console.log('BroadcastChannel message received:', event.data);
-                handleScoreUpdate(event.data);
-            };
-        } catch (e) {
-            console.log('BroadcastChannel not supported');
+        
+        console.log('Socket initialized with config:', config);
+        
+        if(config.matchId) {
+            socket.emit('join_match', config.matchId);
+            console.log('Joined match:', config.matchId);
         }
 
-        // ========== POST MESSAGE (from LiveScoring.tsx via iframe) ==========
-        window.addEventListener('message', (event) => {
-            console.log('PostMessage received in overlay:', event.data);
-            if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
-                console.log('Calling handleScoreUpdate with:', event.data.data);
-                handleScoreUpdate(event.data.data);
-            }
-        });
-
-        // ========== UNIFIED UPDATE HANDLER ==========
-        function handleScoreUpdate(d) {
-            console.log('handleScoreUpdate called with:', d);
-            
-            if (!d) return;
-            
-            // Handle ScoreboardUpdate format (team1/team2 objects with nested data - has batsmen array)
-            if (d.team1 && typeof d.team1 === 'object' && d.team1.batsmen) {
-                console.log('Detected ScoreboardUpdate format');
-                // Determine which team is batting
-                const battingTeam = d.battingTeam || 'team1';
-                const battingData = d[battingTeam] || {};
-                const bowlingTeam = battingTeam === 'team1' ? 'team2' : 'team1';
-                const bowlingData = d[bowlingTeam] || {};
-                
-                // Update scores
-                document.getElementById('sc').innerText = battingData.score || 0;
-                document.getElementById('wk').innerText = battingData.wickets || 0;
-                
-                // Update overs
-                const overs = battingData.overs || 0;
-                const balls = battingData.balls || 0;
-                document.getElementById('ov').innerText = `${overs}.${balls}`;
-                
-                // Update team names
-                document.getElementById('bat').innerText = d.team1?.name || 'Team 1';
-                document.getElementById('bwl').innerText = d.team2?.name || 'Team 2';
-                
-                // Update striker
-                if (battingData.batsmen && battingData.batsmen[0]) {
-                    document.getElementById('p1').innerText = battingData.batsmen[0].name || 'Striker';
-                    document.getElementById('s1').innerText = battingData.batsmen[0].runs || 0;
-                }
-                
-                // Update non-striker
-                if (battingData.batsmen && battingData.batsmen[1]) {
-                    document.getElementById('p2').innerText = battingData.batsmen[1].name || 'Non-Striker';
-                    document.getElementById('s2').innerText = battingData.batsmen[1].runs || 0;
-                }
-                
-                // Update bowler
-                if (battingData.bowler) {
-                    document.getElementById('bname').innerText = battingData.bowler.name || 'Bowler';
-                    document.getElementById('bfig').innerText = `${battingData.bowler.wickets || 0}/${battingData.bowler.runs || 0}`;
-                }
-                
-                // Update last 5 overs balls
-                const v = document.getElementById('bvec');
-                v.innerHTML = '';
-                const last5 = d.stats?.last5Overs || d.lastFiveOvers || '';
-                if (typeof last5 === 'string') {
-                    last5.split('').forEach(r => {
-                        if (['0','1','2','3','4','6','W','w'].includes(r)) {
-                            const b = document.createElement('div');
-                            b.className = `dot ${['4','6'].includes(r) ? 'bound' : ['W','w'].includes(r) ? 'out' : ''}`;
-                            b.innerText = r;
-                            v.appendChild(b);
-                        }
-                    });
-                }
-            }
-            // Handle LiveScoring format (flat team1Score, team2Score, etc.)
-            else if (d.team1Score !== undefined || d.team2Score !== undefined) {
-                console.log('Detected LiveScoring format - Score:', d.team1Score, 'Striker:', d.strikerName);
-                // Team 1 is batting
-                document.getElementById('sc').innerText = d.team1Score || 0;
-                document.getElementById('wk').innerText = d.team1Wickets || 0;
-                document.getElementById('ov').innerText = d.team1Overs || '0.0';
-                document.getElementById('bat').innerText = d.team1Name || 'Team 1';
-                document.getElementById('bwl').innerText = d.team2Name || 'Team 2';
-                
-                // Update striker
-                document.getElementById('p1').innerText = d.strikerName || 'Striker';
-                document.getElementById('s1').innerText = d.strikerRuns || 0;
-                
-                // Update non-striker
-                document.getElementById('p2').innerText = d.nonStrikerName || 'Non-Striker';
-                document.getElementById('s2').innerText = d.nonStrikerRuns || 0;
-                
-                // Update bowler
-                document.getElementById('bname').innerText = d.bowlerName || 'Bowler';
-                document.getElementById('bfig').innerText = `${d.bowlerWickets || 0}/${d.bowlerRuns || 0}`;
-                
-                console.log('Updated DOM with LiveScoring format - Score:', d.team1Score, 'Striker:', d.strikerName);
-            }
-            // Handle legacy socket format
-            else if (d.score !== undefined) {
-                console.log('Detected legacy socket format');
-                document.getElementById('sc').innerText = d.score;
-                document.getElementById('wk').innerText = d.wickets;
-                document.getElementById('ov').innerText = d.overs;
-                document.getElementById('bat').innerText = d.battingTeam;
-                document.getElementById('bwl').innerText = d.bowlingTeam;
-                
-                if(d.striker) {
-                    document.getElementById('p1').innerText = d.striker.name;
-                    document.getElementById('s1').innerText = d.striker.runs;
-                }
-                if(d.nonStriker) {
-                    document.getElementById('p2').innerText = d.nonStriker.name;
-                    document.getElementById('s2').innerText = d.nonStriker.runs;
-                }
-                if(d.bowler) {
-                    document.getElementById('bname').innerText = d.bowler.name;
-                    document.getElementById('bfig').innerText = `${d.bowler.wickets}/${d.bowler.runsConceded}`;
-                }
-
-                const v = document.getElementById('bvec');
-                v.innerHTML = '';
-                (d.thisOver || []).forEach(r => {
-                    const b = document.createElement('div');
-                    b.className = `dot ${['4','6'].includes(r) ? 'bound' : r === 'W' ? 'out' : ''}`;
-                    b.innerText = r;
-                    v.appendChild(b);
-                });
-            } else {
-                console.log('Data format not recognized - keys:', Object.keys(d));
-            }
-        }
-
-        // Keep original socket listener for backward compatibility
+        // Listen for socket.io events (from backend)
         socket.on('match_update', d => {
             console.log('Socket match_update received:', d);
-            handleScoreUpdate(d);
+            updateDisplay(d);
         });
         
-        console.log('Overlay listeners registered');
+        socket.on('scoreUpdate', d => {
+            console.log('Socket scoreUpdate received:', d);
+            if(d.match) updateDisplay(d.match);
+            else updateDisplay(d);
+        });
+
+        // Listen for postMessage from parent (LiveScoring.tsx)
+        window.addEventListener('message', function(event) {
+            console.log('PostMessage received in lvl1-broadcast-bar:', event.data);
+            
+            if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
+                var data = event.data.data;
+                console.log('Processing UPDATE_SCORE data:', data);
+                
+                // Transform LiveScoring format to display format
+                var displayData = {
+                    score: data.team1Score || 0,
+                    wickets: data.team1Wickets || 0,
+                    overs: parseFloat(data.team1Overs) || 0,
+                    battingTeam: data.team1Name || 'Team 1',
+                    bowlingTeam: data.team2Name || 'Team 2',
+                    striker: {
+                        name: data.strikerName || 'Striker',
+                        runs: data.strikerRuns || 0
+                    },
+                    nonStriker: {
+                        name: data.nonStrikerName || 'Non-Striker',
+                        runs: data.nonStrikerRuns || 0
+                    },
+                    bowler: {
+                        name: data.bowlerName || 'Bowler',
+                        runsConceded: data.bowlerRuns || 0,
+                        wickets: data.bowlerWickets || 0
+                    },
+                    thisOver: data.lastFiveOvers ? data.lastFiveOvers.split('').filter(function(b) { return ['0','1','2','3','4','6','W','w'].indexOf(b) !== -1; }) : []
+                };
+                
+                console.log('Transformed display data:', displayData);
+                updateDisplay(displayData);
+            }
+        });
+
+        function updateDisplay(d) {
+            console.log('Updating display with:', d);
+            
+            if(d.score !== undefined) document.getElementById('sc').innerText = d.score;
+            if(d.wickets !== undefined) document.getElementById('wk').innerText = d.wickets;
+            if(d.overs !== undefined) document.getElementById('ov').innerText = d.overs.toFixed(1);
+            if(d.battingTeam) document.getElementById('bat').innerText = d.battingTeam;
+            if(d.bowlingTeam) document.getElementById('bwl').innerText = d.bowlingTeam;
+            
+            if(d.striker) {
+                document.getElementById('p1').innerText = d.striker.name || 'Striker';
+                document.getElementById('s1').innerText = d.striker.runs || 0;
+            }
+            if(d.nonStriker) {
+                document.getElementById('p2').innerText = d.nonStriker.name || 'Non-Striker';
+                document.getElementById('s2').innerText = d.nonStriker.runs || 0;
+            }
+            if(d.bowler) {
+                document.getElementById('bname').innerText = d.bowler.name || 'Bowler';
+                document.getElementById('bfig').innerText = (d.bowler.wickets || 0) + '/' + (d.bowler.runsConceded || 0);
+            }
+
+            var v = document.getElementById('bvec');
+            v.innerHTML = '';
+            
+            var balls = d.thisOver || [];
+            balls.forEach(function(r) {
+                var b = document.createElement('div');
+                b.className = 'dot';
+                if (['4', '6'].indexOf(r.toString()) !== -1) b.classList.add('bound');
+                if (r === 'W' || r === 'w') b.classList.add('out');
+                b.innerText = r;
+                v.appendChild(b);
+            });
+        }
     </script>
 </body>
 </html>
