@@ -116,6 +116,24 @@ export default function LiveScoring() {
   // Player selection
   const [battingPlayers, setBattingPlayers] = useState<{ striker: string; nonStriker: string }>({ striker: '', nonStriker: '' });
 
+  // BroadcastChannel for cross-tab communication
+  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
+
+  // Initialize BroadcastChannel
+  useEffect(() => {
+    try {
+      broadcastChannelRef.current = new BroadcastChannel('cricket_score_updates');
+      console.log('BroadcastChannel initialized in LiveScoring');
+    } catch (e) {
+      console.log('BroadcastChannel not supported');
+    }
+    return () => {
+      if (broadcastChannelRef.current) {
+        broadcastChannelRef.current.close();
+      }
+    };
+  }, []);
+
   function createDefaultInnings(): Innings {
     return {
       battingTeam: 'team1',
