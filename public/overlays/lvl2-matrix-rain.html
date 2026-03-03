@@ -1,172 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Lvl 2 - Zenith Top</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto:wght@500;900&display=swap');
+  <meta charset="UTF-8">
+  <title>ScoreX - Lvl 2 Matrix Rain</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
 
-        body { margin: 0; overflow: hidden; font-family: 'Roboto', sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier Prime', monospace; }
+    body { background: transparent; overflow: hidden; color: #0f0; }
 
-        /* Main Bar */
-        .zenith-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 65px;
-            background: linear-gradient(90deg, #0d1b2a 0%, #1b263b 40%, #0d1b2a 100%);
-            display: flex;
-            align-items: center;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            border-bottom: 2px solid #e0e1dd;
-            transform: translateY(-100%);
-            animation: slideDown 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-        }
+    /* Terminal Island */
+    #matrix-island {
+      position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(0, 50, 0, 0.8); color: #0f0;
+      padding: 5px 20px; font-size: 16px; font-weight: 700;
+      border: 1px solid #0f0; box-shadow: 0 0 10px #0f0, inset 0 0 10px #0f0;
+    }
 
-        @keyframes slideDown { to { transform: translateY(0); } }
+    /* Terminal Event Popup */
+    #matrix-event {
+      position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+      background: #000; color: #0f0;
+      font-size: 90px; font-weight: 700; letter-spacing: 5px;
+      padding: 10px 40px; border: 2px dashed #0f0;
+      box-shadow: 0 0 30px #0f0;
+      opacity: 0; transition: opacity 0.2s, transform 0.2s;
+    }
+    #matrix-event.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-        /* Team Section */
-        .z-team {
-            width: 80px;
-            height: 100%;
-            background: #e63946;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Oswald', sans-serif;
-            font-size: 28px;
-            font-weight: 700;
-            clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%);
-            padding-right: 10px;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
-        }
+    /* Bottom Terminal Bar */
+    #matrix-bottom {
+      position: absolute; bottom: 20px; left: 5%; width: 90%; height: 80px;
+      display: flex; gap: 10px;
+    }
 
-        /* Score Section */
-        .z-score-box {
-            display: flex;
-            flex-direction: column;
-            padding: 0 15px;
-            border-right: 1px solid rgba(255,255,255,0.1);
-        }
+    .term-box {
+      background: rgba(0, 15, 0, 0.95); border: 1px solid #0f0;
+      display: flex; flex-direction: column; justify-content: center; padding: 0 20px;
+      position: relative; overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+    }
+    /* Subtle scanline effect inside the boxes */
+    .term-box::after {
+      content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.1) 2px, rgba(0,255,0,0.1) 4px);
+      pointer-events: none;
+    }
 
-        .z-score {
-            font-size: 32px;
-            font-weight: 900;
-            line-height: 0.9;
-            background: -webkit-linear-gradient(#fff, #a8dadc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    .m-score { min-width: 250px; border-left: 5px solid #0f0; }
+    .m-bat { flex: 1; flex-direction: row; align-items: center; justify-content: space-around; }
+    .m-bowl { min-width: 280px; border-right: 5px solid #0f0; }
 
-        .z-crr { font-size: 10px; color: #a8dadc; letter-spacing: 1px; }
+    .t-lbl { font-size: 12px; color: #0a0; margin-bottom: 2px; }
+    .t-main { font-size: 24px; font-weight: 700; color: #fff; text-shadow: 0 0 5px #0f0;}
+    .t-hl { font-size: 36px; font-weight: 700; line-height: 1; }
+    .t-sub { font-size: 16px; color: #0a0; }
 
-        /* Stats Area */
-        .z-stats {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            font-size: 13px;
-        }
+    .strike-cmd::before { content: '> '; color: #fff; animation: blink 1s infinite; }
+    @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 
-        .z-player { display: flex; flex-direction: column; }
-        .z-player span { font-weight: bold; color: #fff; }
-        .z-player small { font-size: 10px; color: #8d99ae; text-transform: uppercase; }
-
-        /* Ball Tracker */
-        .z-balls {
-            display: flex;
-            gap: 4px;
-            margin-right: 15px;
-        }
-        .z-ball {
-            width: 18px;
-            height: 18px;
-            background: #fff;
-            color: #1b263b;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: 900;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        .z-ball.boundary { background: #e63946; color: white; }
-        .z-ball.wicket { background: #e63946; color: white; animation: pulse 1s infinite; }
-
-        @keyframes pulse { 50% { transform: scale(1.2); } }
-
-        /* FLIP ANIMATION CLASS */
-        .flip-in { animation: flipX 0.4s ease-in; }
-        @keyframes flipX {
-            0% { transform: perspective(400px) rotateX(90deg); opacity: 0; }
-            100% { transform: perspective(400px) rotateX(0deg); opacity: 1; }
-        }
-
-    </style>
+  </style>
 </head>
 <body>
-    <div class="zenith-bar">
-        <div class="z-team" id="team">...</div>
-        
-        <div class="z-score-box">
-            <div class="z-score" id="score">0/0</div>
-            <div class="z-crr">CRR <span id="crr">0.0</span></div>
-        </div>
 
-        <div class="z-stats">
-            <div class="z-player">
-                <small>Batting</small>
-                <span id="batsman">...</span>
-            </div>
-            <div class="z-player" style="text-align: right;">
-                <small>Bowling</small>
-                <span id="bowler">...</span>
-            </div>
-        </div>
+  <div id="matrix-island">[ SYS.INIT: TOURNAMENT ]</div>
+  <div id="matrix-event"></div>
 
-        <div class="z-balls" id="ballsTracker">
-            </div>
+  <div id="matrix-bottom">
+    
+    <div class="term-box m-score">
+      <div class="t-lbl">TARGET_ENTITY</div>
+      <div style="display:flex; justify-content:space-between; align-items:baseline;">
+        <span id="teamName" class="t-main">HACKERS</span>
+        <span class="t-hl"><span id="teamScore">128</span><span style="font-size:24px;color:#0a0;">/</span><span id="teamWickets">2</span></span>
+      </div>
+      <div class="t-lbl" style="text-align:right; margin-top:2px;">CYCLES: <span id="teamOvers">12.4</span></div>
     </div>
 
-    <script>
-        const channel = new BroadcastChannel('cricket_score_updates');
+    <div class="term-box m-bat">
+      <div style="display:flex; flex-direction:column;">
+        <span id="strikerName" class="t-main strike-cmd">N. Anderson</span>
+        <div><span id="strikerRuns" class="t-hl">45</span> <span class="t-sub">(<span id="strikerBalls">22</span>)</span></div>
+      </div>
+      <div style="display:flex; flex-direction:column; opacity:0.7;">
+        <span id="nonStrikerName" class="t-main">M. Smith</span>
+        <div><span id="nonStrikerRuns" class="t-hl" style="font-size:28px;">18</span> <span class="t-sub">(<span id="nonStrikerBalls">14</span>)</span></div>
+      </div>
+    </div>
 
-        function updateFlip(id, text) {
-            const el = document.getElementById(id);
-            if(el.innerText !== text) {
-                el.classList.remove('flip-in');
-                void el.offsetWidth;
-                el.innerText = text;
-                el.classList.add('flip-in');
-            }
-        }
+    <div class="term-box m-bowl">
+      <div class="t-lbl">EXECUTING_PROCESS: BOWL</div>
+      <div style="display:flex; justify-content:space-between; align-items:baseline;">
+        <span id="bowlerName" class="t-main">Agent_01</span>
+        <span class="t-hl"><span id="bowlerWickets">1</span>-<span id="bowlerRuns">24</span></span>
+      </div>
+      <div class="t-lbl" style="text-align:right; margin-top:2px;">CYC: <span id="bowlerOvers">2.4</span></div>
+    </div>
 
-        channel.onmessage = (e) => {
-            const d = e.data;
-            if(!d.team1) return;
-            const t = d.team1.isBatting ? d.team1 : d.team2;
+  </div>
 
-            document.getElementById('team').innerText = t.shortName;
-            updateFlip('score', `${t.score}/${t.wickets}`);
-            document.getElementById('crr').innerText = d.stats.currentRunRate;
-            
-            updateFlip('batsman', `${d.striker.name} ${d.striker.runs}*`);
-            updateFlip('bowler', `${d.bowler.name} ${d.bowler.wickets}-${d.bowler.runs}`);
+  <script>
+    let mSc = -1, mWk = -1, mSt = 0, mDat = {};
+    const set = (id, val) => { const e = document.getElementById(id); if(e && val != null) e.innerText = val; };
 
-            // Render Balls
-            const b = parseInt(t.balls || 0);
-            let html = '';
-            // Just visualization logic for demo
-            for(let i=0; i<6; i++) {
-                if(i < b) html += `<div class="z-ball">${i+1}</div>`;
-                else html += `<div class="z-ball" style="opacity:0.3; background:#888"></div>`;
-            }
-            document.getElementById('ballsTracker').innerHTML = html;
-        };
-    </script>
+    function sysPop(txt) {
+      const e = document.getElementById('matrix-event');
+      e.innerText = `[ ${txt} ]`; e.classList.add('show');
+      setTimeout(() => e.classList.remove('show'), 2500);
+    }
+
+    setInterval(() => {
+      const el = document.getElementById('matrix-island');
+      if(!mDat.tournamentName) return;
+      mSt = (mSt + 1) % 3;
+      if(mSt === 0) el.innerText = `[ ${mDat.tournamentName} ]`;
+      else if(mSt === 1) el.innerText = `[ FLOW_RATE: ${mDat.runRate||'0.0'} ]`;
+      else el.innerText = mDat.target > 0 ? `[ OBJ_TARGET: ${mDat.target} ]` : `[ STATUS: ACTIVE ]`;
+    }, 4000);
+
+    function rx(d) {
+      mDat = d;
+      set('teamName', d.team1Name); set('teamScore', d.team1Score); set('teamWickets', d.team1Wickets); set('teamOvers', d.team1Overs);
+      set('strikerName', d.strikerName); set('strikerRuns', d.strikerRuns); set('strikerBalls', d.strikerBalls);
+      set('nonStrikerName', d.nonStrikerName); set('nonStrikerRuns', d.nonStrikerRuns); set('nonStrikerBalls', d.nonStrikerBalls);
+      set('bowlerName', d.bowlerName); set('bowlerRuns', d.bowlerRuns); set('bowlerWickets', d.bowlerWickets); set('bowlerOvers', d.bowlerOvers);
+
+      let ns = parseInt(d.team1Score)||0, nw = parseInt(d.team1Wickets)||0;
+      if (mSc !== -1) {
+        if (nw > mWk) sysPop("PROCESS_TERMINATED");
+        else if (ns - mSc === 6) sysPop("CRITICAL_HIT: 6");
+        else if (ns - mSc === 4) sysPop("OVERFLOW: 4");
+      }
+      mSc = ns; mWk = nw;
+    }
+
+    window.addEventListener('message', e => { if(e.data?.type === 'UPDATE_SCORE') rx(e.data.data); });
+    if ('BroadcastChannel' in window) new BroadcastChannel('scorex_overlay_channel').onmessage = e => { if(e.data?.type === 'UPDATE_SCORE') rx(e.data.data); };
+  </script>
 </body>
 </html>

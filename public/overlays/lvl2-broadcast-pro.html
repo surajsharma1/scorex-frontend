@@ -1,307 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lvl 2 - Velocity Push Overlay</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Inter:wght@400;600&display=swap');
+  <meta charset="UTF-8">
+  <title>ScoreX - Lvl 1 Soft Material</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
 
-        :root {
-            --primary: #00f2ff; /* Neon Cyan */
-            --accent: #ff0055;  /* Neon Red */
-            --bg-dark: rgba(10, 10, 15, 0.95);
-            --text-main: #ffffff;
-            --text-dim: #a0a0a0;
-            --push-duration: 0.4s;
-        }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background: transparent; overflow: hidden; color: #1f2937; }
 
-        body { margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+    /* Top Floating Island */
+    #mat-island {
+      position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+      background: #ffffff; color: #4f46e5;
+      padding: 8px 30px; border-radius: 30px;
+      font-size: 14px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
 
-        /* --- Main Container (Bottom Tab) --- */
-        .scoreboard-container {
-            position: fixed;
-            bottom: 15px;
-            left: 2%;
-            width: 96%;
-            height: 75px;
-            background: var(--bg-dark);
-            border-radius: 12px;
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: grid;
-            grid-template-columns: 80px 1.5fr 1fr 120px; /* Team | Players | Score | Balls */
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-        }
+    /* Event Popup */
+    #mat-event {
+      position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
+      background: #4f46e5; color: #ffffff;
+      font-size: 80px; font-weight: 800; text-transform: uppercase;
+      padding: 20px 60px; border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(79, 70, 229, 0.4);
+      opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #mat-event.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-        /* --- Section Styling --- */
-        .section {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 0 10px;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-        }
+    /* Bottom Material Bar */
+    #mat-bottom {
+      position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
+      width: 90%; max-width: 1100px; height: 95px;
+      background: #ffffff; border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+      display: flex; overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
 
-        /* Team Box */
-        .section.team {
-            background: linear-gradient(145deg, #1a1a2e, #000);
-            align-items: center;
-            color: var(--primary);
-            font-family: 'Teko', sans-serif;
-            font-size: 24px;
-            text-transform: uppercase;
-            line-height: 1;
-        }
+    .m-sec { display: flex; align-items: center; padding: 0 30px; }
 
-        /* Player Stats (Batsman/Bowler) */
-        .player-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-            height: 50%;
-            color: var(--text-main);
-        }
-        .player-label { font-weight: 600; color: var(--primary); margin-right: 5px; font-size: 11px; }
-        .player-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
-        .player-score { font-family: 'Teko', sans-serif; font-size: 16px; margin-left: 5px; color: #ffd700; }
+    /* Score Section (Accent Background) */
+    .sec-score {
+      background: #4f46e5; color: #ffffff; min-width: 260px;
+      justify-content: space-between; border-radius: 20px;
+    }
+    .m-tm { font-size: 22px; font-weight: 800; letter-spacing: 0.5px;}
+    .m-sc { font-size: 42px; font-weight: 800; line-height: 1; margin-top: 4px;}
+    .m-sc span { font-size: 24px; color: #c7d2fe; }
+    .m-ov { font-size: 14px; font-weight: 600; color: #e0e7ff; margin-left: 8px;}
 
-        /* Main Score (The Big Number) */
-        .section.score-main {
-            align-items: center;
-            background: rgba(0, 242, 255, 0.05);
-        }
-        .total-score {
-            font-family: 'Teko', sans-serif;
-            font-size: 38px;
-            font-weight: 700;
-            line-height: 0.9;
-            color: white;
-        }
-        .run-rate {
-            font-size: 10px;
-            color: var(--text-dim);
-            margin-top: 2px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    /* Player Sections */
+    .sec-bat { flex: 1; justify-content: space-around; border-right: 1px solid #f3f4f6;}
+    .bat-wrap { display: flex; flex-direction: column; }
+    
+    .pn { font-size: 18px; font-weight: 700; color: #111827; }
+    .pr { font-size: 26px; font-weight: 800; color: #4f46e5; }
+    .pb { font-size: 14px; color: #6b7280; font-weight: 600; }
+    .strike { color: #f59e0b; margin-right: 6px; font-size: 12px; }
 
-        /* Balls Tracker */
-        .section.balls {
-            border-right: none;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .ball-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 2px;
-            padding: 0 5px;
-            width: 100%;
-        }
-        .ball {
-            width: 16px;
-            height: 16px;
-            background: #2a2a2a;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 9px;
-            font-weight: bold;
-            color: #888;
-        }
-        .ball.active { background: var(--text-main); color: #000; }
-        .ball.boundary { background: var(--primary); color: #000; box-shadow: 0 0 5px var(--primary); }
-        .ball.wicket { background: var(--accent); color: white; box-shadow: 0 0 5px var(--accent); }
+    .sec-bowl { min-width: 300px; justify-content: space-between; background: #f9fafb; }
+    .lbl { color: #9ca3af; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 2px;}
 
-        /* --- Animation Engine --- */
-        /* Wrapper for text that needs to animate */
-        .anim-wrapper {
-            position: relative;
-            display: inline-block;
-            overflow: hidden;
-            vertical-align: bottom;
-            height: 1.2em; /* Adjust based on line-height */
-        }
-        
-        .anim-inner {
-            display: block;
-            transition: transform var(--push-duration) cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        /* Push Up Animation State */
-        .pushing-up .anim-inner {
-            transform: translateY(-50%);
-        }
-
-        /* Helper to structure the inner content for animation */
-        .anim-inner span {
-            display: block;
-            height: 100%;
-        }
-
-    </style>
+  </style>
 </head>
 <body>
 
-    <div class="scoreboard-container" id="scoreboard">
-        <div class="section team">
-            <div id="teamName" class="push-target">IND</div>
-        </div>
+  <div id="mat-island">TEST CHAMPIONSHIP</div>
+  <div id="mat-event">WICKET</div>
 
-        <div class="section">
-            <div class="player-row" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <div style="display:flex; align-items:center;">
-                    <span class="player-label">BAT</span>
-                    <span id="strikerName" class="player-name push-target">Kohli</span>
-                </div>
-                <div id="strikerScore" class="player-score push-target">45(32)</div>
-            </div>
-            <div class="player-row">
-                <div style="display:flex; align-items:center;">
-                    <span class="player-label" style="color:var(--accent)">BWL</span>
-                    <span id="bowlerName" class="player-name push-target">Anderson</span>
-                </div>
-                <div id="bowlerScore" class="player-score push-target">2-24</div>
-            </div>
-        </div>
-
-        <div class="section score-main">
-            <div id="scoreDisplay" class="total-score push-target">142/3</div>
-            <div class="run-rate">CRR: <span id="crr" class="push-target">8.4</span></div>
-        </div>
-
-        <div class="section balls">
-            <div class="ball-grid" id="ballsContainer">
-                <div class="ball">.</div>
-                <div class="ball">.</div>
-                <div class="ball">.</div>
-                <div class="ball">.</div>
-                <div class="ball">.</div>
-                <div class="ball">.</div>
-            </div>
-        </div>
+  <div id="mat-bottom">
+    
+    <div class="m-sec sec-score">
+      <div id="teamName" class="m-tm">ENGLAND</div>
+      <div style="display:flex; align-items:baseline;">
+        <div class="m-sc"><span id="teamScore">284</span><span>/</span><span id="teamWickets">5</span></div>
+        <div class="m-ov">OV <span id="teamOvers">64.2</span></div>
+      </div>
     </div>
 
-    <script>
-        // --- Animation Engine ---
-        
-        /**
-         * Safely updates text with a "Push" animation if the value has changed.
-         * @param {string} elementId - HTML ID of the element.
-         * @param {string} newValue - The new text value to display.
-         */
-        function updateWithPush(elementId, newValue) {
-            const el = document.getElementById(elementId);
-            if (!el) return;
+    <div class="m-sec sec-bat">
+      <div class="bat-wrap">
+        <div><span class="strike">●</span><span id="strikerName" class="pn">J. Root</span></div>
+        <div><span id="strikerRuns" class="pr">102</span> <span class="pb">(<span id="strikerBalls">145</span>)</span></div>
+      </div>
+      
+      <div class="bat-wrap" style="opacity: 0.6;">
+        <div id="nonStrikerName" class="pn">B. Stokes</div>
+        <div><span id="nonStrikerRuns" class="pr" style="color: #374151;">34</span> <span class="pb">(<span id="nonStrikerBalls">52</span>)</span></div>
+      </div>
+    </div>
 
-            // Normalize values to string to compare
-            const currentVal = el.getAttribute('data-value') || el.innerText;
-            if (String(currentVal) === String(newValue)) return;
+    <div class="m-sec sec-bowl">
+      <div class="bat-wrap">
+        <span class="lbl">Bowling</span>
+        <span id="bowlerName" class="pn">P. Cummins</span>
+      </div>
+      <div style="text-align: right;">
+        <span class="pr" style="color: #ef4444;"><span id="bowlerWickets">3</span>-<span id="bowlerRuns">55</span></span>
+        <div class="pb">Overs: <span id="bowlerOvers">14.2</span></div>
+      </div>
+    </div>
 
-            // Construct the animation DOM structure if not already present
-            if (!el.querySelector('.anim-inner')) {
-                const text = el.innerText;
-                el.innerHTML = `<div class="anim-wrapper"><span class="anim-inner"><span>${text}</span><span>${newValue}</span></span></div>`;
-            } else {
-                // If already structured, we just update the bottom span
-                const inner = el.querySelector('.anim-inner');
-                // Set the "new" value in the second span
-                inner.children[1].innerText = newValue;
-            }
+  </div>
 
-            const inner = el.querySelector('.anim-inner');
-            
-            // Trigger Animation
-            // 1. Slide up
-            inner.style.transform = 'translateY(-100%)';
+  <script>
+    let mSc = -1, mWk = -1, mSt = 0, mDat = {};
+    const st = (id, val) => { const e = document.getElementById(id); if(e && val != null) e.innerText = val; };
 
-            // 2. After slide, reset layout instantly to simulate continuous flow
-            setTimeout(() => {
-                // Remove transition to snap back
-                inner.style.transition = 'none'; 
-                // Set top span to new value
-                inner.children[0].innerText = newValue; 
-                // Reset transform
-                inner.style.transform = 'translateY(0)';
-                
-                // Save new value
-                el.setAttribute('data-value', newValue);
+    function popMat(txt, bg) {
+      const e = document.getElementById('mat-event');
+      e.innerText = txt; e.style.background = bg;
+      e.classList.add('show');
+      setTimeout(() => e.classList.remove('show'), 2800);
+    }
 
-                // Restore transition for next time
-                requestAnimationFrame(() => {
-                    inner.style.transition = 'transform var(--push-duration) cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                });
-            }, 400); // Matches --push-duration
-        }
+    setInterval(() => {
+      const isl = document.getElementById('mat-island');
+      if(!mDat.tournamentName) return;
+      mSt = (mSt + 1) % 3;
+      if(mSt === 0) isl.innerText = mDat.tournamentName;
+      else if(mSt === 1) isl.innerText = "RUN RATE: " + (mDat.runRate||'0.0');
+      else isl.innerText = mDat.target > 0 ? "TARGET: " + mDat.target : "DAY 2";
+    }, 5000);
 
-        // --- Broadcast Channel Listener ---
-        const channel = new BroadcastChannel('cricket_score_updates');
+    function rx(d) {
+      mDat = d;
+      st('teamName', d.team1Name); st('teamScore', d.team1Score); st('teamWickets', d.team1Wickets); st('teamOvers', d.team1Overs);
+      st('strikerName', d.strikerName); st('strikerRuns', d.strikerRuns); st('strikerBalls', d.strikerBalls);
+      st('nonStrikerName', d.nonStrikerName); st('nonStrikerRuns', d.nonStrikerRuns); st('nonStrikerBalls', d.nonStrikerBalls);
+      st('bowlerName', d.bowlerName); st('bowlerRuns', d.bowlerRuns); st('bowlerWickets', d.bowlerWickets); st('bowlerOvers', d.bowlerOvers);
 
-        channel.onmessage = (event) => {
-            const data = event.data;
-            if (!data) return;
+      let ns = parseInt(d.team1Score)||0, nw = parseInt(d.team1Wickets)||0;
+      if (mSc !== -1) {
+        if (nw > mWk) popMat("WICKET!", "#ef4444");
+        else if (ns - mSc === 6) popMat("SIX RUNS!", "#4f46e5");
+        else if (ns - mSc === 4) popMat("BOUNDARY!", "#10b981");
+      }
+      mSc = ns; mWk = nw;
+    }
 
-            // console.log('Overlay received:', data);
-
-            // 1. Identify active team data
-            const isBattingTeam1 = data.team1.isBatting;
-            const battingTeam = isBattingTeam1 ? data.team1 : data.team2;
-            
-            // 2. Compulsory Data Mapping
-            const scoreText = `${battingTeam.score}/${battingTeam.wickets} <span style="font-size:0.6em; opacity:0.7">(${battingTeam.overs})</span>`;
-            
-            // 3. Trigger Updates
-            updateWithPush('teamName', battingTeam.shortName);
-            
-            // Note: We use innerHTML for score to support the smaller overs font
-            // For simple text push, we use our helper. For HTML, we might just swap it or enhance the helper.
-            // For now, let's use the helper for the main numbers and handle the HTML separately or strip tags.
-            const cleanScore = `${battingTeam.score}/${battingTeam.wickets}`;
-            updateWithPush('scoreDisplay', cleanScore); // Simpler for animation, or enhance helper for HTML
-            
-            // Update Batsman
-            updateWithPush('strikerName', data.striker.name + (data.striker.status || ''));
-            updateWithPush('strikerScore', `${data.striker.runs}(${data.striker.balls})`);
-
-            // Update Bowler
-            updateWithPush('bowlerName', data.bowler.name);
-            updateWithPush('bowlerScore', `${data.bowler.wickets}-${data.bowler.runs}`);
-
-            // Update CRR
-            updateWithPush('crr', data.stats.currentRunRate);
-
-            // 4. Update Balls (No push animation needed, just re-render grid)
-            // You would ideally get the "current over balls" array from your API data.
-            // Since the provided React code calculates it internally but sends specific events,
-            // we might need to parse the fractional overs.
-            // Simplified logic for visual demo:
-            renderBalls(battingTeam.overs);
-        };
-
-        function renderBalls(oversStr) {
-            // This is a visual approximation based on the decimal part of the overs
-            // In a real integration, pass the actual array of the current over [1, 4, W, 0...]
-            const ballsCount = parseInt(String(oversStr).split('.')[1]) || 0;
-            const container = document.getElementById('ballsContainer');
-            
-            let html = '';
-            for(let i=0; i<6; i++) {
-                if(i < ballsCount) {
-                    html += `<div class="ball active"></div>`; // Placeholder dots
-                } else {
-                    html += `<div class="ball">.</div>`;
-                }
-            }
-            container.innerHTML = html;
-        }
-
-    </script>
+    window.addEventListener('message', e => { if(e.data?.type === 'UPDATE_SCORE') rx(e.data.data); });
+    if ('BroadcastChannel' in window) new BroadcastChannel('scorex_overlay_channel').onmessage = e => { if(e.data?.type === 'UPDATE_SCORE') rx(e.data.data); };
+  </script>
 </body>
 </html>

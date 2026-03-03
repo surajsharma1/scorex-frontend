@@ -2,234 +2,167 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ScoreX - Lvl 1 Curved Compact</title>
+  <title>ScoreX - Lvl 1 Curved Compact (Thin)</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap');
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
     body { background: transparent; overflow: hidden; color: #fff; }
 
-    /* Top Floating Island */
-    #top-island {
+    /* Top Island */
+    #island-pill {
       position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.85);
+      top: 15px; left: 50%; transform: translateX(-50%);
+      background: rgba(20, 20, 20, 0.9);
       border: 2px solid #ff5722;
-      padding: 8px 25px;
-      border-radius: 30px;
-      font-size: 14px;
-      font-weight: 700;
+      padding: 6px 25px;
+      border-radius: 20px;
+      font-size: 13px; font-weight: 700; letter-spacing: 1.5px;
       text-transform: uppercase;
-      letter-spacing: 2px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-      transition: opacity 0.5s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     }
 
-    /* Event Popup (4, 6, OUT) */
-    #event-popup {
+    /* Big Event Popup */
+    #event-anim {
       position: absolute;
-      top: 40%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.5);
-      font-size: 100px;
-      font-weight: 900;
+      top: 45%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+      font-size: 110px; font-weight: 900; text-transform: uppercase;
       color: #fff;
-      text-shadow: 4px 4px 0 #000, -2px -2px 0 #000, 0 0 30px #ff5722;
-      opacity: 0;
-      pointer-events: none;
+      text-shadow: 3px 3px 0 #000, -2px -2px 0 #000, 0 0 40px #ff5722;
+      opacity: 0; pointer-events: none;
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    #event-popup.show {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
+    #event-anim.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-    /* Bottom Layout */
-    #bottom-wrapper {
+    /* Bottom Assembly */
+    #bottom-assembly {
       position: absolute;
-      bottom: 30px;
-      left: 50px;
-      display: flex;
-      align-items: center;
-      width: calc(100% - 100px);
-      max-width: 1100px;
+      bottom: 15px; left: 5%;
+      width: 90%; height: 50px;
+      display: flex; align-items: center;
     }
 
     /* Score Circle */
     .score-circle {
-      width: 120px;
-      height: 120px;
+      width: 66px; height: 66px;
       background: linear-gradient(135deg, #ff5722 0%, #d84315 100%);
       border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 10px 20px rgba(255, 87, 34, 0.4);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      border: 3px solid #fff;
+      box-shadow: 0 5px 15px rgba(255, 87, 34, 0.5);
       z-index: 10;
-      border: 4px solid #fff;
+      flex-shrink: 0;
     }
-    .score-circle .runs { font-size: 38px; font-weight: 900; line-height: 1; }
-    .score-circle .overs { font-size: 13px; font-weight: 700; color: #ffe0b2; margin-top: 4px; }
+    .c-score { font-size: 22px; font-weight: 900; line-height: 1; }
+    .c-wkts { font-size: 14px; color: #ffe0b2; }
 
     /* Attached Slick Bar */
     .slick-bar {
-      background: rgba(20, 20, 25, 0.95);
-      height: 70px;
       flex-grow: 1;
-      margin-left: -20px; /* Pull it behind the circle */
-      padding-left: 40px; /* Make room for the overlapping circle */
-      border-radius: 0 35px 35px 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-right: 30px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      height: 44px;
+      background: rgba(20, 20, 25, 0.95);
+      margin-left: -20px; /* Pulls bar behind circle */
+      padding-left: 35px; /* Makes room for overlapping circle */
+      border-radius: 0 22px 22px 0;
       border: 1px solid rgba(255,255,255,0.1);
       border-left: none;
+      display: flex; align-items: center; justify-content: space-between;
+      padding-right: 25px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     }
 
-    .player-group { display: flex; align-items: center; gap: 30px; }
+    .grp { display: flex; align-items: center; gap: 20px; font-size: 15px; }
+    .b-name { font-weight: 700; color: #fff; }
+    .b-run { font-weight: 900; color: #ff5722; font-size: 18px; margin-left: 5px; }
+    .b-ball { color: #aaa; font-size: 12px; }
+    .b-sub { color: #bbb; font-weight: 500; font-size: 13px;}
     
-    .batter-main { display: flex; align-items: baseline; gap: 10px; }
-    .b-name-main { font-size: 22px; font-weight: 900; color: #fff; }
-    .b-score-main { font-size: 22px; font-weight: 700; color: #ff5722; }
-    .b-balls-main { font-size: 14px; color: #aaa; }
-
-    .batter-sub { display: flex; align-items: baseline; gap: 8px; border-left: 2px solid #444; padding-left: 20px;}
-    .b-name-sub { font-size: 14px; font-weight: 700; color: #ccc; }
-    .b-score-sub { font-size: 16px; font-weight: 700; color: #fff; }
-
-    .bowler-group { display: flex; align-items: baseline; gap: 15px; border-left: 2px solid #ff5722; padding-left: 20px; }
-    .bowl-name { font-size: 18px; font-weight: 700; color: #fff; }
-    .bowl-stats { font-size: 18px; font-weight: 900; color: #4caf50; }
+    .divider { width: 1px; height: 20px; background: #444; }
   </style>
 </head>
 <body>
 
-  <div id="top-island">
-    <span id="top-island-text">PREVIEW TOURNAMENT</span>
-  </div>
+  <div id="island-pill">SUMMER CUP T20</div>
+  <div id="event-anim"></div>
 
-  <div id="event-popup">SIX!</div>
-
-  <div id="bottom-wrapper">
+  <div id="bottom-assembly">
     <div class="score-circle">
-      <div class="runs"><span id="teamScore">0</span>/<span id="teamWickets">0</span></div>
-      <div class="overs">OV <span id="teamOvers">0.0</span></div>
+      <div class="c-score" id="teamScore">186</div>
+      <div class="c-wkts">W: <span id="teamWickets">4</span></div>
     </div>
     
     <div class="slick-bar">
-      <div class="player-group">
-        <div class="batter-main">
-          <span id="strikerName" class="b-name-main">Striker</span>
-          <span id="strikerRuns" class="b-score-main">0</span>
-          <span class="b-balls-main">(<span id="strikerBalls">0</span>)</span>
+      
+      <div class="grp" style="margin-right: auto; gap: 10px;">
+        <span id="teamName" style="font-weight:900; font-size: 18px; letter-spacing:1px;">TEAM</span>
+        <span class="b-ball">OV: <span id="teamOvers">14.2</span></span>
+      </div>
+
+      <div class="grp">
+        <div style="display:flex; align-items:baseline;">
+          <span style="color:#ff5722; font-size:10px; margin-right:4px;">▶</span>
+          <span id="strikerName" class="b-name">Batter 1</span>
+          <span id="strikerRuns" class="b-run">56</span>
+          <span class="b-ball">(<span id="strikerBalls">32</span>)</span>
         </div>
-        <div class="batter-sub">
-          <span id="nonStrikerName" class="b-name-sub">Non-Striker</span>
-          <span id="nonStrikerRuns" class="b-score-sub">0</span>
+
+        <div class="divider"></div>
+
+        <div style="display:flex; align-items:baseline;">
+          <span id="nonStrikerName" class="b-sub">Batter 2</span>
+          <span id="nonStrikerRuns" class="b-run" style="color:#ccc; font-size:15px;">22</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="display:flex; align-items:baseline; gap: 8px;">
+          <span class="b-ball">BOWL:</span>
+          <span id="bowlerName" class="b-name">Bowler X</span>
+          <span class="b-run" style="color: #4caf50; font-size: 16px;"><span id="bowlerWickets">1</span>-<span id="bowlerRuns">28</span></span>
         </div>
       </div>
 
-      <div class="bowler-group">
-        <span class="b-name-sub" style="color:#aaa;">BOWLER:</span>
-        <span id="bowlerName" class="bowl-name">Bowler</span>
-        <span class="bowl-stats"><span id="bowlerWickets">0</span>-<span id="bowlerRuns">0</span></span>
-        <span class="b-balls-main">(<span id="bowlerOvers">0.0</span>)</span>
-      </div>
     </div>
   </div>
 
   <script>
-    let currentPayload = {};
-    let prevScore = -1;
-    let prevWickets = -1;
+    let pScore = -1, pWickets = -1, iState = 0, pData = {};
+    const set = (id, val) => { const e = document.getElementById(id); if(e && val != null) e.innerText = val; };
 
-    function updateDOM(id, value) {
-      const el = document.getElementById(id);
-      if (el && value !== undefined && value !== null) el.innerText = value;
+    function flash(text, color) {
+      const p = document.getElementById('event-anim');
+      p.innerText = text; p.style.color = color;
+      p.classList.add('show');
+      setTimeout(() => p.classList.remove('show'), 3200);
     }
 
-    // --- EVENT POPUP LOGIC ---
-    function triggerEvent(text, color) {
-      const popup = document.getElementById('event-popup');
-      popup.innerText = text;
-      popup.style.color = color;
-      popup.classList.add('show');
-      setTimeout(() => popup.classList.remove('show'), 3500); // Hide after 3.5s
-    }
-
-    function checkMatchEvents(newScore, newWickets) {
-      if (prevScore === -1) {
-        // First load, just set state, don't trigger popups
-        prevScore = parseInt(newScore) || 0;
-        prevWickets = parseInt(newWickets) || 0;
-        return;
-      }
-
-      let nScore = parseInt(newScore) || 0;
-      let nWickets = parseInt(newWickets) || 0;
-
-      if (nWickets > prevWickets) {
-        triggerEvent("OUT!", "#f44336");
-      } else if (nScore - prevScore === 6) {
-        triggerEvent("SIX!", "#2196f3");
-      } else if (nScore - prevScore === 4) {
-        triggerEvent("FOUR!", "#4caf50");
-      }
-
-      prevScore = nScore;
-      prevWickets = nWickets;
-    }
-
-    // --- TOP ISLAND ROTATION LOGIC ---
-    let islandState = 0;
     setInterval(() => {
-      const islandText = document.getElementById('top-island-text');
-      if(!currentPayload.tournamentName) return; // Don't rotate if no data
+      const el = document.getElementById('island-pill');
+      if(!pData.tournamentName) return;
+      iState = (iState + 1) % 3;
+      if(iState === 0) el.innerText = pData.tournamentName;
+      else if(iState === 1) el.innerText = "CRR: " + (pData.runRate || "0.0");
+      else el.innerText = pData.target > 0 ? "TARGET: " + pData.target : "1ST INNINGS";
+    }, 4500);
 
-      islandState = (islandState + 1) % 3;
-      if (islandState === 0) islandText.innerText = currentPayload.tournamentName;
-      else if (islandState === 1) islandText.innerText = "BATTING: " + currentPayload.team1Name;
-      else if (islandState === 2) islandText.innerText = currentPayload.target > 0 ? "TARGET: " + currentPayload.target : currentPayload.status;
-    }, 5000); // Rotates every 5 seconds
+    function rx(d) {
+      pData = d;
+      set('teamName', d.team1Name); set('teamScore', d.team1Score); set('teamWickets', d.team1Wickets); set('teamOvers', d.team1Overs);
+      set('strikerName', d.strikerName); set('strikerRuns', d.strikerRuns); set('strikerBalls', d.strikerBalls);
+      set('nonStrikerName', d.nonStrikerName); set('nonStrikerRuns', d.nonStrikerRuns);
+      set('bowlerName', d.bowlerName); set('bowlerRuns', d.bowlerRuns); set('bowlerWickets', d.bowlerWickets);
 
-    // --- MAIN DATA HANDLER ---
-    function handleData(payload) {
-      currentPayload = payload;
-      
-      updateDOM('teamScore', payload.team1Score);
-      updateDOM('teamWickets', payload.team1Wickets);
-      updateDOM('teamOvers', payload.team1Overs);
-      
-      updateDOM('strikerName', payload.strikerName);
-      updateDOM('strikerRuns', payload.strikerRuns);
-      updateDOM('strikerBalls', payload.strikerBalls);
-      
-      updateDOM('nonStrikerName', payload.nonStrikerName);
-      updateDOM('nonStrikerRuns', payload.nonStrikerRuns);
-      
-      updateDOM('bowlerName', payload.bowlerName);
-      updateDOM('bowlerRuns', payload.bowlerRuns);
-      updateDOM('bowlerWickets', payload.bowlerWickets);
-      updateDOM('bowlerOvers', payload.bowlerOvers);
-
-      // Check for 4, 6, Wickets
-      checkMatchEvents(payload.team1Score, payload.team1Wickets);
+      let cS = parseInt(d.team1Score)||0, cW = parseInt(d.team1Wickets)||0;
+      if (pScore !== -1) {
+        if (cW > pWickets) flash("OUT!", "#f44336");
+        else if (cS - pScore === 6) flash("SIX!", "#03a9f4");
+        else if (cS - pScore === 4) flash("FOUR!", "#4caf50");
+      }
+      pScore = cS; pWickets = cW;
     }
 
-    window.addEventListener('message', (e) => {
-      if (e.data && e.data.type === 'UPDATE_SCORE') handleData(e.data.data);
-    });
-    if ('BroadcastChannel' in window) {
-      new BroadcastChannel('scorex_overlay_channel').onmessage = (e) => {
-        if (e.data && e.data.type === 'UPDATE_SCORE') handleData(e.data.data);
-      };
-    }
+    window.addEventListener('message', e => { if(e.data?.type === 'UPDATE_SCORE') rx(e.data.data); });
+    if ('BroadcastChannel' in window) new BroadcastChannel('scorex_overlay_channel').onmessage = e => { if(e.data?.type === 'UPDATE_SCORE') rx(e.data.data); };
   </script>
 </body>
 </html>

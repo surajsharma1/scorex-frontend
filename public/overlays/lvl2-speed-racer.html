@@ -1,165 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Lvl 2 - Titanium Split</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Khand:wght@500;700&family=Roboto:wght@400;900&display=swap');
+  <meta charset="UTF-8">
+  <title>ScoreX - Lvl 2 Cyberpunk Yellow</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Chakra+Petch:wght@500;700&display=swap');
 
-        body { margin: 0; overflow: hidden; font-family: 'Khand', sans-serif; text-transform: uppercase; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: transparent; overflow: hidden; font-family: 'Chakra Petch', sans-serif; }
 
-        /* METALLIC BACKGROUND MIXIN */
-        .metal {
-            background: linear-gradient(180deg, #4c4c4c 0%, #2b2b2b 40%, #1c1c1c 100%);
-            border-top: 1px solid #777;
-            border-bottom: 1px solid #000;
-            color: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.6);
-        }
+    /* Variables */
+    :root { --cy-yellow: #f3e600; --cy-dark: #0d0d0d; --cy-cyan: #00ffcc; --cy-red: #ff003c; }
 
-        .accent { color: #ff9f43; } /* Sports Orange */
+    /* Top Angular Island */
+    #cp-island {
+      position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+      background: var(--cy-yellow); color: var(--cy-dark);
+      padding: 4px 40px; font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px;
+      clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+      border-bottom: 3px solid var(--cy-dark);
+    }
 
-        /* --- TOP BAR --- */
-        .top-bar {
-            position: fixed; top: 0; left: 0; width: 100%; height: 45px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.8); border-bottom: 3px solid #ff9f43;
-            padding: 0 20px; box-sizing: border-box;
-            transform: translateY(-100%); animation: slideDown 0.6s forwards;
-        }
+    /* Glitch Alert Popup */
+    #cp-event {
+      position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
+      background: var(--cy-dark); color: var(--cy-yellow);
+      font-family: 'Bebas Neue', sans-serif; font-size: 120px; letter-spacing: 5px;
+      padding: 10px 60px; clip-path: polygon(0 0, 95% 0, 100% 20%, 100% 100%, 5% 100%, 0 80%);
+      border: 4px solid var(--cy-cyan);
+      opacity: 0; transition: all 0.2s ease-out;
+    }
+    #cp-event.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-        .tourney-info { font-size: 20px; letter-spacing: 1px; color: #ddd; }
-        .match-req { font-family: 'Roboto', sans-serif; font-size: 12px; color: #ff9f43; font-weight: bold; }
+    /* Bottom Industrial Bar */
+    #cp-bottom {
+      position: absolute; bottom: 20px; left: 2%; width: 96%; height: 95px;
+      display: flex; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.8));
+    }
 
-        /* --- BOTTOM BAR --- */
-        .btm-container {
-            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%) translateY(100%);
-            width: 96%; height: 85px;
-            display: flex;
-            animation: slideUp 0.6s 0.2s forwards;
-        }
+    .cp-sec { display: flex; align-items: center; padding: 0 30px; }
 
-        /* Team Logo Block */
-        .team-block {
-            width: 100px; background: #ff9f43; color: #111;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
-            z-index: 2; padding-right: 15px;
-        }
-        .team-name { font-size: 32px; font-weight: 700; line-height: 0.9; }
+    /* Score Section (Yellow) */
+    .s-score {
+      background: var(--cy-yellow); color: var(--cy-dark); min-width: 280px; justify-content: space-between;
+      clip-path: polygon(0 0, 100% 0, 90% 100%, 0 100%); z-index: 3;
+    }
+    .cp-tm { font-family: 'Bebas Neue', sans-serif; font-size: 42px; margin-top: 5px;}
+    .cp-sc { font-family: 'Bebas Neue', sans-serif; font-size: 58px; line-height: 0.8;}
+    .cp-sc span { font-size: 28px; }
+    .cp-ov { font-size: 15px; font-weight: 700; text-align: right; letter-spacing: 1px;}
 
-        /* Score Block */
-        .score-block {
-            width: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: #1a1a1a; margin-left: -15px; padding-left: 20px; z-index: 1;
-            border-right: 2px solid #333;
-        }
-        .big-score { font-family: 'Roboto', sans-serif; font-size: 38px; font-weight: 900; color: #fff; }
-        .overs-sub { font-size: 14px; color: #888; }
+    /* Batting Section (Dark) */
+    .s-bat {
+      background: var(--cy-dark); color: #fff; flex: 1; justify-content: space-around;
+      clip-path: polygon(25px 0, 100% 0, calc(100% - 25px) 100%, 0 100%); z-index: 2; margin-left: -35px; padding-left: 50px;
+      border-top: 2px solid var(--cy-cyan); border-bottom: 2px solid var(--cy-cyan);
+    }
+    .bat-block { display: flex; align-items: baseline; gap: 12px; }
+    .pn { font-size: 22px; font-weight: 700; text-transform: uppercase;}
+    .pr { font-family: 'Bebas Neue', sans-serif; font-size: 42px; color: var(--cy-cyan); line-height: 0.8;}
+    .pb { font-size: 15px; color: #888; font-weight: 700;}
+    .strike { color: var(--cy-yellow); font-size: 16px; margin-right: -4px;}
 
-        /* Stats Block */
-        .stats-block {
-            flex: 1; display: grid; grid-template-columns: 1fr 1fr;
-            padding: 5px 20px;
-        }
+    /* Bowling Section (Grey/Red) */
+    .s-bowl {
+      background: #222; color: #fff; min-width: 320px; justify-content: space-between;
+      clip-path: polygon(25px 0, 100% 0, 100% 100%, 0 100%); z-index: 1; margin-left: -35px; padding-left: 50px;
+      border-right: 8px solid var(--cy-red);
+    }
 
-        .stat-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .p-name { font-size: 18px; font-weight: 600; color: #eee; }
-        .p-val { font-family: 'Roboto', sans-serif; font-weight: bold; color: #ff9f43; }
-        
-        .active-bat::before { content: '►'; color: #ff9f43; margin-right: 5px; font-size: 10px; }
-
-        /* Balls */
-        .balls-row {
-            position: absolute; bottom: -12px; right: 0;
-            display: flex; gap: 2px;
-        }
-        .ball { width: 25px; height: 6px; background: #555; }
-        .ball.fill { background: #ff9f43; box-shadow: 0 0 5px #ff9f43; }
-
-        @keyframes slideDown { to { transform: translateY(0); } }
-        @keyframes slideUp { to { transform: translateX(-50%) translateY(0); } }
-
-    </style>
+  </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <div class="tourney-info" id="tournament">TOURNAMENT NAME</div>
-        <div class="match-req">
-            TARGET: <span id="target" style="color:white">---</span> | 
-            RRR: <span id="rrr" style="color:white">---</span>
-        </div>
+  <div id="cp-island">SYS_DATA: CONNECTED</div>
+  <div id="cp-event"></div>
+
+  <div id="cp-bottom">
+    
+    <div class="cp-sec s-score">
+      <span id="teamName" class="cp-tm">CORP</span>
+      <div style="text-align:right;">
+        <div class="cp-sc"><span id="teamScore">208</span><span>/</span><span id="teamWickets">5</span></div>
+        <div class="cp-ov">OV <span id="teamOvers">19.4</span></div>
+      </div>
     </div>
 
-    <div class="btm-container metal">
-        <div class="team-block">
-            <div class="team-name" id="team">IND</div>
-        </div>
-        
-        <div class="score-block">
-            <div class="big-score" id="score">0/0</div>
-            <div class="overs-sub">CRR <span id="crr">0.0</span></div>
-        </div>
-
-        <div class="stats-block">
-            <div style="padding-right: 15px; border-right: 1px solid #333;">
-                <div class="stat-row active-bat">
-                    <span class="p-name" id="strName">Striker</span>
-                    <span class="p-val" id="strRun">0(0)</span>
-                </div>
-                <div class="stat-row">
-                    <span class="p-name" id="nonName" style="opacity:0.7">NonStr</span>
-                    <span class="p-val" id="nonRun" style="opacity:0.7">0(0)</span>
-                </div>
-            </div>
-            <div style="padding-left: 15px;">
-                <div class="stat-row">
-                    <span class="p-name" style="color:#ff9f43">BOWLING</span>
-                    <span class="p-val" id="overs">0.0</span>
-                </div>
-                <div class="stat-row">
-                    <span class="p-name" id="bowlName">Bowler</span>
-                    <span class="p-val" id="bowlFig">0-0</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="balls-row" id="balls"></div>
+    <div class="cp-sec s-bat">
+      <div class="bat-block">
+        <span class="strike">▶</span>
+        <span id="strikerName" class="pn">Player V</span>
+        <span id="strikerRuns" class="pr">77</span>
+        <span class="pb">(<span id="strikerBalls">41</span>)</span>
+      </div>
+      <div class="bat-block" style="opacity: 0.5;">
+        <span id="nonStrikerName" class="pn">Jackie</span>
+        <span id="nonStrikerRuns" class="pr" style="color: #fff;">14</span>
+        <span class="pb">(<span id="nonStrikerBalls">8</span>)</span>
+      </div>
     </div>
 
-    <script>
-        const ch = new BroadcastChannel('cricket_score_updates');
-        ch.onmessage = (e) => {
-            const d = e.data; if(!d.team1) return;
-            const t = d.team1.isBatting ? d.team1 : d.team2;
+    <div class="cp-sec s-bowl">
+      <div style="display:flex; flex-direction:column;">
+        <span class="pb" style="color:var(--cy-red);">BOWL_EXEC</span>
+        <span id="bowlerName" class="pn">Smasher</span>
+      </div>
+      <div class="bat-block">
+        <span class="pr" style="color:var(--cy-yellow);"><span id="bowlerWickets">2</span>-<span id="bowlerRuns">38</span></span>
+        <span class="pb">OV <span id="bowlerOvers">3.4</span></span>
+      </div>
+    </div>
 
-            // Top
-            document.getElementById('tournament').innerText = d.tournament.name || "LIVE MATCH";
-            document.getElementById('target').innerText = d.stats.target || "-";
-            document.getElementById('rrr').innerText = d.stats.requiredRunRate || "-";
+  </div>
 
-            // Bottom
-            document.getElementById('team').innerText = t.shortName;
-            document.getElementById('score').innerText = `${t.score}/${t.wickets}`;
-            document.getElementById('crr').innerText = d.stats.currentRunRate;
-            document.getElementById('overs').innerText = `(${t.overs})`;
+  <script>
+    let cSc = -1, cWk = -1, cSt = 0, cDat = {};
+    const sd = (id, val) => { const e = document.getElementById(id); if(e && val != null) e.innerText = val; };
 
-            // Players
-            document.getElementById('strName').innerText = d.striker.name;
-            document.getElementById('strRun').innerText = `${d.striker.runs}(${d.striker.balls})`;
-            document.getElementById('nonName').innerText = d.nonStriker.name;
-            document.getElementById('nonRun').innerText = `${d.nonStriker.runs}(${d.nonStriker.balls})`;
-            
-            document.getElementById('bowlName').innerText = d.bowler.name;
-            document.getElementById('bowlFig').innerText = `${d.bowler.wickets}-${d.bowler.runs}`;
+    function cyberPop(txt, bg, col, brd) {
+      const e = document.getElementById('cp-event');
+      e.innerText = txt; e.style.background = bg; e.style.color = col; e.style.borderColor = brd;
+      e.classList.add('show');
+      setTimeout(() => e.classList.remove('show'), 2500);
+    }
 
-            // Balls
-            const b = parseInt(t.balls || 0);
-            let h = '';
-            for(let i=0; i<6; i++) h+=`<div class="ball ${i<b?'fill':''}"></div>`;
-            document.getElementById('balls').innerHTML = h;
-        };
-    </script>
+    setInterval(() => {
+      const isl = document.getElementById('cp-island');
+      if(!cDat.tournamentName) return;
+      cSt = (cSt + 1) % 3;
+      if(cSt === 0) isl.innerText = "SYS_DATA: " + cDat.tournamentName;
+      else if(cSt === 1) isl.innerText = "FLOW_RATE: " + (cDat.runRate||'0.0');
+      else isl.innerText = cDat.target > 0 ? "OBJ_TARGET: " + cDat.target : "LINK_ACTIVE";
+    }, 4000);
+
+    function handleData(d) {
+      cDat = d;
+      sd('teamName', d.team1Name); sd('teamScore', d.team1Score); sd('teamWickets', d.team1Wickets); sd('teamOvers', d.team1Overs);
+      sd('strikerName', d.strikerName); sd('strikerRuns', d.strikerRuns); sd('strikerBalls', d.strikerBalls);
+      sd('nonStrikerName', d.nonStrikerName); sd('nonStrikerRuns', d.nonStrikerRuns); sd('nonStrikerBalls', d.nonStrikerBalls);
+      sd('bowlerName', d.bowlerName); sd('bowlerRuns', d.bowlerRuns); sd('bowlerWickets', d.bowlerWickets); sd('bowlerOvers', d.bowlerOvers);
+
+      let ns = parseInt(d.team1Score)||0, nw = parseInt(d.team1Wickets)||0;
+      if (cSc !== -1) {
+        if (nw > cWk) cyberPop("CRITICAL: WICKET", "var(--cy-red)", "#fff", "#111");
+        else if (ns - cSc === 6) cyberPop("MAXIMUM: 6", "var(--cy-dark)", "var(--cy-yellow)", "var(--cy-cyan)");
+        else if (ns - cSc === 4) cyberPop("BOUNDARY: 4", "var(--cy-cyan)", "#111", "var(--cy-dark)");
+      }
+      cSc = ns; cWk = nw;
+    }
+
+    window.addEventListener('message', e => { if(e.data?.type === 'UPDATE_SCORE') handleData(e.data.data); });
+    if ('BroadcastChannel' in window) new BroadcastChannel('scorex_overlay_channel').onmessage = e => { if(e.data?.type === 'UPDATE_SCORE') handleData(e.data.data); };
+  </script>
 </body>
 </html>
