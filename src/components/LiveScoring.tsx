@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { matchAPI, tournamentAPI } from '../services/api';
-import { Match, Tournament, Team } from './types';
+import { matchAPI, tournamentAPI, overlayAPI } from '../services/api';
+import { Match, Tournament, Team, Overlay } from './types';
 import io, { Socket } from 'socket.io-client';
-import { ArrowLeft, Save, RotateCcw, Users, Target, LogOut, Settings, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw, Users, Target, LogOut, Settings, ExternalLink, Monitor } from 'lucide-react';
 
 type Dismissal = 'bowled' | 'caught' | 'lbw' | 'runOut' | 'stumped' | 'hitWicket' | 'handledBall' | 'timedOut' | null;
 
@@ -50,6 +50,7 @@ export default function LiveScoring() {
   
   const [match, setMatch] = useState<Match | null>(null);
   const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [overlay, setOverlay] = useState<any>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
