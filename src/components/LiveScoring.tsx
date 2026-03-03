@@ -170,9 +170,23 @@ export default function LiveScoring() {
     return () => { newSocket.close(); };
   }, [matchId, selectedTeam]);
 
+  // Handle iframe load - send data when iframe is ready
+  const handleIframeLoad = () => {
+    console.log('Iframe loaded, sending initial data');
+    // Small delay to ensure script in iframe is ready
+    setTimeout(() => {
+      pushDataToOverlay();
+    }, 500);
+  };
+
   // Push data to overlay every 2 seconds when overlay is shown
   useEffect(() => {
     if (!showOverlay || !match) return;
+
+    // Send immediately when match loads
+    setTimeout(() => {
+      pushDataToOverlay();
+    }, 1000);
 
     const interval = setInterval(() => {
       pushDataToOverlay();
@@ -189,6 +203,12 @@ export default function LiveScoring() {
     
     if (!match) {
       console.log('Match is null');
+      return;
+    }
+
+    // Check if iframe is loaded
+    if (!overlayIframeRef.current.contentWindow) {
+      console.log('Iframe contentWindow not ready');
       return;
     }
 
