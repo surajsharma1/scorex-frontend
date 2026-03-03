@@ -64,102 +64,75 @@
         </div>
     </div>
 
+    <script src="/overlays/engine.js"></script>
     <script>
-        console.log('lvl1-broadcast-bar.html loaded - DEBUG MODE');
-        
-        const config = window.OVERLAY_CONFIG || { apiBaseUrl: 'http://localhost:5000/api/v1' };
-        const socket = io(config.apiBaseUrl);
-        
-        console.log('Socket initialized with config:', config);
-        
-        if(config.matchId) {
-            socket.emit('join_match', config.matchId);
-            console.log('Joined match:', config.matchId);
+        // Custom update function for this overlay's specific element IDs
+        function updateBroadcastBar(data) {
+            console.log('Updating broadcast bar with:', data);
+            
+            // Handle different data formats
+            var team1 = data.team1 || {};
+            var team2 = data.team2 || {};
+            var striker = data.striker || {};
+            var nonStriker = data.nonStriker || {};
+            var bowler = data.bowler || {};
+            
+            // Team names
+            var batTeam = document.getElementById('bat');
+            var bwlTeam = document.getElementById('bwl');
+            if (batTeam) batTeam.innerText = team1.name ? team1.name.substring(0,3).toUpperCase() : (data.team1Name || 'IND').substring(0,3);
+            if (bwlTeam) bwlTeam.innerText = team2.name ? team2.name.substring(0,3).toUpperCase() : (data.team2Name || 'AUS').substring(0,3);
+            
+            // Score
+            var scEl = document.getElementById('sc');
+            var wkEl = document.getElementById('wk');
+            var ovEl = document.getElementById('ov');
+            
+            if (scEl) scEl.innerText = data.team1Score || team1.score || data.score1 || 0;
+            if (wkEl) wkEl.innerText = data.team1Wickets || team1.wickets || data.wickets1 || 0;
+            if (ovEl) ovEl.innerText = data.team1Overs || team1.overs || data.overs1 || '0.0';
+            
+            // Batsmen
+            var p1 = document.getElementById('p1');
+            var s1 = document.getElementById('s1');
+            var p2 = document.getElementById('p2');
+            var s2 = document.getElementById('s2');
+            
+            if (p1) p1.innerText = data.strikerName || striker.name || 'Striker';
+            if (s1) s1.innerText = data.strikerRuns || striker.runs || 0;
+            if (p2) p2.innerText = data.nonStrikerName || nonStriker.name || 'Non-Striker';
+            if (s2) s2.innerText = data.nonStrikerRuns || nonStriker.runs || 0;
+            
+            // Bowler
+            var bname = document.getElementById('bname');
+            var bfig = document.getElementById('bfig');
+            
+            if (bname) bname.innerText = data.bowlerName || bowler.name || 'Bowler';
+            if (bfig) bfig.innerText = (data.bowlerWickets || bowler.wickets || 0) + '/' + (data.bowlerRuns || bowler.runsConceded || 0);
+            
+            // Balls vector
+            var bvec = document.getElementById('bvec');
+            if (bvec && data.stats && data.stats.last5Overs) {
+                bvec.innerHTML = '';
+                var balls = data.stats.last5Overs.toString().split('');
+                balls.forEach(function(r) {
+                    var d = document.createElement('div');
+                    d.className = 'dot ' + (['4','6'].includes(r) ? 'bound' : r === 'W' ? 'out' : '');
+                    d.innerText = r;
+                    bvec.appendChild(d);
+                });
+            }
         }
-
-        // Listen for socket.io events (from backend)
-        socket.on('match_update', d => {
-            console.log('Socket match_update received:', d);
-            updateDisplay(d);
-        });
         
-        socket.on('scoreUpdate', d => {
-            console.log('Socket scoreUpdate received:', d);
-            if(d.match) updateDisplay(d.match);
-            else updateDisplay(d);
-        });
-
-        // Listen for postMessage from parent (LiveScoring.tsx)
+        // Listen for postMessage directly (from LiveScoring)
         window.addEventListener('message', function(event) {
-            console.log('PostMessage received in lvl1-broadcast-bar:', event.data);
-            
             if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
-                var data = event.data.data;
-                console.log('Processing UPDATE_SCORE data:', data);
-                
-                // Transform LiveScoring format to display format
-                var displayData = {
-                    score: data.team1Score || 0,
-                    wickets: data.team1Wickets || 0,
-                    overs: parseFloat(data.team1Overs) || 0,
-                    battingTeam: data.team1Name || 'Team 1',
-                    bowlingTeam: data.team2Name || 'Team 2',
-                    striker: {
-                        name: data.strikerName || 'Striker',
-                        runs: data.strikerRuns || 0
-                    },
-                    nonStriker: {
-                        name: data.nonStrikerName || 'Non-Striker',
-                        runs: data.nonStrikerRuns || 0
-                    },
-                    bowler: {
-                        name: data.bowlerName || 'Bowler',
-                        runsConceded: data.bowlerRuns || 0,
-                        wickets: data.bowlerWickets || 0
-                    },
-                    thisOver: data.lastFiveOvers ? data.lastFiveOvers.split('').filter(function(b) { return ['0','1','2','3','4','6','W','w'].indexOf(b) !== -1; }) : []
-                };
-                
-                console.log('Transformed display data:', displayData);
-                updateDisplay(displayData);
+                console.log('Direct postMessage received in broadcast-bar:', event.data.data);
+                updateBroadcastBar(event.data.data);
             }
         });
-
-        function updateDisplay(d) {
-            console.log('Updating display with:', d);
-            
-            if(d.score !== undefined) document.getElementById('sc').innerText = d.score;
-            if(d.wickets !== undefined) document.getElementById('wk').innerText = d.wickets;
-            if(d.overs !== undefined) document.getElementById('ov').innerText = d.overs.toFixed(1);
-            if(d.battingTeam) document.getElementById('bat').innerText = d.battingTeam;
-            if(d.bowlingTeam) document.getElementById('bwl').innerText = d.bowlingTeam;
-            
-            if(d.striker) {
-                document.getElementById('p1').innerText = d.striker.name || 'Striker';
-                document.getElementById('s1').innerText = d.striker.runs || 0;
-            }
-            if(d.nonStriker) {
-                document.getElementById('p2').innerText = d.nonStriker.name || 'Non-Striker';
-                document.getElementById('s2').innerText = d.nonStriker.runs || 0;
-            }
-            if(d.bowler) {
-                document.getElementById('bname').innerText = d.bowler.name || 'Bowler';
-                document.getElementById('bfig').innerText = (d.bowler.wickets || 0) + '/' + (d.bowler.runsConceded || 0);
-            }
-
-            var v = document.getElementById('bvec');
-            v.innerHTML = '';
-            
-            var balls = d.thisOver || [];
-            balls.forEach(function(r) {
-                var b = document.createElement('div');
-                b.className = 'dot';
-                if (['4', '6'].indexOf(r.toString()) !== -1) b.classList.add('bound');
-                if (r === 'W' || r === 'w') b.classList.add('out');
-                b.innerText = r;
-                v.appendChild(b);
-            });
-        }
+        
+        console.log('Broadcast Bar overlay initialized with engine.js');
     </script>
 </body>
 </html>

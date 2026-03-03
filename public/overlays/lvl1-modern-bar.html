@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <title>Modern Bar</title>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         .overlay-container { position: absolute; bottom: 20px; left: 5%; width: 90%; height: 60px; background: rgba(0,0,0,0.8); border-radius: 8px; display: flex; color: white; font-family: sans-serif; overflow: hidden; border: 1px solid #444; }
         .team-box { background: #e63946; padding: 0 15px; display: flex; align-items: center; font-weight: bold; min-width: 100px; }
@@ -19,6 +22,69 @@
         </div>
         <div class="over-tracker" id="ballsTracker">Over: . . . . . .</div>
     </div>
+    
     <script src="/overlays/engine.js"></script>
+    <script>
+        // Custom update function for this overlay
+        function updateModernBar(data) {
+            console.log('Updating modern bar with:', data);
+            
+            // Handle different data formats
+            var team1 = data.team1 || {};
+            var team2 = data.team2 || {};
+            var striker = data.striker || {};
+            var nonStriker = data.nonStriker || {};
+            var bowler = data.bowler || {};
+            
+            // Team name
+            var teamNameEl = document.getElementById('teamName');
+            if (teamNameEl) {
+                teamNameEl.innerText = data.team1Name || team1.name || 'TEAM NAME';
+            }
+            
+            // Score - Format: "score/wickets (overs)"
+            var scoresEl = document.getElementById('scores');
+            if (scoresEl) {
+                var score = data.team1Score || team1.score || data.score1 || 0;
+                var wickets = data.team1Wickets || team1.wickets || data.wickets1 || 0;
+                var overs = data.team1Overs || team1.overs || data.overs1 || '0.0';
+                scoresEl.innerText = score + '/' + wickets + ' (' + overs + ')';
+            }
+            
+            // Batsman
+            var batsmanEl = document.getElementById('batsmanName');
+            if (batsmanEl) {
+                var strikerName = data.strikerName || striker.name || 'Batsman';
+                var strikerRuns = data.strikerRuns || striker.runs || 0;
+                batsmanEl.innerText = strikerName + ': ' + strikerRuns;
+            }
+            
+            // Bowler
+            var bowlerEl = document.getElementById('bowlerName');
+            if (bowlerEl) {
+                var bowlerName = data.bowlerName || bowler.name || 'Bowler';
+                var bowlerOvers = data.bowlerOvers || bowler.overs || 0;
+                var bowlerRuns = data.bowlerRuns || bowler.runsConceded || 0;
+                var bowlerWkts = data.bowlerWickets || bowler.wickets || 0;
+                bowlerEl.innerText = bowlerName + ' ' + bowlerOvers + '-' + bowlerRuns + '-' + bowlerWkts;
+            }
+            
+            // Balls tracker
+            var ballsEl = document.getElementById('ballsTracker');
+            if (ballsEl && data.stats && data.stats.last5Overs) {
+                ballsEl.innerText = 'Over: ' + data.stats.last5Overs;
+            }
+        }
+        
+        // Listen for postMessage directly (from LiveScoring)
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
+                console.log('Direct postMessage received in modern-bar:', event.data.data);
+                updateModernBar(event.data.data);
+            }
+        });
+        
+        console.log('Modern Bar overlay initialized with engine.js');
+    </script>
 </body>
 </html>
