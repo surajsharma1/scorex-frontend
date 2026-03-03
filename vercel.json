@@ -3,12 +3,13 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/node",
+      "use": "@vercel/static-build",
       "config": {
-        "includeFiles": ["dist/**"]
+        "distDir": "dist"
       }
     }
   ],
+  "framework": "vite",
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "rewrites": [
