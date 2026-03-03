@@ -1,437 +1,318 @@
-import { useState, useEffect, useRef } from 'react';
-import { matchAPI } from '../services/api';
-import { Match } from './types';
-import { Play, Calendar, MapPin, TrendingUp, MonitorPlay, Clock, Trophy, Search, X, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
-
-// Level 1 overlays for preview
-const OVERLAY_TEMPLATES = [
-  { id: 'lvl1-broadcast-bar', name: 'Broadcast Bar', file: 'lvl1-broadcast-bar.html', color: 'from-blue-600 to-indigo-800' },
-  { id: 'lvl1-modern-bar', name: 'Modern Bar', file: 'lvl1-modern-bar.html', color: 'from-blue-500 to-blue-700' },
-  { id: 'lvl1-minimal-dark', name: 'Minimal Dark', file: 'lvl1-minimal-dark.html', color: 'from-gray-700 to-gray-900' },
-  { id: 'lvl1-dark-angular', name: 'Dark Angular', file: 'lvl1-dark-angular.html', color: 'from-gray-800 to-black' },
-];
-
-// Extended match type with all player fields
-interface MatchWithPlayers extends Match {
-  strikerRuns?: number;
-  strikerBalls?: number;
-  nonStrikerRuns?: number;
-  nonStrikerBalls?: number;
-  bowlerOvers?: number;
-  bowlerRuns?: number;
-  bowlerWickets?: number;
-}
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { matchAPI, tournamentAPI } from '../services/api';
+import { Match, Tournament } from './types';
+import { Calendar, Clock, Trophy, Video, ChevronRight } from 'lucide-react';
 
 export default function LiveMatches() {
   const [matches, setMatches] = useState<Match[]>([]);
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [selectedTournament, setSelectedTournament] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'completed'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Overlay preview state
-  const [showOverlayPreview, setShowOverlayPreview] = useState(false);
-  const [selectedOverlayMatch, setSelectedOverlayMatch] = useState<MatchWithPlayers | null>(null);
-  const [selectedOverlayTemplate, setSelectedOverlayTemplate] = useState(OVERLAY_TEMPLATES[0]);
-  const channelRef = useRef<BroadcastChannel | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  
-  // Initialize BroadcastChannel for overlay sync
-  useEffect(() => {
-    channelRef.current = new BroadcastChannel('cricket_score_updates');
-    return () => {
-      if (channelRef.current) channelRef.current.close();
-    };
-  }, []);
-  
-  // Push data to overlay when match is selected
-  useEffect(() => {
-    if (!selectedOverlayMatch || !showOverlayPreview || !channelRef.current) return;
-    
-    // Push initial data
-    pushDataToOverlay(selectedOverlayMatch);
-    
-    // Set up interval to fetch and push updated data
-    const interval = setInterval(async () => {
-      try {
-        const res = await matchAPI.getMatches(selectedOverlayMatch._id);
-        const matchData = res.data as MatchWithPlayers;
-        pushDataToOverlay(matchData);
-      } catch (e) {
-        console.error("Failed to sync match data", e);
-      }
-    }, 2000);
-    
-    return () => clearInterval(interval);
-  }, [selectedOverlayMatch, showOverlayPreview]);
-  
-  const pushDataToOverlay = (match: MatchWithPlayers) => {
-    if (!channelRef.current) return;
-    
-    const isTeam1Batting = match.battingTeam === 'team1';
-    const payload = {
-      tournament: { 
-        name: typeof match.tournament === 'string' ? 'Tournament' : (match.tournament?.name || 'Tournament') 
-      },
-      team1: {
-        name: match.team1?.name || 'Team 1',
-        shortName: (match.team1?.name || 'T1').substring(0,3).toUpperCase(),  
-        score: match.score1 || 0,
-        wickets: match.wickets1 || 0,
-        overs: match.overs1 || 0
-      },
-      team2: {
-        name: match.team2?.name || 'Team 2',
-        shortName: (match.team2?.name || 'T2').substring(0,3).toUpperCase(),
-        score: match.score2 || 0,
-        wickets: match.wickets2 || 0,
-        overs: match.overs2 || 0
-      },
-      striker: { name: match.strikerName || 'Striker', runs: match.strikerRuns || 0, balls: match.strikerBalls || 0 },
-      nonStriker: { name: match.nonStrikerName || 'Non-Striker', runs: match.nonStrikerRuns || 0, balls: match.nonStrikerBalls || 0 },
-      bowler: { name: match.bowlerName || 'Bowler', overs: match.bowlerOvers || 0, runs: match.bowlerRuns || 0, wickets: match.bowlerWickets || 0 },
-      stats: {
-        currentRunRate: match.currentRunRate || 0,
-        requiredRunRate: match.requiredRunRate || 0,
-        target: match.target || 0,
-        need: match.target ? (match.target - (isTeam1Batting ? (match.score1||0) : (match.score2||0))) : 0
-      }
-    };
-    
-    channelRef.current.postMessage(payload);
-  };
-  
-  const openOverlayPreview = (match: Match) => {
-    setSelectedOverlayMatch(match as MatchWithPlayers);
-    setShowOverlayPreview(true);
-  };
-  
-  const closeOverlayPreview = () => {
-    setShowOverlayPreview(false);
-    setSelectedOverlayMatch(null);
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
-    loadAllMatches();
-    const interval = setInterval(loadAllMatches, 10000);
-    return () => clearInterval(interval);
+    fetchTournaments();
   }, []);
 
-  const loadAllMatches = async () => {
+  useEffect(() => {
+    if (selectedTournament) {
+      fetchMatches(selectedTournament);
+    } else {
+      fetchAllMatches();
+    }
+  }, [selectedTournament]);
+
+  const fetchTournaments = async () => {
     try {
-      const res = await matchAPI.getAllMatches();
-      const allMatches = res.data.matches || res.data || [];
-      setMatches(allMatches);
-    } catch (e) {
-      console.error("Failed to load matches");
+      const response = await tournamentAPI.getTournaments();
+      const tournamentsData = response.data.tournaments || response.data || [];
+      setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
+    } catch (error) {
+      console.error('Failed to fetch tournaments:', error);
+      setTournaments([]);
+    }
+  };
+
+  const fetchMatches = async (tournamentId: string) => {
+    setLoading(true);
+    try {
+      const response = await matchAPI.getMatches(tournamentId);
+      const matchesData = response.data.matches || response.data || [];
+      setMatches(Array.isArray(matchesData) ? matchesData : []);
+    } catch (error) {
+      console.error('Failed to fetch matches:', error);
+      setMatches([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredMatches = matches.filter(m => {
-    if (filter !== 'all' && m.status !== filter) return false;
-    if (searchQuery) {
-      const tournamentName = typeof m.tournament === 'string' ? '' : (m.tournament?.name || '').toLowerCase();
-      const team1Name = (m.team1?.name || '').toLowerCase();
-      const team2Name = (m.team2?.name || '').toLowerCase();
-      const query = searchQuery.toLowerCase();
-      return tournamentName.includes(query) || team1Name.includes(query) || team2Name.includes(query);
-    }
-    return true;
-  });
-
-  const liveMatches = matches.filter(m => m.status === 'ongoing');
-  const upcomingMatches = matches.filter(m => m.status === 'upcoming' || m.status === 'scheduled');
-  const completedMatches = matches.filter(m => m.status === 'completed');
-
-  const tournamentNames = [...new Set(matches.map(m => 
-    typeof m.tournament === 'string' ? '' : (m.tournament?.name || '')
-  ).filter(name => name))];
-
-  const clearSearch = () => setSearchQuery('');
-
-  const goLive = async (matchId: string) => {
-    if(!confirm('Go Live? This will start the match and make it visible to all users.')) return;
+  const fetchAllMatches = async () => {
+    setLoading(true);
     try {
-      await matchAPI.updateMatch(matchId, { status: 'ongoing' });
-      loadAllMatches();
-    } catch (err) {
-      alert('Failed to go live');
+      const tourResponse = await tournamentAPI.getTournaments();
+      const tournamentsData = tourResponse.data.tournaments || tourResponse.data || [];
+      
+      if (Array.isArray(tournamentsData) && tournamentsData.length > 0) {
+        const allMatches: Match[] = [];
+        for (const tournament of tournamentsData) {
+          try {
+            const response = await matchAPI.getMatches(tournament._id);
+            const matchesData = response.data.matches || response.data || [];
+            if (Array.isArray(matchesData)) {
+              allMatches.push(...matchesData);
+            }
+          } catch (e) {
+            console.error(`Failed to fetch matches for tournament ${tournament._id}`);
+          }
+        }
+        setMatches(allMatches);
+      }
+    } catch (error) {
+      console.error('Failed to fetch matches:', error);
+      setMatches([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) return <div className="p-8 text-center dark:text-white">Loading matches...</div>;
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'ongoing':
+        return 'bg-red-600';
+      case 'completed':
+        return 'bg-gray-600';
+      case 'scheduled':
+        return 'bg-blue-600';
+      default:
+        return 'bg-gray-600';
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return 'TBD';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (dateStr: string) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit'
+    });
+  };
+
+  // Helper function to get tournament name
+  const getTournamentName = (tournament: Tournament | string | undefined): string => {
+    if (!tournament) return 'Tournament';
+    if (typeof tournament === 'string') return 'Tournament';
+    return tournament.name || 'Tournament';
+  };
+
+  const liveMatches = matches.filter((m: Match) => m.status === 'ongoing');
+  const upcomingMatches = matches.filter((m: Match) => m.status === 'scheduled');
+  const completedMatches = matches.filter((m: Match) => m.status === 'completed');
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="relative">
-          <MonitorPlay className="w-8 h-8 text-red-600" />
-          {liveMatches.length > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-            </span>
-          )}
+    <div className="min-h-screen bg-gray-900 text-white p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Live Matches</h1>
+          <p className="text-gray-400">Watch live cricket scores and updates</p>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Matches</h1>
-      </div>
 
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by tournament or team name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-10 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-          {searchQuery && (
-            <button onClick={clearSearch} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </div>
-        {tournamentNames.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            <button
-              onClick={() => setSearchQuery('')}
-              className={`px-3 py-1 rounded-full text-sm ${!searchQuery ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-            >
-              All
-            </button>
-            {tournamentNames.slice(0, 8).map((name) => (
-              <button
-                key={name}
-                onClick={() => setSearchQuery(name)}
-                className={`px-3 py-1 rounded-full text-sm ${searchQuery === name ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-              >
-                {name}
-              </button>
+        {/* Tournament Filter */}
+        <div className="mb-6">
+          <select
+            value={selectedTournament}
+            onChange={(e) => setSelectedTournament(e.target.value)}
+            className="w-full md:w-64 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500"
+          >
+            <option value="">All Tournaments</option>
+            {tournaments.map((tournament) => (
+              <option key={tournament._id} value={tournament._id}>
+                {tournament.name}
+              </option>
             ))}
+          </select>
+        </div>
+
+        {/* Live Matches Section */}
+        {liveMatches.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <span className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></span>
+              Live Now ({liveMatches.length})
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {liveMatches.map((match: Match) => (
+                <MatchCard 
+                  key={match._id} 
+                  match={match} 
+                  onClick={() => navigate(`/live-scoring/${match._id}`)}
+                  formatDate={formatDate}
+                  formatTime={formatTime}
+                  getStatusColor={getStatusColor}
+                  getTournamentName={getTournamentName}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Upcoming Matches Section */}
+        {upcomingMatches.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-blue-500" />
+              Upcoming ({upcomingMatches.length})
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {upcomingMatches.map((match: Match) => (
+                <MatchCard 
+                  key={match._id} 
+                  match={match} 
+                  onClick={() => navigate(`/match/${match._id}`)}
+                  formatDate={formatDate}
+                  formatTime={formatTime}
+                  getStatusColor={getStatusColor}
+                  getTournamentName={getTournamentName}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Completed Matches Section */}
+        {completedMatches.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-yellow-500" />
+              Completed ({completedMatches.length})
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {completedMatches.map((match: Match) => (
+                <MatchCard 
+                  key={match._id} 
+                  match={match} 
+                  onClick={() => navigate(`/match/${match._id}`)}
+                  formatDate={formatDate}
+                  formatTime={formatTime}
+                  getStatusColor={getStatusColor}
+                  getTournamentName={getTournamentName}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {matches.length === 0 && (
+          <div className="text-center py-12">
+            <Video className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-bold mb-2">No Matches Found</h3>
+            <p className="text-gray-400">
+              {selectedTournament 
+                ? 'No matches scheduled in this tournament yet.' 
+                : 'No matches available at the moment.'}
+            </p>
           </div>
         )}
       </div>
+    </div>
+  );
+}
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div onClick={() => setFilter('ongoing')} className={`p-4 rounded-xl cursor-pointer transition ${filter === 'ongoing' ? 'bg-red-600' : 'bg-gray-800'}`}>
-          <div className="flex items-center gap-2 text-white mb-1">
-            <Play className="w-4 h-4" />
-            <span className="font-medium">Live</span>
+interface MatchCardProps {
+  match: Match;
+  onClick: () => void;
+  formatDate: (date: string) => string;
+  formatTime: (date: string) => string;
+  getStatusColor: (status: string) => string;
+  getTournamentName: (tournament: Tournament | string | undefined) => string;
+}
+
+function MatchCard({ match, onClick, formatDate, formatTime, getStatusColor, getTournamentName }: MatchCardProps) {
+  return (
+    <div 
+      onClick={onClick}
+      className="bg-gray-800 rounded-xl overflow-hidden hover:bg-gray-750 transition-all duration-300 cursor-pointer hover:transform hover:scale-[1.02] border border-gray-700 hover:border-green-500"
+    >
+      {/* Header with status */}
+      <div className={`${getStatusColor(match.status || 'scheduled')} px-4 py-2 flex justify-between items-center`}>
+        <span className="text-sm font-medium uppercase">{match.status}</span>
+        <ChevronRight className="w-5 h-5" />
+      </div>
+
+      {/* Teams */}
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex-1 text-center">
+            <div className="text-lg font-bold truncate">{match.team1?.name || 'Team 1'}</div>
+            <div className="text-3xl font-bold text-yellow-400">{match.score1 || 0}</div>
           </div>
-          <div className="text-2xl font-bold text-white">{liveMatches.length}</div>
-        </div>
-        <div onClick={() => setFilter('upcoming')} className={`p-4 rounded-xl cursor-pointer transition ${filter === 'upcoming' ? 'bg-blue-600' : 'bg-gray-800'}`}>
-          <div className="flex items-center gap-2 text-white mb-1">
-            <Clock className="w-4 h-4" />
-            <span className="font-medium">Upcoming</span>
+          <div className="text-gray-500 text-xl font-bold mx-4">vs</div>
+          <div className="flex-1 text-center">
+            <div className="text-lg font-bold truncate">{match.team2?.name || 'Team 2'}</div>
+            <div className="text-3xl font-bold text-yellow-400">{match.score2 || 0}</div>
           </div>
-          <div className="text-2xl font-bold text-white">{upcomingMatches.length}</div>
         </div>
-        <div onClick={() => setFilter('completed')} className={`p-4 rounded-xl cursor-pointer transition ${filter === 'completed' ? 'bg-green-600' : 'bg-gray-800'}`}>
-          <div className="flex items-center gap-2 text-white mb-1">
+
+        {/* Match Info */}
+        <div className="border-t border-gray-700 pt-3 mt-3">
+          <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
             <Trophy className="w-4 h-4" />
-            <span className="font-medium">Completed</span>
+            <span className="truncate">{getTournamentName(match.tournament)}</span>
           </div>
-          <div className="text-2xl font-bold text-white">{completedMatches.length}</div>
-        </div>
-      </div>
-
-      <div className="flex gap-2 mb-6">
-        {(['all', 'ongoing', 'upcoming', 'completed'] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg font-medium capitalize ${filter === f ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
-
-      {filteredMatches.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
-          <p className="text-xl text-gray-500 dark:text-gray-400">
-            {searchQuery ? `No matches found for "${searchQuery}"` : (filter === 'all' ? 'No matches available.' : `No ${filter} matches.`)}
-          </p>
-          {searchQuery && (
-            <button onClick={clearSearch} className="text-green-600 hover:underline mt-2 inline-block">
-              Clear search
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredMatches.map((match) => (
-            <div key={match._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden relative">
-              <div className={`p-4 text-white flex justify-between items-center ${
-                match.status === 'ongoing' ? 'bg-gradient-to-r from-red-600 to-red-700' : match.status === 'completed' ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-blue-600 to-blue-700'
-              }`}>
-                <span className="text-xs uppercase tracking-wider font-semibold opacity-70">
-                  {typeof match.tournament === 'string' ? 'Tournament Match' : match.tournament?.name}
-                </span>
-                {match.status === 'ongoing' ? (
-                  <span className="bg-red-600 px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1">
-                    <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> LIVE
-                  </span>
-                ) : match.status === 'completed' ? (
-                  <span className="bg-green-600 px-2 py-0.5 rounded text-xs font-bold">FINISHED</span>
-                ) : (
-                  <span className="bg-blue-600 px-2 py-0.5 rounded text-xs font-bold">UPCOMING</span>
-                )}
-              </div>
-
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <div className="text-center w-1/3">
-                    <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-2 font-bold text-2xl text-gray-600 dark:text-gray-300">
-                      {match.team1?.shortName || match.team1?.name?.substring(0,2) || 'T1'}
-                    </div>
-                    <h3 className="font-bold text-gray-900 dark:text-white truncate">{match.team1?.name || 'Team 1'}</h3>
-                    {match.status !== 'completed' && match.status !== 'scheduled' && (
-                      <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                        {match.score1 || 0}/{match.wickets1 || 0}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="text-center w-1/3 px-2">
-                    <span className="text-gray-400 text-xs font-bold block mb-1">VS</span>
-                    {match.status === 'ongoing' && match.battingTeam && (
-                      match.battingTeam === 'team1' ? <div className="text-green-600 text-xs">◀ Batting</div> : <div className="text-green-600 text-xs">Batting ▶</div>
-                    )}
-                  </div>
-
-                  <div className="text-center w-1/3">
-                    <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-2 font-bold text-2xl text-gray-600 dark:text-gray-300">
-                      {match.team2?.shortName || match.team2?.name?.substring(0,2) || 'T2'}
-                    </div>
-                    <h3 className="font-bold text-gray-900 dark:text-white truncate">{match.team2?.name || 'Team 2'}</h3>
-                    {match.status !== 'upcoming' && match.status !== 'scheduled' && (
-                      <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                        {match.score2 || 0}/{match.wickets2 || 0}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {match.status === 'ongoing' && match.target ? (
-                  <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg text-center mb-4">
-                    <p className="text-sm text-gray-700 dark:text-gray-200">
-                      Target: <span className="font-bold">{match.target}</span> | Need <span className="font-bold">{match.target - (match.battingTeam === 'team1' ? (match.score1||0) : (match.score2||0))}</span> runs
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">CRR: {match.currentRunRate || '0.00'}</p>
-                  </div>
-                ) : match.status === 'completed' ? (
-                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg text-center mb-4">
-                    <p className="text-sm text-green-700 dark:text-green-300">
-                      {match.winner ? `${match.winner.name} won!` : 'Match ended in a draw'}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg text-center mb-4">
-                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                      <Calendar className="w-4 h-4" />
-                      {match.date ? new Date(match.date).toLocaleDateString() : 'Date not set'}
-                    </div>
-                    {match.venue && (
-                      <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-1">
-                        <MapPin className="w-4 h-4" />
-                        {match.venue}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-3">
-                  {match.status === 'ongoing' && match.videoLink ? (
-                    <a href={match.videoLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors">
-                      <Play className="w-4 h-4" /> Watch Live
-                    </a>
-                  ) : match.status === 'completed' ? (
-                    <Link to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`} className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors">
-                      <TrendingUp className="w-4 h-4" /> Scorecard
-                    </Link>
-                  ) : (
-<button onClick={() => goLive(match._id)} className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors animate-pulse">
-                      <Play className="w-4 h-4" /> Go Live
-                    </button>
-                  )}
-                  
-                  {/* Overlay Preview Button for ongoing matches */}
-                  {match.status === 'ongoing' && (
-                    <button onClick={() => openOverlayPreview(match)} className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors">
-                      <Eye className="w-4 h-4" /> Overlay
-                    </button>
-                  )}
-                  
-                  {(match.status === 'ongoing' || match.status === 'completed') && (
-                    <Link to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`} className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors">
-                      <Trophy className="w-4 h-4" /> Details
-                    </Link>
-                  )}
-                  
-                  {(match.status === 'upcoming' || match.status === 'scheduled') && (
-                    <Link to={`/tournaments/${typeof match.tournament === 'string' ? match.tournament : match.tournament?._id}`} className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors">
-                      <Trophy className="w-4 h-4" /> Tournament
-                    </Link>
-                  )}
-                </div>
-              </div>
+          <div className="flex items-center gap-4 text-gray-500 text-xs">
+            <div className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              {formatDate(match.date)}
             </div>
-          ))}
-</div>
-      )}
-      
-      {/* Overlay Preview Modal */}
-      {showOverlayPreview && selectedOverlayMatch && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-6xl mx-4 h-[85vh] flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Overlay Preview</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {selectedOverlayMatch.team1?.name} vs {selectedOverlayMatch.team2?.name} - Live Score
-                </p>
+            {match.date && (
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {formatTime(match.date)}
               </div>
-              <div className="flex items-center gap-3">
-                {/* Template Selector */}
-                <select 
-                  value={selectedOverlayTemplate.id}
-                  onChange={(e) => {
-                    const selected = OVERLAY_TEMPLATES.find(t => t.id === e.target.value);
-                    if (selected) setSelectedOverlayTemplate(selected);
-                  }}
-                  className="px-3 py-2 bg-gray-700 text-white rounded-lg text-sm"
-                >
-                  {OVERLAY_TEMPLATES.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
-                <button 
-                  onClick={closeOverlayPreview}
-                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                >
-                  <X className="w-5 h-5 text-gray-500" />
-                </button>
-              </div>
-            </div>
-            <div className="flex-1 bg-gray-900 p-4">
-              <iframe
-                ref={iframeRef}
-                src={`/overlays/${selectedOverlayTemplate.file}`}
-                className="w-full h-full rounded-lg"
-                title="Overlay Preview"
-              />
-            </div>
-            <div className="p-3 bg-gray-100 dark:bg-gray-700 text-center text-sm text-gray-600 dark:text-gray-300">
-              Scores update automatically every 2 seconds • This is a live preview
-            </div>
+            )}
           </div>
         </div>
-      )}
+
+        {/* Score Info */}
+        {(match.status === 'ongoing' || match.status === 'completed') && (
+          <div className="mt-3 pt-3 border-t border-gray-700">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-400">
+                {match.team1?.name}: {match.overs1?.toFixed(1) || '0.0'} overs
+              </span>
+              <span className="text-gray-400">
+                {match.team2?.name}: {match.overs2?.toFixed(1) || '0.0'} overs
+              </span>
+            </div>
+            {match.wickets1 !== undefined && match.wickets2 !== undefined && (
+              <div className="text-center mt-1 text-gray-400 text-sm">
+                ({match.wickets1}/{match.wickets2})
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
