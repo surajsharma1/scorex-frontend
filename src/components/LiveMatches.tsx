@@ -1,14 +1,115 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { matchAPI } from '../services/api';
 import { Match } from './types';
-import { Play, Calendar, MapPin, TrendingUp, MonitorPlay, Clock, Trophy, Search, X } from 'lucide-react';
+import { Play, Calendar, MapPin, TrendingUp, MonitorPlay, Clock, Trophy, Search, X, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+// Level 1 overlays for preview
+const OVERLAY_TEMPLATES = [
+  { id: 'lvl1-broadcast-bar', name: 'Broadcast Bar', file: 'lvl1-broadcast-bar.html', color: 'from-blue-600 to-indigo-800' },
+  { id: 'lvl1-modern-bar', name: 'Modern Bar', file: 'lvl1-modern-bar.html', color: 'from-blue-500 to-blue-700' },
+  { id: 'lvl1-minimal-dark', name: 'Minimal Dark', file: 'lvl1-minimal-dark.html', color: 'from-gray-700 to-gray-900' },
+  { id: 'lvl1-dark-angular', name: 'Dark Angular', file: 'lvl1-dark-angular.html', color: 'from-gray-800 to-black' },
+];
+
+// Extended match type with all player fields
+interface MatchWithPlayers extends Match {
+  strikerRuns?: number;
+  strikerBalls?: number;
+  nonStrikerRuns?: number;
+  nonStrikerBalls?: number;
+  bowlerOvers?: number;
+  bowlerRuns?: number;
+  bowlerWickets?: number;
+}
 
 export default function LiveMatches() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'completed'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Overlay preview state
+  const [showOverlayPreview, setShowOverlayPreview] = useState(false);
+  const [selectedOverlayMatch, setSelectedOverlayMatch] = useState<MatchWithPlayers | null>(null);
+  const [selectedOverlayTemplate, setSelectedOverlayTemplate] = useState(OVERLAY_TEMPLATES[0]);
+  const channelRef = useRef<BroadcastChannel | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  
+  // Initialize BroadcastChannel for overlay sync
+  useEffect(() => {
+    channelRef.current = new BroadcastChannel('cricket_score_updates');
+    return () => {
+      if (channelRef.current) channelRef.current.close();
+    };
+  }, []);
+  
+  // Push data to overlay when match is selected
+  useEffect(() => {
+    if (!selectedOverlayMatch || !showOverlayPreview || !channelRef.current) return;
+    
+    // Push initial data
+    pushDataToOverlay(selectedOverlayMatch);
+    
+    // Set up interval to fetch and push updated data
+    const interval = setInterval(async () => {
+      try {
+        const res = await matchAPI.getMatches(selectedOverlayMatch._id);
+        const matchData = res.data as MatchWithPlayers;
+        pushDataToOverlay(matchData);
+      } catch (e) {
+        console.error("Failed to sync match data", e);
+      }
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [selectedOverlayMatch, showOverlayPreview]);
+  
+  const pushDataToOverlay = (match: MatchWithPlayers) => {
+    if (!channelRef.current) return;
+    
+    const isTeam1Batting = match.battingTeam === 'team1';
+    const payload = {
+      tournament: { 
+        name: typeof match.tournament === 'string' ? 'Tournament' : (match.tournament?.name || 'Tournament') 
+      },
+      team1: {
+        name: match.team1?.name || 'Team 1',
+        shortName: (match.team1?.name || 'T1').substring(0,3).toUpperCase(),  
+        score: match.score1 || 0,
+        wickets: match.wickets1 || 0,
+        overs: match.overs1 || 0
+      },
+      team2: {
+        name: match.team2?.name || 'Team 2',
+        shortName: (match.team2?.name || 'T2').substring(0,3).toUpperCase(),
+        score: match.score2 || 0,
+        wickets: match.wickets2 || 0,
+        overs: match.overs2 || 0
+      },
+      striker: { name: match.strikerName || 'Striker', runs: match.strikerRuns || 0, balls: match.strikerBalls || 0 },
+      nonStriker: { name: match.nonStrikerName || 'Non-Striker', runs: match.nonStrikerRuns || 0, balls: match.nonStrikerBalls || 0 },
+      bowler: { name: match.bowlerName || 'Bowler', overs: match.bowlerOvers || 0, runs: match.bowlerRuns || 0, wickets: match.bowlerWickets || 0 },
+      stats: {
+        currentRunRate: match.currentRunRate || 0,
+        requiredRunRate: match.requiredRunRate || 0,
+        target: match.target || 0,
+        need: match.target ? (match.target - (isTeam1Batting ? (match.score1||0) : (match.score2||0))) : 0
+      }
+    };
+    
+    channelRef.current.postMessage(payload);
+  };
+  
+  const openOverlayPreview = (match: Match) => {
+    setSelectedOverlayMatch(match as MatchWithPlayers);
+    setShowOverlayPreview(true);
+  };
+  
+  const closeOverlayPreview = () => {
+    setShowOverlayPreview(false);
+    setSelectedOverlayMatch(null);
+  };
 
   useEffect(() => {
     loadAllMatches();
@@ -254,8 +355,15 @@ export default function LiveMatches() {
                       <TrendingUp className="w-4 h-4" /> Scorecard
                     </Link>
                   ) : (
-                    <button onClick={() => goLive(match._id)} className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors animate-pulse">
+<button onClick={() => goLive(match._id)} className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors animate-pulse">
                       <Play className="w-4 h-4" /> Go Live
+                    </button>
+                  )}
+                  
+                  {/* Overlay Preview Button for ongoing matches */}
+                  {match.status === 'ongoing' && (
+                    <button onClick={() => openOverlayPreview(match)} className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors">
+                      <Eye className="w-4 h-4" /> Overlay
                     </button>
                   )}
                   
@@ -274,6 +382,54 @@ export default function LiveMatches() {
               </div>
             </div>
           ))}
+</div>
+      )}
+      
+      {/* Overlay Preview Modal */}
+      {showOverlayPreview && selectedOverlayMatch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-6xl mx-4 h-[85vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Overlay Preview</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {selectedOverlayMatch.team1?.name} vs {selectedOverlayMatch.team2?.name} - Live Score
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                {/* Template Selector */}
+                <select 
+                  value={selectedOverlayTemplate.id}
+                  onChange={(e) => {
+                    const selected = OVERLAY_TEMPLATES.find(t => t.id === e.target.value);
+                    if (selected) setSelectedOverlayTemplate(selected);
+                  }}
+                  className="px-3 py-2 bg-gray-700 text-white rounded-lg text-sm"
+                >
+                  {OVERLAY_TEMPLATES.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+                <button 
+                  onClick={closeOverlayPreview}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 bg-gray-900 p-4">
+              <iframe
+                ref={iframeRef}
+                src={`/overlays/${selectedOverlayTemplate.file}`}
+                className="w-full h-full rounded-lg"
+                title="Overlay Preview"
+              />
+            </div>
+            <div className="p-3 bg-gray-100 dark:bg-gray-700 text-center text-sm text-gray-600 dark:text-gray-300">
+              Scores update automatically every 2 seconds • This is a live preview
+            </div>
+          </div>
         </div>
       )}
     </div>
