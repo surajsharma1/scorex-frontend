@@ -93,8 +93,8 @@
         function handleScoreUpdate(d) {
             if (!d) return;
             
-            // Handle ScoreboardUpdate format (team1/team2 objects with nested data)
-            if (d.team1 && typeof d.team1 === 'object') {
+            // Handle ScoreboardUpdate format (team1/team2 objects with nested data - has batsmen array)
+            if (d.team1 && typeof d.team1 === 'object' && d.team1.batsmen) {
                 // Determine which team is batting
                 const battingTeam = d.battingTeam || 'team1';
                 const battingData = d[battingTeam] || {};

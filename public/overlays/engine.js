@@ -225,8 +225,8 @@ socket.on('match_update', (data) => {
 function updateBoard(data) {
     if (!data) return;
     
-    // Handle ScoreboardUpdate format (nested team objects)
-    const isScoreboardFormat = data.team1 && typeof data.team1 === 'object';
+    // Handle ScoreboardUpdate format (nested team objects with batsmen array)
+    const isScoreboardFormat = data.team1 && typeof data.team1 === 'object' && data.team1.batsmen;
     
     if (isScoreboardFormat) {
         // ScoreboardUpdate format
