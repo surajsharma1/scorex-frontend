@@ -1,13 +1,14 @@
-// public/overlays/engine.js
+// public/overlays/engine.js - COMPREHENSIVE OVERLAY ENGINE
+// Handles all data formats and communication methods
 
 // 1. Initialize Socket with proper configuration
-const socket = io(window.OVERLAY_CONFIG.apiBaseUrl || '/');
-const matchId = window.OVERLAY_CONFIG.matchId;
+const socket = io(window.OVERLAY_CONFIG?.apiBaseUrl || '/');
+const matchId = window.OVERLAY_CONFIG?.matchId;
 const config = window.OVERLAY_CONFIG || {};
 
-console.log('Engine.js loaded - COMPREHENSIVE DATA MODE');
+console.log('Engine.js loaded - COMPREHENSIVE DATA MODE v2');
 
-// 2. BroadcastChannel for same-browser communication (from ScoreboardUpdate)
+// 2. BroadcastChannel for same-browser communication
 let broadcastChannel = null;
 try {
     broadcastChannel = new BroadcastChannel('cricket_score_updates');
@@ -16,9 +17,8 @@ try {
     console.log('BroadcastChannel not supported in this context');
 }
 
-// 3. DOM Elements Cache - Common elements across all templates
+// 3. DOM Elements Cache
 const els = {
-    // Score elements
     team1Name: document.getElementById('team1Name') || document.getElementById('teamName') || document.getElementById('battingTeam'),
     team2Name: document.getElementById('team2Name') || document.getElementById('bowlingTeam'),
     team1Score: document.getElementById('team1Score') || document.getElementById('score'),
@@ -27,8 +27,6 @@ const els = {
     team2Wickets: document.getElementById('team2Wickets'),
     team1Overs: document.getElementById('team1Overs') || document.getElementById('overs'),
     team2Overs: document.getElementById('team2Overs'),
-    
-    // Player elements
     striker: document.getElementById('striker'),
     strikerRuns: document.getElementById('strikerRuns'),
     strikerBalls: document.getElementById('strikerBalls'),
@@ -39,30 +37,24 @@ const els = {
     bowlerOvers: document.getElementById('bowlerOvers'),
     bowlerRuns: document.getElementById('bowlerRuns'),
     bowlerWickets: document.getElementById('bowlerWickets'),
-    
-    // Rate elements
     crr: document.getElementById('crr'),
     rrr: document.getElementById('rrr'),
     target: document.getElementById('target'),
-    
-    // Balls/Over elements
     ballsContainer: document.getElementById('ballsContainer') || document.getElementById('ballsTracker'),
-    
-    // Tournament/Match info
     tournament: document.getElementById('tournament'),
     matchStatus: document.getElementById('matchStatus') || document.getElementById('status'),
-    
-    // Extras
     extras: document.getElementById('extras'),
-    
-    // Notification
     notification: document.getElementById('notificationArea'),
     notificationText: document.getElementById('notificationText')
 };
 
 console.log('DOM elements cached:', Object.keys(els));
 
-// 4. Listen for BroadcastChannel messages (from ScoreboardUpdate in same browser)
+// =====================================================
+// COMMUNICATION HANDLERS - ALL METHODS SUPPORTED
+// =====================================================
+
+// 4. Listen for BroadcastChannel messages
 if (broadcastChannel) {
     broadcastChannel.onmessage = (event) => {
         console.log('BroadcastChannel message received:', event.data);
@@ -70,53 +62,66 @@ if (broadcastChannel) {
     };
 }
 
-// 4b. POST MESSAGE - Listen for messages from parent window (from LiveScoring.tsx via iframe)
+// 5. Listen for postMessage from parent window (LiveScoring.tsx via iframe)
 window.addEventListener('message', (event) => {
     console.log('PostMessage received in engine.js:', event.data);
     if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
         console.log('Processing UPDATE_SCORE:', event.data.data);
-        // Transform LiveScoring format to match format
-        const data = event.data.data;
-        const transformedData = transformLiveScoringData(data);
+        const transformedData = transformLiveScoringData(event.data.data);
         console.log('Transformed data:', transformedData);
         handleScoreUpdate(transformedData);
     }
 });
 
-// COMPREHENSIVE Transform LiveScoring data format to match format - handles ALL fields
+// 6. Also listen for socket events
+socket.on('connect', function() {
+    console.log('Connected to ScoreX Live');
+    if (matchId) {
+        socket.emit('join_match', matchId);
+    }
+    fetchInitialMatchData();
+});
+
+socket.on('scoreUpdate', function(data) {
+    console.log('Score update received:', data);
+    if (data.match) {
+        handleScoreUpdate(data.match);
+    } else if (data.matchId === matchId) {
+        handleScoreUpdate(data);
+    }
+});
+
+socket.on('match_update', function(data) {
+    console.log('Match update received:', data);
+    handleScoreUpdate(data);
+});
+
+// =====================================================
+// DATA TRANSFORMATION - COMPREHENSIVE
+// =====================================================
+
 function transformLiveScoringData(data) {
     if (!data) return null;
     
     console.log('transformLiveScoringData called with:', data);
     
-    // Check if already in ScoreboardUpdate format (has nested team objects with batsmen)
-    if (data.team1 && typeof data.team1 === 'object' && data.team1.batsmen) {
+    // Already in ScoreboardUpdate format (has nested team objects with score)
+    if (data.team1 && typeof data.team1 === 'object' && data.team1.score !== undefined) {
         console.log('Data is already in ScoreboardUpdate format');
         return data;
     }
     
-    // Check if already in match format (has team1/team2 objects with score property)
-    if (data.team1 && typeof data.team1 === 'object' && data.team1.score !== undefined) {
-        console.log('Data is already in match format');
-        return data;
-    }
-    
-    // Check if in legacy match format (has score1/score2)
+    // Legacy match format (has score1/score2)
     if (data.score1 !== undefined || data.score2 !== undefined) {
         console.log('Data is in legacy match format');
         return data;
     }
     
     // LiveScoring format: { team1Name, team1Score, team1Wickets, team1Overs, strikerName, ... }
-    // Transform to comprehensive match format with ALL fields
     console.log('Transforming from LiveScoring format - COMPREHENSIVE');
     
-    // Determine which team is batting based on the data
     const isTeam1Batting = data.battingTeam === 'team1' || !data.battingTeam;
-    
-    // Get current innings data
     const currentOvers = isTeam1Batting ? data.team1Overs : data.team2Overs;
-    const totalBalls = Math.floor(parseFloat(currentOvers) || 0) * 6;
     
     // Build comprehensive transformed data
     const transformed = {
@@ -178,7 +183,7 @@ function transformLiveScoringData(data) {
             innings: data.innings || 1,
             result: data.result || ''
         },
-        // Also provide flat format for overlays that use flat field names
+        // Flat format for overlays that use flat field names
         team1Name: data.team1Name || 'Team 1',
         team2Name: data.team2Name || 'Team 2',
         score1: data.team1Score || 0,
@@ -208,7 +213,10 @@ function transformLiveScoringData(data) {
     return transformed;
 }
 
-// 5. Handle score updates from any source
+// =====================================================
+// MAIN SCORE UPDATE HANDLER
+// =====================================================
+
 function handleScoreUpdate(data) {
     console.log('handleScoreUpdate called with:', data);
     
@@ -222,7 +230,7 @@ function handleScoreUpdate(data) {
     } else if (data.type === 'WICKET' || data.type === 'PUSH_EVENT') {
         showNotification(data.message || 'WICKET!');
     } else if (data.tournament || data.team1 || data.team2 || data.team1Name) {
-        // Full score update data - any format
+        // Full score update data
         console.log('Calling updateBoard');
         updateBoard(data);
     } else if (data.match) {
@@ -234,7 +242,6 @@ function handleScoreUpdate(data) {
     }
 }
 
-// Show notification for events
 function showNotification(message) {
     if (!els.notification || !els.notificationText) return;
     
@@ -254,7 +261,10 @@ function showNotification(message) {
     }, 3000);
 }
 
-// 6. Fetch initial match data on load
+// =====================================================
+// UI UPDATE FUNCTIONS
+// =====================================================
+
 async function fetchInitialMatchData() {
     if (!matchId) {
         console.log('No matchId provided, waiting for BroadcastChannel events...');
@@ -277,31 +287,6 @@ async function fetchInitialMatchData() {
     }
 }
 
-// 7. Connect to socket
-socket.on('connect', function() {
-    console.log('Connected to ScoreX Live');
-    if (matchId) {
-        socket.emit('join_match', matchId);
-    }
-    fetchInitialMatchData();
-});
-
-// 8. Listen for score updates
-socket.on('scoreUpdate', function(data) {
-    console.log('Score update received:', data);
-    if (data.match) {
-        updateBoard(data.match);
-    } else if (data.matchId === matchId) {
-        updateBoard(data);
-    }
-});
-
-socket.on('match_update', function(data) {
-    console.log('Match update received:', data);
-    updateBoard(data);
-});
-
-// 9. Update UI Function - COMPREHENSIVE
 function updateBoard(data) {
     if (!data) {
         console.log('updateBoard called with null data');
@@ -310,7 +295,6 @@ function updateBoard(data) {
     
     console.log('updateBoard called with data keys:', Object.keys(data));
     
-    // Check if in ScoreboardUpdate format (nested team objects with batsmen)
     var isScoreboardFormat = data.team1 && typeof data.team1 === 'object' && (data.team1.batsmen || data.team1.score !== undefined);
     
     console.log('isScoreboardFormat:', isScoreboardFormat);
@@ -324,7 +308,6 @@ function updateBoard(data) {
     triggerPulseAnimations();
 }
 
-// Handle ScoreboardUpdate format - COMPREHENSIVE
 function updateBoardScoreboardFormat(data) {
     console.log('Using ScoreboardUpdate format - COMPREHENSIVE');
     var team1Data = data.team1 || {};
@@ -384,13 +367,13 @@ function updateBoardScoreboardFormat(data) {
     }
     if (els.matchStatus) els.matchStatus.innerText = data.status || data.match?.status || 'Live';
     
-    // Balls tracker - try multiple keys
+    // Balls tracker
     var last5Overs = stats.last5Overs || stats.last6Balls || data.lastFiveOvers || '';
     if (els.ballsContainer && last5Overs) {
         updateBallsTracker(last5Overs);
     }
     
-    // Extras (if available)
+    // Extras
     if (els.extras && team1Data.extras) {
         var extras = team1Data.extras;
         var extrasText = '';
@@ -402,11 +385,10 @@ function updateBoardScoreboardFormat(data) {
     }
 }
 
-// Handle legacy/match format - COMPREHENSIVE
 function updateBoardLegacyFormat(data) {
     console.log('Using legacy/match format - COMPREHENSIVE');
     
-    // Team Names - check multiple formats
+    // Team Names
     if (els.team1Name) {
         els.team1Name.innerText = data.team1Name || (data.team1 ? data.team1.name : null) || (data.team1 ? data.team1.shortName : null) || 'Team 1';
     }
@@ -443,7 +425,7 @@ function updateBoardLegacyFormat(data) {
     if (els.team1Wickets) els.team1Wickets.innerText = data.wickets1 || (data.team1 ? data.team1.wickets : null) || 0;
     if (els.team2Wickets) els.team2Wickets.innerText = data.wickets2 || (data.team2 ? data.team2.wickets : null) || 0;
     
-    // Striker - check multiple formats
+    // Striker
     var strikerName = data.strikerName || data.striker_name || (data.striker ? data.striker.name : null) || 'Striker';
     var strikerRuns = data.strikerRuns || data.striker_runs || (data.striker ? data.striker.runs : null) || 0;
     var strikerBalls = data.strikerBalls || data.striker_balls || (data.striker ? data.striker.balls : null) || 0;
@@ -451,7 +433,7 @@ function updateBoardLegacyFormat(data) {
     if (els.strikerRuns) els.strikerRuns.innerText = strikerRuns;
     if (els.strikerBalls) els.strikerBalls.innerText = strikerBalls;
     
-    // Non-Striker - check multiple formats
+    // Non-Striker
     var nonStrikerName = data.nonStrikerName || data.nonstriker_name || (data.nonStriker ? data.nonStriker.name : null) || 'Non-Striker';
     var nonStrikerRuns = data.nonStrikerRuns || data.nonstriker_runs || (data.nonStriker ? data.nonStriker.runs : null) || 0;
     var nonStrikerBalls = data.nonStrikerBalls || data.nonstriker_balls || (data.nonStriker ? data.nonStriker.balls : null) || 0;
@@ -459,7 +441,7 @@ function updateBoardLegacyFormat(data) {
     if (els.nonStrikerRuns) els.nonStrikerRuns.innerText = nonStrikerRuns;
     if (els.nonStrikerBalls) els.nonStrikerBalls.innerText = nonStrikerBalls;
     
-    // Bowler - check multiple formats
+    // Bowler
     var bowlerName = data.bowlerName || data.bowler_name || (data.bowler ? data.bowler.name : null) || 'Bowler';
     var bowlerOvers = data.bowlerOvers || data.bowler_overs || (data.bowler ? data.bowler.overs : null) || 0;
     var bowlerRuns = data.bowlerRuns || data.bowler_runs || (data.bowler ? data.bowler.runsConceded : null) || 0;
@@ -467,7 +449,6 @@ function updateBoardLegacyFormat(data) {
     if (els.bowler) els.bowler.innerText = bowlerName;
     if (els.bowlerOvers) els.bowlerOvers.innerText = bowlerOvers;
     if (els.bowlerWickets) els.bowlerWickets.innerText = bowlerWickets;
-    // Handle bowler runs - might be runsConceded or runs
     var bowlerRunsEl = document.getElementById('bowlerRuns');
     if (bowlerRunsEl) bowlerRunsEl.innerText = bowlerRuns;
     
@@ -480,7 +461,7 @@ function updateBoardLegacyFormat(data) {
     if (els.tournament) els.tournament.innerText = data.tournamentName || (data.tournament ? data.tournament.name : null) || 'Tournament';
     if (els.matchStatus) els.matchStatus.innerText = data.status || 'Live';
     
-    // Balls tracker - try multiple keys
+    // Balls tracker
     var lastFive = data.lastFiveOvers || data.last5Overs || data.last6Balls || '';
     if (els.ballsContainer && lastFive) {
         updateBallsTracker(lastFive);
@@ -504,7 +485,7 @@ function updateBallsTracker(lastFiveOvers) {
     
     var balls = [];
     if (typeof lastFiveOvers === 'string') {
-        balls = lastFiveOvers.split('').filter(function(b) { return ['0', '1', '2', '3', '4', '6', 'W', 'w'].indexOf(b) !== -1; });
+        balls = lastFiveOvers.split('').filter(function(b) { return ['0','1','2','3','4','6','W','w'].indexOf(b) !== -1; });
     } else if (Array.isArray(lastFiveOvers)) {
         balls = lastFiveOvers;
     }
@@ -539,40 +520,7 @@ function triggerPulseAnimations() {
     });
 }
 
-function updateText(element, newValue) {
-    if (!element) return;
-    if (element.innerText !== newValue) {
-        element.classList.remove('pulse-update');
-        void element.offsetWidth;
-        element.innerText = newValue;
-        element.classList.add('pulse-update');
-    }
-}
-
-function handleNotification(event) {
-    if (!event || !els.notification) return;
-    
-    var notif = els.notification;
-    var text = els.notificationText;
-    
-    if (!text) return;
-    
-    var message = '';
-    var className = '';
-    
-    if (event === '4') { message = 'FOUR RUNS!'; className = 'notif-4'; }
-    else if (event === '6') { message = 'HUGE SIX!'; className = 'notif-6'; }
-    else if (['W', 'w', 'WICKET'].indexOf(event) !== -1) { message = 'WICKET!'; className = 'notif-w'; }
-    else return;
-    
-    text.innerText = message;
-    notif.className = 'notification-active ' + className;
-    
-    setTimeout(function() {
-        notif.className = '';
-    }, 3000);
-}
-
+// Add dynamic styles
 if (typeof document !== 'undefined' && !document.getElementById('overlay-engine-styles')) {
     var style = document.createElement('style');
     style.id = 'overlay-engine-styles';
@@ -580,4 +528,4 @@ if (typeof document !== 'undefined' && !document.getElementById('overlay-engine-
     document.head.appendChild(style);
 }
 
-console.log('ScoreX Overlay Engine initialized - COMPREHENSIVE DATA MODE', { matchId: matchId, config: config });
+console.log('ScoreX Overlay Engine v2 initialized - ALL COMMUNICATION METHODS SUPPORTED', { matchId: matchId, config: config });
