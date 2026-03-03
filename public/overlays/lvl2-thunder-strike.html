@@ -1,110 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Lvl 2 - Cyber HUD</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap');
+  <meta charset="UTF-8">
+  <title>ScoreX - Lvl 2 Thunder Strike</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Roboto:wght@700;900&display=swap');
 
-        body { margin: 0; font-family: 'Rajdhani', sans-serif; color: white; overflow: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
+    body { background: transparent; overflow: hidden; color: #fff; }
 
-        :root { --cyber-p: #d600ff; --cyber-b: #00b8ff; }
+    /* Top Voltage Ticker */
+    #thunder-island {
+      position: absolute; top: 15px; left: 30px;
+      background: #f1c40f; color: #111;
+      font-family: 'Saira Stencil One', cursive; font-size: 20px; padding: 4px 25px;
+      clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+      box-shadow: 0 5px 15px rgba(241, 196, 15, 0.4);
+    }
 
-        /* TOP HUD */
-        .top-hud {
-            position: fixed; top: 0; left: 0; width: 100%; height: 50px;
-            background: rgba(10, 10, 20, 0.9);
-            border-bottom: 2px solid var(--cyber-p);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; font-weight: bold;
-            box-shadow: 0 0 15px var(--cyber-p);
-        }
-        .vs-tag { margin: 0 15px; color: var(--cyber-b); font-style: italic; }
+    /* Strike Event Flash */
+    #thunder-event {
+      position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(1.5);
+      font-family: 'Saira Stencil One', cursive; font-size: 130px; color: #fff;
+      text-shadow: 6px 6px 0px #111, -4px -4px 0px #00e5ff;
+      opacity: 0; pointer-events: none; transition: opacity 0.1s ease-in;
+    }
+    #thunder-event.show { opacity: 1; transform: translate(-50%, -50%) scale(1); animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+    
+    @keyframes shake { 
+      10%, 90% { transform: translate(-52%, -50%) scale(1); }
+      20%, 80% { transform: translate(-48%, -50%) scale(1); }
+      30%, 50%, 70% { transform: translate(-54%, -50%) scale(1); }
+      40%, 60% { transform: translate(-46%, -50%) scale(1); }
+    }
 
-        /* BOTTOM HUD */
-        .btm-hud {
-            position: fixed; bottom: 10px; left: 10px; right: 10px; height: 80px;
-            background: linear-gradient(90deg, rgba(0,0,0,0.9), rgba(20,0,40,0.95));
-            border: 1px solid var(--cyber-b);
-            border-radius: 4px;
-            display: flex;
-            clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px);
-        }
+    /* Bottom Jagged Layout */
+    #thunder-bottom {
+      position: absolute; bottom: 20px; left: 5%; width: 90%; height: 85px; display: flex;
+      filter: drop-shadow(0 15px 15px rgba(0,0,0,0.6));
+    }
 
-        .hud-score {
-            width: 150px; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: rgba(0, 184, 255, 0.1); border-right: 1px solid var(--cyber-b);
-        }
-        .main-s { font-size: 40px; line-height: 0.9; text-shadow: 0 0 10px var(--cyber-b); }
+    .t-block { display: flex; align-items: center; padding: 0 30px; }
 
-        .hud-details { flex: 1; padding: 5px 20px; display: grid; grid-template-columns: 1fr 1fr; font-size: 14px; }
-        .hud-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .h-label { color: var(--cyber-p); font-weight: bold; }
+    /* Score Block (Cyan) */
+    .b-score {
+      background: #00e5ff; color: #111; min-width: 280px; justify-content: space-between;
+      clip-path: polygon(0 0, 100% 0, calc(100% - 25px) 50%, 100% 100%, 0 100%); z-index: 3;
+    }
+    .t-tm { font-family: 'Saira Stencil One', cursive; font-size: 32px; letter-spacing: 1px;}
+    .t-sc { font-size: 56px; font-weight: 900; line-height: 0.8;}
+    .t-sc span { font-size: 28px; color: #333;}
+    .t-ov { font-size: 15px; font-weight: 700; text-align: right; margin-top: 2px;}
 
-        /* Over Progress Bar */
-        .over-prog {
-            position: absolute; bottom: 0; left: 0; height: 4px; background: #333; width: 100%;
-        }
-        .prog-fill { height: 100%; background: var(--cyber-p); width: 0%; transition: width 0.3s; }
+    /* Batting Block (Black) */
+    .b-bat {
+      background: #111; flex: 1; justify-content: space-around; margin-left: -30px; padding-left: 60px;
+      clip-path: polygon(25px 0, 100% 0, calc(100% - 25px) 50%, 100% 100%, 25px 100%, 0 50%); z-index: 2;
+    }
+    .p-row { display: flex; align-items: baseline; gap: 10px; }
+    .pn { font-size: 22px; font-weight: 700; }
+    .pr { font-size: 36px; font-weight: 900; color: #f1c40f; line-height: 0.8;}
+    .pb { font-size: 14px; color: #888; font-weight: 700;}
+    .strike { color: #00e5ff; font-size: 16px; margin-right: -4px;}
 
-        .glitch-fx { animation: glitch 0.2s 2; }
-        @keyframes glitch { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -1px); } 100% { transform: translate(0); } }
+    /* Bowling Block (Dark Grey/Yellow) */
+    .b-bowl {
+      background: #222; min-width: 320px; justify-content: space-between; margin-left: -30px; padding-left: 60px;
+      clip-path: polygon(25px 0, 100% 0, 100% 100%, 25px 100%, 0 50%); z-index: 1;
+      border-right: 8px solid #f1c40f;
+    }
+    .bw-r { font-size: 36px; font-weight: 900; color: #fff; line-height: 0.8;}
 
-    </style>
+  </style>
 </head>
 <body>
 
-    <div class="top-hud">
-        <span id="t1">TEAM 1</span> <span class="vs-tag">VS</span> <span id="t2">TEAM 2</span>
-        <span style="position:absolute; right:20px; font-size:14px; color:#aaa" id="status">LIVE</span>
+  <div id="thunder-island">THUNDER LEAGUE</div>
+  <div id="thunder-event"></div>
+
+  <div id="thunder-bottom">
+    
+    <div class="t-block b-score">
+      <span id="teamName" class="t-tm">VOLTS</span>
+      <div style="text-align: right;">
+        <div class="t-sc"><span id="teamScore">228</span><span>/</span><span id="teamWickets">2</span></div>
+        <div class="t-ov">OVERS <span id="teamOvers">18.5</span></div>
+      </div>
     </div>
 
-    <div class="btm-hud">
-        <div class="hud-score">
-            <div class="main-s" id="score">0/0</div>
-            <div style="font-size:12px; letter-spacing:2px" id="overs">0.0</div>
-        </div>
-        
-        <div class="hud-details">
-            <div style="padding-right:10px; border-right:1px solid #333">
-                <div class="hud-row"><span class="h-label">STR</span> <span id="str">P1 0</span></div>
-                <div class="hud-row"><span class="h-label">NON</span> <span id="non">P2 0</span></div>
-            </div>
-            <div style="padding-left:10px">
-                <div class="hud-row"><span class="h-label">BWL</span> <span id="bwl">B1</span></div>
-                <div class="hud-row"><span>CRR</span> <span id="crr" style="color:var(--cyber-b)">0.0</span></div>
-            </div>
-        </div>
-
-        <div class="over-prog"><div class="prog-fill" id="bar"></div></div>
+    <div class="t-block b-bat">
+      <div class="p-row">
+        <span class="strike">⚡</span>
+        <span id="strikerName" class="pn">Player X</span>
+        <span id="strikerRuns" class="pr">104</span>
+        <span class="pb">(<span id="strikerBalls">52</span>)</span>
+      </div>
+      <div class="p-row" style="opacity: 0.6;">
+        <span id="nonStrikerName" class="pn">Player Y</span>
+        <span id="nonStrikerRuns" class="pr" style="color: #fff;">24</span>
+        <span class="pb">(<span id="nonStrikerBalls">15</span>)</span>
+      </div>
     </div>
 
-    <script>
-        const ch = new BroadcastChannel('cricket_score_updates');
-        ch.onmessage = (e) => {
-            const d = e.data; if(!d.team1) return;
-            const t = d.team1.isBatting ? d.team1 : d.team2;
+    <div class="t-block b-bowl">
+      <div style="display:flex; flex-direction:column;">
+        <span class="pb" style="color:#00e5ff;">BOWLER</span>
+        <span id="bowlerName" class="pn">Player Z</span>
+      </div>
+      <div class="p-row">
+        <span class="bw-r"><span id="bowlerWickets">1</span>-<span id="bowlerRuns">38</span></span>
+        <span class="pb">Ov <span id="bowlerOvers">3.5</span></span>
+      </div>
+    </div>
 
-            document.getElementById('t1').innerText = d.team1.name;
-            document.getElementById('t2').innerText = d.team2.name;
-            
-            const sc = document.getElementById('score');
-            if(sc.innerText !== `${t.score}/${t.wickets}`) {
-                sc.innerText = `${t.score}/${t.wickets}`;
-                sc.classList.add('glitch-fx');
-                setTimeout(()=>sc.classList.remove('glitch-fx'), 400);
-            }
-            
-            document.getElementById('overs').innerText = t.overs;
-            document.getElementById('str').innerText = `${d.striker.name} ${d.striker.runs}`;
-            document.getElementById('non').innerText = `${d.nonStriker.name} ${d.nonStriker.runs}`;
-            document.getElementById('bwl').innerText = `${d.bowler.name} ${d.bowler.wickets}-${d.bowler.runs}`;
-            document.getElementById('crr').innerText = d.stats.currentRunRate;
+  </div>
 
-            // Bar width
-            const balls = parseInt(t.balls || 0);
-            document.getElementById('bar').style.width = (balls / 6 * 100) + '%';
-        };
-    </script>
+  <script>
+    let thSc = -1, thWk = -1, thSt = 0, thDat = {};
+    const dId = (id, val) => { const e = document.getElementById(id); if(e && val != null) e.innerText = val; };
+
+    function thunderPop(txt, bgShd) {
+      const e = document.getElementById('thunder-event');
+      e.innerText = txt; e.style.textShadow = `6px 6px 0px #111, -4px -4px 0px ${bgShd}`;
+      e.classList.remove('show');
+      void e.offsetWidth; // trigger reflow
+      e.classList.add('show');
+      setTimeout(() => e.classList.remove('show'), 2200);
+    }
+
+    setInterval(() => {
+      const isl = document.getElementById('thunder-island');
+      if(!thDat.tournamentName) return;
+      thSt = (thSt + 1) % 3;
+      if(thSt === 0) isl.innerText = thDat.tournamentName;
+      else if(thSt === 1) isl.innerText = "RATE: " + (thDat.runRate||'0.0');
+      else isl.innerText = thDat.target > 0 ? "TARGET: " + thDat.target : "LIVE";
+    }, 4000);
+
+    function rx(d) {
+      thDat = d;
+      dId('teamName', d.team1Name); dId('teamScore', d.team1Score); dId('teamWickets', d.team1Wickets); dId('teamOvers', d.team1Overs);
+      dId('strikerName', d.strikerName); dId('strikerRuns', d.strikerRuns); dId('strikerBalls', d.strikerBalls);
+      dId('nonStrikerName', d.nonStrikerName); dId('nonStrikerRuns', d.nonStrikerRuns); dId('nonStrikerBalls', d.nonStrikerBalls);
+      dId('bowlerName', d.bowlerName); dId('bowlerRuns', d.bowlerRuns); dId('bowlerWickets', d.bowlerWickets); dId('bowlerOvers', d.bowlerOvers);
+
+      let ns = parseInt(d.team1Score)||0, nw = parseInt(d.team1Wickets)||0;
+      if (thSc !== -1) {
+        if (nw > thWk) thunderPop("WICKET!", "#ff003c");
+        else if (ns - thSc === 6) thunderPop("THUNDER 6!", "#f1c40f");
+        else if (ns - thSc === 4) thunderPop("STRIKE 4!", "#00e5ff");
+      }
+      thSc = ns; thWk = nw;
+    }
+
+    window.addEventListener('message', e => { if(e.data?.type === 'UPDATE_SCORE') rx(e.data.data); });
+    if ('BroadcastChannel' in window) new BroadcastChannel('scorex_overlay_channel').onmessage = e => { if(e.data?.type === 'UPDATE_SCORE') rx(e.data.data); };
+  </script>
 </body>
 </html>

@@ -1,235 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lvl 2 - Strike Bar</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Chakra+Petch:wght@700&display=swap');
+  <meta charset="UTF-8">
+  <title>ScoreX - Lvl 2 Cosmic Orbit</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap');
 
-        :root {
-            --neon: #00e5ff;
-            --dark: #09090b;
-            --panel-bg: #121214;
-            --text-main: #ffffff;
-            --push-speed: 0.35s;
-        }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: transparent; overflow: hidden; color: #e2e8f0; font-family: 'Outfit', sans-serif; }
 
-        body { margin: 0; overflow: hidden; font-family: 'Rajdhani', sans-serif; }
+    /* Orbital Island */
+    #cosmic-island {
+      position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+      background: radial-gradient(circle, #1e1b4b 0%, #0f172a 100%);
+      color: #38bdf8; font-family: 'Space Mono', monospace; font-size: 14px; letter-spacing: 2px;
+      padding: 6px 30px; border-radius: 40px;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4), inset 0 0 8px rgba(56, 189, 248, 0.2);
+      border: 1px solid #38bdf8;
+    }
 
-        .overlay {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: var(--dark);
-            border-top: 3px solid var(--neon);
-            display: grid;
-            grid-template-columns: 80px 1.5fr 1fr 110px;
-            color: var(--text-main);
-            box-shadow: 0 -4px 20px rgba(0, 229, 255, 0.15);
-        }
+    /* Nova Event Popup */
+    #cosmic-event {
+      position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
+      font-family: 'Space Mono', monospace; font-size: 100px; font-weight: 700;
+      color: #fff; text-shadow: 0 0 20px #818cf8, 0 0 40px #6366f1, 0 0 60px #4f46e5;
+      opacity: 0; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #cosmic-event.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-        .module {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 0 12px;
-            position: relative;
-            overflow: hidden;
-        }
+    /* Orbital Bottom Assembly */
+    #cosmic-bottom {
+      position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; justify-content: center; height: 95px; width: 100%; max-width: 1100px;
+    }
 
-        .module::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 15%;
-            height: 70%;
-            width: 1px;
-            background: rgba(255,255,255,0.15);
-        }
+    /* Central Planet (Score) */
+    .c-orbit-center {
+      background: radial-gradient(circle at top, #312e81 0%, #0f172a 100%);
+      border: 2px solid #6366f1; border-radius: 50%;
+      width: 180px; height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+      box-shadow: 0 0 30px rgba(99, 102, 241, 0.5); z-index: 10;
+      margin-bottom: -40px; /* Push it down slightly */
+    }
+    .c-tm { font-family: 'Space Mono', monospace; font-size: 22px; color: #818cf8; letter-spacing: 1px;}
+    .c-sc { font-size: 46px; font-weight: 800; line-height: 0.9; color: #fff;}
+    .c-ov { font-size: 14px; color: #94a3b8; font-weight: 600;}
 
-        /* Team Module */
-        .team-box {
-            background: var(--neon);
-            color: var(--dark);
-            align-items: center;
-            font-family: 'Chakra Petch', sans-serif;
-            font-size: 20px;
-            font-weight: 900;
-            text-transform: uppercase;
-            clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
-            padding-right: 20px; 
-            margin-right: -10px; /* Overlap effect */
-            z-index: 2;
-        }
+    /* Flanking Asteroid Belts (Stats) */
+    .c-wing {
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
+      height: 65px; display: flex; align-items: center; padding: 0 30px;
+      border-top: 1px solid #38bdf8; border-bottom: 1px solid #38bdf8;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+    }
+    .w-left { border-radius: 35px 0 0 35px; border-left: 1px solid #38bdf8; flex: 1; justify-content: space-around; margin-right: -20px; padding-right: 40px;}
+    .w-right { border-radius: 0 35px 35px 0; border-right: 1px solid #38bdf8; min-width: 320px; justify-content: space-between; margin-left: -20px; padding-left: 40px;}
 
-        /* Scores */
-        .score-box {
-            align-items: flex-end;
-            text-align: right;
-            padding-right: 15px;
-        }
-        .main-score {
-            font-family: 'Chakra Petch', sans-serif;
-            font-size: 28px;
-            line-height: 1;
-            font-weight: 700;
-        }
-        .overs {
-            font-size: 14px;
-            color: #888;
-            font-weight: 600;
-        }
+    .w-grp { display: flex; align-items: baseline; gap: 8px;}
+    .pn { font-size: 18px; font-weight: 600; color: #f8fafc;}
+    .pr { font-family: 'Space Mono', monospace; font-size: 24px; font-weight: 700; color: #38bdf8;}
+    .pb { font-size: 13px; color: #64748b;}
+    .strike { color: #f472b6; font-size: 12px; margin-right: 2px;}
 
-        /* Batsman/Bowler Info */
-        .info-box {
-            justify-content: center;
-            font-size: 13px;
-            line-height: 1.3;
-        }
-        .info-row { display: flex; align-items: center; }
-        .label { 
-            color: var(--neon); 
-            font-weight: bold; 
-            font-size: 10px; 
-            margin-right: 6px; 
-            width: 25px; 
-        }
-        .val { font-weight: 600; white-space: nowrap; }
-
-        /* Ball Tracker */
-        .balls-box {
-            align-items: center;
-            padding: 0;
-        }
-        .balls-grid {
-            display: flex;
-            gap: 4px;
-        }
-        .ball-dot {
-            width: 12px;
-            height: 12px;
-            background: #333;
-            border-radius: 2px; /* Square dots */
-            display: grid;
-            place-items: center;
-            font-size: 8px;
-            font-weight: bold;
-            color: #aaa;
-        }
-        .ball-dot.active { background: #fff; color: #000; }
-        .ball-dot.boundary { background: var(--neon); color: #000; box-shadow: 0 0 5px var(--neon); }
-        .ball-dot.wicket { background: #ff0055; color: #fff; }
-
-        /* --- PUSH ANIMATION UTILS --- */
-        .anim-wrap {
-            display: inline-block;
-            height: 1.1em;
-            overflow: hidden;
-            vertical-align: bottom;
-        }
-        .anim-content {
-            display: block;
-            transition: transform var(--push-speed) cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        .anim-content span { display: block; }
-
-    </style>
+  </style>
 </head>
 <body>
 
-    <div class="overlay">
-        <div class="module team-box" id="teamName">---</div>
-        
-        <div class="module info-box">
-            <div class="info-row">
-                <span class="label">BAT</span>
-                <div id="striker" class="val">---</div>
-            </div>
-            <div class="info-row">
-                <span class="label">BWL</span>
-                <div id="bowler" class="val">---</div>
-            </div>
-        </div>
+  <div id="cosmic-island">ORBITAL LEAGUE</div>
+  <div id="cosmic-event"></div>
 
-        <div class="module score-box">
-            <div id="score" class="main-score">0/0</div>
-            <div id="overs" class="overs">0.0</div>
-        </div>
-
-        <div class="module balls-box">
-            <div class="balls-grid" id="balls">
-                <div class="ball-dot"></div><div class="ball-dot"></div><div class="ball-dot"></div>
-                <div class="ball-dot"></div><div class="ball-dot"></div><div class="ball-dot"></div>
-            </div>
-        </div>
+  <div id="cosmic-bottom">
+    
+    <div class="c-wing w-left">
+      <div class="w-grp">
+        <span class="strike">✦</span>
+        <span id="strikerName" class="pn">Player 1</span>
+        <span id="strikerRuns" class="pr">84</span>
+        <span class="pb">(<span id="strikerBalls">45</span>)</span>
+      </div>
+      <div class="w-grp" style="opacity: 0.6;">
+        <span id="nonStrikerName" class="pn">Player 2</span>
+        <span id="nonStrikerRuns" class="pr" style="color: #cbd5e1;">12</span>
+        <span class="pb">(<span id="nonStrikerBalls">8</span>)</span>
+      </div>
     </div>
 
-    <script>
-        // --- Animation Helper ---
-        function animateText(id, newVal) {
-            const el = document.getElementById(id);
-            if (!el || el.getAttribute('data-val') === newVal) return;
-            
-            // Only create wrapper if not exists
-            if (!el.querySelector('.anim-content')) {
-                el.innerHTML = `<div class="anim-wrap"><div class="anim-content"><span>${el.innerText}</span><span>${newVal}</span></div></div>`;
-            } else {
-                const content = el.querySelector('.anim-content');
-                content.children[1].innerText = newVal;
-            }
+    <div class="c-orbit-center">
+      <div id="teamName" class="c-tm">STARS</div>
+      <div class="c-sc"><span id="teamScore">210</span><span style="font-size:24px; color:#64748b;">/</span><span id="teamWickets" style="color:#f472b6;">4</span></div>
+      <div class="c-ov">OV <span id="teamOvers">19.2</span></div>
+    </div>
 
-            const content = el.querySelector('.anim-content');
-            
-            // Trigger Push
-            requestAnimationFrame(() => {
-                content.style.transform = 'translateY(-50%)';
-            });
+    <div class="c-wing w-right">
+      <div style="display:flex; flex-direction:column;">
+        <span class="pb" style="color:#38bdf8; text-transform:uppercase;">Bowler</span>
+        <span id="bowlerName" class="pn">Bowler 1</span>
+      </div>
+      <div class="w-grp">
+        <span class="pr" style="color:#f472b6;"><span id="bowlerWickets">2</span>-<span id="bowlerRuns">34</span></span>
+        <span class="pb">Ov <span id="bowlerOvers">3.2</span></span>
+      </div>
+    </div>
 
-            // Reset after animation
-            setTimeout(() => {
-                content.style.transition = 'none';
-                content.children[0].innerText = newVal;
-                content.style.transform = 'translateY(0)';
-                el.setAttribute('data-val', newVal);
-                requestAnimationFrame(() => {
-                    content.style.transition = ''; // Restore transition
-                });
-            }, 350);
-        }
+  </div>
 
-        // --- Data Listener ---
-        const channel = new BroadcastChannel('cricket_score_updates');
-        channel.onmessage = (e) => {
-            const d = e.data;
-            if(!d.team1) return;
+  <script>
+    let cSc = -1, cWk = -1, cSt = 0, cDat = {};
+    const inject = (id, val) => { const e = document.getElementById(id); if(e && val != null) e.innerText = val; };
 
-            const batTeam = d.team1.isBatting ? d.team1 : d.team2;
-            
-            animateText('teamName', batTeam.shortName);
-            animateText('score', `${batTeam.score}/${batTeam.wickets}`);
-            animateText('overs', `(${batTeam.overs})`);
-            
-            animateText('striker', `${d.striker.name} ${d.striker.runs}`);
-            animateText('bowler', d.bowler.name);
+    function novaPop(txt, col) {
+      const e = document.getElementById('cosmic-event');
+      e.innerText = txt; e.style.textShadow = `0 0 20px ${col}, 0 0 40px ${col}, 0 0 60px #fff`;
+      e.classList.add('show');
+      setTimeout(() => e.classList.remove('show'), 2800);
+    }
 
-            // Simple ball update
-            renderBalls(batTeam.overs);
-        };
+    setInterval(() => {
+      const isl = document.getElementById('cosmic-island');
+      if(!cDat.tournamentName) return;
+      cSt = (cSt + 1) % 3;
+      if(cSt === 0) isl.innerText = cDat.tournamentName;
+      else if(cSt === 1) isl.innerText = "FLOW: " + (cDat.runRate||'0.0');
+      else isl.innerText = cDat.target > 0 ? "OBJ: " + cDat.target : "SYSTEM: LIVE";
+    }, 4500);
 
-        function renderBalls(overs) {
-            const balls = parseInt(String(overs).split('.')[1]) || 0;
-            let html = '';
-            for(let i=0; i<6; i++) {
-                // Determine class based on index (simplified logic)
-                let c = 'ball-dot';
-                if(i < balls) c += ' active';
-                html += `<div class="${c}"></div>`;
-            }
-            document.getElementById('balls').innerHTML = html;
-        }
-    </script>
+    function rx(d) {
+      cDat = d;
+      inject('teamName', d.team1Name); inject('teamScore', d.team1Score); inject('teamWickets', d.team1Wickets); inject('teamOvers', d.team1Overs);
+      inject('strikerName', d.strikerName); inject('strikerRuns', d.strikerRuns); inject('strikerBalls', d.strikerBalls);
+      inject('nonStrikerName', d.nonStrikerName); inject('nonStrikerRuns', d.nonStrikerRuns); inject('nonStrikerBalls', d.nonStrikerBalls);
+      inject('bowlerName', d.bowlerName); inject('bowlerRuns', d.bowlerRuns); inject('bowlerWickets', d.bowlerWickets); inject('bowlerOvers', d.bowlerOvers);
+
+      let ns = parseInt(d.team1Score)||0, nw = parseInt(d.team1Wickets)||0;
+      if (cSc !== -1) {
+        if (nw > cWk) novaPop("WICKET", "#f43f5e");
+        else if (ns - cSc === 6) novaPop("SUPERNOVA 6", "#38bdf8");
+        else if (ns - cSc === 4) novaPop("IMPACT 4", "#818cf8");
+      }
+      cSc = ns; cWk = nw;
+    }
+
+    window.addEventListener('message', e => { if(e.data?.type === 'UPDATE_SCORE') rx(e.data.data); });
+    if ('BroadcastChannel' in window) new BroadcastChannel('scorex_overlay_channel').onmessage = e => { if(e.data?.type === 'UPDATE_SCORE') rx(e.data.data); };
+  </script>
 </body>
 </html>
