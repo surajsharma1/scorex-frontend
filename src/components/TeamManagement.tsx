@@ -14,6 +14,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [selectedTournamentId, setSelectedTournamentId] = useState<string>(selectedTournament?._id || '');
   
   // Form State
@@ -44,26 +45,47 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
 
   const loadTournaments = async () => {
     try {
+      setError(null);
       const res = await tournamentAPI.getTournaments();
-      const list = res.data.tournaments || res.data || [];
+      // Handle the new response format { success, count, data }
+      let list: Tournament[] = [];
+      if (Array.isArray(res.data)) {
+        list = res.data;
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        list = res.data.data;
+      } else if (res.data?.tournaments && Array.isArray(res.data.tournaments)) {
+        list = res.data.tournaments;
+      }
       setTournaments(list);
       // Auto-select first if none selected
       if (!selectedTournamentId && list.length > 0) {
         setSelectedTournamentId(list[0]._id);
       }
-    } catch (e) {
-      console.error("Failed to load tournaments");
+    } catch (e: any) {
+      console.error("Failed to load tournaments", e);
+      setError(e.response?.data?.message || e.message || 'Failed to load tournaments');
+      setTournaments([]);
     }
   };
 
   const loadTeams = async (tId: string) => {
     setLoading(true);
+    setError(null);
     try {
       const res = await teamAPI.getTeams(tId);
-      setTeams(res.data.teams || []);
+      // Handle different response formats
+      let teamsList: Team[] = [];
+      if (res.data?.teams) {
+        teamsList = res.data.teams;
+      } else if (Array.isArray(res.data)) {
+        teamsList = res.data;
+      }
+      setTeams(teamsList);
       setSelectedTeam(null); // Reset selection on tournament change
-    } catch (e) {
-      console.error("Failed to load teams");
+    } catch (e: any) {
+      console.error("Failed to load teams", e);
+      setError(e.response?.data?.message || e.message || 'Failed to load teams');
+      setTeams([]);
     } finally {
       setLoading(false);
     }
@@ -74,14 +96,19 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
     if (!formData.name || !selectedTournamentId) return;
     
     setLoading(true);
+    setError(null);
     try {
       const payload = { ...formData, tournament: selectedTournamentId };
       const res = await teamAPI.createTeam(payload);
-      setTeams([...teams, res.data.team || res.data]);
+      // Handle different response formats
+      const newTeam = res.data?.team || res.data;
+      setTeams([...teams, newTeam]);
       setShowCreateForm(false);
       setFormData({ name: '', shortName: '', color: '#16a34a', tournament: selectedTournamentId });
-    } catch (e) {
-      alert("Failed to create team");
+    } catch (e: any) {
+      console.error("Failed to create team", e);
+      setError(e.response?.data?.message || e.message || 'Failed to create team');
+      alert("Failed to create team: " + (e.response?.data?.message || e.message));
     } finally {
       setLoading(false);
     }
@@ -100,13 +127,14 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
     try {
       const res = await teamAPI.addPlayer(selectedTeam._id, playerForm);
       // Update local state
-      const updatedTeam = res.data.team || res.data;
+      const updatedTeam = res.data?.team || res.data;
       setTeams(teams.map(t => t._id === updatedTeam._id ? updatedTeam : t));
       setSelectedTeam(updatedTeam);
       setShowPlayerForm(false);
       setPlayerForm({ name: '', role: 'Batsman', jerseyNumber: '' });
-    } catch (e) {
-      alert("Failed to add player");
+    } catch (e: any) {
+      console.error("Failed to add player", e);
+      alert("Failed to add player: " + (e.response?.data?.message || e.message));
     }
   };
 
@@ -116,13 +144,29 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
           await teamAPI.deleteTeam(id);
           setTeams(teams.filter(t => t._id !== id));
           if(selectedTeam?._id === id) setSelectedTeam(null);
-      } catch(e) {
-          alert("Failed to delete team");
+      } catch(e: any) {
+          alert("Failed to delete team: " + (e.response?.data?.message || e.message));
       }
   };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Error Message */}
+      {error && (
+        <div className="col-span-full mb-4">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <p className="text-red-600 dark:text-red-400 font-medium">Error</p>
+            <p className="text-red-500 dark:text-red-500 text-sm mt-1">{error}</p>
+            <button
+              onClick={() => loadTournaments()}
+              className="mt-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar: Team List */}
       <div className="md:col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col h-[600px]">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -148,7 +192,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
         </div>
 
         <div className="flex-1 overflow-y-auto p-2">
-            {loading ? <div className="text-center p-4">Loading...</div> : (
+            {loading ? <div className="text-center p-4 dark:text-white">Loading...</div> : (
                 <div className="space-y-2">
                     {teams.map(team => (
                         <div 
@@ -162,7 +206,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
                         >
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs" style={{backgroundColor: team.color || '#666'}}>
-                                    {(team.shortName || team.name.substring(0,2)).toUpperCase()}
+                                    {(team.shortName || team.name?.substring(0,2) || 'TM').toUpperCase()}
                                 </div>
                                 <div>
                                     <p className="font-semibold text-sm dark:text-white">{team.name}</p>
@@ -171,7 +215,8 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
                             </div>
                         </div>
                     ))}
-                    {teams.length === 0 && <p className="text-center text-gray-400 mt-10">No teams found</p>}
+                    {teams.length === 0 && selectedTournamentId && <p className="text-center text-gray-400 mt-10">No teams found</p>}
+                    {!selectedTournamentId && <p className="text-center text-gray-400 mt-10">Select a tournament</p>}
                 </div>
             )}
         </div>
@@ -183,8 +228,8 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                   <div className="flex justify-between items-start mb-6">
                       <div className="flex items-center gap-4">
-                          <div className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold text-white shadow-lg" style={{backgroundColor: selectedTeam.color}}>
-                              {(selectedTeam.shortName || selectedTeam.name.substring(0,2)).toUpperCase()}
+                          <div className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold text-white shadow-lg" style={{backgroundColor: selectedTeam.color || '#666'}}>
+                              {(selectedTeam.shortName || selectedTeam.name?.substring(0,2) || 'TM').toUpperCase()}
                           </div>
                           <div>
                               <h2 className="text-2xl font-bold dark:text-white">{selectedTeam.name}</h2>
@@ -219,13 +264,16 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
                                   </div>
                               </div>
                           ))}
+                          {(!selectedTeam.players || selectedTeam.players.length === 0) && (
+                            <p className="col-span-full text-center text-gray-400 py-4">No players in squad</p>
+                          )}
                       </div>
                   </div>
               </div>
           ) : (
               <div className="h-full flex flex-col items-center justify-center bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 p-10">
                   <Shield className="w-16 h-16 text-gray-300 mb-4" />
-                  <p className="text-gray-500">Select a team to manage squad</p>
+                  <p className="text-gray-500 dark:text-gray-400">Select a team to manage squad</p>
               </div>
           )}
       </div>
@@ -260,7 +308,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
                           <span className="text-sm text-gray-500">Team Color</span>
                       </div>
                       <div className="flex gap-2 mt-4">
-                          <button type="button" onClick={() => setShowCreateForm(false)} className="flex-1 py-2 bg-gray-200 rounded">Cancel</button>
+                          <button type="button" onClick={() => setShowCreateForm(false)} className="flex-1 py-2 bg-gray-200 rounded dark:bg-gray-700 dark:text-white">Cancel</button>
                           <button type="submit" className="flex-1 py-2 bg-blue-600 text-white rounded font-bold">Create</button>
                       </div>
                   </form>
@@ -300,7 +348,7 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
                         required 
                       />
                       <div className="flex gap-2 mt-4">
-                          <button type="button" onClick={() => setShowPlayerForm(false)} className="flex-1 py-2 bg-gray-200 rounded">Cancel</button>
+                          <button type="button" onClick={() => setShowPlayerForm(false)} className="flex-1 py-2 bg-gray-200 rounded dark:bg-gray-700 dark:text-white">Cancel</button>
                           <button type="submit" className="flex-1 py-2 bg-green-600 text-white rounded font-bold">Add Player</button>
                       </div>
                   </form>

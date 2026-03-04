@@ -7,6 +7,7 @@ import { Search, Filter, Calendar, Users, Trophy, Radio } from 'lucide-react';
 export default function TournamentList() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'ongoing' | 'upcoming' | 'completed'>('all');
 
@@ -16,13 +17,25 @@ export default function TournamentList() {
 
   const loadTournaments = async () => {
     try {
+      setLoading(true);
+      setError(null);
+      
       const res = await tournamentAPI.getTournaments();
-      // Handle both array response and object with tournaments property
-      const data = Array.isArray(res.data) ? res.data : (res.data?.tournaments || []);
+      
+      // Handle both array response and object with tournaments/data property
+      let data: Tournament[] = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        data = res.data.data;
+      } else if (res.data?.tournaments && Array.isArray(res.data.tournaments)) {
+        data = res.data.tournaments;
+      }
+      
       setTournaments(data);
-    } catch (error) {
-      console.error("Failed to load tournaments", error);
-      // Set empty array on error to prevent crash
+    } catch (err: any) {
+      console.error("Failed to load tournaments", err);
+      setError(err.response?.data?.message || err.message || 'Failed to load tournaments');
       setTournaments([]);
     } finally {
       setLoading(false);
@@ -30,7 +43,7 @@ export default function TournamentList() {
   };
 
   const filteredTournaments = (Array.isArray(tournaments) ? tournaments : []).filter((t: Tournament) => {
-    const matchesSearch = t.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = t.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const matchesFilter = statusFilter === 'all' || t.status === statusFilter;
     return matchesSearch && matchesFilter;
   });
@@ -49,6 +62,20 @@ export default function TournamentList() {
           Create Tournament
         </Link>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+          <p className="text-red-600 dark:text-red-400 font-medium">Error loading tournaments</p>
+          <p className="text-red-500 dark:text-red-500 text-sm mt-1">{error}</p>
+          <button
+            onClick={loadTournaments}
+            className="mt-3 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Search and Filter Bar */}
       <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-4">
@@ -81,6 +108,12 @@ export default function TournamentList() {
         <div className="flex justify-center py-20">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
         </div>
+      ) : filteredTournaments.length === 0 ? (
+        <div className="text-center py-20 text-gray-500 dark:text-gray-400">
+          <Trophy className="w-16 h-16 mx-auto mb-4 opacity-20" />
+          <p className="text-lg">No tournaments found</p>
+          <p className="text-sm mt-2">Create your first tournament to get started!</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTournaments.map((tournament) => (
@@ -107,7 +140,7 @@ export default function TournamentList() {
                 <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    <span>{new Date(tournament.startDate).toLocaleDateString()}</span>
+                    <span>{tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'TBD'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-gray-400" />
@@ -120,7 +153,7 @@ export default function TournamentList() {
                     ${tournament.status === 'completed' ? 'bg-gray-100 text-gray-600' : 
                       tournament.status === 'upcoming' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}
                   `}>
-                    {tournament.status}
+                    {tournament.status || 'upcoming'}
                   </span>
                   <span className="text-green-600 dark:text-green-400 text-sm font-medium group-hover:translate-x-1 transition-transform">
                     View Details →
@@ -129,12 +162,6 @@ export default function TournamentList() {
               </div>
             </Link>
           ))}
-          
-          {filteredTournaments.length === 0 && (
-            <div className="col-span-full text-center py-20 text-gray-500">
-              No tournaments found matching your search.
-            </div>
-          )}
         </div>
       )}
     </div>
