@@ -48,13 +48,18 @@ export default function TournamentForm() {
     setError(null);
     
     try {
-      // API expects 'teams' as an array of IDs
+      // Map frontend fields to backend API expected fields
       const payload = {
         name: formData.name,
         description: formData.description,
         startDate: formData.startDate,
         endDate: formData.endDate,
-        format: formData.format,
+        // Backend expects: type (Round Robin, League, etc), location, locationType, organizer
+        // Frontend has: format (T20, ODI, etc)
+        type: formData.format === 'T20' ? 'League' : formData.format === 'ODI' ? 'League' : 'Knockout',
+        organizer: 'Local', // Default organizer
+        location: 'Stadium', // Default location  
+        locationType: 'Outdoor', // Default
         teams: formData.selectedTeams
       };
       
