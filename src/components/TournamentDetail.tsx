@@ -389,12 +389,22 @@ export default function TournamentDetail() {
     if (!id) return;
     try {
       // Use getMatchesByTournament to fetch matches for this tournament
-      const response = await matchAPI.getMatchesByTournament(id);
-      const matchesArray = extractArray(response);
+      // API now returns response.data directly
+      const data = await matchAPI.getMatchesByTournament(id);
+      console.log('Fetched matches data:', data);
+      // Handle different response formats
+      let matchesArray: any[] = [];
+      if (Array.isArray(data)) {
+        matchesArray = data;
+      } else if (data?.data && Array.isArray(data.data)) {
+        matchesArray = data.data;
+      } else if (data?.matches && Array.isArray(data.matches)) {
+        matchesArray = data.matches;
+      }
       setMatches(matchesArray);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch matches:', error);
-      setError('Failed to fetch matches');
+      setError('Failed to fetch matches: ' + (error.response?.data?.message || error.message));
       setMatches([]);
     }
   };

@@ -75,10 +75,35 @@ export const tournamentAPI = {
 };
 
 export const matchAPI = {
-  getAllMatches: (params?: { tournament?: string; status?: string }) => api.get('/matches', { params }),
-  getMatchById: (id: string) => api.get(`/matches/${id}`),
+  getAllMatches: async (params?: { tournament?: string; status?: string }) => {
+    try {
+      const response = await api.get('/matches', { params });
+      return response.data;
+    } catch (error: any) {
+      console.error('getAllMatches error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+  getMatchById: async (id: string) => {
+    try {
+      const response = await api.get(`/matches/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('getMatchById error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
   // Get matches by tournament ID - uses query params on matches endpoint
-  getMatchesByTournament: (tournamentId: string) => api.get('/matches', { params: { tournament: tournamentId } }),
+  getMatchesByTournament: async (tournamentId: string) => {
+    try {
+      const response = await api.get('/matches', { params: { tournament: tournamentId } });
+      console.log('getMatchesByTournament response:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('getMatchesByTournament error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
   createMatch: (data: any) => api.post('/matches', data),
   updateMatch: (id: string, data: any) => api.put(`/matches/${id}`, data),
   deleteMatch: (id: string) => api.delete(`/matches/${id}`),

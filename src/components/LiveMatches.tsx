@@ -37,11 +37,20 @@ export default function LiveMatches() {
   const fetchMatches = async (tournamentId: string) => {
     setLoading(true);
     try {
-      const response = await matchAPI.getMatchesByTournament(tournamentId);
-      // Backend returns { success: true, data: matches, count: n }
-      const matchesData = response.data.data || response.data || [];
-      setMatches(Array.isArray(matchesData) ? matchesData : []);
-    } catch (error) {
+      // API now returns response.data directly
+      const data = await matchAPI.getMatchesByTournament(tournamentId);
+      console.log('fetchMatches response:', data);
+      // Backend returns { success: true, data: matches, count: n } or just the array
+      let matchesData: any[] = [];
+      if (Array.isArray(data)) {
+        matchesData = data;
+      } else if (data?.data && Array.isArray(data.data)) {
+        matchesData = data.data;
+      } else if (data?.matches && Array.isArray(data.matches)) {
+        matchesData = data.matches;
+      }
+      setMatches(matchesData);
+    } catch (error: any) {
       console.error('Failed to fetch matches:', error);
       setMatches([]);
     } finally {
@@ -59,9 +68,17 @@ export default function LiveMatches() {
         const allMatches: Match[] = [];
         for (const tournament of tournamentsData) {
           try {
-            const response = await matchAPI.getMatchesByTournament(tournament._id);
-            // Backend returns { success: true, data: matches, count: n }
-            const matchesData = response.data.data || response.data || [];
+            // API now returns response.data directly
+            const data = await matchAPI.getMatchesByTournament(tournament._id);
+            // Backend returns { success: true, data: matches, count: n } or just the array
+            let matchesData: any[] = [];
+            if (Array.isArray(data)) {
+              matchesData = data;
+            } else if (data?.data && Array.isArray(data.data)) {
+              matchesData = data.data;
+            } else if (data?.matches && Array.isArray(data.matches)) {
+              matchesData = data.matches;
+            }
             if (Array.isArray(matchesData)) {
               allMatches.push(...matchesData);
             }
