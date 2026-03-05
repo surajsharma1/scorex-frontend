@@ -518,8 +518,18 @@ export default function TournamentDetail() {
     <div className="animate-fade-in bg-gray-900 text-white min-h-screen p-4 md:p-6">
       <div className="mb-6">
         <button onClick={() => navigate('/tournaments')} className="btn-secondary mb-4">← Back</button>
-        <h1 className="text-3xl font-bold text-gradient">{tournament.name}</h1>
-        <p className="text-gray-300">{tournament.description}</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-gradient">{tournament.name}</h1>
+            <p className="text-gray-300">{tournament.description}</p>
+          </div>
+          <button 
+            onClick={handleDeleteTournament} 
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          >
+            Delete Tournament
+          </button>
+        </div>
       </div>
 
       {error && <div className="bg-red-900 text-red-300 px-4 py-2 rounded mb-4">{error}</div>}
