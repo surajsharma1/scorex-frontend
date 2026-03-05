@@ -43,12 +43,15 @@ interface FieldErrors {
 }
 
 export default function Register() {
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
+  const [googleId, setGoogleId] = useState<string | null>(null);
+  const [isGoogleSignup, setIsGoogleSignup] = useState(false);
   const [touched, setTouched] = useState({
     username: false,
     email: false,
@@ -64,6 +67,32 @@ export default function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Effect to handle Google OAuth pre-filled data from URL query params
+  useEffect(() => {
+    const email = searchParams.get('email');
+    const fullName = searchParams.get('fullName');
+    const googleIdParam = searchParams.get('googleId');
+
+    if (googleIdParam) {
+      setGoogleId(googleIdParam);
+      setIsGoogleSignup(true);
+    }
+
+    if (email) {
+      setFormData(prev => ({ ...prev, email }));
+      // Mark email as touched since it's pre-filled
+      setTouched(prev => ({ ...prev, email: true }));
+    }
+
+    // Optionally pre-fill username from fullName
+    if (fullName) {
+      // Convert full name to a potential username (lowercase, remove spaces)
+      const potentialUsername = fullName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+      setFormData(prev => ({ ...prev, username: potentialUsername }));
+      setTouched(prev => ({ ...prev, username: true }));
+    }
+  }, [searchParams]);
 
   // Validate a single field
   const validateField = (name: string, value: string): string | null => {
@@ -144,11 +173,14 @@ export default function Register() {
     
     try {
       // Registration now returns token directly (auto-verify)
-      const res = await authAPI.register({
+      const registerData = {
         username: formData.username,
         email: formData.email,
-        password: formData.password
-      });
+        password: formData.password,
+        ...(googleId && { googleId }) // Include googleId if present (Google OAuth signup)
+      };
+      
+      const res = await authAPI.register(registerData);
       
       // Store token and user directly - no OTP needed!
       if (res.data.token) {
@@ -179,12 +211,20 @@ export default function Register() {
       <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
-            Create Account
+            {isGoogleSignup ? 'Complete Your Profile' : 'Create Account'}
           </h1>
           <p className="text-gray-400">
-            Join ScoreX today
+            {isGoogleSignup 
+              ? 'Sign up with Google to complete your registration' 
+              : 'Join ScoreX today'}
           </p>
         </div>
+
+        {isGoogleSignup && (
+          <div className="mb-4 p-3 bg-blue-900/30 border border-blue-500/50 rounded-lg text-blue-200 text-sm">
+            You're signing up with Google. Please choose a username and complete your profile.
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-red-200 text-sm">
