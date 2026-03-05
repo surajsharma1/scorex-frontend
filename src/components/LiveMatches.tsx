@@ -38,7 +38,8 @@ export default function LiveMatches() {
     setLoading(true);
     try {
       const response = await matchAPI.getMatchesByTournament(tournamentId);
-      const matchesData = response.data.matches || response.data || [];
+      // Backend returns { success: true, data: matches, count: n }
+      const matchesData = response.data.data || response.data || [];
       setMatches(Array.isArray(matchesData) ? matchesData : []);
     } catch (error) {
       console.error('Failed to fetch matches:', error);
@@ -59,7 +60,8 @@ export default function LiveMatches() {
         for (const tournament of tournamentsData) {
           try {
             const response = await matchAPI.getMatchesByTournament(tournament._id);
-            const matchesData = response.data.matches || response.data || [];
+            // Backend returns { success: true, data: matches, count: n }
+            const matchesData = response.data.data || response.data || [];
             if (Array.isArray(matchesData)) {
               allMatches.push(...matchesData);
             }
