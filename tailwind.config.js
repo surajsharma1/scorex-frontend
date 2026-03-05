@@ -24,22 +24,8 @@ export default {
         'dark-accent': '#178582',
         'dark-light': '#bfa181',
 
-        // Primary color - using object format for utilities
-        primary: {
-          DEFAULT: '#34729c',
-          light: '#6cb1da',
-          dark: '#1e5470',
-          50: '#e6f0f5',
-          100: '#cce0eb',
-          200: '#99c1d7',
-          300: '#66a2c3',
-          400: '#3383af',
-          500: '#34729c',
-          600: '#2a5c7e',
-          700: '#21465f',
-          800: '#18303f',
-          900: '#0f1a20',
-        },
+        // Primary color - simple format for bg-primary, text-primary, etc.
+        primary: '#34729c',
         
         secondary: {
           DEFAULT: '#6ec1d1',

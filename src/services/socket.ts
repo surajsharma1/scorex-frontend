@@ -1,4 +1,4 @@
-import { io, Socket } from 'socket.io-client';
+import { io, Socket, ManagerOptions, SocketOptions } from 'socket.io-client';
 
 // Define typed events
 export interface ServerToClientEvents {
@@ -58,10 +58,10 @@ clearStaleSession();
 // ==========================================
 
 // Custom socket.io parser to handle session errors
-const socketOptions = {
+const socketOptions: Partial<ManagerOptions & SocketOptions> = {
   withCredentials: true,
   autoConnect: true,
-  transports: ['websocket', 'polling'] as const,
+  transports: ['websocket', 'polling'],
   auth: {
     token: localStorage.getItem('token')
   },
@@ -150,7 +150,7 @@ socket.io.on('reconnect_failed', () => {
 });
 
 // Handle connection errors
-socket.io.on('connect_error', (error) => {
+socket.io.on('connect_error', (error: Error) => {
   console.error('❌ Connection error:', error.message);
   
   // Check for session-specific errors and clear state
@@ -164,19 +164,9 @@ socket.io.on('connect_error', (error) => {
   }
 });
 
-// General socket errors
-socket.on('error', (error: any) => {
-  console.error('Socket Error:', error);
-  
-  // Handle specific Socket.IO error codes
-  if (error && error.code === 1) {
-    // Session ID unknown - clear and force reconnection
-    console.log('Session unknown error, forcing new connection...');
-    socket.disconnect();
-    setTimeout(() => {
-      socket.connect();
-    }, 500);
-  }
+// General socket errors - use proper typing
+socket.on('connect_error' as any, (error: Error) => {
+  console.error('Socket Connection Error:', error.message);
 });
 
 
