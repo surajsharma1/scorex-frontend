@@ -132,8 +132,18 @@ export default function OverlayEditor() {
 
   const loadLiveMatches = async () => {
     try {
-        const res = await matchAPI.getAllMatches();
-        const live = (res.data.matches || []).filter((m: Match) => m.status === 'ongoing');
+        // API now returns response.data directly
+        const data = await matchAPI.getAllMatches();
+        // Handle different response formats
+        let allMatches: any[] = [];
+        if (Array.isArray(data)) {
+          allMatches = data;
+        } else if (data?.data && Array.isArray(data.data)) {
+          allMatches = data.data;
+        } else if (data?.matches && Array.isArray(data.matches)) {
+          allMatches = data.matches;
+        }
+        const live = allMatches.filter((m: Match) => m.status === 'ongoing');
         setMatches(live);
     } catch (e) {
         console.error("Failed to load matches");
