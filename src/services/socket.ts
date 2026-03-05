@@ -32,27 +32,151 @@ export interface ClientToServerEvents {
 const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
 const SOCKET_URL = baseUrl.replace(/\/api\/v1\/?$/, '');
 
-// Connect with credentials to match CORS settings
-export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SOCKET_URL, {
+// ==========================================
+// SESSION MANAGEMENT
+// ==========================================
+const SESSION_KEY = 'socket_session_id';
+
+// Clear stale session on startup to prevent "Session ID unknown" errors
+const clearStaleSession = () => {
+  try {
+    const storedSid = localStorage.getItem(SESSION_KEY);
+    if (storedSid) {
+      console.log('Clearing stale socket session:', storedSid);
+      localStorage.removeItem(SESSION_KEY);
+    }
+  } catch (e) {
+    console.warn('Could not access localStorage:', e);
+  }
+};
+
+// Clear any stale session on module load
+clearStaleSession();
+
+// ==========================================
+// SOCKET CONNECTION WITH PROPER ERROR HANDLING
+// ==========================================
+
+// Custom socket.io parser to handle session errors
+const socketOptions = {
   withCredentials: true,
   autoConnect: true,
-  transports: ['websocket', 'polling'], // Ensure fallback options are available
+  transports: ['websocket', 'polling'] as const,
   auth: {
-    token: localStorage.getItem('token') // Pass token if needed by server
+    token: localStorage.getItem('token')
+  },
+  // Reconnection settings
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  // Timeout settings
+  timeout: 10000,
+  // Force new connection to avoid stale session issues
+  forceNew: true,
+};
+
+// Create socket instance
+export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SOCKET_URL, socketOptions);
+
+// ==========================================
+// CONNECTION EVENT HANDLERS
+// ==========================================
+
+// Handle successful connection
+socket.on('connect', () => {
+  console.log('✅ Connected to WebSocket server:', socket.id);
+  
+  // Store the session ID for debugging
+  try {
+    if (socket.id) {
+      localStorage.setItem(SESSION_KEY, socket.id);
+    }
+  } catch (e) {
+    console.warn('Could not store session ID:', e);
   }
 });
 
-// Basic Connection Listeners
-socket.on('connect', () => {
-  console.log('✅ Connected to WebSocket server:', socket.id);
-});
-
+// Handle disconnection
 socket.on('disconnect', (reason) => {
   console.warn('❌ Disconnected from WebSocket server:', reason);
+  
+  // Clear stored session on disconnect
+  try {
+    localStorage.removeItem(SESSION_KEY);
+  } catch (e) {
+    console.warn('Could not clear session:', e);
+  }
+  
+  // If server disconnected us (not manual), attempt reconnection logic
+  if (reason === 'io server disconnect' || reason === 'transport close') {
+    console.log('Server initiated disconnect, reconnecting...');
+    socket.connect();
+  }
 });
 
-socket.io.on('error', (error: any) => {
-  console.error('Socket.IO Error:', error);
+// Handle reconnection attempts
+socket.io.on('reconnect_attempt', (attemptNumber) => {
+  console.log(`🔄 Reconnection attempt #${attemptNumber}`);
+  
+  // Force new connection on each reattempt to avoid stale session
+  (socket.io as any).opts.forceNew = true;
+  
+  // Clear any stored session before reconnecting
+  try {
+    localStorage.removeItem(SESSION_KEY);
+  } catch (e) {
+    console.warn('Could not clear session:', e);
+  }
+});
+
+// Handle successful reconnection
+socket.io.on('reconnect', (attemptNumber) => {
+  console.log(`✅ Reconnected after ${attemptNumber} attempts`);
+  
+  // Store new session ID
+  try {
+    if (socket.id) {
+      localStorage.setItem(SESSION_KEY, socket.id);
+    }
+  } catch (e) {
+    console.warn('Could not store session ID:', e);
+  }
+});
+
+// Handle reconnection failure
+socket.io.on('reconnect_failed', () => {
+  console.error('❌ Reconnection failed after all attempts');
+});
+
+// Handle connection errors
+socket.io.on('connect_error', (error) => {
+  console.error('❌ Connection error:', error.message);
+  
+  // Check for session-specific errors and clear state
+  if (error.message && error.message.includes('Session ID')) {
+    console.log('Session ID error detected, clearing session state...');
+    try {
+      localStorage.removeItem(SESSION_KEY);
+    } catch (e) {
+      console.warn('Could not clear session:', e);
+    }
+  }
+});
+
+// General socket errors
+socket.on('error', (error: any) => {
+  console.error('Socket Error:', error);
+  
+  // Handle specific Socket.IO error codes
+  if (error && error.code === 1) {
+    // Session ID unknown - clear and force reconnection
+    console.log('Session unknown error, forcing new connection...');
+    socket.disconnect();
+    setTimeout(() => {
+      socket.connect();
+    }, 500);
+  }
 });
 
 
