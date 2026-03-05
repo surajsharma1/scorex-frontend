@@ -23,7 +23,7 @@ export default function MatchDetails() {
   const fetchMatch = async () => {
     if (!id) return;
     try {
-      const response = await matchAPI.getMatches(id);
+      const response = await matchAPI.getMatchById(id);
       
       // Check if the response indicates the match wasn't found
       if (response.status === 404 || (response.data && response.data.message === 'Match not found')) {
@@ -32,8 +32,8 @@ export default function MatchDetails() {
         return;
       }
       
-      // Handle potential API response structures
-      const data = response.data.match || response.data;
+      // Handle potential API response structures - the backend returns { success: true, data: match }
+      const data = response.data.data || response.data;
       
       // Validate that we actually got match data
       if (!data || !data._id) {

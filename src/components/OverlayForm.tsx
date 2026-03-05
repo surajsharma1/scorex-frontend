@@ -36,7 +36,7 @@ export default function OverlayForm() {
       
       setLoadingMatches(true);
       try {
-        const response = await matchAPI.getMatches(formData.tournament);
+        const response = await matchAPI.getMatchesByTournament(formData.tournament);
         const matchesData = response.data.matches || response.data || [];
         setMatches(Array.isArray(matchesData) ? matchesData : []);
       } catch (error) {

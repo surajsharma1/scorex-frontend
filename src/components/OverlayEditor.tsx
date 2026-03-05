@@ -119,7 +119,7 @@ export default function OverlayEditor() {
      
      const interval = setInterval(async () => {
          try {
-             const res = await matchAPI.getMatches(selectedMatchId);
+             const res = await matchAPI.getMatchById(selectedMatchId);
              const matchData = res.data;
              pushDataToOverlay(matchData);
          } catch (e) {

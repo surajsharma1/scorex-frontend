@@ -37,7 +37,7 @@ export default function LiveMatches() {
   const fetchMatches = async (tournamentId: string) => {
     setLoading(true);
     try {
-      const response = await matchAPI.getMatches(tournamentId);
+      const response = await matchAPI.getMatchesByTournament(tournamentId);
       const matchesData = response.data.matches || response.data || [];
       setMatches(Array.isArray(matchesData) ? matchesData : []);
     } catch (error) {
@@ -58,7 +58,7 @@ export default function LiveMatches() {
         const allMatches: Match[] = [];
         for (const tournament of tournamentsData) {
           try {
-            const response = await matchAPI.getMatches(tournament._id);
+            const response = await matchAPI.getMatchesByTournament(tournament._id);
             const matchesData = response.data.matches || response.data || [];
             if (Array.isArray(matchesData)) {
               allMatches.push(...matchesData);

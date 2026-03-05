@@ -75,10 +75,10 @@ export const tournamentAPI = {
 };
 
 export const matchAPI = {
-  getAllMatches: () => api.get('/matches'),
-  getMatches: (id: string) => api.get(`/matches/${id}`),
-  // Get matches by tournament ID - uses tournaments endpoint
-  getMatchesByTournament: (tournamentId: string) => api.get(`/tournaments/${tournamentId}/matches`),
+  getAllMatches: (params?: { tournament?: string; status?: string }) => api.get('/matches', { params }),
+  getMatchById: (id: string) => api.get(`/matches/${id}`),
+  // Get matches by tournament ID - uses query params on matches endpoint
+  getMatchesByTournament: (tournamentId: string) => api.get('/matches', { params: { tournament: tournamentId } }),
   createMatch: (data: any) => api.post('/matches', data),
   updateMatch: (id: string, data: any) => api.put(`/matches/${id}`, data),
   deleteMatch: (id: string) => api.delete(`/matches/${id}`),
