@@ -38,14 +38,71 @@ export default function TournamentView() {
   const loadTournaments = async () => {
     try {
       const res = await tournamentAPI.getTournaments();
-      const list = res.data.tournaments || res.data || [];
+      
+      // Handle different response structures:
+      // 1. { success: true, data: [...], count: X } - current backend format
+      // 2. { tournaments: [...] } - legacy format
+      // 3. [...] - array directly
+      let list: any[] = [];
+      if (res.data.success && res.data.data) {
+        list = res.data.data;
+      } else if (res.data.tournaments) {
+        list = res.data.tournaments;
+      } else if (Array.isArray(res.data)) {
+        list = res.data;
+      }
+      
       setTournaments(list);
       if (list.length > 0 && !selectedTournament) {
         setSelectedTournament(list[0]);
       }
     } catch (e) {
-      console.error("Failed to load tournaments");
+      console.error("Failed to load tournaments", e);
     }
+  };
+
+  // Helper function to map backend match data to frontend format
+  const mapBackendMatchToFrontend = (backendMatch: any): Match => {
+    // Map status from backend format to frontend format
+    const statusMap: { [key: string]: 'scheduled' | 'ongoing' | 'completed' | 'upcoming' } = {
+      'Scheduled': 'scheduled',
+      'Toss Completed': 'scheduled',
+      'First Innings': 'ongoing',
+      'Second Innings': 'ongoing',
+      'Completed': 'completed',
+      'Abandoned': 'completed'
+    };
+
+    return {
+      _id: backendMatch._id,
+      tournament: backendMatch.tournamentId,
+      team1: backendMatch.teamA,
+      team2: backendMatch.teamB,
+      date: backendMatch.matchDate,
+      venue: backendMatch.venue,
+      status: statusMap[backendMatch.status] || 'scheduled',
+      matchType: backendMatch.format || 'Club',
+    } as Match;
+  };
+
+  // Helper function to map backend team data to frontend format
+  const mapBackendTeamToFrontend = (backendTeam: any): Team => {
+    return {
+      _id: backendTeam._id,
+      name: backendTeam.name,
+      shortName: backendTeam.name?.substring(0, 3).toUpperCase() || 'TM',
+      color: backendTeam.color || '#3B82F6',
+      logo: backendTeam.logo,
+      players: backendTeam.players || [],
+      tournament: backendTeam.tournament,
+      stats: backendTeam.statistics || {
+        played: 0,
+        won: 0,
+        lost: 0,
+        points: 0,
+        nrr: 0
+      }
+    };
   };
 
   const loadTournamentDetails = async (id: string) => {
@@ -53,21 +110,54 @@ export default function TournamentView() {
     try {
       // Load Matches
       if (activeTab === 'matches' || activeTab === 'overview') {
-        const resMatches = await matchAPI.getAllMatches(); // Ideally filter by tournament ID API side
-        // Client side filter if API doesn't support it yet
-        const tMatches = (resMatches.data.matches || []).filter((m: Match) => 
-            typeof m.tournament === 'string' ? m.tournament === id : m.tournament?._id === id
-        );
+        const resMatches = await matchAPI.getAllMatches();
+        
+        // Handle different response structures:
+        // 1. { success: true, data: [...], count: X } - current backend format
+        // 2. { matches: [...] } - legacy format
+        // 3. [...] - array directly
+        let allMatches: any[] = [];
+        if (resMatches.data.success && resMatches.data.data) {
+          allMatches = resMatches.data.data;
+        } else if (resMatches.data.matches) {
+          allMatches = resMatches.data.matches;
+        } else if (Array.isArray(resMatches.data)) {
+          allMatches = resMatches.data;
+        }
+        
+        // Filter matches by tournament ID (handle both string and object references)
+        const tMatches = allMatches
+          .filter((m: any) => {
+            const tournamentRef = m.tournamentId || m.tournament;
+            if (!tournamentRef) return false;
+            return typeof tournamentRef === 'string' ? tournamentRef === id : tournamentRef._id === id;
+          })
+          .map(mapBackendMatchToFrontend);
+        
         setMatches(tMatches);
       }
 
       // Load Teams
       if (activeTab === 'teams' || activeTab === 'overview' || showMatchForm) {
-        const resTeams = await teamAPI.getTeams(id); // Assuming API supports tournament filter
-        setTeams(resTeams.data.teams || []);
+        const resTeams = await teamAPI.getTeams(id);
+        
+        // Handle different response structures:
+        // 1. { teams: [...], pagination: {...} } - current backend format
+        // 2. { data: [...] } - alternative format
+        let allTeams: any[] = [];
+        if (resTeams.data.teams) {
+          allTeams = resTeams.data.teams;
+        } else if (resTeams.data.data && Array.isArray(resTeams.data.data)) {
+          allTeams = resTeams.data.data;
+        } else if (Array.isArray(resTeams.data)) {
+          allTeams = resTeams.data;
+        }
+        
+        const mappedTeams = allTeams.map(mapBackendTeamToFrontend);
+        setTeams(mappedTeams);
       }
     } catch (e) {
-      console.error("Failed to load details");
+      console.error("Failed to load details", e);
     } finally {
       setLoading(false);
     }
