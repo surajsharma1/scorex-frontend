@@ -116,7 +116,7 @@ socket.on('disconnect', (reason) => {
 });
 
 // Handle reconnection attempts
-socket.io.on('reconnect_attempt', (attemptNumber) => {
+(socket.io as any).on('reconnect_attempt', (attemptNumber: number) => {
   console.log(`🔄 Reconnection attempt #${attemptNumber}`);
   
   // Force new connection on each reattempt to avoid stale session
@@ -131,7 +131,7 @@ socket.io.on('reconnect_attempt', (attemptNumber) => {
 });
 
 // Handle successful reconnection
-socket.io.on('reconnect', (attemptNumber) => {
+(socket.io as any).on('reconnect', (attemptNumber: number) => {
   console.log(`✅ Reconnected after ${attemptNumber} attempts`);
   
   // Store new session ID
@@ -145,12 +145,12 @@ socket.io.on('reconnect', (attemptNumber) => {
 });
 
 // Handle reconnection failure
-socket.io.on('reconnect_failed', () => {
+(socket.io as any).on('reconnect_failed', () => {
   console.error('❌ Reconnection failed after all attempts');
 });
 
-// Handle connection errors
-socket.io.on('connect_error', (error: Error) => {
+// Handle connection errors (use type assertion for manager events)
+(socket.io as any).on('connect_error', (error: Error) => {
   console.error('❌ Connection error:', error.message);
   
   // Check for session-specific errors and clear state
@@ -164,10 +164,8 @@ socket.io.on('connect_error', (error: Error) => {
   }
 });
 
-// General socket errors - use proper typing
-socket.on('connect_error' as any, (error: Error) => {
-  console.error('Socket Connection Error:', error.message);
-});
+// General socket errors - use proper typing (handled above via socket.io.on)
+// socket.on('connect_error', ...) is a duplicate - use socket.io.on instead
 
 
 // ==========================================
