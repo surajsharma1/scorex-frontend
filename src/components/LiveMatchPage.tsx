@@ -27,10 +27,39 @@ export default function LiveMatchPage() {
     if (!id) return;
     try {
       const response = await matchAPI.getMatches(id);
-      const data = response.data.match || response.data;
       
+      // Handle different response formats
+      let data;
+      if (response.data && response.data.data) {
+        // { success: true, data: { ... } }
+        data = response.data.data;
+      } else if (response.data && response.data._id) {
+        // { success: true, data: ... } where data is the match directly
+        data = response.data;
+      } else {
+        data = response.data;
+      }
+      
+      // Transform backend data to frontend format
       if (data && data._id) {
-        setMatch(data);
+        const transformedMatch = {
+          ...data,
+          // Map backend field names to frontend expectations
+          team1: data.teamA,
+          team2: data.teamB,
+          tournament: data.tournamentId,
+          date: data.matchDate,
+          matchType: data.format,
+          status: data.status?.toLowerCase() || 'scheduled',
+          // Live scores from innings data
+          score1: data.firstInnings?.totalRuns,
+          wickets1: data.firstInnings?.totalWickets,
+          overs1: data.firstInnings?.totalOversBowled,
+          score2: data.secondInnings?.totalRuns,
+          wickets2: data.secondInnings?.totalWickets,
+          overs2: data.secondInnings?.totalOversBowled,
+        };
+        setMatch(transformedMatch);
         setLastUpdate(new Date());
       } else {
         setMatch(null);

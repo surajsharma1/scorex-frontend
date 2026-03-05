@@ -1,20 +1,57 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCricketScoring } from '../hooks/useCricketScoring';
 import { matchApi, BallPayload } from '../services/matchApi';
+import { socket } from '../services/socket';
 
 export default function LiveScoring() {
   const { matchId } = useParams<{ matchId: string }>();
   const { matchState, scoreRuns, scoreExtra, takeWicket, undoLastBall } = useCricketScoring();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [matchLoaded, setMatchLoaded] = useState(false);
 
   // Initial Load: Fetch DB state and populate hook
   useEffect(() => {
     if (!matchId) return;
-    matchApi.getMatch(matchId).then(res => {
-        // Here you would inject res.data into your hook's initial state
-        console.log("Match loaded from DB:", res.data);
-    });
+    
+    const loadMatch = async () => {
+      try {
+        const res = await matchApi.getMatch(matchId);
+        const matchData = res.data?.data || res.data;
+        
+        if (matchData && matchData.firstInnings) {
+          // Initialize hook with DB state
+          console.log("Match loaded from DB:", matchData);
+          setMatchLoaded(true);
+        }
+      } catch (error) {
+        console.error("Failed to load match:", error);
+      }
+    };
+    
+    loadMatch();
+  }, [matchId]);
+
+  // Socket listener for real-time updates
+  useEffect(() => {
+    if (!matchId) return;
+
+    // Join the match room
+    socket.emit('join_match', matchId);
+
+    // Listen for match updates from other scorers
+    const handleMatchUpdate = (updatedMatch: any) => {
+      console.log('Received match update via socket:', updatedMatch);
+      // Here you could update the local state with the new match data
+      // For now, we just log it to avoid overriding local scoring
+    };
+
+    socket.on('match_updated', handleMatchUpdate);
+
+    return () => {
+      socket.emit('leave_match', matchId);
+      socket.off('match_updated', handleMatchUpdate);
+    };
   }, [matchId]);
 
   // Helper to calculate current over for the DB log
@@ -27,13 +64,13 @@ export default function LiveScoring() {
     // 1. Instantly update UI (Optimistic Update)
     scoreRuns(runs, isBoundary);
 
-    // 2. Format payload for MongoDB
+    // 2. Format payload for MongoDB - use string IDs (will be validated by backend)
     const payload: BallPayload = {
       overNumber: currentOver,
       ballNumber: currentBallInOver,
-      bowler: matchState.bowler.id,
-      striker: matchState.striker.id,
-      nonStriker: matchState.nonStriker.id,
+      bowler: matchState.bowler.id || 'unknown',
+      striker: matchState.striker.id || 'unknown',
+      nonStriker: matchState.nonStriker.id || 'unknown',
       runsOffBat: runs,
       extras: 0,
       extraType: 'None',
@@ -60,9 +97,9 @@ export default function LiveScoring() {
     const payload: BallPayload = {
       overNumber: currentOver,
       ballNumber: currentBallInOver,
-      bowler: matchState.bowler.id,
-      striker: matchState.striker.id,
-      nonStriker: matchState.nonStriker.id,
+      bowler: matchState.bowler.id || 'unknown',
+      striker: matchState.striker.id || 'unknown',
+      nonStriker: matchState.nonStriker.id || 'unknown',
       runsOffBat: 0,
       extras: 0,
       extraType: 'None',
@@ -71,9 +108,13 @@ export default function LiveScoring() {
     };
 
     try {
+      setIsSyncing(true);
       await matchApi.scoreBall(matchId!, payload);
     } catch (error) {
+      console.error("Failed to sync wicket:", error);
       undoLastBall();
+    } finally {
+      setIsSyncing(false);
     }
   };
 

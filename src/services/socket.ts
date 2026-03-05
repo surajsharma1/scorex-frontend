@@ -11,21 +11,20 @@ export interface ServerToClientEvents {
   tournamentUpdate: (data: any) => void;
   notification: (data: any) => void;
   
-  // NEW: Live Match feature events
+  // Live Match feature events
   match_updated: (updatedMatchState: any) => void;
 }
 
 export interface ClientToServerEvents {
   joinMatch: (matchId: string) => void;
   leaveMatch: (matchId: string) => void;
+  join_match: (matchId: string) => void;
+  leave_match: (matchId: string) => void;
   joinTournament: (tournamentId: string) => void;
   leaveTournament: (tournamentId: string) => void;
   updateScore: (data: { tournamentId: string; match: any }) => void;
   updateMatchStatus: (data: { matchId: string; tournamentId: string; status: string }) => void;
   joinUserRoom: (userId: string) => void;
-
-  // NEW: Live Match feature events
-  join_match: (matchId: string) => void;
 }
 
 // Dynamic URL handling for Vite/Env (Strip /api/v1 to get the root domain for WebSockets)
