@@ -26,9 +26,9 @@ export default function LiveMatchPage() {
   const fetchMatch = async () => {
     if (!id) return;
     try {
-      const response = await matchAPI.getMatches(id);
+      const response = await matchAPI.getMatchById(id);
       
-      // Handle different response formats
+      // Handle different response formats - backend returns { success: true, data: match }
       let data;
       if (response.data && response.data.data) {
         // { success: true, data: { ... } }

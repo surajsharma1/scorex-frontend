@@ -62,7 +62,7 @@ const LiveTournament: React.FC = () => {
   const fetchMatchData = async () => {
     if (!id) return;
     try {
-      const response = await matchAPI.getMatches(id);
+      const response = await matchAPI.getMatchById(id);
       
       // Check if the response indicates the match wasn't found
       if (response.status === 404 || (response.data && response.data.message === 'Match not found')) {
@@ -71,8 +71,8 @@ const LiveTournament: React.FC = () => {
         return;
       }
       
-      // Handle response structure variations
-      const matchData = response.data.match || response.data;
+      // Handle response structure - backend returns { success: true, data: match }
+      const matchData = response.data.data || response.data;
       
       // Validate that we actually got match data
       if (!matchData || !matchData._id) {
