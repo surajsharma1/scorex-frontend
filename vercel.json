@@ -2,16 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
+      "src": "scorex-frontend/scorex-frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "scorex-frontend/scorex-frontend/dist"
       }
     }
   ],
-  "framework": "vite",
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
+  "installCommand": "cd scorex-frontend/scorex-frontend && npm install",
+  "buildCommand": "cd scorex-frontend/scorex-frontend && npm run build",
   "rewrites": [
     {
       "source": "/api/(.*)",
