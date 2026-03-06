@@ -575,7 +575,7 @@ export default function TournamentDetail() {
                   <h4 className="font-semibold">{match.team1?.name} vs {match.team2?.name}</h4>
                   <p className="text-sm text-gray-400">{match.score1 !== undefined ? `${match.score1}/${match.wickets1} (${match.overs1})` : 'Not started'}</p>
                 </div>
-<div className="flex gap-2">
+                <div className="flex gap-2">
                   <Link to={`/live-scoring/${match._id}`} className="bg-green-600 px-3 py-1 rounded text-sm flex-1 text-center">Live Score</Link>
                   <button onClick={() => handleDeleteMatch(match._id)} className="bg-red-600 px-3 py-1 rounded text-sm">Delete</button>
                 </div>
@@ -585,8 +585,6 @@ export default function TournamentDetail() {
         </div>
       )}
 
-      {activeTab === 'teams' && <div className="bg-gray-800 p-6 rounded-lg"><TeamManagement selectedTournament={tournament} /></div>}
-      {activeTab === 'overlays' && <div className="bg-gray-800 p-6 rounded-lg"><OverlayEditor /></div>}
 
       {showMatchForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
