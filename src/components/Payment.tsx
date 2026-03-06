@@ -76,7 +76,14 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
     // Test card or Admin override - Apply free membership for any plan
     if (paymentMethod === 'card' && (cardNumber === 'ADMINFREEPASS' || cardNumber === '8871474139')) {
       try {
-        await paymentAPI.createSubscription(planName);
+        const response = await paymentAPI.createSubscription(planName);
+        
+        // If the API returns a new token, save it to localStorage
+        if (response.data && response.data.token) {
+          localStorage.setItem('token', response.data.token);
+          console.log('Token updated in localStorage after payment');
+        }
+        
         onSuccess(planName);
         alert(`Test card applied! ${getPlanDisplayName()} activated successfully!`);
       } catch (error) {

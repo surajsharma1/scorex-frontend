@@ -167,7 +167,11 @@ export default function Membership() {
   const handleSuccess = (plan: string, expiryDate?: Date) => {
     console.log('Membership upgraded to:', plan);
     setShowPayment(false);
-    setCurrentMembership(plan);
+    
+    // Re-fetch membership from the updated token in localStorage
+    // This ensures we get the correct membership value ('basic' or 'premium')
+    fetchMembershipFromToken();
+    
     if (expiryDate) {
       setMembershipExpiresAt(expiryDate);
       setIsExpired(false);

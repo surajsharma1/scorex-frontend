@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { tournamentAPI, teamAPI } from '../services/api';
 import { Team } from './types';
-import { Calendar, Trophy, Users, CheckCircle } from 'lucide-react';
+import { Calendar, Trophy, Users, CheckCircle, Lock } from 'lucide-react';
+import Membership from './Membership';
 
 export default function TournamentForm() {
   const [formData, setFormData] = useState({
@@ -16,7 +17,41 @@ export default function TournamentForm() {
   const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
+  const [membershipStatus, setMembershipStatus] = useState<'free' | 'basic' | 'premium'>('free');
   const navigate = useNavigate();
+
+  // Check membership status on component mount
+  useEffect(() => {
+    const checkMembership = () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const membership = payload.membership || 'free';
+          
+          // Check if membership has expired
+          if (payload.membershipExpiresAt) {
+            const expiryDate = new Date(payload.membershipExpiresAt);
+            if (expiryDate < new Date()) {
+              // Membership has expired
+              setMembershipStatus('free');
+              return;
+            }
+          }
+          
+          setMembershipStatus(membership as 'free' | 'basic' | 'premium');
+        } catch (error) {
+          console.error('Error parsing token:', error);
+          setMembershipStatus('free');
+        }
+      } else {
+        setMembershipStatus('free');
+      }
+    };
+    
+    checkMembership();
+  }, []);
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -94,15 +129,50 @@ export default function TournamentForm() {
     }
   }, [error]);
 
+  // Show payment modal if user needs to upgrade
+  if (showPayment) {
+    return <Membership />;
+  }
+
+  // Check if user has premium membership - if not, prompt for upgrade
+  const requiresPremium = membershipStatus === 'free';
+
+  const handleUpgradeClick = () => {
+    setShowPayment(true);
+  };
+
   // Has access - show form
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-green-600 to-emerald-700 p-6 text-white">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Trophy className="w-6 h-6" /> Create Tournament
-          </h2>
-          <p className="text-green-100 opacity-90">Setup a new league or series</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Trophy className="w-6 h-6" /> Create Tournament
+              </h2>
+              <p className="text-green-100 opacity-90">Setup a new league or series</p>
+            </div>
+            {requiresPremium && (
+              <button
+                onClick={handleUpgradeClick}
+                className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors shadow-md"
+              >
+                <Lock className="w-4 h-4" />
+                Upgrade to Premium
+              </button>
+            )}
+            {!requiresPremium && membershipStatus === 'basic' && (
+              <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                Basic Plan
+              </span>
+            )}
+            {!requiresPremium && membershipStatus === 'premium' && (
+              <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                Premium Plan
+              </span>
+            )}
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
