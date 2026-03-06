@@ -61,6 +61,13 @@ export default function LiveScoring() {
   // --- Wrapper Functions that handle both UI and DB ---
 
   const handleScoreRuns = async (runs: number, isBoundary = false) => {
+    // Validate matchId before making API call
+    if (!matchId || matchId === 'undefined' || matchId === 'null') {
+      console.error("Cannot score: invalid matchId", matchId);
+      alert("Error: Match ID is invalid. Please refresh the page.");
+      return;
+    }
+
     // 1. Instantly update UI (Optimistic Update)
     scoreRuns(runs, isBoundary);
 
@@ -81,7 +88,7 @@ export default function LiveScoring() {
     // 3. Sync to Backend silently
     try {
       setIsSyncing(true);
-      await matchApi.scoreBall(matchId!, payload);
+      await matchApi.scoreBall(matchId, payload);
     } catch (error) {
       console.error("Network Error: Failed to sync ball to database", error);
       alert("Sync failed! Undoing last action to prevent desync.");
@@ -92,6 +99,12 @@ export default function LiveScoring() {
   };
 
   const handleWicket = async (wicketType: string) => {
+    // Validate matchId before making API call
+    if (!matchId || matchId === 'undefined' || matchId === 'null') {
+      console.error("Cannot record wicket: invalid matchId", matchId);
+      return;
+    }
+
     takeWicket(wicketType as any, 0);
 
     const payload: BallPayload = {
@@ -109,7 +122,7 @@ export default function LiveScoring() {
 
     try {
       setIsSyncing(true);
-      await matchApi.scoreBall(matchId!, payload);
+      await matchApi.scoreBall(matchId, payload);
     } catch (error) {
       console.error("Failed to sync wicket:", error);
       undoLastBall();
@@ -119,11 +132,17 @@ export default function LiveScoring() {
   };
 
   const handleUndo = async () => {
+    // Validate matchId before making API call
+    if (!matchId || matchId === 'undefined' || matchId === 'null') {
+      console.error("Cannot undo: invalid matchId", matchId);
+      return;
+    }
+
     // Revert frontend instantly
     undoLastBall();
     // Revert backend mathematically
     try {
-      await matchApi.undoBall(matchId!);
+      await matchApi.undoBall(matchId);
     } catch (error) {
       console.error("Failed to undo in DB");
     }
