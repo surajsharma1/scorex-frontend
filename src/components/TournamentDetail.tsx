@@ -67,7 +67,7 @@ export default function TournamentDetail() {
     venue: '',
     tossWinner: '',
     tossChoice: '',
-    matchType: 'League',
+    matchType: 'T20',
     videoLink: '',
     videoLinks: [] as string[],
   });
@@ -444,7 +444,7 @@ export default function TournamentDetail() {
       setShowMatchForm(false);
       setMatchForm({ 
         tournament: '', team1: '', team2: '', date: '', venue: '', 
-        tossWinner: '', tossChoice: '', matchType: 'League', 
+        tossWinner: '', tossChoice: '', matchType: 'T20', 
         videoLink: '', videoLinks: [] 
       });
       fetchMatches();

@@ -22,7 +22,7 @@ export default function TournamentView() {
     team2: '',
     date: '',
     venue: '',
-    matchType: 'League'
+    matchType: 'T20'
   });
 
   useEffect(() => {
