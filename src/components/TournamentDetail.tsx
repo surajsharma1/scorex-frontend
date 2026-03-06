@@ -648,42 +648,83 @@ export default function TournamentDetail() {
 
       {selectedMatch && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-          <div className="bg-gray-800 p-4 md:p-6 rounded-lg w-full max-w-md">
+          <div className="bg-gray-800 p-4 md:p-6 rounded-lg w-full max-w-4xl">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-bold">{selectedMatch.team1?.name} vs {selectedMatch.team2?.name}</h3>
-              <button onClick={() => setSelectedMatch(null)} className="bg-gray-600 px-3 py-1 rounded">Close</button>
+              <div className="flex gap-2">
+                <button onClick={undoLastAction} disabled={scoreHistory.length === 0} className="btn-secondary text-sm">Undo</button>
+                <button onClick={() => setSelectedMatch(null)} className="bg-gray-600 px-3 py-1 rounded">Close</button>
+              </div>
             </div>
             
-            {/* Simple Score Display */}
-            <div className="bg-gray-900 p-6 rounded-lg mb-4 text-center">
-              <div className="text-6xl font-bold text-yellow-400">{innings.totalRuns}/{innings.wickets}</div>
-              <div className="text-3xl text-gray-300 mt-2">{formatOvers()} overs</div>
-            </div>
+            {/* Toss Information Display */}
+            {(selectedMatch.tossWinner || selectedMatch.tossChoice) && (
+              <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-3 mb-4 text-center">
+                <p className="text-blue-300 text-sm">
+                  {selectedMatch.tossWinner ? (
+                    <>Toss: <span className="font-bold text-white">{selectedMatch.tossWinner}</span> chose to {selectedMatch.tossChoice || 'bat'}</>
+                  ) : (
+                    <>Toss winner and choice not recorded</>
+                  )}
+                </p>
+              </div>
+            )}
             
-            {/* Team Selection */}
             <div className="mb-4 flex gap-2">
               <button onClick={() => setSelectedTeamForUpdate('team1')} className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team1' ? 'bg-green-600' : 'bg-gray-700'}`}>{selectedMatch.team1?.name || 'Team 1'}</button>
               <button onClick={() => setSelectedTeamForUpdate('team2')} className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team2' ? 'bg-green-600' : 'bg-gray-700'}`}>{selectedMatch.team2?.name || 'Team 2'}</button>
             </div>
             
-            {/* Simple Run Buttons */}
-            <div className="grid grid-cols-6 gap-2 mb-4">
-              <button onClick={() => processDelivery(0, 'normal')} className="bg-gray-600 hover:bg-gray-500 py-4 rounded-lg font-bold text-lg">0</button>
-              <button onClick={() => processDelivery(1, 'normal')} className="bg-blue-600 hover:bg-blue-500 py-4 rounded-lg font-bold text-lg">1</button>
-              <button onClick={() => processDelivery(2, 'normal')} className="bg-blue-600 hover:bg-blue-500 py-4 rounded-lg font-bold text-lg">2</button>
-              <button onClick={() => processDelivery(3, 'normal')} className="bg-blue-600 hover:bg-blue-500 py-4 rounded-lg font-bold text-lg">3</button>
-              <button onClick={() => processDelivery(4, 'normal')} className="bg-orange-500 hover:bg-orange-400 py-4 rounded-lg font-bold text-lg">4</button>
-              <button onClick={() => processDelivery(6, 'normal')} className="bg-green-600 hover:bg-green-500 py-4 rounded-lg font-bold text-lg">6</button>
+            {/* Current Batsmen and Bowler Display */}
+            <div className="bg-gray-900 p-4 rounded-lg mb-4">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-green-900/30 border border-green-700 rounded-lg p-3">
+                  <p className="text-xs text-green-400 uppercase mb-1">Striker</p>
+                  <p className="font-bold text-lg">{innings.lineup[innings.strikerIndex]?.name || 'Not Selected'}</p>
+                  <p className="text-sm text-gray-400">{innings.lineup[innings.strikerIndex]?.runsScored || 0} runs ({innings.lineup[innings.strikerIndex]?.ballsFaced || 0} balls)</p>
+                </div>
+                <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3">
+                  <p className="text-xs text-yellow-400 uppercase mb-1">Non-Striker</p>
+                  <p className="font-bold text-lg">{innings.lineup[innings.nonStrikerIndex]?.name || 'Not Selected'}</p>
+                  <p className="text-sm text-gray-400">{innings.lineup[innings.nonStrikerIndex]?.runsScored || 0} runs ({innings.lineup[innings.nonStrikerIndex]?.ballsFaced || 0} balls)</p>
+                </div>
+              </div>
+              <div className="bg-red-900/30 border border-red-700 rounded-lg p-3">
+                <p className="text-xs text-red-400 uppercase mb-1">Current Bowler</p>
+                <p className="font-bold text-lg">{innings.lineup[innings.strikerIndex]?.name || 'Select from team'}</p>
+              </div>
             </div>
             
-            {/* Wicket Button */}
+            <div className="bg-gray-900 p-4 rounded-lg mb-4 text-center">
+              <div className="text-5xl font-bold text-yellow-400">{innings.totalRuns}/{innings.wickets}</div>
+              <div className="text-2xl text-gray-300">{formatOvers()} overs</div>
+            </div>
             <div className="mb-4">
-              <button onClick={() => openWicketModal('normal', 'normal')} className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-bold text-xl">WICKET</button>
+              <h4 className="text-sm font-medium text-gray-400 mb-2">RUNS</h4>
+              <div className="grid grid-cols-6 gap-2">
+                <button onClick={() => processDelivery(0, 'normal')} className="btn-secondary py-3">0</button>
+                <button onClick={() => processDelivery(1, 'normal')} className="btn-primary py-3">1</button>
+                <button onClick={() => processDelivery(2, 'normal')} className="btn-primary py-3">2</button>
+                <button onClick={() => processDelivery(3, 'normal')} className="btn-primary py-3">3</button>
+                <button onClick={() => processDelivery(4, 'normal')} className="btn-accent py-3">4</button>
+                <button onClick={() => processDelivery(6, 'normal')} className="btn-accent py-3">6</button>
+              </div>
             </div>
-            
-            {/* Undo and Save */}
-            <div className="flex gap-2">
-              <button onClick={undoLastAction} disabled={scoreHistory.length === 0} className="flex-1 bg-gray-600 hover:bg-gray-500 py-3 rounded-lg font-bold disabled:opacity-50">Undo</button>
+            <div className="mb-4">
+              <h4 className="text-xs text-gray-400 uppercase mb-2 tracking-wider">Extras</h4>
+              <div className="grid grid-cols-4 gap-2">
+                <button onClick={() => { setPendingExtraType('wide'); setShowExtraModal(true); }} className="py-4 bg-yellow-500 hover:bg-yellow-400 rounded-lg font-bold text-black text-lg">Wide</button>
+                <button onClick={() => { setPendingExtraType('noBall'); setShowExtraModal(true); }} className="py-4 bg-orange-500 hover:bg-orange-400 rounded-lg font-bold text-white text-lg">NB</button>
+                <button onClick={() => { setPendingExtraType('bye'); setShowExtraModal(true); }} className="py-4 bg-violet-600 hover:bg-violet-500 rounded-lg font-bold text-white text-lg">Bye</button>
+                <button onClick={() => { setPendingExtraType('legBye'); setShowExtraModal(true); }} className="py-4 bg-pink-500 hover:bg-pink-400 rounded-lg font-bold text-white text-lg">LB</button>
+              </div>
+            </div>
+            <div className="mb-4">
+              <button onClick={() => openWicketModal('normal', 'normal')} className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-lg font-bold text-xl">OUT</button>
+            </div>
+            <div className="flex gap-2 mt-6">
+              <button onClick={() => resetInnings(selectedTeamForUpdate)} className="flex-1 bg-red-700 hover:bg-red-800 py-3 rounded-lg font-bold">Reset</button>
+              <button onClick={switchInnings} className="flex-1 bg-purple-700 hover:bg-purple-800 py-3 rounded-lg font-bold">Switch</button>
               <button onClick={handleUpdateScore} disabled={loading} className="flex-1 bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold">{loading ? 'Saving...' : 'Save'}</button>
             </div>
           </div>
