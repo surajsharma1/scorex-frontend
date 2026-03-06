@@ -73,9 +73,12 @@ export default function OverlayEditor() {
   const [createFormData, setCreateFormData] = useState({
     name: '',
     template: selectedTemplate?.file || '',
-    tournament: ''
+    match: ''
   });
   const [createLoading, setCreateLoading] = useState(false);
+  
+  // All matches for selection (not just live)
+  const [allMatches, setAllMatches] = useState<Match[]>([]);
   
   // State for created overlays
   const [createdOverlays, setCreatedOverlays] = useState<CreatedOverlay[]>([]);
@@ -135,15 +138,18 @@ export default function OverlayEditor() {
         // API now returns response.data directly
         const data = await matchAPI.getAllMatches();
         // Handle different response formats
-        let allMatches: any[] = [];
+        let allMatchesData: any[] = [];
         if (Array.isArray(data)) {
-          allMatches = data;
+          allMatchesData = data;
         } else if (data?.data && Array.isArray(data.data)) {
-          allMatches = data.data;
+          allMatchesData = data.data;
         } else if (data?.matches && Array.isArray(data.matches)) {
-          allMatches = data.matches;
+          allMatchesData = data.matches;
         }
-        const live = allMatches.filter((m: Match) => m.status === 'ongoing');
+        // Store all matches for overlay creation
+        setAllMatches(allMatchesData);
+        // Filter for live matches display
+        const live = allMatchesData.filter((m: Match) => m.status === 'ongoing');
         setMatches(live);
     } catch (e) {
         console.error("Failed to load matches");
@@ -207,8 +213,25 @@ export default function OverlayEditor() {
       return;
     }
     
-    if (!createFormData.tournament) {
-      alert('Please select a tournament');
+    if (!createFormData.match) {
+      alert('Please select a match');
+      return;
+    }
+    
+    // Get the selected match to extract tournament
+    const selectedMatch = allMatches.find(m => m._id === createFormData.match);
+    if (!selectedMatch) {
+      alert('Selected match not found');
+      return;
+    }
+    
+    // Extract tournament ID from match (handle both string and object formats)
+    const tournamentId = typeof selectedMatch.tournament === 'string' 
+      ? selectedMatch.tournament 
+      : selectedMatch.tournament?._id;
+    
+    if (!tournamentId) {
+      alert('Could not detect tournament from selected match');
       return;
     }
     
@@ -217,7 +240,8 @@ export default function OverlayEditor() {
       const overlayData = {
         name: createFormData.name.trim(),
         template: createFormData.template,
-        tournament: createFormData.tournament,
+        tournament: tournamentId,
+        match: createFormData.match,
         config: {
           backgroundColor: '#16a34a',
           opacity: 90,
@@ -230,7 +254,7 @@ export default function OverlayEditor() {
       };
       await overlayAPI.createOverlay(overlayData);
       setShowCreateModal(false);
-      setCreateFormData({ name: '', template: '', tournament: '' });
+      setCreateFormData({ name: '', template: '', match: '' });
       loadCreatedOverlays(); // Refresh the list
     } catch (error) {
       console.error('Failed to create overlay:', error);
@@ -752,21 +776,25 @@ export default function OverlayEditor() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Tournament
+                  Match <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={createFormData.tournament}
-                  onChange={(e) => setCreateFormData({ ...createFormData, tournament: e.target.value })}
+                  value={createFormData.match}
+                  onChange={(e) => setCreateFormData({ ...createFormData, match: e.target.value })}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                 >
-                  <option value="">Select Tournament</option>
-                  {tournaments.map((tournament) => (
-                    <option key={tournament._id} value={tournament._id}>
-                      {tournament.name}
+                  <option value="">Select Match</option>
+                  {allMatches.map((matchItem) => (
+                    <option key={matchItem._id} value={matchItem._id}>
+                      {matchItem.team1?.name || 'Team 1'} vs {matchItem.team2?.name || 'Team 2'} 
+                      ({matchItem.status || 'scheduled'})
                     </option>
                   ))}
                 </select>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Tournament will be automatically detected from the selected match
+                </p>
               </div>
               <button
                 type="submit"

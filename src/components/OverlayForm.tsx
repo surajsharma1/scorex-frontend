@@ -1,43 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { overlayAPI, tournamentAPI, matchAPI } from '../services/api';
-import { Tournament, Match } from './types';
+import { overlayAPI, matchAPI } from '../services/api';
+import { Match } from './types';
 
 export default function OverlayForm() {
-  const [formData, setFormData] = useState({ name: '', template: '', tournament: '', match: '' });
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [formData, setFormData] = useState({ name: '', template: '', match: '' });
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadingMatches, setLoadingMatches] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchTournaments = async () => {
-      try {
-        const response = await tournamentAPI.getTournaments();
-        // Handle both response formats: { tournaments: [...] } or direct array
-        const tournamentsData = response.data.tournaments || response.data || [];
-        setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
-      } catch (error) {
-        console.error('Failed to fetch tournaments');
-        setTournaments([]); // Set empty array on error
-      }
-    };
-    fetchTournaments();
-  }, []);
-
-  // Fetch matches when tournament is selected
-  useEffect(() => {
     const fetchMatches = async () => {
-      if (!formData.tournament) {
-        setMatches([]);
-        return;
-      }
-      
-      setLoadingMatches(true);
       try {
-        // API now returns response.data directly
-        const data = await matchAPI.getMatchesByTournament(formData.tournament);
+        const data = await matchAPI.getAllMatches();
         // Handle different response formats
         let matchesData: any[] = [];
         if (Array.isArray(data)) {
@@ -51,12 +26,10 @@ export default function OverlayForm() {
       } catch (error) {
         console.error('Failed to fetch matches');
         setMatches([]);
-      } finally {
-        setLoadingMatches(false);
       }
     };
     fetchMatches();
-  }, [formData.tournament]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,8 +45,25 @@ export default function OverlayForm() {
       return;
     }
     
-    if (!formData.tournament) {
-      alert('Please select a tournament');
+    if (!formData.match) {
+      alert('Please select a match');
+      return;
+    }
+    
+    // Get the selected match to extract tournament
+    const selectedMatch = matches.find(m => m._id === formData.match);
+    if (!selectedMatch) {
+      alert('Selected match not found');
+      return;
+    }
+    
+    // Extract tournament ID from match (handle both string and object formats)
+    const tournamentId = typeof selectedMatch.tournament === 'string' 
+      ? selectedMatch.tournament 
+      : selectedMatch.tournament?._id;
+    
+    if (!tournamentId) {
+      alert('Could not detect tournament from selected match');
       return;
     }
     
@@ -82,7 +72,8 @@ export default function OverlayForm() {
       const overlayData: any = {
         name: formData.name.trim(),
         template: formData.template,
-        tournament: formData.tournament,
+        tournament: tournamentId,
+        match: formData.match,
         config: {
           backgroundColor: '#16a34a',
           opacity: 90,
@@ -93,11 +84,6 @@ export default function OverlayForm() {
         },
         elements: [],
       };
-      
-      // Add match if selected
-      if (formData.match) {
-        overlayData.match = formData.match;
-      }
       
       await overlayAPI.createOverlay(overlayData);
       navigate('/overlays');
@@ -167,41 +153,25 @@ export default function OverlayForm() {
               <option value="lvl2-water-flow.html">Water Flow</option>
             </select>
           </div>
+          {/* Match Selection - replaces tournament selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tournament</label>
-            <select
-              value={formData.tournament}
-              onChange={(e) => setFormData({ ...formData, tournament: e.target.value, match: '' })}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            >
-              <option value="">Select Tournament</option>
-              {tournaments.map((tournament) => (
-                <option key={tournament._id} value={tournament._id}>
-                  {tournament.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Match Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Match (Optional)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Match <span className="text-red-500">*</span></label>
             <select
               value={formData.match}
               onChange={(e) => setFormData({ ...formData, match: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              disabled={!formData.tournament || loadingMatches}
+              required
             >
-              <option value="">
-                {loadingMatches ? 'Loading matches...' : (formData.tournament ? 'Select Match (Optional)' : 'Select a tournament first')}
-              </option>
+              <option value="">Select Match</option>
               {matches.map((matchItem) => (
                 <option key={matchItem._id} value={matchItem._id}>
                   {matchItem.team1?.name || 'Team 1'} vs {matchItem.team2?.name || 'Team 2'} ({matchItem.status || 'scheduled'})
                 </option>
               ))}
             </select>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Tournament will be automatically detected from the selected match
+            </p>
           </div>
           
           <button
