@@ -5,7 +5,7 @@ import { matchApi, BallPayload } from '../services/matchApi';
 import { socket } from '../services/socket';
 
 export default function LiveScoring() {
-  const { matchId } = useParams<{ matchId: string }>();
+  const { id: matchId } = useParams<{ id: string }>();
   const { matchState, scoreRuns, scoreExtra, takeWicket, undoLastBall } = useCricketScoring();
   const [isSyncing, setIsSyncing] = useState(false);
   const [matchLoaded, setMatchLoaded] = useState(false);
