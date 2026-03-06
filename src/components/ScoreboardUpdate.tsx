@@ -123,6 +123,12 @@ export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: Scor
   }, [liveScores.battingTeam, teams]);
 
   const saveScoresToBackend = useCallback(async (scores: LiveScores) => {
+    // Validate matchId before making API call
+    if (!matchId || matchId === 'undefined' || matchId === 'null') {
+      console.warn('Cannot save scores: invalid matchId', matchId);
+      return;
+    }
+    
     if (isSavingRef.current) return;
     isSavingRef.current = true;
     try {

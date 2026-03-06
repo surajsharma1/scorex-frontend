@@ -128,6 +128,12 @@ export default function TournamentDetail() {
   };
 
   const autoSaveScore = async (inningsData: Innings, teamKey: 'team1' | 'team2') => {
+    // Validate matchId before making API call
+    if (!selectedMatch || !selectedMatch._id || selectedMatch._id === 'undefined' || selectedMatch._id === 'null') {
+      console.warn('Cannot auto-save score: invalid matchId', selectedMatch?._id);
+      return;
+    }
+    
     if (!selectedMatch) return;
     
     try {
