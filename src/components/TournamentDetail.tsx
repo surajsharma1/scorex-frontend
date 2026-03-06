@@ -622,6 +622,26 @@ export default function TournamentDetail() {
                   <input type="text" value={matchForm.venue} onChange={(e) => setMatchForm({...matchForm, venue: e.target.value})} className="w-full p-2 bg-gray-700 rounded" />
                 </div>
               </div>
+              
+              {/* Toss Selection */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm mb-1">Toss Winner</label>
+                  <select value={matchForm.tossWinner} onChange={(e) => setMatchForm({...matchForm, tossWinner: e.target.value})} className="w-full p-2 bg-gray-700 rounded">
+                    <option value="">Toss Winner</option>
+                    {teams.map((team) => <option key={team._id} value={team.name}>{team.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm mb-1">Toss Choice</label>
+                  <select value={matchForm.tossChoice} onChange={(e) => setMatchForm({...matchForm, tossChoice: e.target.value})} className="w-full p-2 bg-gray-700 rounded">
+                    <option value="">Choose to</option>
+                    <option value="bat">Bat First</option>
+                    <option value="bowl">Bowl First</option>
+                  </select>
+                </div>
+              </div>
+              
               <button type="submit" disabled={loading} className="w-full bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold">{loading ? 'Creating...' : 'Create Match'}</button>
             </form>
           </div>
@@ -638,10 +658,45 @@ export default function TournamentDetail() {
                 <button onClick={() => setSelectedMatch(null)} className="bg-gray-600 px-3 py-1 rounded">Close</button>
               </div>
             </div>
+            
+            {/* Toss Information Display */}
+            {(selectedMatch.tossWinner || selectedMatch.tossChoice) && (
+              <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-3 mb-4 text-center">
+                <p className="text-blue-300 text-sm">
+                  {selectedMatch.tossWinner ? (
+                    <>Toss: <span className="font-bold text-white">{selectedMatch.tossWinner}</span> chose to {selectedMatch.tossChoice || 'bat'}</>
+                  ) : (
+                    <>Toss winner and choice not recorded</>
+                  )}
+                </p>
+              </div>
+            )}
+            
             <div className="mb-4 flex gap-2">
               <button onClick={() => setSelectedTeamForUpdate('team1')} className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team1' ? 'bg-green-600' : 'bg-gray-700'}`}>{selectedMatch.team1?.name || 'Team 1'}</button>
               <button onClick={() => setSelectedTeamForUpdate('team2')} className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team2' ? 'bg-green-600' : 'bg-gray-700'}`}>{selectedMatch.team2?.name || 'Team 2'}</button>
             </div>
+            
+            {/* Current Batsmen and Bowler Display */}
+            <div className="bg-gray-900 p-4 rounded-lg mb-4">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-green-900/30 border border-green-700 rounded-lg p-3">
+                  <p className="text-xs text-green-400 uppercase mb-1">Striker</p>
+                  <p className="font-bold text-lg">{innings.lineup[innings.strikerIndex]?.name || 'Not Selected'}</p>
+                  <p className="text-sm text-gray-400">{innings.lineup[innings.strikerIndex]?.runsScored || 0} runs ({innings.lineup[innings.strikerIndex]?.ballsFaced || 0} balls)</p>
+                </div>
+                <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3">
+                  <p className="text-xs text-yellow-400 uppercase mb-1">Non-Striker</p>
+                  <p className="font-bold text-lg">{innings.lineup[innings.nonStrikerIndex]?.name || 'Not Selected'}</p>
+                  <p className="text-sm text-gray-400">{innings.lineup[innings.nonStrikerIndex]?.runsScored || 0} runs ({innings.lineup[innings.nonStrikerIndex]?.ballsFaced || 0} balls)</p>
+                </div>
+              </div>
+              <div className="bg-red-900/30 border border-red-700 rounded-lg p-3">
+                <p className="text-xs text-red-400 uppercase mb-1">Current Bowler</p>
+                <p className="font-bold text-lg">{innings.lineup[innings.strikerIndex]?.name || 'Select from team'}</p>
+              </div>
+            </div>
+            
             <div className="bg-gray-900 p-4 rounded-lg mb-4 text-center">
               <div className="text-5xl font-bold text-yellow-400">{innings.totalRuns}/{innings.wickets}</div>
               <div className="text-2xl text-gray-300">{formatOvers()} overs</div>
