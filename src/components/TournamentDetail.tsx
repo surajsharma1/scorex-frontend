@@ -759,7 +759,7 @@ export default function TournamentDetail() {
       {activeTab === 'teams' && (
         <div className="bg-gray-800 p-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Teams</h2>
-          <TeamManagement />
+          <TeamManagement selectedTournament={tournament} />
         </div>
       )}
 
