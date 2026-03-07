@@ -1024,7 +1024,7 @@ export default function TournamentDetail() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
           <div className="bg-gray-800 p-4 md:p-6 rounded-lg w-full max-w-4xl">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">{selectedMatch.team1?.name} vs {selectedMatch.team2?.name}</h3>
+              <h3 className="text-xl font-bold">{selectedMatch.teamA?.name || selectedMatch.team1?.name} vs {selectedMatch.teamB?.name || selectedMatch.team2?.name}</h3>
               <div className="flex gap-2">
                 <button onClick={undoLastAction} disabled={scoreHistory.length === 0} className="btn-secondary text-sm">Undo</button>
                 <button onClick={() => setSelectedMatch(null)} className="bg-gray-600 px-3 py-1 rounded">Close</button>
@@ -1045,8 +1045,8 @@ export default function TournamentDetail() {
             )}
             
             <div className="mb-4 flex gap-2">
-              <button onClick={() => setSelectedTeamForUpdate('team1')} className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team1' ? 'bg-green-600' : 'bg-gray-700'}`}>{selectedMatch.team1?.name || 'Team 1'}</button>
-              <button onClick={() => setSelectedTeamForUpdate('team2')} className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team2' ? 'bg-green-600' : 'bg-gray-700'}`}>{selectedMatch.team2?.name || 'Team 2'}</button>
+              <button onClick={() => setSelectedTeamForUpdate('team1')} className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team1' ? 'bg-green-600' : 'bg-gray-700'}`}>{selectedMatch.teamA?.name || selectedMatch.team1?.name || 'Team 1'}</button>
+              <button onClick={() => setSelectedTeamForUpdate('team2')} className={`flex-1 py-2 rounded-lg font-bold ${selectedTeamForUpdate === 'team2' ? 'bg-green-600' : 'bg-gray-700'}`}>{selectedMatch.teamB?.name || selectedMatch.team2?.name || 'Team 2'}</button>
             </div>
             
             {/* Current Batsmen and Bowler Display */}
