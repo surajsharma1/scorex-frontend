@@ -63,10 +63,13 @@ export const matchApi = {
   },
 
   // Save toss result - uses /start endpoint (deployed backend doesn't have /toss)
+  // Note: decision must be "Bat" or "Bowl" (capitalized) to match backend enum
   saveToss: async (matchId: string, tossWinnerId: string, decision: string) => {
+    // Convert 'bat'/'bowl' to 'Bat'/'Bowl' for backend compatibility
+    const formattedDecision = decision.charAt(0).toUpperCase() + decision.slice(1);
     const response = await apiClient.put(`/matches/${matchId}/start`, {
       tossWinnerId,
-      decision
+      decision: formattedDecision
     });
     return response.data;
   },
