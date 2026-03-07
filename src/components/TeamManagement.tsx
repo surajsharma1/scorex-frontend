@@ -118,8 +118,8 @@ export default function TeamManagement({ selectedTournament }: TeamManagementPro
     e.preventDefault();
     if (!selectedTeam) return;
 
-    // Validation: Check duplicate Jersey
-    if (selectedTeam.players?.some(p => p.jerseyNumber === parseInt(playerForm.jerseyNumber))) {
+    // Validation: Check duplicate (selectedTeam.play Jersey
+    ifers?.some(p => p.jerseyNumber === playerForm.jerseyNumber)) {
         alert("Jersey number already exists in this team!");
         return;
     }
