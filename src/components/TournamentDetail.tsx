@@ -853,8 +853,8 @@ export default function TournamentDetail() {
                   className="w-full p-2 bg-gray-700 rounded"
                 >
                   <option value="">Select Winner</option>
-                  <option value={pendingMatchForToss.teamA?.name || pendingMatchForToss.team1?.name}>{pendingMatchForToss.teamA?.name || pendingMatchForToss.team1?.name}</option>
-                  <option value={pendingMatchForToss.teamB?.name || pendingMatchForToss.team2?.name}>{pendingMatchForToss.teamB?.name || pendingMatchForToss.team2?.name}</option>
+                  <option value={pendingMatchForToss.teamA?._id || pendingMatchForToss.team1?._id}>{pendingMatchForToss.teamA?.name || pendingMatchForToss.team1?.name}</option>
+                  <option value={pendingMatchForToss.teamB?._id || pendingMatchForToss.team2?._id}>{pendingMatchForToss.teamB?.name || pendingMatchForToss.team2?.name}</option>
                 </select>
               </div>
               
