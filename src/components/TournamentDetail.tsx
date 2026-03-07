@@ -381,8 +381,8 @@ export default function TournamentDetail() {
       await matchApi.saveToss(pendingMatchForToss._id, tossWinner, tossDecision);
       
       // Initialize players from teams
-      const team1 = pendingMatchForToss.team1 as Team;
-      const team2 = pendingMatchForToss.team2 as Team;
+      const team1 = pendingMatchForToss.teamA as Team || pendingMatchForToss.team1 as Team;
+      const team2 = pendingMatchForToss.teamB as Team || pendingMatchForToss.team2 as Team;
       
       const t1Players = team1?.players?.map((p: any) => ({ id: p.id || p._id, name: p.name })) || [];
       const t2Players = team2?.players?.map((p: any) => ({ id: p.id || p._id, name: p.name })) || [];
