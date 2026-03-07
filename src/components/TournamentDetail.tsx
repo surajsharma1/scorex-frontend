@@ -5,6 +5,7 @@ import { Tournament, Match, Team } from './types';
 import io, { Socket } from 'socket.io-client';
 import TeamManagement from './TeamManagement';
 import OverlayEditor from './OverlayEditor';
+import { matchApi } from '../services/matchApi';
 
 // ============================================
 // CRICKET ENGINE - COMPLETE IMPLEMENTATION

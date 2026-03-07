@@ -29,6 +29,19 @@ export interface BallPayload {
   wicketType: string;
 }
 
+export interface PlayerSelectionPayload {
+  team1Players: { id: string; name: string }[];
+  team2Players: { id: string; name: string }[];
+  battingOrder: string[];
+  bowlingOrder: string[];
+  strikerId: string;
+  strikerName: string;
+  nonStrikerId: string;
+  nonStrikerName: string;
+  bowlerId: string;
+  bowlerName: string;
+}
+
 export const matchApi = {
   // Sync a single ball to the database
   scoreBall: async (matchId: string, payload: BallPayload) => {
@@ -45,6 +58,54 @@ export const matchApi = {
   // Fetch match state on initial load/refresh
   getMatch: async (matchId: string) => {
     const response = await apiClient.get(`/matches/${matchId}`);
+    return response.data;
+  },
+
+  // Save toss result
+  saveToss: async (matchId: string, tossWinnerId: string, decision: string) => {
+    const response = await apiClient.put(`/matches/${matchId}/toss`, {
+      tossWinnerId,
+      decision
+    });
+    return response.data;
+  },
+
+  // Save player selections (batting order, bowling order, current on-field players)
+  savePlayerSelections: async (matchId: string, payload: PlayerSelectionPayload) => {
+    const response = await apiClient.put(`/matches/${matchId}/players`, payload);
+    return response.data;
+  },
+
+  // Change bowler after each over
+  changeBowler: async (matchId: string, newBowlerId: string, newBowlerName: string) => {
+    const response = await apiClient.put(`/matches/${matchId}/bowler`, {
+      newBowlerId,
+      newBowlerName
+    });
+    return response.data;
+  },
+
+  // Update striker (for wicket or manual change)
+  updateStriker: async (matchId: string, newStrikerId: string, newStrikerName: string) => {
+    const response = await apiClient.put(`/matches/${matchId}/striker`, {
+      newStrikerId,
+      newStrikerName
+    });
+    return response.data;
+  },
+
+  // Update non-striker (for manual change)
+  updateNonStriker: async (matchId: string, newNonStrikerId: string, newNonStrikerName: string) => {
+    const response = await apiClient.put(`/matches/${matchId}/nonstriker`, {
+      newNonStrikerId,
+      newNonStrikerName
+    });
+    return response.data;
+  },
+
+  // Get tournament statistics
+  getTournamentStats: async (tournamentId: string) => {
+    const response = await apiClient.get(`/matches/stats/${tournamentId}`);
     return response.data;
   }
 };
