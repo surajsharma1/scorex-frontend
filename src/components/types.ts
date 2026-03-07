@@ -21,12 +21,18 @@ export interface Player {
   _id?: string;
   name: string;
   role: 'Batsman' | 'Bowler' | 'All-rounder' | 'Wicket Keeper';
-  jerseyNumber: number | string;
+  jerseyNumber: string;  // Backend stores as string
+  image?: string;
+  team?: string;
   stats?: {
     matches: number;
     runs: number;
     wickets: number;
     average?: number;
+    battingAverage?: number;
+    bowlingAverage?: number;
+    strikeRate?: number;
+    economy?: number;
   };
 }
 
