@@ -1,9 +1,9 @@
-
 {
   "version": 2,
   "builds": [
     {
       "src": "package.json",
+      "use": "@vercel/vite",
       "config": {
         "distDir": "dist"
       }
@@ -11,10 +11,11 @@
   ],
   "installCommand": "npm install",
   "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://scorex-backend.onrender.com/api/v1/$1"                        
+      "destination": "https://scorex-backend.onrender.com/api/v1/$1"
     },
     {
       "source": "/overlays/(.*)",
@@ -57,5 +58,4 @@
     }
   ]
 }
-
 
