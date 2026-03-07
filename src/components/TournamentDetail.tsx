@@ -5,10 +5,12 @@ import { Tournament, Match, Team } from './types';
 import io, { Socket } from 'socket.io-client';
 import TeamManagement from './TeamManagement';
 import OverlayEditor from './OverlayEditor';
+import TournamentStats from './TournamentStats';
 import { matchApi } from '../services/matchApi';
 
 // ============================================
-// CRICKET ENGINE - COMPLETE IMPLEMENTATION
+// LIVE SCORING - TOURNAMENT DETAIL COMPONENT
+// Enhanced with Toss, Player Selection, and Auto-Bowler Change
 // ============================================
 
 type Dismissal = 'bowled' | 'caught' | 'lbw' | 'runOut' | 'stumped' | 'hitWicket' | 'handledBall' | 'timedOut' | null;
@@ -58,6 +60,36 @@ export default function TournamentDetail() {
   const [showMatchForm, setShowMatchForm] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [scoreHistory, setScoreHistory] = useState<Innings[]>([]);
+
+  // ============================================
+  // NEW LIVE SCORING STATE
+  // ============================================
+  
+  // Toss Modal State
+  const [showTossModal, setShowTossModal] = useState(false);
+  const [tossWinner, setTossWinner] = useState<string>('');
+  const [tossDecision, setTossDecision] = useState<'bat' | 'bowl' | ''>('');
+  const [pendingMatchForToss, setPendingMatchForToss] = useState<Match | null>(null);
+  
+  // Player Selection Modal State  
+  const [showPlayerSelectionModal, setShowPlayerSelectionModal] = useState(false);
+  const [team1Players, setTeam1Players] = useState<{id: string, name: string}[]>([]);
+  const [team2Players, setTeam2Players] = useState<{id: string, name: string}[]>([]);
+  const [selectedStriker, setSelectedStriker] = useState<{id: string, name: string} | null>(null);
+  const [selectedNonStriker, setSelectedNonStriker] = useState<{id: string, name: string} | null>(null);
+  const [selectedBowler, setSelectedBowler] = useState<{id: string, name: string} | null>(null);
+  
+  // Bowler Change Modal (after each over)
+  const [showBowlerChangeModal, setShowBowlerChangeModal] = useState(false);
+  const [lastSavedOver, setLastSavedOver] = useState(0);
+  
+  // Player Change Modal (manual substitution)
+  const [showPlayerChangeModal, setShowPlayerChangeModal] = useState(false);
+  const [playerChangeType, setPlayerChangeType] = useState<'striker' | 'nonstriker' | 'bowler'>('striker');
+
+  // ============================================
+  // EXISTING STATE
+  // ============================================
 
   // Match form with videoLinks support
   const [matchForm, setMatchForm] = useState({
@@ -129,7 +161,6 @@ export default function TournamentDetail() {
   };
 
   const autoSaveScore = async (inningsData: Innings, teamKey: 'team1' | 'team2') => {
-    // Validate matchId before making API call
     if (!selectedMatch || !selectedMatch._id || selectedMatch._id === 'undefined' || selectedMatch._id === 'null') {
       console.warn('Cannot auto-save score: invalid matchId', selectedMatch?._id);
       return;
@@ -139,8 +170,6 @@ export default function TournamentDetail() {
     
     try {
       const overs = Math.floor(inningsData.totalBalls / 6) + (inningsData.totalBalls % 6) / 10;
-      
-      // Save player names for display
       const strikerName = inningsData.lineup[inningsData.strikerIndex]?.name || '';
       const nonStrikerName = inningsData.lineup[inningsData.nonStrikerIndex]?.name || '';
       
@@ -212,6 +241,14 @@ export default function TournamentDetail() {
     }
 
     setInnings(newInnings);
+    
+    // Check if over is complete - prompt for bowler change
+    const currentOverNow = Math.floor(newInnings.totalBalls / 6);
+    if (currentOverNow > lastSavedOver) {
+      setShowBowlerChangeModal(true);
+      setLastSavedOver(currentOverNow);
+    }
+    
     autoSaveScore(newInnings, selectedTeamForUpdate);
   };
 
@@ -251,7 +288,6 @@ export default function TournamentDetail() {
   };
 
   const resetInnings = (teamKey: 'team1' | 'team2' = selectedTeamForUpdate, loadExisting = true) => {
-    // Load existing match data when opening scoreboard (loadExisting = true by default)
     if (loadExisting && selectedMatch) {
       const isTeam1 = teamKey === 'team1';
       const existingRuns = isTeam1 ? (selectedMatch.score1 || 0) : (selectedMatch.score2 || 0);
@@ -292,7 +328,6 @@ export default function TournamentDetail() {
       return;
     }
     
-    // Default behavior - create new innings (loadExisting = false for reset button)
     const selectedTeam = teamKey === 'team1' ? selectedMatch?.team1 : selectedMatch?.team2;
     const teamPlayers = selectedTeam?.players || [];
     setInnings(createDefaultInnings(teamPlayers));
@@ -324,6 +359,138 @@ export default function TournamentDetail() {
     });
   };
 
+  // ============================================
+  // NEW HANDLERS FOR TOSS & PLAYER SELECTION
+  // ============================================
+  
+  // Open toss modal when clicking Live Score
+  const handleLiveScoreClick = (match: Match) => {
+    setPendingMatchForToss(match);
+    setShowTossModal(true);
+  };
+  
+  // Save toss and proceed to player selection
+  const handleTossSave = async () => {
+    if (!pendingMatchForToss || !tossWinner || !tossDecision) {
+      alert('Please select toss winner and decision');
+      return;
+    }
+    
+    try {
+      // Save toss to database
+      await matchApi.saveToss(pendingMatchForToss._id, tossWinner, tossDecision);
+      
+      // Initialize players from teams
+      const team1 = pendingMatchForToss.team1 as Team;
+      const team2 = pendingMatchForToss.team2 as Team;
+      
+      const t1Players = team1?.players?.map((p: any) => ({ id: p.id || p._id, name: p.name })) || [];
+      const t2Players = team2?.players?.map((p: any) => ({ id: p.id || p._id, name: p.name })) || [];
+      
+      setTeam1Players(t1Players);
+      setTeam2Players(t2Players);
+      
+      setShowTossModal(false);
+      setShowPlayerSelectionModal(true);
+    } catch (error) {
+      console.error('Failed to save toss:', error);
+      alert('Failed to save toss');
+    }
+  };
+  
+  // Save player selections and open scoreboard
+  const handlePlayerSelectionSave = async () => {
+    if (!selectedStriker || !selectedNonStriker || !selectedBowler) {
+      alert('Please select striker, non-striker and bowler');
+      return;
+    }
+    
+    if (!pendingMatchForToss) return;
+    
+    try {
+      // Save player selections to database
+      await matchApi.savePlayerSelections(pendingMatchForToss._id, {
+        team1Players,
+        team2Players,
+        battingOrder: [...team1Players, ...team2Players].map(p => p.id),
+        bowlingOrder: [...team2Players, ...team1Players].map(p => p.id),
+        strikerId: selectedStriker.id,
+        strikerName: selectedStriker.name,
+        nonStrikerId: selectedNonStriker.id,
+        nonStrikerName: selectedNonStriker.name,
+        bowlerId: selectedBowler.id,
+        bowlerName: selectedBowler.name,
+      });
+      
+      // Initialize innings with selected players
+      const battingTeam = tossDecision === 'bat' ? team1Players : team2Players;
+      const bowlingTeam = tossDecision === 'bat' ? team2Players : team1Players;
+      
+      const players = battingTeam.map((p, i) => ({
+        id: p.id,
+        name: p.name,
+        runsScored: 0,
+        ballsFaced: 0,
+        isOut: false,
+      }));
+      
+      // Update innings with player selection
+      const strikerIdx = players.findIndex(p => p.id === selectedStriker.id);
+      const nonStrikerIdx = players.findIndex(p => p.id === selectedNonStriker.id);
+      
+      setInnings({
+        battingTeam: tossDecision === 'bat' ? 'team1' : 'team2',
+        totalRuns: 0,
+        wickets: 0,
+        totalBalls: 0,
+        extras: { wides: 0, noBalls: 0, byes: 0, legByes: 0 },
+        strikerIndex: strikerIdx >= 0 ? strikerIdx : 0,
+        nonStrikerIndex: nonStrikerIdx >= 0 ? nonStrikerIdx : 1,
+        lineup: players,
+      });
+      
+      setShowPlayerSelectionModal(false);
+      setSelectedMatch(pendingMatchForToss);
+      setSelectedTeamForUpdate(tossDecision === 'bat' ? 'team1' : 'team2');
+      setLastSavedOver(0);
+      
+    } catch (error) {
+      console.error('Failed to save player selections:', error);
+      alert('Failed to save player selections');
+    }
+  };
+  
+  // Handle bowler change after each over
+  const handleBowlerChange = (newBowler: {id: string, name: string}) => {
+    setSelectedBowler(newBowler);
+    setShowBowlerChangeModal(false);
+  };
+  
+  // Open player change modal
+  const openPlayerChangeModal = (type: 'striker' | 'nonstriker' | 'bowler') => {
+    setPlayerChangeType(type);
+    setShowPlayerChangeModal(true);
+  };
+  
+  // Handle player change
+  const handlePlayerChange = (newPlayer: {id: string, name: string}) => {
+    if (playerChangeType === 'striker') {
+      setSelectedStriker(newPlayer);
+      // Update lineup
+      const newLineup = [...innings.lineup];
+      const strikerIdx = newLineup.findIndex(p => p.id === selectedStriker?.id);
+      if (strikerIdx >= 0) {
+        newLineup[strikerIdx] = { ...newLineup[strikerIdx], id: newPlayer.id, name: newPlayer.name };
+        setInnings({ ...innings, lineup: newLineup });
+      }
+    } else if (playerChangeType === 'nonstriker') {
+      setSelectedNonStriker(newPlayer);
+    } else if (playerChangeType === 'bowler') {
+      setSelectedBowler(newPlayer);
+    }
+    setShowPlayerChangeModal(false);
+  };
+
   useEffect(() => {
     if (id) {
       fetchTournament();
@@ -336,13 +503,10 @@ export default function TournamentDetail() {
     const newSocket = io(import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000');
     setSocket(newSocket);
     
-    // Listen for live score updates from other scorers
     newSocket.on('scoreUpdate', (data: { matchId: string; match: any }) => {
       if (selectedMatch && data.matchId === selectedMatch._id) {
-        // Update the match data in real-time
         setSelectedMatch((prev: Match | null) => prev ? { ...prev, ...data.match } : null);
         
-        // Also update the innings data if score changed
         if (selectedTeamForUpdate === 'team1' && data.match.score1 !== undefined) {
           const newInnings = { ...innings };
           newInnings.totalRuns = data.match.score1 || 0;
@@ -364,7 +528,6 @@ export default function TournamentDetail() {
     return () => { newSocket.close(); };
   }, []);
 
-  // Update innings when selectedTeamForUpdate changes
   useEffect(() => {
     if (selectedMatch) {
       resetInnings(selectedTeamForUpdate);
@@ -395,11 +558,8 @@ export default function TournamentDetail() {
   const fetchMatches = async () => {
     if (!id) return;
     try {
-      // Use getMatchesByTournament to fetch matches for this tournament
-      // API now returns response.data directly
       const data = await matchAPI.getMatchesByTournament(id);
       console.log('Fetched matches data:', data);
-      // Handle different response formats
       let matchesArray: any[] = [];
       if (Array.isArray(data)) {
         matchesArray = data;
@@ -443,7 +603,6 @@ export default function TournamentDetail() {
         tossWinner: matchForm.tossWinner,
         tossChoice: matchForm.tossChoice,
         matchType: matchForm.matchType,
-        // Use the first URL as primary videoLink, and store all in videoLinks
         videoLink: matchForm.videoLinks[0] || matchForm.videoLink,
         videoLinks: matchForm.videoLinks,
       };
@@ -470,11 +629,6 @@ export default function TournamentDetail() {
       const strikerName = innings.lineup[innings.strikerIndex]?.name || '';
       const nonStrikerName = innings.lineup[innings.nonStrikerIndex]?.name || '';
       
-      // Keep existing values for the other team
-      const otherTeamScore = selectedTeamForUpdate === 'team1' 
-        ? { score2: selectedMatch.score2 || 0, wickets2: selectedMatch.wickets2 || 0, overs2: selectedMatch.overs2 || 0 }
-        : { score1: selectedMatch.score1 || 0, wickets1: selectedMatch.wickets1 || 0, overs1: selectedMatch.overs1 || 0 };
-      
       await matchAPI.updateMatchScore(selectedMatch._id, {
         score1: selectedTeamForUpdate === 'team1' ? innings.totalRuns : (selectedMatch.score1 || 0),
         score2: selectedTeamForUpdate === 'team2' ? innings.totalRuns : (selectedMatch.score2 || 0),
@@ -486,7 +640,6 @@ export default function TournamentDetail() {
         strikerName,
         nonStrikerName,
       });
-      // Keep the scoreboard open after saving - don't setSelectedMatch(null)
       fetchMatches();
     } catch (error) {
       setError('Failed to update score');
@@ -552,7 +705,7 @@ export default function TournamentDetail() {
       {error && <div className="bg-red-900 text-red-300 px-4 py-2 rounded mb-4">{error}</div>}
 
       <div className="flex space-x-2 mb-6">
-        {['overview', 'matches', 'teams', 'overlays'].map((tab) => (
+        {['overview', 'matches', 'teams', 'overlays', 'stats'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -563,6 +716,17 @@ export default function TournamentDetail() {
         ))}
       </div>
 
+      {/* OVERVIEW TAB */}
+      {activeTab === 'overview' && (
+        <div className="bg-gray-800 p-6 rounded-lg">
+          <h2 className="text-2xl font-bold mb-4">Tournament Overview</h2>
+          <p className="text-gray-300">Tournament: {tournament.name}</p>
+          <p className="text-gray-300">Status: {tournament.status}</p>
+          <p className="text-gray-300">Teams: {tournament.teams?.length || 0}</p>
+        </div>
+      )}
+
+      {/* MATCHES TAB */}
       {activeTab === 'matches' && (
         <div className="bg-gray-800 p-6 rounded-lg">
           <div className="flex justify-between items-center mb-4">
@@ -577,7 +741,12 @@ export default function TournamentDetail() {
                   <p className="text-sm text-gray-400">{match.score1 !== undefined ? `${match.score1}/${match.wickets1} (${match.overs1})` : 'Not started'}</p>
                 </div>
                 <div className="flex gap-2">
-                  <Link to={`/live-scoring/${match._id}`} className="bg-green-600 px-3 py-1 rounded text-sm flex-1 text-center">Live Score</Link>
+                  <button 
+                    onClick={() => handleLiveScoreClick(match)} 
+                    className="bg-green-600 px-3 py-1 rounded text-sm flex-1 text-center"
+                  >
+                    Live Score
+                  </button>
                   <button onClick={() => handleDeleteMatch(match._id)} className="bg-red-600 px-3 py-1 rounded text-sm">Delete</button>
                 </div>
               </div>
@@ -586,7 +755,31 @@ export default function TournamentDetail() {
         </div>
       )}
 
+      {/* TEAMS TAB */}
+      {activeTab === 'teams' && (
+        <div className="bg-gray-800 p-6 rounded-lg">
+          <h2 className="text-2xl font-bold mb-4">Teams</h2>
+          <TeamManagement tournamentId={id!} />
+        </div>
+      )}
 
+      {/* OVERLAYS TAB */}
+      {activeTab === 'overlays' && (
+        <div className="bg-gray-800 p-6 rounded-lg">
+          <h2 className="text-2xl font-bold mb-4">Overlays</h2>
+          <OverlayEditor tournamentId={id!} />
+        </div>
+      )}
+
+      {/* STATS TAB */}
+      {activeTab === 'stats' && (
+        <div className="bg-gray-800 p-6 rounded-lg">
+          <h2 className="text-2xl font-bold mb-4">Tournament Statistics</h2>
+          <TournamentStats tournamentId={id!} matches={matches} />
+        </div>
+      )}
+
+      {/* MATCH FORM MODAL */}
       {showMatchForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
           <div className="bg-gray-800 p-6 rounded-lg w-full max-w-2xl">
@@ -621,8 +814,6 @@ export default function TournamentDetail() {
                   <input type="text" value={matchForm.venue} onChange={(e) => setMatchForm({...matchForm, venue: e.target.value})} className="w-full p-2 bg-gray-700 rounded" />
                 </div>
               </div>
-              
-              {/* Toss Selection */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm mb-1">Toss Winner</label>
@@ -640,14 +831,196 @@ export default function TournamentDetail() {
                   </select>
                 </div>
               </div>
-              
               <button type="submit" disabled={loading} className="w-full bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold">{loading ? 'Creating...' : 'Create Match'}</button>
             </form>
           </div>
         </div>
       )}
 
-      {selectedMatch && (
+      {/* TOSS MODAL */}
+      {showTossModal && pendingMatchForToss && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4">
+          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4 text-center">Toss</h3>
+            <p className="text-gray-400 text-center mb-4">{pendingMatchForToss.team1?.name} vs {pendingMatchForToss.team2?.name}</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm mb-1">Toss Winner</label>
+                <select 
+                  value={tossWinner} 
+                  onChange={(e) => setTossWinner(e.target.value)}
+                  className="w-full p-2 bg-gray-700 rounded"
+                >
+                  <option value="">Select Winner</option>
+                  <option value={pendingMatchForToss.team1?.name}>{pendingMatchForToss.team1?.name}</option>
+                  <option value={pendingMatchForToss.team2?.name}>{pendingMatchForToss.team2?.name}</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm mb-1">Decision</label>
+                <select 
+                  value={tossDecision} 
+                  onChange={(e) => setTossDecision(e.target.value as 'bat' | 'bowl')}
+                  className="w-full p-2 bg-gray-700 rounded"
+                >
+                  <option value="">Choose to</option>
+                  <option value="bat">Bat First</option>
+                  <option value="bowl">Bowl First</option>
+                </select>
+              </div>
+              
+              <button 
+                onClick={handleTossSave}
+                className="w-full bg-green-600 py-3 rounded-lg font-bold"
+              >
+                Save Toss & Continue
+              </button>
+              
+              <button 
+                onClick={() => setShowTossModal(false)}
+                className="w-full bg-gray-600 py-2 rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PLAYER SELECTION MODAL */}
+      {showPlayerSelectionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4">
+          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4 text-center">Select Players</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm mb-1">Striker (Batting)</label>
+                <select 
+                  value={selectedStriker?.id || ''} 
+                  onChange={(e) => {
+                    const player = team1Players.find(p => p.id === e.target.value) || team2Players.find(p => p.id === e.target.value);
+                    if (player) setSelectedStriker(player);
+                  }}
+                  className="w-full p-2 bg-gray-700 rounded"
+                >
+                  <option value="">Select Striker</option>
+                  {team1Players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm mb-1">Non-Striker</label>
+                <select 
+                  value={selectedNonStriker?.id || ''} 
+                  onChange={(e) => {
+                    const player = team1Players.find(p => p.id === e.target.value) || team2Players.find(p => p.id === e.target.value);
+                    if (player) setSelectedNonStriker(player);
+                  }}
+                  className="w-full p-2 bg-gray-700 rounded"
+                >
+                  <option value="">Select Non-Striker</option>
+                  {team1Players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm mb-1">Bowler</label>
+                <select 
+                  value={selectedBowler?.id || ''} 
+                  onChange={(e) => {
+                    const player = team1Players.find(p => p.id === e.target.value) || team2Players.find(p => p.id === e.target.value);
+                    if (player) setSelectedBowler(player);
+                  }}
+                  className="w-full p-2 bg-gray-700 rounded"
+                >
+                  <option value="">Select Bowler</option>
+                  {team2Players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              
+              <button 
+                onClick={handlePlayerSelectionSave}
+                className="w-full bg-green-600 py-3 rounded-lg font-bold"
+              >
+                Start Scoring
+              </button>
+              
+              <button 
+                onClick={() => setShowPlayerSelectionModal(false)}
+                className="w-full bg-gray-600 py-2 rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BOWLER CHANGE MODAL */}
+      {showBowlerChangeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4">
+          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4 text-center">End of Over - Select New Bowler</h3>
+            
+            <p className="text-gray-400 text-center mb-4">Select the bowler for the next over</p>
+            
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {team2Players.map((player) => (
+                <button
+                  key={player.id}
+                  onClick={() => handleBowlerChange(player)}
+                  className="w-full p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-left"
+                >
+                  {player.name}
+                </button>
+              ))}
+            </div>
+            
+            <button 
+              onClick={() => setShowBowlerChangeModal(false)}
+              className="w-full mt-4 bg-gray-600 py-2 rounded-lg"
+            >
+              Skip
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* PLAYER CHANGE MODAL */}
+      {showPlayerChangeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4">
+          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4 text-center">
+              Change {playerChangeType === 'striker' ? 'Striker' : playerChangeType === 'nonstriker' ? 'Non-Striker' : 'Bowler'}
+            </h3>
+            
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {(playerChangeType === 'bowler' ? team2Players : team1Players).map((player) => (
+                <button
+                  key={player.id}
+                  onClick={() => handlePlayerChange(player)}
+                  className="w-full p-3 bg-gray-700 hover:bg-gray-600 rounded-lg text-left"
+                >
+                  {player.name}
+                </button>
+              ))}
+            </div>
+            
+            <button 
+              onClick={() => setShowPlayerChangeModal(false)}
+              className="w-full mt-4 bg-gray-600 py-2 rounded-lg"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* SCOREBOARD MODAL */}
+      {selectedMatch && !showTossModal && !showPlayerSelectionModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
           <div className="bg-gray-800 p-4 md:p-6 rounded-lg w-full max-w-4xl">
             <div className="flex justify-between items-center mb-4">
@@ -680,19 +1053,34 @@ export default function TournamentDetail() {
             <div className="bg-gray-900 p-4 rounded-lg mb-4">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="bg-green-900/30 border border-green-700 rounded-lg p-3">
-                  <p className="text-xs text-green-400 uppercase mb-1">Striker</p>
-                  <p className="font-bold text-lg">{innings.lineup[innings.strikerIndex]?.name || 'Not Selected'}</p>
-                  <p className="text-sm text-gray-400">{innings.lineup[innings.strikerIndex]?.runsScored || 0} runs ({innings.lineup[innings.strikerIndex]?.ballsFaced || 0} balls)</p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-xs text-green-400 uppercase mb-1">Striker</p>
+                      <p className="font-bold text-lg">{innings.lineup[innings.strikerIndex]?.name || 'Not Selected'}</p>
+                      <p className="text-sm text-gray-400">{innings.lineup[innings.strikerIndex]?.runsScored || 0} runs ({innings.lineup[innings.strikerIndex]?.ballsFaced || 0} balls)</p>
+                    </div>
+                    <button onClick={() => openPlayerChangeModal('striker')} className="text-xs bg-gray-600 px-2 py-1 rounded">Change</button>
+                  </div>
                 </div>
                 <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3">
-                  <p className="text-xs text-yellow-400 uppercase mb-1">Non-Striker</p>
-                  <p className="font-bold text-lg">{innings.lineup[innings.nonStrikerIndex]?.name || 'Not Selected'}</p>
-                  <p className="text-sm text-gray-400">{innings.lineup[innings.nonStrikerIndex]?.runsScored || 0} runs ({innings.lineup[innings.nonStrikerIndex]?.ballsFaced || 0} balls)</p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-xs text-yellow-400 uppercase mb-1">Non-Striker</p>
+                      <p className="font-bold text-lg">{innings.lineup[innings.nonStrikerIndex]?.name || 'Not Selected'}</p>
+                      <p className="text-sm text-gray-400">{innings.lineup[innings.nonStrikerIndex]?.runsScored || 0} runs ({innings.lineup[innings.nonStrikerIndex]?.ballsFaced || 0} balls)</p>
+                    </div>
+                    <button onClick={() => openPlayerChangeModal('nonstriker')} className="text-xs bg-gray-600 px-2 py-1 rounded">Change</button>
+                  </div>
                 </div>
               </div>
               <div className="bg-red-900/30 border border-red-700 rounded-lg p-3">
-                <p className="text-xs text-red-400 uppercase mb-1">Current Bowler</p>
-                <p className="font-bold text-lg">{innings.lineup[innings.strikerIndex]?.name || 'Select from team'}</p>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-xs text-red-400 uppercase mb-1">Current Bowler</p>
+                    <p className="font-bold text-lg">{selectedBowler?.name || 'Select from team'}</p>
+                  </div>
+                  <button onClick={() => openPlayerChangeModal('bowler')} className="text-xs bg-gray-600 px-2 py-1 rounded">Change</button>
+                </div>
               </div>
             </div>
             
@@ -809,3 +1197,4 @@ export default function TournamentDetail() {
     </div>
   );
 }
+
