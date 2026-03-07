@@ -842,7 +842,7 @@ export default function TournamentDetail() {
         <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4">
           <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
             <h3 className="text-xl font-bold mb-4 text-center">Toss</h3>
-            <p className="text-gray-400 text-center mb-4">{pendingMatchForToss.team1?.name} vs {pendingMatchForToss.team2?.name}</p>
+            <p className="text-gray-400 text-center mb-4">{pendingMatchForToss.teamA?.name || pendingMatchForToss.team1?.name} vs {pendingMatchForToss.teamB?.name || pendingMatchForToss.team2?.name}</p>
             
             <div className="space-y-4">
               <div>
@@ -853,8 +853,8 @@ export default function TournamentDetail() {
                   className="w-full p-2 bg-gray-700 rounded"
                 >
                   <option value="">Select Winner</option>
-                  <option value={pendingMatchForToss.team1?.name}>{pendingMatchForToss.team1?.name}</option>
-                  <option value={pendingMatchForToss.team2?.name}>{pendingMatchForToss.team2?.name}</option>
+                  <option value={pendingMatchForToss.teamA?.name || pendingMatchForToss.team1?.name}>{pendingMatchForToss.teamA?.name || pendingMatchForToss.team1?.name}</option>
+                  <option value={pendingMatchForToss.teamB?.name || pendingMatchForToss.team2?.name}>{pendingMatchForToss.teamB?.name || pendingMatchForToss.team2?.name}</option>
                 </select>
               </div>
               
