@@ -759,7 +759,7 @@ export default function TournamentDetail() {
       {activeTab === 'teams' && (
         <div className="bg-gray-800 p-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Teams</h2>
-          <TeamManagement tournamentId={id!} />
+          <TeamManagement />
         </div>
       )}
 
@@ -767,7 +767,7 @@ export default function TournamentDetail() {
       {activeTab === 'overlays' && (
         <div className="bg-gray-800 p-6 rounded-lg">
           <h2 className="text-2xl font-bold mb-4">Overlays</h2>
-          <OverlayEditor tournamentId={id!} />
+          <OverlayEditor />
         </div>
       )}
 
