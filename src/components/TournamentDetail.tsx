@@ -408,19 +408,25 @@ export default function TournamentDetail() {
     if (!pendingMatchForToss) return;
     
     try {
-      // Save player selections to database
-      await matchApi.savePlayerSelections(pendingMatchForToss._id, {
-        team1Players,
-        team2Players,
-        battingOrder: [...team1Players, ...team2Players].map(p => p.id),
-        bowlingOrder: [...team2Players, ...team1Players].map(p => p.id),
-        strikerId: selectedStriker.id,
-        strikerName: selectedStriker.name,
-        nonStrikerId: selectedNonStriker.id,
-        nonStrikerName: selectedNonStriker.name,
-        bowlerId: selectedBowler.id,
-        bowlerName: selectedBowler.name,
-      });
+      // Try to save player selections to database (may fail if backend route not available)
+      // But we continue with local scoring even if this fails
+      try {
+        await matchApi.savePlayerSelections(pendingMatchForToss._id, {
+          team1Players,
+          team2Players,
+          battingOrder: [...team1Players, ...team2Players].map(p => p.id),
+          bowlingOrder: [...team2Players, ...team1Players].map(p => p.id),
+          strikerId: selectedStriker.id,
+          strikerName: selectedStriker.name,
+          nonStrikerId: selectedNonStriker.id,
+          nonStrikerName: selectedNonStriker.name,
+          bowlerId: selectedBowler.id,
+          bowlerName: selectedBowler.name,
+        });
+      } catch (playerError) {
+        console.log('Player selection save failed (non-critical):', playerError);
+        // Continue with local scoring even if player save fails
+      }
       
       // Initialize innings with selected players
       const battingTeam = tossDecision === 'bat' ? team1Players : team2Players;
@@ -455,8 +461,8 @@ export default function TournamentDetail() {
       setLastSavedOver(0);
       
     } catch (error) {
-      console.error('Failed to save player selections:', error);
-      alert('Failed to save player selections');
+      console.error('Failed to initialize player selection:', error);
+      alert('Failed to initialize player selection');
     }
   };
   
