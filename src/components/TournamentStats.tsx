@@ -36,8 +36,8 @@ export default function TournamentStats({ tournamentId, matches }: TournamentSta
     try {
       setLoading(true);
       const response = await matchApi.getTournamentStats(tournamentId);
-      if (response.success && response.data) {
-        setStats(response.data);
+      if (response.success && response.data && response.data.playerStats) {
+        setStats(response.data.playerStats);
       }
     } catch (error) {
       console.error('Failed to fetch tournament stats:', error);

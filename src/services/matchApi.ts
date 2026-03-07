@@ -45,13 +45,13 @@ export interface PlayerSelectionPayload {
 export const matchApi = {
   // Sync a single ball to the database
   scoreBall: async (matchId: string, payload: BallPayload) => {
-    const response = await apiClient.post(`/matches/${matchId}/score`, payload);
+    const response = await apiClient.put(`/matches/${matchId}/score`, payload);
     return response.data;
   },
 
   // Trigger the backend mathematically perfect undo
   undoBall: async (matchId: string) => {
-    const response = await apiClient.post(`/matches/${matchId}/undo`);
+    const response = await apiClient.put(`/matches/${matchId}/undo`);
     return response.data;
   },
 
