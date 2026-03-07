@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 
 // Assuming you use Vite, fallback to localhost for development
@@ -43,15 +44,15 @@ export interface PlayerSelectionPayload {
 }
 
 export const matchApi = {
-  // Sync a single ball to the database
+  // Sync a single ball to the database - uses POST (deployed backend)
   scoreBall: async (matchId: string, payload: BallPayload) => {
     const response = await apiClient.post(`/matches/${matchId}/score`, payload);
     return response.data;
   },
 
-  // Trigger the backend mathematically perfect undo
+  // Trigger the backend mathematically perfect undo - uses POST (deployed backend)
   undoBall: async (matchId: string) => {
-    const response = await apiClient.put(`/matches/${matchId}/undo`);
+    const response = await apiClient.post(`/matches/${matchId}/undo`);
     return response.data;
   },
 
@@ -61,9 +62,9 @@ export const matchApi = {
     return response.data;
   },
 
-  // Save toss result
+  // Save toss result - uses /start endpoint (deployed backend doesn't have /toss)
   saveToss: async (matchId: string, tossWinnerId: string, decision: string) => {
-    const response = await apiClient.put(`/matches/${matchId}/toss`, {
+    const response = await apiClient.put(`/matches/${matchId}/start`, {
       tossWinnerId,
       decision
     });
@@ -109,3 +110,4 @@ export const matchApi = {
     return response.data;
   }
 };
+
