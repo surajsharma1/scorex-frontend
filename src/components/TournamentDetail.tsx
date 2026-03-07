@@ -737,7 +737,7 @@ export default function TournamentDetail() {
             {matches.length === 0 ? <p className="text-gray-400 text-center py-8">No matches yet</p> : matches.map((match) => (
               <div key={match._id} className="p-4 bg-gray-700 rounded-lg flex justify-between items-center">
                 <div>
-                  <h4 className="font-semibold">{match.team1?.name} vs {match.team2?.name}</h4>
+                  <h4 className="font-semibold">{match.teamA?.name || match.team1?.name} vs {match.teamB?.name || match.team2?.name}</h4>
                   <p className="text-sm text-gray-400">{match.score1 !== undefined ? `${match.score1}/${match.wickets1} (${match.overs1})` : 'Not started'}</p>
                 </div>
                 <div className="flex gap-2">

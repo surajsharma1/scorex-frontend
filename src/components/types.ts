@@ -74,6 +74,8 @@ export interface PaginationMeta {
 }
 
 export interface Match {
+  teamB: any;
+  teamA: any;
   _id: string;
   tournament: Tournament | string;
   team1: Team;
