@@ -4,7 +4,6 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
       }
@@ -15,7 +14,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://scorex-backend.onrender.com/api/v1/$1"
+      "destination": "https://scorex-backend.onrender.com/api/v1/$1"                        
     },
     {
       "source": "/overlays/(.*)",
