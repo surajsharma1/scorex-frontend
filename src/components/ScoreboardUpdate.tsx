@@ -112,15 +112,53 @@ export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: Scor
     if (!teams || teams.length === 0) return;
     const battingTeamIndex = liveScores.battingTeam === 'team1' ? 0 : 1;
     const battingTeamObj = teams[battingTeamIndex];
-    if (battingTeamObj && Array.isArray(battingTeamObj.players)) {
-      const playersList = battingTeamObj.players.map((p: any) => ({
-        id: p._id || p.id || Math.random().toString(),
-        name: p.name || 'Unknown Player',
-        role: p.role || 'Player'
-      }));
-      setAvailablePlayers(playersList);
+    
+    // Handle different player data formats - could be ObjectIds, populated objects, or mixed
+    let playersList: Player[] = [];
+    
+    if (battingTeamObj && battingTeamObj.players) {
+      const playersArray = Array.isArray(battingTeamObj.players) 
+        ? battingTeamObj.players 
+        : [];
+      
+      playersList = playersArray.map((p: any) => {
+        // Handle case where player is just an ObjectId string
+        if (typeof p === 'string') {
+          return {
+            id: p,
+            name: `Player (${p.substring(0, 6)})`,
+            role: 'Player'
+          };
+        }
+        // Handle populated player object
+        return {
+          id: p._id || p.id || Math.random().toString(),
+          name: p.name || 'Unknown Player',
+          role: p.role || 'Player'
+        };
+      });
     }
-  }, [liveScores.battingTeam, teams]);
+    
+    // If no players found from team, try to get from tournament.teams
+    if (playersList.length === 0 && tournament?.teams) {
+      const tournamentTeams = Array.isArray(tournament.teams) ? tournament.teams : [];
+      const teamFromTournament = tournamentTeams[battingTeamIndex];
+      if (teamFromTournament?.players) {
+        playersList = (Array.isArray(teamFromTournament.players) ? teamFromTournament.players : []).map((p: any) => ({
+          id: p._id || p.id || Math.random().toString(),
+          name: p.name || 'Unknown Player',
+          role: p.role || 'Player'
+        }));
+      }
+    }
+    
+    // If still no players, provide fallback for testing
+    if (playersList.length === 0) {
+      console.warn('No players found for team:', battingTeamObj?.name);
+    }
+    
+    setAvailablePlayers(playersList);
+  }, [liveScores.battingTeam, teams, tournament]);
 
   const saveScoresToBackend = useCallback(async (scores: LiveScores) => {
     // Validate matchId before making API call
