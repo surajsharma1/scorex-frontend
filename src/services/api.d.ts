@@ -66,3 +66,94 @@ export declare const matchAPI: {
   startMatch: (id: string, tossWinnerId: string, decision: string) => Promise<any>;
   scoreBall: (id: string, ballData: BallPayload) => Promise<any>;
   undoLastBall: (id: string) => Promise<any>;
+  changeBowler: (id: string, newBowler: string) => Promise<any>;
+  updateStriker: (id: string, newStriker: string) => Promise<any>;
+  updateNonStriker: (id: string, newNonStriker: string) => Promise<any>;
+  getTournamentStats: (tournamentId: string) => Promise<any>;
+};
+
+// Team API
+export declare const teamAPI: {
+  getTeams: (tournamentId?: string) => Promise<any>;
+  getTeamById: (id: string) => Promise<any>;
+  createTeam: (data: any) => Promise<any>;
+  updateTeam: (id: string, data: any) => Promise<any>;
+  deleteTeam: (id: string) => Promise<any>;
+  addPlayer: (teamId: string, player: any) => Promise<any>;
+};
+
+// User API
+export declare const userAPI: {
+  getProfile: () => Promise<any>;
+  updateProfile: (data: any) => Promise<any>;
+  searchUsers: (query: string) => Promise<any>;
+  getAllUsers: () => Promise<any>;
+  banUser: (userId: string) => Promise<any>;
+  unbanUser: (userId: string) => Promise<any>;
+  updateUserRole: (userId: string, role: string) => Promise<any>;
+  updateUserMembership: (userId: string, data: { level: number; durationMonths?: number }) => Promise<any>;
+};
+
+// Overlay API
+export declare const overlayAPI: {
+  getOverlays: () => Promise<any>;
+  getOverlay: (id: string) => Promise<any>;
+  createOverlay: (data: any) => Promise<any>;
+  updateOverlay: (id: string, data: any) => Promise<any>;
+  deleteOverlay: (id: string) => Promise<any>;
+  getTemplates: () => Promise<any>;
+  getMembershipStatus: () => Promise<any>;
+  regenerateOverlay: (id: string) => Promise<any>;
+};
+
+// Friend API
+export declare const friendAPI: {
+  getFriends: () => Promise<any>;
+  getPendingRequests: () => Promise<any>;
+  sendRequest: (userId: string) => Promise<any>;
+  acceptRequest: (requestId: string) => Promise<any>;
+  rejectRequest: (requestId: string) => Promise<any>;
+  removeFriend: (friendId: string) => Promise<any>;
+};
+
+// Message API
+export declare const messageAPI: {
+  getMessages: (userId: string) => Promise<any>;
+  sendMessage: (toUserId: string, content: string) => Promise<any>;
+};
+
+// Club API
+export declare const clubAPI: {
+  getClubs: () => Promise<any>;
+  getMyClubs: () => Promise<any>;
+  createClub: (data: any) => Promise<any>;
+  joinClub: (id: string) => Promise<any>;
+};
+
+// Leaderboard API
+export declare const leaderboardAPI: {
+  getBattingLeaderboard: (tournamentId?: string) => Promise<any>;
+  getBowlingLeaderboard: (tournamentId?: string) => Promise<any>;
+  getTeamLeaderboard: (tournamentId?: string) => Promise<any>;
+};
+
+// Payment API
+export declare const paymentAPI: {
+  createSubscription: (plan: string) => Promise<any>;
+  createRazorpayOrder: (amount: number, plan: string) => Promise<any>;
+  verifyRazorpayPayment: (data: any) => Promise<any>;
+};
+
+// Bracket API
+export declare const bracketAPI: {
+  updateBracket: (tournamentId: string, data: any) => Promise<any>;
+};
+
+// Backward compatibility aliases
+export declare const getMatches: any;
+export declare const getMatch: any;
+export declare const getMatchesByTournament: any;
+export declare const updateMatchScore: any;
+export declare const updateLiveScores: any;
+export declare const goLive: any;
+export declare const updateLiveScoresTournament: any;
