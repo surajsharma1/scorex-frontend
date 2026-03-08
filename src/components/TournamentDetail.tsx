@@ -565,7 +565,7 @@ export default function TournamentDetail() {
     if (!id) return;
     try {
       // First, get all teams for this tournament to have player data
-      const teamsRes = await teamAPI.getTeams(id);
+      const teamsRes = await teamAPI.getTeams({ tournament: id });
       const tournamentTeams: Team[] = teamsRes.data?.teams || teamsRes.data || [];
       
       // Create a map of team ID to team with players
@@ -574,8 +574,8 @@ export default function TournamentDetail() {
         teamMap.set(team._id, team);
       });
       
-      // Now fetch matches
-      const data = await matchAPI.getMatchesByTournament(id);
+      // Now fetch matches using the tournament's matches endpoint
+      const data = await tournamentAPI.getTournamentMatches(id);
       console.log('Fetched matches data:', data);
       let matchesArray: any[] = [];
       if (Array.isArray(data)) {
@@ -610,7 +610,7 @@ export default function TournamentDetail() {
   const fetchTeams = async () => {
     if (!id) return;
     try {
-      const response = await teamAPI.getTeams(id);
+      const response = await teamAPI.getTeams({ tournament: id });
       const teamsArray = extractArray(response);
       setTeams(teamsArray);
     } catch (error) {
