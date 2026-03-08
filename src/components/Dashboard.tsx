@@ -25,6 +25,7 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
+      console.log('Fetching dashboard data...');
       // Fetch all data in parallel
       const [tRes, mRes, teamRes] = await Promise.all([
         tournamentAPI.getTournaments(),
@@ -32,17 +33,27 @@ export default function Dashboard() {
         teamAPI.getTeams()
       ]);
 
-      const matches = mRes.data.matches || [];
+      console.log('Dashboard API responses:', { tRes, mRes, teamRes });
+
+      const matches = mRes.data?.matches || mRes.data || [];
       const live = matches.filter((m: any) => m.status === 'ongoing').length;
 
       setStats({
-        tournaments: Array.isArray(tRes.data) ? tRes.data.length : (tRes.data.tournaments || []).length,
+        tournaments: Array.isArray(tRes.data) ? tRes.data.length : (tRes.data?.tournaments || []).length,
         matches: matches.length,
-        teams: Array.isArray(teamRes.data) ? teamRes.data.length : (teamRes.data.teams || []).length,
+        teams: Array.isArray(teamRes.data) ? teamRes.data.length : (teamRes.data?.teams || []).length,
         liveMatches: live
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to load dashboard stats", e);
+      console.error("Error details:", e.response?.data || e.message);
+      // Set default values on error so dashboard still shows
+      setStats({
+        tournaments: 0,
+        matches: 0,
+        teams: 0,
+        liveMatches: 0
+      });
     } finally {
       setLoading(false);
     }
