@@ -167,15 +167,19 @@ export const userAPI = {
 
 export const tournamentAPI = {
   // Get all tournaments with pagination
-  getTournaments: (params?: PaginationParams & { status?: string; type?: string }) => 
-    api.get('/tournaments', { params }),
+  getTournaments: async (params?: PaginationParams & { status?: string; type?: string }) => {
+    const response = await api.get('/tournaments', { params });
+    return response.data;
+  },
   
   // Get single tournament by ID
-  getTournament: (id: string) => 
-    api.get(`/tournaments/${id}`),
+  getTournament: async (id: string) => {
+    const response = await api.get(`/tournaments/${id}`);
+    return response.data;
+  },
   
   // Create new tournament
-  createTournament: (data: {
+  createTournament: async (data: {
     name: string;
     description?: string;
     organizer?: string;
@@ -186,35 +190,52 @@ export const tournamentAPI = {
     type?: string;
     format?: string;
     teams?: string[];
-  }) => api.post('/tournaments', data),
+  }) => {
+    const response = await api.post('/tournaments', data);
+    return response.data;
+  },
   
   // Update tournament
-  updateTournament: (id: string, data: any) => 
-    api.put(`/tournaments/${id}`, data),
+  updateTournament: async (id: string, data: any) => {
+    const response = await api.put(`/tournaments/${id}`, data);
+    return response.data;
+  },
   
   // Delete tournament
-  deleteTournament: (id: string) => 
-    api.delete(`/tournaments/${id}`),
+  deleteTournament: async (id: string) => {
+    const response = await api.delete(`/tournaments/${id}`);
+    return response.data;
+  },
   
   // Get tournament matches
-  getTournamentMatches: (id: string) => 
-    api.get(`/tournaments/${id}/matches`),
+  getTournamentMatches: async (id: string) => {
+    const response = await api.get(`/tournaments/${id}/matches`);
+    return response.data;
+  },
   
   // Add team to tournament
-  addTeamToTournament: (tournamentId: string, teamId: string) => 
-    api.post(`/tournaments/${tournamentId}/teams`, { teamId }),
+  addTeamToTournament: async (tournamentId: string, teamId: string) => {
+    const response = await api.post(`/tournaments/${tournamentId}/teams`, { teamId });
+    return response.data;
+  },
   
   // Generate fixtures
-  generateFixtures: (tournamentId: string) => 
-    api.post(`/tournaments/${tournamentId}/fixtures`),
+  generateFixtures: async (tournamentId: string) => {
+    const response = await api.post(`/tournaments/${tournamentId}/fixtures`);
+    return response.data;
+  },
   
   // Go live with tournament
-  goLive: (id: string) => 
-    api.post(`/tournaments/${id}/live`),
+  goLive: async (id: string) => {
+    const response = await api.post(`/tournaments/${id}/live`);
+    return response.data;
+  },
   
   // Update live scores
-  updateLiveScores: (id: string, scores: any) => 
-    api.put(`/tournaments/${id}/scores`, { scores }),
+  updateLiveScores: async (id: string, scores: any) => {
+    const response = await api.put(`/tournaments/${id}/scores`, { scores });
+    return response.data;
+  },
 };
 
 // ============================================
@@ -252,24 +273,34 @@ export interface PlayerSelectionPayload {
 
 export const matchAPI = {
   // Get all matches with optional filters
-  getMatches: (params?: MatchFilters & PaginationParams) => 
-    api.get('/matches', { params }),
+  getMatches: async (params?: MatchFilters & PaginationParams) => {
+    const response = await api.get('/matches', { params });
+    return response.data;
+  },
   
   // Alias for backward compatibility
-  getAllMatches: (params?: MatchFilters & PaginationParams) => 
-    api.get('/matches', { params }),
+  getAllMatches: async (params?: MatchFilters & PaginationParams) => {
+    const response = await api.get('/matches', { params });
+    return response.data;
+  },
   
   // Get single match by ID
-  getMatch: (id: string) => 
-    api.get(`/matches/${id}`),
+  getMatch: async (id: string) => {
+    const response = await api.get(`/matches/${id}`);
+    return response.data;
+  },
   
   // Alias for backward compatibility
-  getMatchById: (id: string) => 
-    api.get(`/matches/${id}`),
+  getMatchById: async (id: string) => {
+    const response = await api.get(`/matches/${id}`);
+    return response.data;
+  },
   
   // Get matches by tournament
-  getMatchesByTournament: (tournamentId: string) => 
-    api.get('/matches', { params: { tournament: tournamentId } }),
+  getMatchesByTournament: async (tournamentId: string) => {
+    const response = await api.get('/matches', { params: { tournament: tournamentId } });
+    return response.data;
+  },
   
   // Create new match
   createMatch: (data: {
@@ -323,8 +354,16 @@ export const matchAPI = {
     api.put(`/matches/${id}/score`, scores),
   
   // Undo last ball
-  undoLastBall: (id: string) => 
-    api.put(`/matches/${id}/undo`),
+  undoLastBall: async (id: string) => {
+    const response = await api.put(`/matches/${id}/undo`);
+    return response.data;
+  },
+  
+  // Alias for undoLastBall (for backward compatibility)
+  undoBall: async (id: string) => {
+    const response = await api.put(`/matches/${id}/undo`);
+    return response.data;
+  },
   
   // Change bowler
   changeBowler: (id: string, newBowler: string) => 
