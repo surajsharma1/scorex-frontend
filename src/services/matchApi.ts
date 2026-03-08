@@ -7,7 +7,7 @@
  * @deprecated Use import { matchAPI } from './api' instead
  */
 
-import { matchAPI } from './api';
+import { matchAPI, BallPayload, PlayerSelectionPayload } from './api';
 
 // Re-export for backward compatibility
 export { matchAPI };
@@ -15,9 +15,14 @@ export { matchAPI };
 // Also export as matchApi for old code that imports as { matchApi }
 export const matchApi = matchAPI;
 
+// Export types for backward compatibility
+export type { BallPayload, PlayerSelectionPayload };
+
 // Export all match functions
 export const getMatches = matchAPI.getMatches;
+export const getAllMatches = matchAPI.getAllMatches;
 export const getMatch = matchAPI.getMatch;
+export const getMatchById = matchAPI.getMatchById;
 export const getMatchesByTournament = matchAPI.getMatchesByTournament;
 export const createMatch = matchAPI.createMatch;
 export const updateMatch = matchAPI.updateMatch;

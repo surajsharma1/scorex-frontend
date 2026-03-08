@@ -221,13 +221,50 @@ export const tournamentAPI = {
 // Match API Module
 // ============================================
 
+export interface BallPayload {
+  overNumber: number;
+  ballNumber: number;
+  bowler: string;
+  striker: string;
+  nonStriker: string;
+  runsOffBat: number;
+  extras: number;
+  extraType: 'None' | 'WD' | 'NB' | 'B' | 'LB' | 'Penalty';
+  isWicket: boolean;
+  wicketType?: string;
+}
+
+export interface PlayerSelectionPayload {
+  team1Players?: { id: string; name: string }[];
+  team2Players?: { id: string; name: string }[];
+  battingOrder?: string[];
+  bowlingOrder?: string[];
+  striker?: string;
+  strikerId?: string;
+  strikerName?: string;
+  nonStriker?: string;
+  nonStrikerId?: string;
+  nonStrikerName?: string;
+  bowler?: string;
+  bowlerId?: string;
+  bowlerName?: string;
+}
+
 export const matchAPI = {
   // Get all matches with optional filters
   getMatches: (params?: MatchFilters & PaginationParams) => 
     api.get('/matches', { params }),
   
+  // Alias for backward compatibility
+  getAllMatches: (params?: MatchFilters & PaginationParams) => 
+    api.get('/matches', { params }),
+  
   // Get single match by ID
   getMatch: (id: string) => 
+    api.get(`/matches/${id}`),
+  
+  // Alias for backward compatibility
+  getMatchById: (id: string) => 
     api.get(`/matches/${id}`),
   
   // Get matches by tournament
@@ -260,36 +297,26 @@ export const matchAPI = {
   deleteMatch: (id: string) => 
     api.delete(`/matches/${id}`),
   
-  // Save toss result
-  saveToss: (id: string, tossWinner: string, tossDecision: string, data: { tossWinnerId: string; decision: 'Bat' | 'Bowl'; }) => 
-    api.put(`/matches/${id}/toss`, data),
+  // Save toss result - accepts both old 3-param and new object format
+  saveToss: (id: string, dataOrTossWinner: any, tossDecisionOrDecision?: string, data?: { tossWinnerId: string; decision: 'Bat' | 'Bowl' }) => {
+    // Handle old format: saveToss(id, tossWinner, tossDecision)
+    if (typeof dataOrTossWinner === 'string' && typeof tossDecisionOrDecision === 'string') {
+      return api.put(`/matches/${id}/toss`, { tossWinnerId: dataOrTossWinner, decision: tossDecisionOrDecision });
+    }
+    // Handle new format: saveToss(id, { tossWinnerId, decision })
+    return api.put(`/matches/${id}/toss`, dataOrTossWinner);
+  },
   
-  // Save player selections
-  savePlayerSelections: (id: string, data: {
-    battingOrder?: string[];
-    bowlingOrder?: string[];
-    striker?: string;
-    nonStriker?: string;
-    bowler?: string;
-  }) => api.put(`/matches/${id}/players`, data),
+  // Save player selections - supports both old team1Players format and new format
+  savePlayerSelections: (id: string, data: PlayerSelectionPayload) => api.put(`/matches/${id}/players`, data),
   
   // Start match (after toss)
   startMatch: (id: string, data: { tossWinnerId: string; decision: 'Bat' | 'Bowl' }) => 
     api.put(`/matches/${id}/start`, data),
   
   // Score a ball
-  scoreBall: (id: string, ballData: {
-    overNumber: number;
-    ballNumber: number;
-    bowler: string;
-    striker: string;
-    nonStriker: string;
-    runsOffBat: number;
-    extras: number;
-    extraType: 'None' | 'WD' | 'NB' | 'B' | 'LB' | 'Penalty';
-    isWicket: boolean;
-    wicketType?: string;
-  }) => api.put(`/matches/${id}/score`, ballData),
+  scoreBall: (id: string, ballData: BallPayload) => 
+    api.put(`/matches/${id}/score`, ballData),
   
   // Update match score (alias for scoreBall)
   updateMatchScore: (id: string, scores: any) => 
