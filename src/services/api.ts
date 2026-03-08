@@ -247,6 +247,10 @@ export const matchAPI = {
   scoreBall: (id: string, ballData: BallPayload) => 
     api.put(`/matches/${id}/score`, ballData),
   
+  // Backward compatibility: updateMatchScore is alias for scoreBall
+  updateMatchScore: (id: string, ballData: BallPayload) => 
+    api.put(`/matches/${id}/score`, ballData),
+  
   // Undo last ball
   undoLastBall: (id: string) => 
     api.put(`/matches/${id}/undo`),

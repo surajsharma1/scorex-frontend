@@ -57,6 +57,7 @@ export declare const tournamentAPI: {
 // Match API
 export declare const matchAPI: {
   getAllMatches: (params?: { tournament?: string; status?: string }) => Promise<any>;
+  getMatchesByTournament: (tournamentId: string) => Promise<any>;
   getMatchById: (id: string) => Promise<any>;
   createMatch: (data: any) => Promise<any>;
   updateMatch: (id: string, data: any) => Promise<any>;

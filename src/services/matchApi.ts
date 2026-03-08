@@ -46,9 +46,15 @@ export interface PlayerSelectionPayload {
 }
 
 // Re-export matchAPI functions for backward compatibility
-export const matchApi = {
-  // Score a ball
+const matchAPI = {
+  // Score a ball (also exported as updateMatchScore for backward compatibility)
   scoreBall: async (matchId: string, payload: any) => {
+    const response = await apiClient.put(`/matches/${matchId}/score`, payload);
+    return response.data;
+  },
+
+  // Backward compatibility alias
+  updateMatchScore: async (matchId: string, payload: any) => {
     const response = await apiClient.put(`/matches/${matchId}/score`, payload);
     return response.data;
   },
@@ -135,5 +141,9 @@ export const matchApi = {
     return response.data;
   }
 };
+
+// Export both matchAPI and matchApi for backward compatibility
+export const matchApi = matchAPI;
+export { matchAPI };
 
 export default matchApi;
