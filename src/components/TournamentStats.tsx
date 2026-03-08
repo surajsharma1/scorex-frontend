@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { matchApi } from '../services/matchApi';
+import { matchAPI } from '../services/api';
 import { Match } from './types';
 
 interface PlayerStats {
@@ -35,9 +35,12 @@ export default function TournamentStats({ tournamentId, matches }: TournamentSta
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const response = await matchApi.getTournamentStats(tournamentId);
-      if (response.success && response.data && response.data.playerStats) {
-        setStats(response.data.playerStats);
+      const response = await matchAPI.getTournamentStats(tournamentId);
+      // API returns: { success: true, data: { playerStats: [...] } }
+      // So response.data.data.playerStats
+      const playerStats = response?.data?.playerStats;
+      if (playerStats) {
+        setStats(playerStats);
       }
     } catch (error) {
       console.error('Failed to fetch tournament stats:', error);

@@ -378,8 +378,10 @@ export const matchAPI = {
     api.put(`/matches/${id}/nonstriker`, { newNonStriker }),
   
   // Get tournament statistics
-  getTournamentStats: (tournamentId: string) => 
-    api.get(`/matches/stats/${tournamentId}`),
+  getTournamentStats: async (tournamentId: string) => {
+    const response = await api.get(`/matches/stats/${tournamentId}`);
+    return response.data;
+  },
 };
 
 // ============================================
