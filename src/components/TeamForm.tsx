@@ -6,7 +6,7 @@ export default function TeamForm() {
   const [formData, setFormData] = useState({
     name: '',
     color: '',
-    players: [{ name: '', role: '', jerseyNumber: '' }],  // Added jerseyNumber
+    players: [{ name: '', role: '', jerseyNumber: '' }],
   });
   const [loading, setLoading] = useState(false);
 
@@ -27,11 +27,14 @@ export default function TeamForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      await teamAPI.createTeam(formData);
+      const result = await teamAPI.createTeam(formData);
+      console.log('Team created:', result);
       alert('Team created!');
       window.location.href = '/teams';
-    } catch (error) {
-      alert('Failed to create team');
+    } catch (error: any) {
+      console.error('Failed to create team:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+      alert(`Failed to create team: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -97,3 +100,4 @@ export default function TeamForm() {
     </div>
   );
 }
+
