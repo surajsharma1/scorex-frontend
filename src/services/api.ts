@@ -98,70 +98,6 @@ export const authAPI = {
 export const tournamentAPI = {
   // List all tournaments with pagination
   getTournaments: (page = 1, limit = 10) => 
-  locationType?: string;
-  type?: string;
-  format?: string;
-}
-
-// Team types
-export interface CreateTeamPayload {
-  name: string;
-  color?: string;
-  tournament?: string;
-  players?: Array<{ name: string; role: string; jerseyNumber: string }>;
-}
-
-// Player types
-export interface AddPlayerPayload {
-  name: string;
-  role: string;
-  jerseyNumber: string;
-}
-
-// Helper function to extract data from response
-const getData = (response: any) => response.data;
-
-// ============================================
-// AUTH API
-// ============================================
-
-export const authAPI = {
-  // Login with email/password
-  login: (data: { email: string; password: string }) => 
-    api.post('/auth/login', data).then(getData),
-  
-  // Register new user
-  register: (data: { username: string; email: string; password: string }) => 
-    api.post('/auth/register', data).then(getData),
-  
-  // Get current authenticated user
-  getCurrentUser: () => 
-    api.get('/auth/me').then(getData),
-  
-  // Google OAuth login
-  googleLogin: (token: string) => 
-    api.post('/auth/google', { token }).then(getData),
-  
-  // Request password reset
-  forgotPassword: (email: string) => 
-    api.post('/auth/forgot-password', { email }).then(getData),
-  
-  // Reset password with token
-  resetPassword: (token: string, password: string) => 
-    api.post(`/auth/reset-password/${token}`, { password }).then(getData),
-  
-  // Verify email
-  verifyEmail: (token: string) => 
-    api.get(`/auth/verify-email/${token}`).then(getData),
-};
-
-// ============================================
-// TOURNAMENT API
-// ============================================
-
-export const tournamentAPI = {
-  // List all tournaments with pagination
-  getTournaments: (page = 1, limit = 10) => 
     api.get(`/tournaments?page=${page}&limit=${limit}`).then(getData),
   
   // Get single tournament by ID
@@ -169,7 +105,71 @@ export const tournamentAPI = {
     api.get(`/tournaments/${id}`).then(getData),
   
   // Create new tournament
-  createTournament: (data: CreateTournamentPayload) => 
+  createTournament: (data: any) => 
+    api.post('/tournaments', data).then(getData),
+  
+  // Update tournament
+  updateTournament: (id: string, data: any) => 
+    api.put(`/tournaments/${id}`, data).then(getData),
+  
+  // Delete tournament
+  deleteTournament: (id: string) => 
+    api.delete(`/tournaments/${id}`).then(getData),
+  
+  // Add team to tournament
+  addTeam: (tournamentId: string, teamId: string) => 
+    api.post(`/tournaments/${tournamentId}/teams`, { teamId }).then(getData),
+  
+  // Generate fixtures for tournament
+  generateFixtures: (tournamentId: string) => 
+    api.post(`/tournaments/${tournamentId}/fixtures`).then(getData),
+  
+  // Get all matches for a tournament
+  getTournamentMatches: (tournamentId: string) => 
+    api.get(`/tournaments/${tournamentId}/matches`).then(getData),
+  
+  // Go live with tournament
+  goLive: (id: string) => 
+    api.post(`/tournaments/${id}/live`).then(getData),
+  
+  // Update live scores (for tournaments)
+  updateLiveScores: (id: string, scores: any) => 
+    api.put(`/tournaments/${id}/scores`, { scores }).then(getData),
+};
+
+// ============================================
+// MATCH API
+// ============================================
+
+export const matchAPI = {
+  // Get all matches with optional filters
+  getAllMatches: (params?: { tournament?: string; status?: string }) => 
+    api.get('/matches', { params }).then(getData),
+  
+  // Get matches by tournament ID (convenience method)
+  getMatchesByTournament: (tournamentId: string) => 
+    api.get('/matches', { params: { tournament: tournamentId } }).then(getData),
+  
+  // Get single match by ID
+  getMatchById: (id: string) => 
+    api.get(`/matches/${id}`).then(getData),
+  
+  // Create new match
+  createMatch: (data: any) => 
+    api.post('/matches', data).then(getData),
+  
+  // Update match details
+  updateMatch: (id: string, data: any) => 
+    api.put(`/matches/${id}`, data).then(getData),
+  
+  // Delete match
+  deleteMatch: (id: string) => 
+    api.delete(`/matches/${id}`).then(getData),
+  
+  // --- Match Setup ---
+  
+  // Save toss winner and decision
+  saveToss: (id: string, tossWinnerId: string, decision: string) => 
     api.post('/tournaments', data).then(getData),
   
   // Update tournament
