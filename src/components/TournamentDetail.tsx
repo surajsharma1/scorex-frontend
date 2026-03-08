@@ -564,6 +564,17 @@ export default function TournamentDetail() {
   const fetchMatches = async () => {
     if (!id) return;
     try {
+      // First, get all teams for this tournament to have player data
+      const teamsRes = await teamAPI.getTeams(id);
+      const tournamentTeams: Team[] = teamsRes.data?.teams || teamsRes.data || [];
+      
+      // Create a map of team ID to team with players
+      const teamMap = new Map();
+      tournamentTeams.forEach((team: any) => {
+        teamMap.set(team._id, team);
+      });
+      
+      // Now fetch matches
       const data = await matchAPI.getMatchesByTournament(id);
       console.log('Fetched matches data:', data);
       let matchesArray: any[] = [];
@@ -574,7 +585,21 @@ export default function TournamentDetail() {
       } else if (data?.matches && Array.isArray(data.matches)) {
         matchesArray = data.matches;
       }
-      setMatches(matchesArray);
+      
+      // Enrich matches with team data (including players)
+      const enrichedMatches = matchesArray.map((match: any) => {
+        const teamAData = teamMap.get(match.teamA) || match.teamA;
+        const teamBData = teamMap.get(match.teamB) || match.teamB;
+        return {
+          ...match,
+          teamA: teamAData,
+          teamB: teamBData,
+          team1: teamAData, // Also set team1/team2 for compatibility
+          team2: teamBData
+        };
+      });
+      
+      setMatches(enrichedMatches);
     } catch (error: any) {
       console.error('Failed to fetch matches:', error);
       setError('Failed to fetch matches: ' + (error.response?.data?.message || error.message));
