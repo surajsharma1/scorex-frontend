@@ -577,6 +577,8 @@ export default function TournamentDetail() {
       // Now fetch matches using the tournament's matches endpoint
       const data = await tournamentAPI.getTournamentMatches(id);
       console.log('Fetched matches data:', data);
+      
+      // Handle the response - data could be { success: true, data: [...], count: X } or just [...]
       let matchesArray: any[] = [];
       if (Array.isArray(data)) {
         matchesArray = data;
