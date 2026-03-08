@@ -52,9 +52,73 @@ api.interceptors.response.use(
 );
 
 // ============================================
-// Helper function to extract data from response
+// Type Definitions
 // ============================================
 
+// Ball scoring types
+export interface BallPayload {
+  overNumber: number;
+  ballNumber: number;
+  bowler: string;
+  striker: string;
+  nonStriker: string;
+  runsOffBat: number;
+  extras: number;
+  extraType: 'None' | 'WD' | 'NB' | 'B' | 'LB' | 'Penalty';
+  isWicket: boolean;
+  wicketType?: string;
+}
+
+// Player selection types
+export interface PlayerSelectionPayload {
+  battingOrder: string[];
+  bowlingOrder: string[];
+  striker: string;
+  nonStriker: string;
+  bowler: string;
+}
+
+// Match types
+export interface CreateMatchPayload {
+  tournament?: string;
+  matchName?: string;
+  team1?: string;
+  team2?: string;
+  venue?: string;
+  matchDate?: string;
+  format?: string;
+  maxOvers?: number;
+}
+
+// Tournament types
+export interface CreateTournamentPayload {
+  name: string;
+  description?: string;
+  organizer?: string;
+  startDate?: string;
+  endDate?: string;
+  location?: string;
+  locationType?: string;
+  type?: string;
+  format?: string;
+}
+
+// Team types
+export interface CreateTeamPayload {
+  name: string;
+  color?: string;
+  tournament?: string;
+  players?: Array<{ name: string; role: string; jerseyNumber: string }>;
+}
+
+// Player types
+export interface AddPlayerPayload {
+  name: string;
+  role: string;
+  jerseyNumber: string;
+}
+
+// Helper function to extract data from response
 const getData = (response: any) => response.data;
 
 // ============================================
@@ -105,71 +169,7 @@ export const tournamentAPI = {
     api.get(`/tournaments/${id}`).then(getData),
   
   // Create new tournament
-  createTournament: (data: any) => 
-    api.post('/tournaments', data).then(getData),
-  
-  // Update tournament
-  updateTournament: (id: string, data: any) => 
-    api.put(`/tournaments/${id}`, data).then(getData),
-  
-  // Delete tournament
-  deleteTournament: (id: string) => 
-    api.delete(`/tournaments/${id}`).then(getData),
-  
-  // Add team to tournament
-  addTeam: (tournamentId: string, teamId: string) => 
-    api.post(`/tournaments/${tournamentId}/teams`, { teamId }).then(getData),
-  
-  // Generate fixtures for tournament
-  generateFixtures: (tournamentId: string) => 
-    api.post(`/tournaments/${tournamentId}/fixtures`).then(getData),
-  
-  // Get all matches for a tournament
-  getTournamentMatches: (tournamentId: string) => 
-    api.get(`/tournaments/${tournamentId}/matches`).then(getData),
-  
-  // Go live with tournament
-  goLive: (id: string) => 
-    api.post(`/tournaments/${id}/live`).then(getData),
-  
-  // Update live scores (for tournaments)
-  updateLiveScores: (id: string, scores: any) => 
-    api.put(`/tournaments/${id}/scores`, { scores }).then(getData),
-};
-
-// ============================================
-// MATCH API
-// ============================================
-
-export const matchAPI = {
-  // Get all matches with optional filters
-  getAllMatches: (params?: { tournament?: string; status?: string }) => 
-    api.get('/matches', { params }).then(getData),
-  
-  // Get matches by tournament ID (convenience method)
-  getMatchesByTournament: (tournamentId: string) => 
-    api.get('/matches', { params: { tournament: tournamentId } }).then(getData),
-  
-  // Get single match by ID
-  getMatchById: (id: string) => 
-    api.get(`/matches/${id}`).then(getData),
-  
-  // Create new match
-  createMatch: (data: any) => 
-    api.post('/matches', data).then(getData),
-  
-  // Update match details
-  updateMatch: (id: string, data: any) => 
-    api.put(`/matches/${id}`, data).then(getData),
-  
-  // Delete match
-  deleteMatch: (id: string) => 
-    api.delete(`/matches/${id}`).then(getData),
-  
-  // --- Match Setup ---
-  
-  // Save toss winner and decision
-  saveToss: (id: string, tossWinnerId: string, decision: string) => 
+  createTournament: (data: CreateTournamentPayload) => 
     api.post('/tournaments', data).then(getData),
   
   // Update tournament
@@ -197,7 +197,7 @@ export const matchAPI = {
     api.post(`/tournaments/${id}/live`).then(getData),
   
   // Update live scores
-  updateLiveScores: (id: string, scores: unknown) => 
+  updateLiveScores: (id: string, scores: any) => 
     api.put(`/tournaments/${id}/scores`, { scores }).then(getData),
 };
 
@@ -223,7 +223,7 @@ export const matchAPI = {
     api.post('/matches', data).then(getData),
   
   // Update match details
-  updateMatch: (id: string, data: unknown) => 
+  updateMatch: (id: string, data: any) => 
     api.put(`/matches/${id}`, data).then(getData),
   
   // Delete match
@@ -246,12 +246,12 @@ export const matchAPI = {
   
   // --- Scoring ---
   
-  // Score a single ball
-  scoreBall: (id: string, ballData: BallPayload) => 
+  // Score a single ball - using any type for backward compatibility with ScoreboardUpdate component
+  scoreBall: (id: string, ballData: any) => 
     api.put(`/matches/${id}/score`, ballData).then(getData),
   
   // Backward compatibility: updateMatchScore is alias for scoreBall
-  updateMatchScore: (id: string, ballData: BallPayload) => 
+  updateMatchScore: (id: string, ballData: any) => 
     api.put(`/matches/${id}/score`, ballData).then(getData),
   
   // Undo last ball
@@ -319,7 +319,7 @@ export const userAPI = {
     api.get('/users/profile').then(getData),
   
   // Update current user profile
-  updateProfile: (data: unknown) => 
+  updateProfile: (data: any) => 
     api.put('/users/profile', data).then(getData),
   
   // Search users by username/email
@@ -363,11 +363,11 @@ export const overlayAPI = {
     api.get(`/overlays/${id}`).then(getData),
   
   // Create overlay
-  createOverlay: (data: unknown) => 
+  createOverlay: (data: any) => 
     api.post('/overlays', data).then(getData),
   
   // Update overlay
-  updateOverlay: (id: string, data: unknown) => 
+  updateOverlay: (id: string, data: any) => 
     api.put(`/overlays/${id}`, data).then(getData),
   
   // Delete overlay
@@ -445,7 +445,7 @@ export const clubAPI = {
     api.get('/clubs/my').then(getData),
   
   // Create club
-  createClub: (data: unknown) => 
+  createClub: (data: any) => 
     api.post('/clubs', data).then(getData),
   
   // Join club
@@ -485,7 +485,7 @@ export const paymentAPI = {
     api.post('/payments/razorpay/order', { amount, plan }).then(getData),
   
   // Verify Razorpay payment
-  verifyRazorpayPayment: (data: unknown) => 
+  verifyRazorpayPayment: (data: any) => 
     api.post('/payments/razorpay/verify', data).then(getData),
 };
 
@@ -495,7 +495,7 @@ export const paymentAPI = {
 
 export const bracketAPI = {
   // Update bracket for tournament
-  updateBracket: (tournamentId: string, data: unknown) => 
+  updateBracket: (tournamentId: string, data: any) => 
     api.put(`/brackets/${tournamentId}`, data).then(getData),
 };
 
