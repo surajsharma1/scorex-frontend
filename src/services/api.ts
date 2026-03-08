@@ -109,7 +109,7 @@ export const matchAPI = {
   updateLiveScores: (id: string, scores: any) => api.put(`/matches/${id}/score`, scores),
   updateMatchScore: (id: string, scores: any) => api.put(`/matches/${id}/score`, scores),
   deleteMatch: async (matchId: string) => {
-    const response = await apiClient.delete(`/matches/${matchId}`);
+    const response = await api.delete(`/matches/${matchId}`);
     return response.data;
   }
   
