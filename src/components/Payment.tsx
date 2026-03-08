@@ -115,9 +115,9 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
           handler: async function (response: any) {
             try {
               await paymentAPI.verifyRazorpayPayment({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
                 plan: planName
               });
               onSuccess(planName);

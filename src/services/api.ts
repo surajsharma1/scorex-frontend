@@ -608,6 +608,7 @@ export const paymentAPI = {
     razorpayOrderId: string;
     razorpayPaymentId: string;
     razorpaySignature: string;
+    plan?: string;
   }) => api.post('/payments/razorpay/verify', data),
   
   // Get payment history
