@@ -207,6 +207,10 @@ export const matchAPI = {
   getAllMatches: (params?: { tournament?: string; status?: string }) => 
     api.get('/matches', { params }),
   
+  // Get matches by tournament ID (convenience method)
+  getMatchesByTournament: (tournamentId: string) => 
+    api.get('/matches', { params: { tournament: tournamentId } }),
+  
   // Get single match by ID
   getMatchById: (id: string) => 
     api.get(`/matches/${id}`),
@@ -501,10 +505,8 @@ export default api;
 // Keep these for backward compatibility with existing code
 export const getMatches = matchAPI.getAllMatches;
 export const getMatch = matchAPI.getMatchById;
-export const getMatchesByTournament = (tournamentId: string) => 
-  api.get('/matches', { params: { tournament: tournamentId } });
+export const getMatchesByTournament = matchAPI.getMatchesByTournament;
 export const updateMatchScore = matchAPI.scoreBall;
 export const updateLiveScores = matchAPI.scoreBall;
 export const goLive = tournamentAPI.goLive;
 export const updateLiveScoresTournament = tournamentAPI.updateLiveScores;
-

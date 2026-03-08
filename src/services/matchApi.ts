@@ -22,6 +22,29 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Export BallPayload type for backward compatibility
+export interface BallPayload {
+  overNumber: number;
+  ballNumber: number;
+  bowler: string;
+  striker: string;
+  nonStriker: string;
+  runsOffBat: number;
+  extras: number;
+  extraType: 'None' | 'WD' | 'NB' | 'B' | 'LB' | 'Penalty';
+  isWicket: boolean;
+  wicketType?: string;
+}
+
+// Export PlayerSelectionPayload type for backward compatibility
+export interface PlayerSelectionPayload {
+  battingOrder: string[];
+  bowlingOrder: string[];
+  striker: string;
+  nonStriker: string;
+  bowler: string;
+}
+
 // Re-export matchAPI functions for backward compatibility
 export const matchApi = {
   // Score a ball
