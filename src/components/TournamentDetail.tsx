@@ -173,7 +173,7 @@ export default function TournamentDetail() {
       const strikerName = inningsData.lineup[inningsData.strikerIndex]?.name || '';
       const nonStrikerName = inningsData.lineup[inningsData.nonStrikerIndex]?.name || '';
       
-      await matchAPI.updateMatchScore(selectedMatch._id, {
+      await matchAPI.updateMatch(selectedMatch._id, {
         score1: teamKey === 'team1' ? inningsData.totalRuns : (selectedMatch.score1 || 0),
         score2: teamKey === 'team2' ? inningsData.totalRuns : (selectedMatch.score2 || 0),
         wickets1: teamKey === 'team1' ? inningsData.wickets : (selectedMatch.wickets1 || 0),
@@ -561,12 +561,12 @@ export default function TournamentDetail() {
     return [];
   };
 
-  const fetchMatches = async () => {
+const fetchMatches = async () => {
     if (!id) return;
     try {
       // First, get all teams for this tournament to have player data
-      const teamsRes = await teamAPI.getTeams({ tournament: id });
-      const tournamentTeams: Team[] = teamsRes.data?.teams || teamsRes.data || [];
+      const teamsRes = await teamAPI.getTeams(id);
+      const tournamentTeams: Team[] = teamsRes?.data?.teams || teamsRes?.data || [];
       
       // Create a map of team ID to team with players
       const teamMap = new Map();
@@ -612,7 +612,7 @@ export default function TournamentDetail() {
   const fetchTeams = async () => {
     if (!id) return;
     try {
-      const response = await teamAPI.getTeams({ tournament: id });
+      const response = await teamAPI.getTeams(id);
       const teamsArray = extractArray(response);
       setTeams(teamsArray);
     } catch (error) {
@@ -662,7 +662,7 @@ export default function TournamentDetail() {
       const strikerName = innings.lineup[innings.strikerIndex]?.name || '';
       const nonStrikerName = innings.lineup[innings.nonStrikerIndex]?.name || '';
       
-      await matchAPI.updateMatchScore(selectedMatch._id, {
+      await matchAPI.updateMatch(selectedMatch._id, {
         score1: selectedTeamForUpdate === 'team1' ? innings.totalRuns : (selectedMatch.score1 || 0),
         score2: selectedTeamForUpdate === 'team2' ? innings.totalRuns : (selectedMatch.score2 || 0),
         wickets1: selectedTeamForUpdate === 'team1' ? innings.wickets : (selectedMatch.wickets1 || 0),
