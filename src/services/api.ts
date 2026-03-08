@@ -106,9 +106,13 @@ export const matchAPI = {
   },
   createMatch: (data: any) => api.post('/matches', data),
   updateMatch: (id: string, data: any) => api.put(`/matches/${id}`, data),
-  deleteMatch: (id: string) => api.delete(`/matches/${id}`),
   updateLiveScores: (id: string, scores: any) => api.put(`/matches/${id}/score`, scores),
   updateMatchScore: (id: string, scores: any) => api.put(`/matches/${id}/score`, scores),
+  deleteMatch: async (matchId: string) => {
+    const response = await apiClient.delete(`/matches/${matchId}`);
+    return response.data;
+  }
+  
 };
 
 export const teamAPI = {
