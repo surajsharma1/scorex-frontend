@@ -33,6 +33,7 @@ export const startMatch = matchAPI.startMatch;
 export const scoreBall = matchAPI.scoreBall;
 export const updateMatchScore = matchAPI.updateMatchScore;
 export const undoLastBall = matchAPI.undoLastBall;
+export const undoBall = matchAPI.undoLastBall;
 export const changeBowler = matchAPI.changeBowler;
 export const updateStriker = matchAPI.updateStriker;
 export const updateNonStriker = matchAPI.updateNonStriker;

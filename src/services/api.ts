@@ -348,9 +348,16 @@ export const matchAPI = {
 // ============================================
 
 export const teamAPI = {
-  // Get all teams with optional tournament filter
-  getTeams: (params?: { tournament?: string } & PaginationParams) => 
-    api.get('/teams', { params }),
+  // Get all teams with optional tournament filter - accepts string ID or params object
+  getTeams: (params?: string | { tournament?: string; page?: number; limit?: number }) => {
+    if (!params) {
+      return api.get('/teams');
+    }
+    if (typeof params === 'string') {
+      return api.get('/teams', { params: { tournament: params } });
+    }
+    return api.get('/teams', { params });
+  },
   
   // Get single team by ID
   getTeam: (id: string) => 
