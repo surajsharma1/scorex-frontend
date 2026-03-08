@@ -1,8 +1,10 @@
 // In src/components/TeamForm.tsx
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { teamAPI } from '../services/api';
 
 export default function TeamForm() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     color: '',
@@ -27,13 +29,16 @@ export default function TeamForm() {
     e.preventDefault();
     setLoading(true);
     try {
+      console.log('Submitting team data:', formData);
       const result = await teamAPI.createTeam(formData);
-      console.log('Team created:', result);
+      console.log('Team created successfully:', result);
       alert('Team created!');
-      window.location.href = '/teams';
+      // Use React Router navigation instead of window.location.href
+      navigate('/teams');
     } catch (error: any) {
       console.error('Failed to create team:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+      // Show detailed error message
       alert(`Failed to create team: ${errorMessage}`);
     } finally {
       setLoading(false);
