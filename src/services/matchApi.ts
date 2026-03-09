@@ -1,15 +1,13 @@
 /**
- * @deprecated This file is deprecated. All functionality has been merged into api.ts.
- * Please import from '../services/api' instead.
- * 
- * This file is kept for backward compatibility only.
+ * Match API Service
+ * Provides methods for cricket match scoring and management
  */
 
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
 
-// Create a simple axios instance for backward compatibility
+// Create axios instance
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
 });
@@ -22,7 +20,7 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Export BallPayload type for backward compatibility
+// Types
 export interface BallPayload {
   overNumber: number;
   ballNumber: number;
@@ -36,7 +34,6 @@ export interface BallPayload {
   wicketType?: string;
 }
 
-// Export PlayerSelectionPayload type for backward compatibility
 export interface PlayerSelectionPayload {
   battingOrder: string[];
   bowlingOrder: string[];
@@ -45,10 +42,28 @@ export interface PlayerSelectionPayload {
   bowler: string;
 }
 
-// Re-export matchAPI functions for backward compatibility
-const matchAPI = {
-  // Score a ball (also exported as updateMatchScore for backward compatibility)
-  scoreBall: async (matchId: string, payload: any) => {
+// API Methods
+export const matchApi = {
+  // Start match (toss + batting order)
+  startMatch: async (matchId: string, payload: {
+    tossWinner: string;
+    decision: 'bat' | 'bowl';
+    striker?: string;
+    nonStriker?: string;
+    bowler?: string;
+  }) => {
+    const response = await apiClient.put(`/matches/${matchId}/start`, payload);
+    return response.data;
+  },
+
+  // End innings
+  endInnings: async (matchId: string) => {
+    const response = await apiClient.put(`/matches/${matchId}/end-innings`);
+    return response.data;
+  },
+
+  // Score a ball
+  scoreBall: async (matchId: string, payload: BallPayload) => {
     const response = await apiClient.put(`/matches/${matchId}/score`, payload);
     return response.data;
   },
@@ -94,13 +109,13 @@ const matchAPI = {
   },
 
   // Save player selections
-  savePlayerSelections: async (matchId: string, payload: any) => {
+  savePlayerSelections: async (matchId: string, payload: PlayerSelectionPayload) => {
     const response = await apiClient.put(`/matches/${matchId}/players`, payload);
     return response.data;
   },
 
   // Change bowler
-  changeBowler: async (matchId: string, newBowlerId: string, newBowlerName: string) => {
+  changeBowler: async (matchId: string, newBowlerId: string, newBowlerName?: string) => {
     const response = await apiClient.put(`/matches/${matchId}/bowler`, {
       newBowler: newBowlerId
     });
@@ -108,7 +123,7 @@ const matchAPI = {
   },
 
   // Update striker
-  updateStriker: async (matchId: string, newStrikerId: string, newStrikerName: string) => {
+  updateStriker: async (matchId: string, newStrikerId: string, newStrikerName?: string) => {
     const response = await apiClient.put(`/matches/${matchId}/striker`, {
       newStriker: newStrikerId
     });
@@ -116,7 +131,7 @@ const matchAPI = {
   },
 
   // Update non-striker
-  updateNonStriker: async (matchId: string, newNonStrikerId: string, newNonStrikerName: string) => {
+  updateNonStriker: async (matchId: string, newNonStrikerId: string, newNonStrikerName?: string) => {
     const response = await apiClient.put(`/matches/${matchId}/nonstriker`, {
       newNonStriker: newNonStrikerId
     });
@@ -142,8 +157,5 @@ const matchAPI = {
   }
 };
 
-// Export both matchAPI and matchApi for backward compatibility
-export const matchApi = matchAPI;
-export { matchAPI };
-
 export default matchApi;
+
