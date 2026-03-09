@@ -14,6 +14,7 @@ export default function TeamList() {
 
   const fetchTeams = async (page: number = 1, append: boolean = false) => {
     try {
+      console.log('Fetching teams...');
       if (append) {
         setLoadingMore(true);
       } else {
@@ -22,6 +23,7 @@ export default function TeamList() {
       }
 
       const response = await teamAPI.getTeams();
+      console.log('Teams API response:', response);
       
       // Handle different response formats
       let newTeams: Team[] = [];
@@ -32,8 +34,10 @@ export default function TeamList() {
         paginationData = response.data.pagination;
       } else if (Array.isArray(response.data)) {
         newTeams = response.data;
+      } else if (response.data && Array.isArray(response.data.data)) {
+        newTeams = response.data.data;
       } else {
-        console.warn('Unexpected response format:', response.data);
+        console.warn('Unexpected teams response format:', response.data);
         newTeams = [];
       }
 
@@ -47,6 +51,7 @@ export default function TeamList() {
       setCurrentPage(page);
     } catch (err: any) {
       console.error('Failed to fetch teams:', err);
+      console.error('Error details:', err.response?.data || err.message);
       setError(err.response?.data?.message || err.message || 'Failed to load teams. Please try again.');
       setTeams([]);
     } finally {
