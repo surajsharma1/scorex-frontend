@@ -89,12 +89,12 @@ export default function TournamentForm() {
         description: formData.description,
         startDate: formData.startDate,
         endDate: formData.endDate,
-        // Backend expects: type (Round Robin, League, etc), location, locationType, organizer
-        // Frontend has: format (T20, ODI, etc)
-        type: formData.format === 'T20' ? 'League' : formData.format === 'ODI' ? 'League' : 'Knockout',
+        // Backend expects lowercase enum values: type ('round_robin', 'knockout', 'double_elimination', 'league', 'group_stage')
+        // locationType ('indoor', 'outdoor', 'both')
+        type: formData.format === 'T20' ? 'round_robin' : formData.format === 'ODI' ? 'round_robin' : 'knockout',
         organizer: 'Local', // Default organizer
         location: 'Stadium', // Default location  
-        locationType: 'Outdoor', // Default
+        locationType: 'outdoor', // Default - must be lowercase
         teams: formData.selectedTeams
       };
       
