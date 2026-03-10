@@ -84,17 +84,17 @@ export default function TournamentForm() {
     
     try {
       // Map frontend fields to backend API expected fields
+      // Deployed backend expects: locationType ("Indoor"|"Outdoor"|"Street"|"Stadium")
+      // type ("Round Robin"|"Knockout"|"Groups + Knockout"|"Double Elimination"|"League"|"Custom")
       const payload = {
         name: formData.name,
         description: formData.description,
         startDate: formData.startDate,
         endDate: formData.endDate,
-        // Backend expects lowercase enum values: type ('round_robin', 'knockout', 'double_elimination', 'league', 'group_stage')
-        // locationType ('indoor', 'outdoor', 'both')
-        type: formData.format === 'T20' ? 'round_robin' : formData.format === 'ODI' ? 'round_robin' : 'knockout',
+        type: formData.format === 'T20' ? 'League' : formData.format === 'ODI' ? 'League' : 'Knockout',
         organizer: 'Local', // Default organizer
         location: 'Stadium', // Default location  
-        locationType: 'outdoor', // Default - must be lowercase
+        locationType: 'Outdoor', // Must match backend expectation
         teams: formData.selectedTeams
       };
       
