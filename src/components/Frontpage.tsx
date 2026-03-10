@@ -21,51 +21,66 @@ export default function Frontpage() {
   return (
     <div className="min-h-screen bg-[#030305] text-white flex flex-col font-sans selection:bg-green-500/30 overflow-x-hidden">
       
-      {/* 1. Top Ticker */}
-      <Carousel />
-
-      {/* 2. Navigation */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${
-        scrollY > 50 ? 'bg-black/90 backdrop-blur-xl border-b border-white/5 py-3' : 'bg-transparent py-5'
+      {/* Navigation - Contains Carousel inside */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrollY > 50 ? 'bg-black/95 backdrop-blur-xl border-b border-white/5' : 'bg-black/80 backdrop-blur-sm'
       }`}>
-        <div className="container mx-auto px-6 flex justify-between items-center">
-            <div className="flex items-center gap-3 group cursor-pointer">
+        {/* Top Bar with Logo + Nav Links + Carousel + Auth Buttons */}
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo Section */}
+            <div className="flex items-center gap-3 group cursor-pointer shrink-0">
                 <div className="relative">
                     <div className="w-10 h-10 bg-gradient-to-tr from-green-600 to-emerald-400 rounded-xl flex items-center justify-center font-orbitron font-bold text-black text-lg shadow-lg shadow-green-500/20 group-hover:shadow-green-500/40 transition-all duration-300">
                         S
                     </div>
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                 </div>
-                <div className="flex flex-col">
-                    <span className="font-orbitron font-black text-2xl tracking-tight leading-none">
+                <div className="hidden sm:flex flex-col">
+                    <span className="font-orbitron font-black text-xl tracking-tight leading-none">
                         SCOREX
                     </span>
-                    <span className="text-[10px] text-green-400/60 font-medium tracking-[0.3em] uppercase">
+                    <span className="text-[8px] text-green-400/60 font-medium tracking-[0.3em] uppercase">
                         Live Scoring
                     </span>
                 </div>
             </div>
             
-            <div className="hidden md:flex items-center gap-8">
+            {/* Nav Links - Hidden on small screens, visible on md+ */}
+            <div className="hidden md:flex items-center gap-6 mx-4">
                 <NavLink href="#features">Features</NavLink>
                 <NavLink href="#overlays">Overlays</NavLink>
                 <NavLink href="#testimonials">Reviews</NavLink>
                 <NavLink href="#pricing">Pricing</NavLink>
             </div>
 
-            <div className="flex items-center gap-4">
+            {/* Carousel - Integrated in center, scrolls with page */}
+            <div className="flex-1 mx-4 hidden lg:block max-w-xl">
+              <div className="h-8 flex items-center">
+                <Carousel />
+              </div>
+            </div>
+
+            {/* Auth Buttons */}
+            <div className="flex items-center gap-3 shrink-0">
                 <Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition hidden sm:block">
                     Sign In
                 </Link>
-                <Link to="/register" className="px-6 py-2.5 bg-white text-black text-sm font-bold rounded-full hover:bg-gray-100 transition shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] transform hover:scale-105">
+                <Link to="/register" className="px-4 py-2 bg-white text-black text-sm font-bold rounded-full hover:bg-gray-100 transition shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] transform hover:scale-105">
                     Get Started
                 </Link>
             </div>
+          </div>
+        </div>
+        
+        {/* Mobile Carousel - Below nav on smaller screens */}
+        <div className="lg:hidden border-t border-white/5">
+          <Carousel />
         </div>
       </nav>
 
-      {/* 3. Hero Section - Enhanced */}
-      <div className="relative pt-32 pb-40 px-6 flex-1 flex flex-col justify-center overflow-hidden min-h-screen">
+      {/* Hero Section - Enhanced */}
+      <div className="relative pt-24 pb-40 px-6 flex-1 flex flex-col justify-center overflow-hidden min-h-screen">
         {/* Animated Grid Background */}
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgNDBMNDAgME0wIDBMNDAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-30"></div>
         

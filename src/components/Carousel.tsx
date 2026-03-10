@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { tournamentAPI } from '../services/api';
-import { Trophy, Radio, Zap, Calendar } from 'lucide-react';
+import { Radio, Zap } from 'lucide-react';
 
 interface TickerItem {
   _id: string;
@@ -47,33 +47,33 @@ export default function Carousel() {
   }, []);
 
   return (
-    <div className="w-full bg-black/90 backdrop-blur-xl border-b border-white/10 h-10 flex items-center overflow-hidden relative z-50">
-      {/* Static Label */}
-      <div className="bg-red-600 h-full px-4 flex items-center justify-center z-20 shadow-[4px_0_15px_rgba(220,38,38,0.5)]">
-        <span className="font-orbitron font-bold text-white text-xs flex items-center gap-2">
-            <Radio className="w-3 h-3 animate-pulse" /> LIVE FEED
+    <div className="flex items-center overflow-hidden w-full h-full bg-transparent">
+      {/* Live Label */}
+      <div className="bg-red-600 px-2 h-6 flex items-center justify-center shrink-0 rounded-sm">
+        <span className="font-orbitron font-bold text-white text-[10px] flex items-center gap-1">
+            <Radio className="w-2.5 h-2.5 animate-pulse" /> LIVE
         </span>
       </div>
 
       {/* Scrolling Container */}
-      <div className="flex overflow-hidden w-full">
-        <div className="animate-marquee flex items-center gap-12 pl-4">
+      <div className="overflow-hidden flex-1 ml-2">
+        <div className="animate-marquee flex items-center gap-8 whitespace-nowrap">
           {/* Tripled list ensures seamless infinite scroll loop */}
           {[...items, ...items, ...items].map((t, i) => (
-            <div key={`${t._id}-${i}`} className="flex items-center gap-3 text-sm font-medium whitespace-nowrap">
+            <div key={`${t._id}-${i}`} className="flex items-center gap-2 text-xs font-medium">
               {t.status === 'ongoing' ? (
-                <span className="text-xs font-bold text-red-400 border border-red-500/30 px-1 rounded animate-pulse-soft">LIVE</span>
+                <span className="text-[10px] font-bold text-red-400">LIVE</span>
               ) : (
-                <span className="text-xs font-bold text-blue-400 border border-blue-500/30 px-1 rounded">COMING SOON</span>
+                <span className="text-[10px] font-bold text-blue-400">SOON</span>
               )}
               
-              <span className="text-gray-200 font-barlow tracking-wide text-base">{t.name}</span>
+              <span className="text-gray-300 text-xs">{t.name}</span>
               
               {t.liveScore && (
-                 <span className="text-green-400 font-mono">{t.liveScore}</span>
+                 <span className="text-green-400 font-mono text-xs">{t.liveScore}</span>
               )}
               
-              <Zap className="w-3 h-3 text-yellow-500/50" />
+              <Zap className="w-2.5 h-2.5 text-yellow-500/50" />
             </div>
           ))}
         </div>

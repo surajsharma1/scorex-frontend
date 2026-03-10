@@ -37,9 +37,17 @@ export interface BallPayload {
 export interface PlayerSelectionPayload {
   battingOrder: string[];
   bowlingOrder: string[];
-  striker: string;
-  nonStriker: string;
-  bowler: string;
+  striker?: string;
+  nonStriker?: string;
+  bowler?: string;
+  strikerId?: string;
+  strikerName?: string;
+  nonStrikerId?: string;
+  nonStrikerName?: string;
+  bowlerId?: string;
+  bowlerName?: string;
+  team1Players?: { id: string; name: string }[];
+  team2Players?: { id: string; name: string }[];
 }
 
 // API Methods
