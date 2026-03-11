@@ -99,6 +99,7 @@ export default function TournamentForm() {
       };
       
       console.log('Creating tournament with payload:', payload);
+      console.log('Full payload details:', JSON.stringify(payload, null, 2));
       
       const res = await tournamentAPI.createTournament(payload);
       console.log('Tournament created successfully:', res.data);
@@ -107,10 +108,15 @@ export default function TournamentForm() {
       navigate('/tournaments');
     } catch (err: any) {
       console.error('Failed to create tournament:', err);
+      console.error('Error response:', err.response?.data);
       
       // Show more detailed error message
       if (err.response?.data?.message) {
         setError(err.response.data.message);
+      } else if (err.response?.data?.errors) {
+        // Handle Zod validation errors array
+        const errorMessages = err.response.data.errors.map((e: any) => `${e.field}: ${e.message}`).join(', ');
+        setError(errorMessages);
       } else if (err.message) {
         setError(err.message);
       } else {
