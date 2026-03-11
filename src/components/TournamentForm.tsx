@@ -91,10 +91,10 @@ export default function TournamentForm() {
         description: formData.description,
         startDate: formData.startDate,
         endDate: formData.endDate,
-        type: formData.format === 'T20' ? 'round_robin' : formData.format === 'ODI' ? 'round_robin' : 'knockout',
-        organizer: 'Local', // Default organizer
-        location: 'Stadium', // Default location  
-        locationType: 'outdoor', // Must be lowercase to match backend
+        type: formData.format === 'T20' ? 'League' : formData.format === 'ODI' ? 'League' : 'Knockout', // Match deployed backend's CAPS format
+        organizer: 'Local',
+        location: 'Stadium', // Match deployed backend's format  
+        locationType: 'Outdoor', // Match deployed backend's CAPS format
         teams: formData.selectedTeams
       };
       
