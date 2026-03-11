@@ -1,4 +1,3 @@
-# TODO: Fix Match ID Format Error
 
 ## Issue
 - Request to `/api/v1/matches/undefined/score` returns 400 "Invalid ID format"
