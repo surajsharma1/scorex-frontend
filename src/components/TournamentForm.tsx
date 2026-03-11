@@ -8,7 +8,7 @@ import Membership from './Membership';
 export default function TournamentForm() {
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
+    description: '',    
     startDate: '',
     endDate: '',
     format: 'T20',
