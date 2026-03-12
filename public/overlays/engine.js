@@ -1,357 +1,233 @@
-// public/overlays/engine.js
-// ScoreX Overlay Engine - Comprehensive Data Mode with Multiple Event Listeners
+/**
+ * Scorex Overlay Engine
+ * Connects overlay templates to live match data via Socket.io + REST API.
+ * Injected into every overlay by serveOverlay controller.
+ * window.OVERLAY_CONFIG is injected before this script runs.
+ */
+(function () {
+  'use strict';
 
-// Initialize Socket with proper configuration
-const socket = io(window.OVERLAY_CONFIG.apiBaseUrl || '/');
-const matchId = window.OVERLAY_CONFIG.matchId;
-const config = window.OVERLAY_CONFIG || {};
+  const config = window.OVERLAY_CONFIG || {};
+  const matchId = config.matchId;
+  const apiBaseUrl = config.apiBaseUrl || 'https://scorex-backend.onrender.com/api/v1';
+  const socketUrl = apiBaseUrl.replace('/api/v1', '');
 
-console.log('Engine.js loaded - COMPREHENSIVE DATA MODE');
+  // ─── State ────────────────────────────────────────────────────────────────
+  let matchData = null;
+  let socket = null;
+  let retryCount = 0;
+  const MAX_RETRIES = 5;
 
-// BroadcastChannel for same-browser communication (from ScoreboardUpdate)
-let broadcastChannel = null;
-try {
-    broadcastChannel = new BroadcastChannel('cricket_score_updates');
-    console.log('BroadcastChannel created');
-} catch (e) {
-    console.log('BroadcastChannel not supported in this context');
-}
+  // ─── Public API (window.ScorexOverlay) ────────────────────────────────────
+  window.ScorexOverlay = {
+    getData: () => matchData,
+    onUpdate: null,   // Set by template: window.ScorexOverlay.onUpdate = fn(data)
+    refresh: fetchMatchData
+  };
 
-// ========== UNIFIED DATA NORMALIZER ==========
-// This function normalizes data from different sources (LiveScoring.tsx, Socket, etc.)
-// to a consistent format that all overlays can use
-function normalizeScoreData(data) {
-    if (!data) return null;
-    
-    // Create normalized data object with defaults
-    const normalized = {
-        // Tournament info
-        tournament: data.tournamentName || data.tournament?.name || 'Match',
-        tournamentName: data.tournamentName || data.tournament?.name || 'Match',
-        
-        // Team 1 (batting team)
-        team1Name: data.team1Name || data.team1?.name || 'Team 1',
-        team1Short: data.team1Name?.substring(0, 3).toUpperCase() || data.team1?.shortName || 'T1',
-        team1Score: data.team1Score !== undefined ? data.team1Score : (data.team1?.score || 0),
-        team1Wickets: data.team1Wickets !== undefined ? data.team1Wickets : (data.team1?.wickets || 0),
-        team1Overs: data.team1Overs || data.team1?.overs || '0.0',
-        
-        // Team 2 (bowling team)
-        team2Name: data.team2Name || data.team2?.name || 'Team 2',
-        team2Short: data.team2Name?.substring(0, 3).toUpperCase() || data.team2?.shortName || 'T2',
-        team2Score: data.team2Score !== undefined ? data.team2Score : (data.team2?.score || 0),
-        team2Wickets: data.team2Wickets !== undefined ? data.team2Wickets : (data.team2?.wickets || 0),
-        team2Overs: data.team2Overs || data.team2?.overs || '0.0',
-        
-        // Current striker
-        strikerName: data.strikerName || data.striker?.name || 'Striker',
-        strikerRuns: data.strikerRuns !== undefined ? data.strikerRuns : (data.striker?.runs || 0),
-        strikerBalls: data.strikerBalls !== undefined ? data.strikerBalls : (data.striker?.balls || 0),
-        
-        // Current non-striker
-        nonStrikerName: data.nonStrikerName || data.nonStriker?.name || 'Non-Striker',
-        nonStrikerRuns: data.nonStrikerRuns !== undefined ? data.nonStrikerRuns : (data.nonStriker?.runs || 0),
-        nonStrikerBalls: data.nonStrikerBalls !== undefined ? data.nonStrikerBalls : (data.nonStriker?.balls || 0),
-        
-        // Current bowler
-        bowlerName: data.bowlerName || data.bowler?.name || 'Bowler',
-        bowlerOvers: data.bowlerOvers !== undefined ? data.bowlerOvers : (data.bowler?.overs || 0),
-        bowlerRuns: data.bowlerRuns !== undefined ? data.bowlerRuns : (data.bowler?.runs || 0),
-        bowlerWickets: data.bowlerWickets !== undefined ? data.bowlerWickets : (data.bowler?.wickets || 0),
-        
-        // Match stats
-        runRate: data.runRate || data.stats?.currentRunRate || '0.00',
-        requiredRunRate: data.requiredRunRate || data.stats?.requiredRunRate || '0.00',
-        target: data.target || data.stats?.target || 0,
-        
-        // Status
-        status: data.status || 'Live',
-        matchId: data.matchId || '',
-        
-        // Legacy field names (for backwards compatibility)
-        score: `${data.team1Score || 0}/${data.team1Wickets || 0}`,
-        overs: data.team1Overs || '0.0',
-        score1: data.team1Score,
-        wickets1: data.team1Wickets,
-        overs1: data.team1Overs,
-        score2: data.team2Score,
-        wickets2: data.team2Wickets,
-        overs2: data.team2Overs,
-    };
-    
-    return normalized;
-}
+  // ─── REST fetch ───────────────────────────────────────────────────────────
+  async function fetchMatchData() {
+    if (!matchId) {
+      console.warn('[Scorex Engine] No matchId configured.');
+      return;
+    }
+    try {
+      const res = await fetch(`${apiBaseUrl}/matches/${matchId}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const data = json.data || json;
+      updateState(normalise(data));
+    } catch (err) {
+      console.error('[Scorex Engine] Fetch error:', err);
+    }
+  }
 
-// DOM Elements Cache - Common elements across all templates
-const els = {
-    // Score elements
-    team1Name: document.getElementById('team1Name') || document.getElementById('teamName') || document.getElementById('battingTeam'),
-    team2Name: document.getElementById('team2Name') || document.getElementById('bowlingTeam'),
-    team1Score: document.getElementById('team1Score') || document.getElementById('score'),
-    team2Score: document.getElementById('team2Score'),
-    team1Wickets: document.getElementById('team1Wickets') || document.getElementById('wickets'),
-    team2Wickets: document.getElementById('team2Wickets'),
-    team1Overs: document.getElementById('team1Overs') || document.getElementById('overs'),
-    team2Overs: document.getElementById('team2Overs'),
-    
-    // Player elements
-    striker: document.getElementById('striker'),
-    strikerRuns: document.getElementById('strikerRuns'),
-    strikerBalls: document.getElementById('strikerBalls'),
-    nonStriker: document.getElementById('nonStriker'),
-    nonStrikerRuns: document.getElementById('nonStrikerRuns'),
-    nonStrikerBalls: document.getElementById('nonStrikerBalls'),
-    bowler: document.getElementById('bowler'),
-    bowlerOvers: document.getElementById('bowlerOvers'),
-    bowlerRuns: document.getElementById('bowlerRuns'),
-    bowlerWickets: document.getElementById('bowlerWickets'),
-    
-    // Rate elements
-    crr: document.getElementById('crr'),
-    rrr: document.getElementById('rrr'),
-    target: document.getElementById('target'),
-    
-    // Balls/Over elements
-    ballsContainer: document.getElementById('ballsContainer') || document.getElementById('ballsTracker'),
-    
-    // Tournament/Match info
-    tournament: document.getElementById('tournament'),
-    matchStatus: document.getElementById('matchStatus') || document.getElementById('status'),
-};
+  // ─── Socket.io ────────────────────────────────────────────────────────────
+  function connectSocket() {
+    if (!window.io) {
+      console.warn('[Scorex Engine] Socket.io not loaded, retrying...');
+      if (retryCount++ < MAX_RETRIES) setTimeout(connectSocket, 1000);
+      return;
+    }
 
-// Socket event handlers
-socket.on('connect', function() {
-    console.log('Socket connected in overlay engine');
-    
-    if (matchId) {
+    socket = window.io(socketUrl, {
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000
+    });
+
+    socket.on('connect', () => {
+      console.log('[Scorex Engine] Socket connected:', socket.id);
+      if (matchId) {
+        socket.emit('join_match', matchId);
         socket.emit('joinMatch', matchId);
+      }
+    });
+
+    // Primary score update event
+    socket.on('scoreUpdate', (data) => {
+      updateState(normalise(data));
+    });
+
+    // Match status changed (toss, start, end)
+    socket.on('matchStatusUpdate', (data) => {
+      if (data && (data._id === matchId || data.matchId === matchId)) {
+        fetchMatchData(); // Re-fetch full data on status change
+      }
+    });
+
+    socket.on('matchEnded', (data) => {
+      updateState(normalise(data));
+    });
+
+    socket.on('disconnect', () => {
+      console.warn('[Scorex Engine] Socket disconnected.');
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('[Scorex Engine] Connection error:', err.message);
+    });
+  }
+
+  // ─── Normalise match document into a flat, template-friendly shape ────────
+  function normalise(raw) {
+    if (!raw) return null;
+
+    // Handle both populated objects and plain ID strings for teams
+    const team1 = raw.team1 && typeof raw.team1 === 'object' ? raw.team1 : { _id: raw.team1, name: 'Team 1', shortName: 'T1' };
+    const team2 = raw.team2 && typeof raw.team2 === 'object' ? raw.team2 : { _id: raw.team2, name: 'Team 2', shortName: 'T2' };
+    const tossWinner = raw.tossWinner && typeof raw.tossWinner === 'object' ? raw.tossWinner : null;
+
+    // Current innings index (0-based)
+    const inningsIdx = (raw.currentInnings || 1) - 1;
+    const battingInnings = raw.innings && raw.innings[inningsIdx];
+    const completedInnings = raw.innings && raw.innings[0] && inningsIdx === 1 ? raw.innings[0] : null;
+
+    // Determine batting/bowling team for current innings
+    let battingTeam = team1;
+    let bowlingTeam = team2;
+    if (battingInnings && battingInnings.teamId) {
+      const btid = battingInnings.teamId.toString ? battingInnings.teamId.toString() : battingInnings.teamId;
+      const t1id = (team1._id || '').toString();
+      if (btid !== t1id) {
+        battingTeam = team2;
+        bowlingTeam = team1;
+      }
     }
-});
 
-socket.on('scoreUpdate', function(data) {
-    console.log('Socket scoreUpdate received in engine:', data);
-    handleScoreUpdate(data.match || data);
-});
+    // Overs formatted as "X.Y"
+    function fmtOvers(overs, balls) {
+      if (overs !== undefined) return Number(overs).toFixed(1);
+      if (balls !== undefined) return `${Math.floor(balls / 6)}.${balls % 6}`;
+      return '0.0';
+    }
 
-socket.on('playerUpdate', function(data) {
-    console.log('Player update received:', data);
-    handleScoreUpdate(data);
-});
+    const currentScore = battingInnings
+      ? { runs: battingInnings.score || 0, wickets: battingInnings.wickets || 0, overs: fmtOvers(battingInnings.overs, battingInnings.balls), runRate: (battingInnings.runRate || 0).toFixed(2) }
+      : { runs: raw.team1Score || 0, wickets: raw.team1Wickets || 0, overs: fmtOvers(raw.team1Overs), runRate: '0.00' };
 
-socket.on('matchUpdate', function(data) {
-    console.log('Match update received:', data);
-    handleScoreUpdate(data);
-});
+    const firstInningsScore = completedInnings
+      ? { runs: completedInnings.score || 0, wickets: completedInnings.wickets || 0, overs: fmtOvers(completedInnings.overs, completedInnings.balls) }
+      : null;
 
-// BroadcastChannel message handler
-if (broadcastChannel) {
-    broadcastChannel.onmessage = function(event) {
-        console.log('BroadcastChannel message received in engine:', event.data);
-        
-        // Handle score updates from other tabs
-        if (event.data && (event.data.team1Score !== undefined || event.data.strikerName)) {
-            handleScoreUpdate(event.data);
-        }
-        
-        // Handle wicket notifications
-        if (event.data && event.data.type === 'WICKET') {
-            if (typeof window.triggerPush === 'function') {
-                window.triggerPush(event.data.message || 'OUT!', 'W');
-            }
-        }
+    // Required runs (2nd innings)
+    const requiredRuns = battingInnings && battingInnings.requiredRuns != null ? battingInnings.requiredRuns : null;
+    const requiredRunRate = battingInnings && battingInnings.requiredRunRate != null ? Number(battingInnings.requiredRunRate).toFixed(2) : null;
+    const target = battingInnings && battingInnings.targetScore != null ? battingInnings.targetScore : null;
+
+    // Current over balls
+    const currentOverBalls = battingInnings && battingInnings.currentOverBalls
+      ? battingInnings.currentOverBalls
+      : [];
+
+    // Extras
+    const extras = battingInnings && battingInnings.extras
+      ? battingInnings.extras
+      : { wides: 0, noBalls: 0, byes: 0, legByes: 0 };
+    const totalExtras = (extras.wides || 0) + (extras.noBalls || 0) + (extras.byes || 0) + (extras.legByes || 0);
+
+    return {
+      // Match meta
+      matchId: raw._id,
+      matchName: raw.name || `${team1.name} vs ${team2.name}`,
+      status: raw.status || 'upcoming',
+      format: raw.format || 'T20',
+      venue: raw.venue || 'TBD',
+      currentInnings: raw.currentInnings || 1,
+
+      // Teams
+      team1: { id: team1._id, name: team1.name || 'Team 1', shortName: team1.shortName || 'T1', logo: team1.logo || '' },
+      team2: { id: team2._id, name: team2.name || 'Team 2', shortName: team2.shortName || 'T2', logo: team2.logo || '' },
+      battingTeam: { id: battingTeam._id, name: battingTeam.name, shortName: battingTeam.shortName, logo: battingTeam.logo || '' },
+      bowlingTeam: { id: bowlingTeam._id, name: bowlingTeam.name, shortName: bowlingTeam.shortName, logo: bowlingTeam.logo || '' },
+
+      // Toss
+      toss: raw.tossDecision ? {
+        winner: tossWinner ? tossWinner.name : (raw.tossWinner || ''),
+        decision: raw.tossDecision
+      } : null,
+
+      // Scores
+      score: currentScore,
+      firstInnings: firstInningsScore,
+      target,
+      requiredRuns,
+      requiredRunRate,
+
+      // Ball-by-ball (current over)
+      currentOverBalls,
+      currentOver: raw.currentOver || 0,
+      currentBall: raw.currentBall || 0,
+
+      // Extras
+      extras,
+      totalExtras,
+
+      // Full innings array (for scorecards)
+      innings: raw.innings || [],
+
+      // Result
+      winner: raw.winner,
+      resultType: raw.resultType,
+      margin: raw.margin,
+
+      // Raw doc in case template needs something specific
+      _raw: raw
     };
-}
+  }
 
-// postMessage listener for iframe communication
-window.addEventListener('message', function(event) {
-    if (event.data && event.data.type === 'UPDATE_SCORE' && event.data.data) {
-        console.log('postMessage received in engine:', event.data.data);
-        handleScoreUpdate(event.data.data);
+  // ─── State update + notify template ──────────────────────────────────────
+  function updateState(normalised) {
+    if (!normalised) return;
+    matchData = normalised;
+    if (typeof window.ScorexOverlay.onUpdate === 'function') {
+      try {
+        window.ScorexOverlay.onUpdate(matchData);
+      } catch (err) {
+        console.error('[Scorex Engine] onUpdate error:', err);
+      }
     }
-});
+    // Also fire a DOM event so templates can use addEventListener
+    window.dispatchEvent(new CustomEvent('scorex:update', { detail: matchData }));
+  }
 
-// Main score update handler - dispatches to multiple channels
-function handleScoreUpdate(data) {
-    if (!data) return;
-    
-    console.log('Handling score update in engine:', data);
-    
-    // Normalize the data to handle different formats from different sources
-    const normalizedData = normalizeScoreData(data);
-    console.log('Normalized data:', normalizedData);
-    
-    // Update DOM elements with normalized data
-    updateDOM(normalizedData);
-    
-    // Dispatch custom event for overlay-specific handling (with both raw and normalized data)
-    const customEvent = new CustomEvent('scoreUpdated', { detail: normalizedData });
-    window.dispatchEvent(customEvent);
-    
-    // Also dispatch with original data for backward compatibility
-    const rawEvent = new CustomEvent('scoreUpdatedRaw', { detail: data });
-    window.dispatchEvent(rawEvent);
-    
-    // Call global onScoreUpdate if exists
-    if (typeof window.onScoreUpdate === 'function') {
-        window.onScoreUpdate(normalizedData);
+  // ─── Boot ──────────────────────────────────────────────────────────────────
+  function init() {
+    if (!matchId) {
+      console.warn('[Scorex Engine] No matchId - overlay will show static content.');
+      return;
     }
-    
-    // Update handleOverlayScoreUpdate if exists
-    if (typeof window.handleOverlayScoreUpdate === 'function') {
-        window.handleOverlayScoreUpdate(normalizedData);
-    }
-}
+    fetchMatchData();       // Get initial state via REST
+    connectSocket();        // Then subscribe to live updates
+    // Poll every 30s as fallback for missed socket events
+    setInterval(fetchMatchData, 30000);
+  }
 
-// Update DOM elements with data
-function updateDOM(data) {
-    // Team 1
-    if (data.team1Name !== undefined) {
-        safeSetText('team1Name', data.team1Name);
-    }
-    if (data.team1Score !== undefined) {
-        safeSetText('team1Score', data.team1Score);
-    }
-    if (data.team1Wickets !== undefined) {
-        safeSetText('team1Wickets', data.team1Wickets);
-    }
-    if (data.team1Overs !== undefined) {
-        safeSetText('team1Overs', data.team1Overs);
-    }
-    
-    // Team 2
-    if (data.team2Name !== undefined) {
-        safeSetText('team2Name', data.team2Name);
-    }
-    if (data.team2Score !== undefined) {
-        safeSetText('team2Score', data.team2Score);
-    }
-    if (data.team2Wickets !== undefined) {
-        safeSetText('team2Wickets', data.team2Wickets);
-    }
-    if (data.team2Overs !== undefined) {
-        safeSetText('team2Overs', data.team2Overs);
-    }
-    
-    // Striker
-    if (data.strikerName !== undefined) {
-        safeSetText('strikerName', data.strikerName);
-    }
-    if (data.strikerRuns !== undefined) {
-        safeSetText('strikerRuns', data.strikerRuns);
-    }
-    if (data.strikerBalls !== undefined) {
-        safeSetText('strikerBalls', data.strikerBalls);
-    }
-    
-    // Non-striker
-    if (data.nonStrikerName !== undefined) {
-        safeSetText('nonStrikerName', data.nonStrikerName);
-    }
-    if (data.nonStrikerRuns !== undefined) {
-        safeSetText('nonStrikerRuns', data.nonStrikerRuns);
-    }
-    if (data.nonStrikerBalls !== undefined) {
-        safeSetText('nonStrikerBalls', data.nonStrikerBalls);
-    }
-    
-    // Bowler
-    if (data.bowlerName !== undefined) {
-        safeSetText('bowlerName', data.bowlerName);
-    }
-    if (data.bowlerOvers !== undefined) {
-        safeSetText('bowlerOvers', data.bowlerOvers);
-    }
-    if (data.bowlerRuns !== undefined) {
-        safeSetText('bowlerRuns', data.bowlerRuns);
-    }
-    if (data.bowlerWickets !== undefined) {
-        safeSetText('bowlerWickets', data.bowlerWickets);
-    }
-    
-    // Run rates
-    if (data.runRate !== undefined) {
-        safeSetText('crr', data.runRate);
-    }
-    if (data.requiredRunRate !== undefined) {
-        safeSetText('rrr', data.requiredRunRate);
-    }
-    if (data.target !== undefined) {
-        safeSetText('target', data.target);
-    }
-    
-    // Tournament
-    if (data.tournamentName !== undefined) {
-        safeSetText('tournament', data.tournamentName);
-    }
-}
-
-// Safe text setter with pulse animation
-function safeSetText(id, value) {
-    if (!id || value === undefined || value === null) return;
-    
-    const el = document.getElementById(id);
-    if (!el) return;
-    
-    const strValue = String(value);
-    if (el.innerText !== strValue) {
-        el.innerText = strValue;
-        
-        // Add pulse animation
-        el.classList.remove('pulse');
-        void el.offsetWidth;
-        el.classList.add('pulse');
-    }
-}
-
-function updateText(element, newValue) {
-    if (!element) return;
-    if (element.innerText !== newValue) {
-        element.classList.remove('pulse-update');
-        void element.offsetWidth;
-        element.innerText = newValue;
-        element.classList.add('pulse-update');
-    }
-}
-
-function handleNotification(event) {
-    if (!event || !els.notification) return;
-    
-    var notif = els.notification;
-    var text = els.notificationText;
-    
-    if (!text) return;
-    
-    var message = '';
-    var className = '';
-    
-    if (event === '4') { message = 'FOUR RUNS!'; className = 'notif-4'; }
-    else if (event === '6') { message = 'HUGE SIX!'; className = 'notif-6'; }
-    else if (['W', 'w', 'WICKET'].indexOf(event) !== -1) { message = 'WICKET!'; className = 'notif-w'; }
-    else return;
-    
-    text.innerText = message;
-    notif.className = 'notification-active ' + className;
-    
-    setTimeout(function() {
-        notif.className = '';
-    }, 3000);
-}
-
-// Expose functions globally for overlays to use
-window.handleScoreUpdate = handleScoreUpdate;
-window.triggerPush = handleNotification;
-
-// Add styles dynamically
-if (typeof document !== 'undefined' && !document.getElementById('overlay-engine-styles')) {
-    var style = document.createElement('style');
-    style.id = 'overlay-engine-styles';
-    style.textContent = '.pulse, .pulse-update { animation: pulse 0.3s ease-in-out; } @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } .ball-item { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; margin: 2px; font-size: 12px; font-weight: bold; background: #444; color: white; } .ball-item.boundary { background: #ffc107; color: #000; } .ball-item.wicket, .ball-item.ball-w { background: #e53935; color: white; } .notification-active { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; border-radius: 10px; font-size: 24px; font-weight: bold; z-index: 9999; animation: popIn 0.3s ease-out; } .notif-4 { background: #4caf50; color: white; } .notif-6 { background: #ff9800; color: white; } .notif-w { background: #f44336; color: white; } @keyframes popIn { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }';
-    document.head.appendChild(style);
-}
-
-// Auto-initialize BroadcastChannel if not already done
-if (typeof window.initBroadcastChannel === 'function') {
-    window.initBroadcastChannel();
-}
-
-console.log('ScoreX Overlay Engine initialized - COMPREHENSIVE DATA MODE', { matchId: matchId, config: config });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
