@@ -28,7 +28,11 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    if (token) {
+    // Skip auth for public endpoints
+    const publicEndpoints = ['/teams', '/matches', '/tournaments', '/leaderboard'];
+    const isPublic = publicEndpoints.some(endpoint => config.url?.startsWith(endpoint));
+    
+    if (token && !isPublic) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;

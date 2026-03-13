@@ -80,9 +80,12 @@ export interface PaginationMeta {
 }
 
 export interface Match {
-  teamB: any;
-  teamA: any;
+  teamB?: any;
+  teamA?: any;
   _id: string;
+  name?: string;
+  team1Name?: string;
+  team2Name?: string;
   tournament: Tournament | string;
   team1: Team;
   team2: Team;
@@ -90,7 +93,7 @@ export interface Match {
   venue: string;
   status: 'scheduled' | 'ongoing' | 'completed' | 'upcoming';
   matchType: string;
-  tossWinner?: string;
+  tossWinner?: string | { name: string };
   tossChoice?: 'bat' | 'bowl';
   winner?: Team;
   

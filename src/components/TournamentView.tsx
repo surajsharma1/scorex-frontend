@@ -290,7 +290,7 @@ export default function TournamentView() {
                                           <span className="text-sm text-gray-500">{new Date(match.date).toLocaleDateString()}</span>
                                       </div>
                                       <h4 className="text-lg font-bold">
-                                          {match.team1?.name || 'TBA'} <span className="text-gray-400 px-2">vs</span> {match.team2?.name || 'TBA'}
+                                          {match.name || match.team1?.name || match.team1Name || 'TBA'} <span className="text-gray-400 px-2">vs</span> {match.team2?.name || match.team2Name || 'TBA'}
                                       </h4>
                                       <p className="text-sm text-gray-500">{match.venue || 'No Venue'}</p>
                                   </div>

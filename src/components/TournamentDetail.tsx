@@ -770,7 +770,7 @@ const fetchMatches = async () => {
             {matches.length === 0 ? <p className="text-gray-400 text-center py-8">No matches yet</p> : matches.map((match) => (
               <div key={match._id} className="p-4 bg-gray-700 rounded-lg flex justify-between items-center">
                 <div>
-                  <h4 className="font-semibold">{match.teamA?.name || match.team1?.name} vs {match.teamB?.name || match.team2?.name}</h4>
+                  <h4 className="font-semibold">{match.name || match.teamA?.name || match.team1?.name || match.team1Name || 'TBA'} vs {match.name ? '' : (match.teamB?.name || match.team2?.name || match.team2Name || 'TBA')}</h4>
                   <p className="text-sm text-gray-400">{match.score1 !== undefined ? `${match.score1}/${match.wickets1} (${match.overs1})` : 'Not started'}</p>
                 </div>
                 <div className="flex gap-2">
@@ -1068,8 +1068,8 @@ const fetchMatches = async () => {
             {(selectedMatch.tossWinner || selectedMatch.tossChoice) && (
               <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-3 mb-4 text-center">
                 <p className="text-blue-300 text-sm">
-                  {selectedMatch.tossWinner ? (
-                    <>Toss: <span className="font-bold text-white">{selectedMatch.tossWinner}</span> chose to {selectedMatch.tossChoice || 'bat'}</>
+                  {selectedMatch.tossWinner?.name || selectedMatch.tossWinner ? (
+                    <>Toss: <span className="font-bold text-white">{selectedMatch.tossWinner.name || selectedMatch.tossWinner}</span> chose to {selectedMatch.tossChoice || 'bat'}</>
                   ) : (
                     <>Toss winner and choice not recorded</>
                   )}
