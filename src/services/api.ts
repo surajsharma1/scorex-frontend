@@ -45,10 +45,15 @@ api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+      const errorData = error.response.data as any;
+      const errorMessage = errorData.message || errorData.data?.message || '';
+      // Only clear/redirect on explicit auth failures, not permission issues
+      if (errorMessage.includes('Not authorized') || errorMessage.includes('token') || errorMessage.includes('Invalid credentials')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login?error=session_expired';
+        }
       }
     }
     return Promise.reject(error);
