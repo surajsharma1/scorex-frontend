@@ -1068,11 +1068,10 @@ const enrichedMatches = matchesArray.map((match: any) => {
             {(selectedMatch.tossWinner || selectedMatch.tossChoice) && (
               <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-3 mb-4 text-center">
                 <p className="text-blue-300 text-sm">
-                  {selectedMatch.tossWinner?.name || selectedMatch.tossWinner ? (
-                    <>Toss: <span className="font-bold text-white">{selectedMatch.tossWinner.name || selectedMatch.tossWinner}</span> chose to {selectedMatch.tossChoice || 'bat'}</>
-                  ) : (
+                  {typeof selectedMatch.tossWinner === 'object' ? selectedMatch.tossWinner?.name : selectedMatch.tossWinner ? selectedMatch.tossWinner : 'Unknown'} chose to {selectedMatch.tossChoice || 'bat'}
+
                     <>Toss winner and choice not recorded</>
-                  )}
+                  )
                 </p>
               </div>
             )}
