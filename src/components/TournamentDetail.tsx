@@ -589,9 +589,9 @@ const fetchMatches = async () => {
       }
       
       // Enrich matches with team data (including players)
-      const enrichedMatches = matchesArray.map((match: any) => {
-        const teamAData = teamMap.get(match.teamA) || match.teamA;
-        const teamBData = teamMap.get(match.teamB) || match.teamB;
+const enrichedMatches = matchesArray.map((match: any) => {
+        const teamAData = teamMap.get(match.teamA) || (typeof match.teamA === 'object' ? match.teamA : { name: match.teamA });
+        const teamBData = teamMap.get(match.teamB) || (typeof match.teamB === 'object' ? match.teamB : { name: match.teamB });
         return {
           ...match,
           teamA: teamAData,
