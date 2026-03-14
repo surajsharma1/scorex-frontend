@@ -863,19 +863,53 @@ const fetchMatches = async () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm mb-1">Toss Winner</label>
-                  <select value={matchForm.tossWinner} onChange={(e) => setMatchForm({...matchForm, tossWinner: e.target.value})} className="w-full p-2 bg-gray-700 rounded">
-                    <option value="">Toss Winner</option>
-                    {teams.map((team) => <option key={team._id} value={team.name}>{team.name}</option>)}
-                  </select>
+                  <label className="block text-sm mb-2 font-medium">Toss Winner</label>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    {teams.map((team) => {
+                      const isSelected = matchForm.tossWinner === team.name;
+                      return (
+                        <button
+                          key={team._id}
+                          type="button"
+                          onClick={() => setMatchForm({...matchForm, tossWinner: team.name})}
+                          className={`p-3 rounded-lg border-2 font-semibold flex items-center justify-center gap-2 transition-all ${
+                            isSelected
+                              ? 'border-green-500 bg-green-500/20 shadow-md'
+                              : 'border-gray-600 hover:border-blue-400 hover:bg-blue-500/10'
+                          }`}
+                        >
+                          {team.name}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm mb-1">Toss Choice</label>
-                  <select value={matchForm.tossChoice} onChange={(e) => setMatchForm({...matchForm, tossChoice: e.target.value})} className="w-full p-2 bg-gray-700 rounded">
-                    <option value="">Choose to</option>
-                    <option value="bat">Bat First</option>
-                    <option value="bowl">Bowl First</option>
-                  </select>
+                  <label className="block text-sm mb-2 font-medium">Toss Decision</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setMatchForm({...matchForm, tossChoice: 'bat'})}
+                      className={`p-4 rounded-lg border-2 font-bold transition-all ${
+                        matchForm.tossChoice === 'bat'
+                          ? 'border-green-500 bg-green-500/20 shadow-md'
+                          : 'border-gray-600 hover:border-blue-400 hover:bg-blue-500/10'
+                      }`}
+                    >
+                      🏏 Bat First
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMatchForm({...matchForm, tossChoice: 'bowl'})}
+                      className={`p-4 rounded-lg border-2 font-bold transition-all ${
+                        matchForm.tossChoice === 'bowl'
+                          ? 'border-green-500 bg-green-500/20 shadow-md'
+                          : 'border-gray-600 hover:border-blue-400 hover:bg-blue-500/10'
+                      }`}
+                    >
+                      🎯 Bowl First
+                    </button>
+                  </div>
                 </div>
               </div>
               <button type="submit" disabled={loading} className="w-full bg-green-600 hover:bg-green-700 py-3 rounded-lg font-bold">{loading ? 'Creating...' : 'Create Match'}</button>
@@ -893,16 +927,33 @@ const fetchMatches = async () => {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm mb-1">Toss Winner</label>
-                <select 
-                  value={tossWinner} 
-                  onChange={(e) => setTossWinner(e.target.value)}
-                  className="w-full p-2 bg-gray-700 rounded"
-                >
-                  <option value="">Select Winner</option>
-                  <option value={pendingMatchForToss.teamA?._id || pendingMatchForToss.team1?._id}>{pendingMatchForToss.teamA?.name || pendingMatchForToss.team1?.name}</option>
-                  <option value={pendingMatchForToss.teamB?._id || pendingMatchForToss.team2?._id}>{pendingMatchForToss.teamB?.name || pendingMatchForToss.team2?.name}</option>
-                </select>
+                <label className="block text-sm mb-2 font-medium">Toss Winner</label>
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setTossWinner(pendingMatchForToss!.teamA?._id || pendingMatchForToss!.team1?._id || '')}
+                    className={`p-4 rounded-lg border-2 font-bold flex flex-col items-center gap-1 transition-all ${
+                      tossWinner === (pendingMatchForToss!.teamA?._id || pendingMatchForToss!.team1?._id || '')
+                        ? 'border-green-500 bg-green-500/20 shadow-lg'
+                        : 'border-gray-600 hover:border-blue-500 hover:bg-blue-500/10'
+                    }`}
+                  >
+                    <div className="text-xl">⚽</div>
+                    <div className="text-sm">{pendingMatchForToss!.teamA?.name || pendingMatchForToss!.team1?.name || 'Team A'}</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTossWinner(pendingMatchForToss!.teamB?._id || pendingMatchForToss!.team2?._id || '')}
+                    className={`p-4 rounded-lg border-2 font-bold flex flex-col items-center gap-1 transition-all ${
+                      tossWinner === (pendingMatchForToss!.teamB?._id || pendingMatchForToss!.team2?._id || '')
+                        ? 'border-green-500 bg-green-500/20 shadow-lg'
+                        : 'border-gray-600 hover:border-blue-500 hover:bg-blue-500/10'
+                    }`}
+                  >
+                    <div className="text-xl">⚽</div>
+                    <div className="text-sm">{pendingMatchForToss!.teamB?.name || pendingMatchForToss!.team2?.name || 'Team B'}</div>
+                  </button>
+                </div>
               </div>
               
               <div>
