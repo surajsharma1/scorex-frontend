@@ -14,8 +14,8 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
-  const user = getCurrentUser();
-  const isAdmin = user?.role === 'admin';
+const user = getCurrentUser();
+  const isAdmin = user?.role === 'admin' || false;
 
   const handleLogout = () => {
     if(confirm("Are you sure you want to logout?")) {

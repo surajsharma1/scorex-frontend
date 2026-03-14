@@ -18,6 +18,12 @@ export default function Login() {
       const res = await authAPI.login({ email, password });
       localStorage.setItem('token', res.token);
       localStorage.setItem('user', JSON.stringify(res.user));
+      // Refresh user data
+      try {
+        await (await import('../utils/auth')).refreshCurrentUser();
+      } catch (refreshErr) {
+        console.warn('User refresh failed, using login response:', refreshErr);
+      }
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
@@ -49,19 +55,17 @@ export default function Login() {
       // Store the token
       localStorage.setItem('token', token);
       
-      // Fetch user data using the token
-      authAPI.getCurrentUser()
-        .then((res) => {
-          localStorage.setItem('user', JSON.stringify(res.data));
-          // Clean up URL and redirect to dashboard
-          window.history.replaceState({}, document.title, '/dashboard');
-          navigate('/dashboard');
-        })
-        .catch(() => {
-          // If failed to get user, still try to go to dashboard
-          window.history.replaceState({}, document.title, '/dashboard');
-          navigate('/dashboard');
-        });
+      // Refresh user data (fire-and-forget, no await in useEffect)
+      (async () => {
+        try {
+          await (await import('../utils/auth')).refreshCurrentUser();
+        } catch (refreshErr) {
+          console.warn('OAuth user refresh failed:', refreshErr);
+        }
+      })();
+      // Clean up URL and redirect to dashboard
+      window.history.replaceState({}, document.title, '/dashboard');
+      navigate('/dashboard');
     }
   }, [navigate]);
 

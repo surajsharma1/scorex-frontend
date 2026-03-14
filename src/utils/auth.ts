@@ -4,11 +4,9 @@
 
 export interface TokenPayload {
   userId: string;
-  username: string;
-  role: 'admin' | 'organizer' | 'user';
-  membership: 'free' | 'premium-level1' | 'premium-level2';
-  exp: number;
+  exp?: number;
 }
+
 
 // Safe JWT Decode (doesn't require external library)
 export function parseToken(token: string): TokenPayload | null {
@@ -21,13 +19,37 @@ export function parseToken(token: string): TokenPayload | null {
         .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     );
-    return JSON.parse(jsonPayload);
+    const payload = JSON.parse(jsonPayload);
+    return {
+      userId: payload.id || payload.userId,
+      exp: payload.exp
+    };
   } catch (e) {
+    console.error('Token parse error:', e);
     return null;
   }
 }
 
-export function getCurrentUser() {
+
+import api from '../services/api';
+
+export async function refreshCurrentUser(): Promise<any | null> {
+  const token = localStorage.getItem('token');
+  if (!token) return null;
+  
+  try {
+    const res = await api.get('/auth/me');
+    const data = res.data;
+    localStorage.setItem('user', JSON.stringify(data));
+    return data;
+  } catch (e) {
+    console.error('Failed to refresh user:', e);
+    return null;
+  }
+}
+
+
+export function getCurrentUser(): any | null {
   const userStr = localStorage.getItem('user');
   if (userStr && userStr.trim() !== '' && userStr !== 'undefined') {
     try {
@@ -40,10 +62,17 @@ export function getCurrentUser() {
   }
   
   const token = localStorage.getItem('token');
-  if (token) return parseToken(token);
+  if (token) {
+    const payload = parseToken(token);
+    if (payload) {
+      // Minimal user from token
+      return { userId: payload.userId };
+    }
+  }
   
   return null;
 }
+
 
 export function isAuthenticated(): boolean {
   const token = localStorage.getItem('token');
@@ -52,15 +81,15 @@ export function isAuthenticated(): boolean {
   const payload = parseToken(token);
   if (!payload) return false;
   
-  // Check expiration
-  const now = Date.now() / 1000;
-  if (payload.exp < now) {
+  // Check expiration (handle optional exp)
+  if (payload.exp && Date.now() / 1000 > payload.exp) {
     localStorage.removeItem('token');
     return false;
   }
   
   return true;
 }
+
 
 export function hasRole(role: 'admin' | 'organizer'): boolean {
   const user = getCurrentUser();
