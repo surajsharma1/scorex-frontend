@@ -878,7 +878,7 @@ const fetchMatches = async () => {
                               : 'border-gray-600 hover:border-blue-400 hover:bg-blue-500/10'
                           }`}
                         >
-                          {team.name}
+                          🏏 {team.name}
                         </button>
                       );
                     })}
@@ -938,8 +938,8 @@ const fetchMatches = async () => {
                         : 'border-gray-600 hover:border-blue-500 hover:bg-blue-500/10'
                     }`}
                   >
-                    <div className="text-xl">⚽</div>
-                    <div className="text-sm">{pendingMatchForToss!.teamA?.name || pendingMatchForToss!.team1?.name || 'Team A'}</div>
+                    <div className="text-xl">🏏</div>
+                    <div className="text-sm font-bold">{pendingMatchForToss!.teamA?.name || pendingMatchForToss!.team1?.name || 'Team A'}</div>
                   </button>
                   <button
                     type="button"
@@ -950,8 +950,8 @@ const fetchMatches = async () => {
                         : 'border-gray-600 hover:border-blue-500 hover:bg-blue-500/10'
                     }`}
                   >
-                    <div className="text-xl">⚽</div>
-                    <div className="text-sm">{pendingMatchForToss!.teamB?.name || pendingMatchForToss!.team2?.name || 'Team B'}</div>
+                    <div className="text-xl">🏏</div>
+                    <div className="text-sm font-bold">{pendingMatchForToss!.teamB?.name || pendingMatchForToss!.team2?.name || 'Team B'}</div>
                   </button>
                 </div>
               </div>
