@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { userAPI } from '../services/api';
-import { Users, Search, Ban, Unlock, Crown, Shield, Trash2, Activity, Trophy, MessageSquare, Calendar, X, Clock } from 'lucide-react';
+import { Users, Search, Ban, Unlock, Crown, Shield, Trash2, Activity, Trophy, MessageSquare, Calendar, X, Clock, RefreshCw } from 'lucide-react';
 
 interface User {
   _id: string;
@@ -28,6 +28,7 @@ export default function AdminPanel() {
     totalMatches: 0,
     activeUsers: 0
   });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -37,8 +38,19 @@ export default function AdminPanel() {
     try {
       const res = await userAPI.getAllUsers();
       setUsers(res.data.users || res.data || []);
-    } catch (e) {
-      console.error("Failed to load users", e);
+    } catch (e: any) {
+      const errInfo = {
+        status: e.response?.status,
+        statusText: e.response?.statusText,
+        data: e.response?.data,
+        message: e.message
+      };
+      console.error("Users API detailed error:", errInfo);
+      console.error("Full error object:", e);
+      const errMsg = errInfo.status === 403 ? "Access denied. Log in as admin." :
+                    errInfo.data?.message || errInfo.statusText || errInfo.message || 'Failed to load users';
+      setError(errMsg);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -137,7 +149,40 @@ export default function AdminPanel() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center dark:text-white">Loading admin panel...</div>;
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-2xl p-8 max-w-2xl mx-auto mb-8">
+          <div className="flex items-start gap-4 mb-6">
+            <Ban className="w-12 h-12 text-red-500 flex-shrink-0 mt-1" />
+            <div>
+              <h2 className="text-2xl font-bold text-red-900 dark:text-red-100 mb-2">Failed to load users</h2>
+              <p className="text-red-800 dark:text-red-200 leading-relaxed">{error}</p>
+              <p className="text-sm text-red-700 dark:text-red-300 mt-2">Check browser console for detailed error. Common issues: Backend not running, not logged in as admin, or no users in database.</p>
+            </div>
+          </div>
+        </div>
+        <div className="text-center">
+          <button
+            onClick={async () => {
+              setError(null);
+              setLoading(true);
+              await loadUsers();
+            }}
+            className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-xl font-bold text-lg flex items-center gap-2 mx-auto shadow-lg hover:shadow-xl transition-all"
+          >
+            <RefreshCw className="w-5 h-5 animate-spin" /> Retry Loading Users
+          </button>
+          <p className="text-sm text-gray-500 mt-3">Or refresh page (F5)</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) return <div className="p-8 text-center dark:text-white">
+    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <p className="mt-4">Loading admin panel...</p>
+  </div>;
 
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
