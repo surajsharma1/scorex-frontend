@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
+
+
 import { Tournament, Match, Team } from './types';
 import io, { Socket } from 'socket.io-client';
 import TeamManagement from './TeamManagement';

@@ -47,11 +47,17 @@ api.interceptors.response.use(
       const errorData = error.response.data as any;
       const errorMessage = errorData.message || errorData.data?.message || '';
       // Only clear/redirect on explicit auth failures, not permission issues
-      if (errorMessage.includes('Not authorized') || errorMessage.includes('token') || errorMessage.includes('Invalid credentials')) {
+      // Only clear/redirect on explicit expired token, not permission issues
+      if (errorMessage.includes('token failed') || errorMessage.includes('jwt expired') || errorMessage.includes('Token expired')) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         if (!window.location.pathname.includes('/login')) {
           window.location.href = '/login?error=session_expired';
+        }
+      } else if (errorMessage.includes('Not authorized') && !errorMessage.includes('user not found')) {
+        // Invalid user/token - prompt re-login but don't auto-clear
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login?error=auth_required';
         }
       }
     }
