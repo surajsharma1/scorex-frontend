@@ -83,8 +83,8 @@ const [users, setUsers] = useState<User[]>([]);
   useEffect(() => {
     setStats({
       totalUsers: users.length,
-      totalTournaments: 0,
-      totalMatches: 0,
+      adminUsers: 0,
+      organizerUsers: 0,
       activeUsers: users.filter(u => !u.deleted).length
     });
   }, [users]);
