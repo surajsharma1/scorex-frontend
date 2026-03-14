@@ -15,7 +15,9 @@ interface User {
 }
 
 export default function AdminPanel() {
-  const [users, setUsers] = useState<User[]>([]);
+const [users, setUsers] = useState<User[]>([]);
+  const [rawData, setRawData] = useState<any>(null);
+
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMembershipModal, setShowMembershipModal] = useState(false);
@@ -39,7 +41,9 @@ export default function AdminPanel() {
       const res = await userAPI.getAllUsers();
       console.log('Raw API response:', res);
       console.log('res.data:', res.data);
+      setRawData(res.data);
       setUsers(Array.isArray(res.data?.users) ? res.data.users : res.data || []);
+
     } catch (e: any) {
       const errInfo = {
         status: e.response?.status,
@@ -247,8 +251,24 @@ export default function AdminPanel() {
         </div>
       </div>
 
+      {/* Debug Raw Data */}
+      {rawData && (
+        <div className="mb-8 p-6 bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 rounded-xl">
+          <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-yellow-900 dark:text-yellow-200">
+            🔍 Debug: Raw API Response Data
+          </h3>
+          <pre className="text-xs overflow-auto max-h-96 bg-white dark:bg-gray-800 p-4 rounded-lg border font-mono">
+            {JSON.stringify(rawData, null, 2)}
+          </pre>
+          <p className="text-xs mt-2 text-yellow-700 dark:text-yellow-300">
+            Users count: {rawData.users?.length || 0} | If empty, check auth/backend
+          </p>
+        </div>
+      )}
+
       {/* Search Bar */}
       <div className="mb-6">
+
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
