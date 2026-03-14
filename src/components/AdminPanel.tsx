@@ -37,7 +37,9 @@ export default function AdminPanel() {
   const loadUsers = async () => {
     try {
       const res = await userAPI.getAllUsers();
-      setUsers(res.data.users || res.data || []);
+      console.log('Raw API response:', res);
+      console.log('res.data:', res.data);
+      setUsers(Array.isArray(res.data?.users) ? res.data.users : res.data || []);
     } catch (e: any) {
       const errInfo = {
         status: e.response?.status,
