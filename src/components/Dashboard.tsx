@@ -26,7 +26,7 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       console.log('Fetching dashboard data...');
-      // Fetch all data in parallel
+      // Fetch USER-SPECIFIC data
       const [tRes, mRes, teamRes] = await Promise.all([
         tournamentAPI.getTournaments(),
         matchAPI.getAllMatches(),
@@ -57,7 +57,6 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
 
   // Chart Data Configuration
   const barData = {
@@ -176,4 +175,5 @@ function StatsCard({ title, value, icon, bg }: any) {
             </div>
         </div>
     )
+}     
 }
