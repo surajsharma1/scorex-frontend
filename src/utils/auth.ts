@@ -29,11 +29,12 @@ export function parseToken(token: string): TokenPayload | null {
 
 export function getCurrentUser() {
   const userStr = localStorage.getItem('user');
-  if (userStr && userStr !== "undefined") {
+  if (userStr && userStr.trim() !== '' && userStr !== 'undefined') {
     try {
       return JSON.parse(userStr);
     } catch (e) {
       console.error("Error parsing user:", e);
+      localStorage.removeItem('user');
       return null;
     }
   }

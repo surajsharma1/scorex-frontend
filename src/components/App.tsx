@@ -50,11 +50,14 @@ function App() {
   let isAdmin = false;
   try {
     const userStr = localStorage.getItem('user');
-    if (userStr) {
+    if (userStr && userStr !== 'undefined') {
       user = JSON.parse(userStr);
       isAdmin = user?.role === 'admin';
     }
   } catch (e) {
+    console.error("Error parsing user data from localStorage:", e);
+    localStorage.removeItem('user');
+
     console.error("Error parsing user data from localStorage:", e);
     localStorage.removeItem('user');
   }
