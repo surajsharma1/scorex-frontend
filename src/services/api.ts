@@ -1,7 +1,7 @@
 /**
  * ScoreX API Client
  * Unified API for all backend endpoints
- * Base URL: /api/v1 (proxied) or VITE_API_BASE_URL env
+ * Base URL: /api/v1 (proxied) or VITE_API_BASE_URL env **/
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
