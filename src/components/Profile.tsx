@@ -28,6 +28,8 @@ export default function Profile() {
           bio: u.bio || '',
           fullName: u.fullName || ''
       });
+      // Sync localStorage for Sidebar and other global components
+      localStorage.setItem('user', JSON.stringify(u));
     } catch (error) {
       console.error("Failed to load profile");
     } finally {

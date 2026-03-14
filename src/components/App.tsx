@@ -50,7 +50,7 @@ function App() {
   let isAdmin = false;
   try {
     const userStr = localStorage.getItem('user');
-    if (userStr && userStr !== "undefined") {
+    if (userStr) {
       user = JSON.parse(userStr);
       isAdmin = user?.role === 'admin';
     }
