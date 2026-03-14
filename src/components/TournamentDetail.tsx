@@ -1,6 +1,6 @@
 
 
-import { Tournament, Match, Team } from './types';
+import { useState, useEffect } from 'react';&#10;import { useParams, useNavigate } from 'react-router-dom';&#10;import { Tournament, Match, Team } from './types';
 import io, { Socket } from 'socket.io-client';
 import TeamManagement from './TeamManagement';
 import OverlayEditor from './OverlayEditor';
