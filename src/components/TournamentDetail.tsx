@@ -781,7 +781,10 @@ const fetchMatches = async () => {
             {matches.length === 0 ? <p className="text-gray-400 text-center py-8">No matches yet</p> : matches.map((match) => (
               <div key={match._id} className="p-4 bg-gray-700 rounded-lg flex justify-between items-center">
                 <div>
-                  <h4 className="font-semibold">{match.name || match.teamA?.name || match.team1?.name || match.team1Name || 'TBA'} vs {match.name ? '' : (match.teamB?.name || match.team2?.name || match.team2Name || 'TBA')}</h4>
+                  <h4 className="font-semibold">
+                    {match.teamA?.name || match.team1?.name || match.team1Name || match.name?.split(' vs ')[0] || 'Team A'} vs{' '}
+                    {match.teamB?.name || match.team2?.name || match.team2Name || (match.name ? match.name.split(' vs ')[1] : 'Team B')}
+                  </h4>
                   <p className="text-sm text-gray-400">{match.score1 !== undefined ? `${match.score1}/${match.wickets1} (${match.overs1})` : 'Not started'}</p>
                 </div>
                 <div className="flex gap-2">
@@ -1068,7 +1071,10 @@ const fetchMatches = async () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
           <div className="bg-gray-800 p-4 md:p-6 rounded-lg w-full max-w-4xl">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">{selectedMatch.teamA?.name || selectedMatch.team1?.name} vs {selectedMatch.teamB?.name || selectedMatch.team2?.name}</h3>
+            <h3 className="text-xl font-bold">
+              {(selectedMatch.teamA?.name || selectedMatch.team1?.name || 'Team A')} vs{' '}
+              {(selectedMatch.teamB?.name || selectedMatch.team2?.name || 'Team B')}
+            </h3>
               <div className="flex gap-2">
                 <button onClick={undoLastAction} disabled={scoreHistory.length === 0} className="btn-secondary text-sm">Undo</button>
                 <button onClick={() => setSelectedMatch(null)} className="bg-gray-600 px-3 py-1 rounded">Close</button>
