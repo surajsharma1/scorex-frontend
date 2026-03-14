@@ -19,10 +19,6 @@ export default function Dashboard() {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
   const fetchDashboardData = async () => {
     try {
       console.log('Fetching dashboard data...');
@@ -57,6 +53,11 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
   // Chart Data Configuration
   const barData = {
@@ -164,7 +165,7 @@ export default function Dashboard() {
 
 // Helper Component for Stats
 function StatsCard({ title, value, icon, bg }: any) {
-    return (
+  return (
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
             <div>
                 <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{title}</p>
@@ -175,5 +176,4 @@ function StatsCard({ title, value, icon, bg }: any) {
             </div>
         </div>
     )
-}     
 }
