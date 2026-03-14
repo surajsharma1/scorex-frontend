@@ -588,16 +588,27 @@ const fetchMatches = async () => {
         matchesArray = data.matches;
       }
       
-      // Enrich matches with team data (including players)
-const enrichedMatches = matchesArray.map((match: any) => {
+      // Enrich matches with team data (including players) and repopulate toss fields
+      const enrichedMatches = matchesArray.map((match: any) => {
         const teamAData = teamMap.get(match.teamA) || (typeof match.teamA === 'object' ? match.teamA : { name: match.teamA });
         const teamBData = teamMap.get(match.teamB) || (typeof match.teamB === 'object' ? match.teamB : { name: match.teamB });
+        
+        // Repopulate tossWinner if it's a string ID
+        let populatedTossWinner = match.tossWinner;
+        if (typeof match.tossWinner === 'string') {
+          const tossTeam = teamMap.get(match.tossWinner);
+          if (tossTeam) {
+            populatedTossWinner = tossTeam;
+          }
+        }
+        
         return {
           ...match,
           teamA: teamAData,
           teamB: teamBData,
           team1: teamAData, // Also set team1/team2 for compatibility
-          team2: teamBData
+          team2: teamBData,
+          tossWinner: populatedTossWinner
         };
       });
       
