@@ -340,6 +340,10 @@ export const userAPI = {
   getAllUsers: () => 
     api.get('/users/all').then(getData),
   
+  // Get admin stats
+  getAdminStats: () => 
+    api.get('/stats/users').then(getData),
+  
   // Ban user (admin)
   banUser: (userId: string) => 
     api.put(`/users/${userId}/ban`).then(getData),
