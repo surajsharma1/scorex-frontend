@@ -28,7 +28,7 @@ export interface ClientToServerEvents {
 }
 
 // Dynamic URL handling for Vite/Env (Strip /api/v1 to get the root domain for WebSockets)
-const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 const SOCKET_URL = baseUrl.replace(/\/api\/v1\/?$/, '');
 
 // ==========================================
