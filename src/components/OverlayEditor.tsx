@@ -62,9 +62,11 @@ const getApiBaseUrl = (): string => {
 export default function OverlayEditor() {
   const [selectedTemplate, setSelectedTemplate] = useState(OVERLAY_TEMPLATES[0]);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [allMatches, setAllMatches] = useState<Match[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedMatchId, setSelectedMatchId] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedTournamentId, setSelectedTournamentId] = useState<string>('');
   const [showOverlay, setShowOverlay] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
@@ -77,8 +79,8 @@ export default function OverlayEditor() {
   });
   const [createLoading, setCreateLoading] = useState(false);
   
-  // All matches for selection (not just live)
-  const [allMatches, setAllMatches] = useState<Match[]>([]);
+// Tournament matches only
+const [tournamentMatches, setTournamentMatches] = useState<Match[]>([]);
   
   // State for created overlays
   const [createdOverlays, setCreatedOverlays] = useState<CreatedOverlay[]>([]);
@@ -105,7 +107,7 @@ export default function OverlayEditor() {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    loadLiveMatches();
+    loadLiveMatches(selectedTournamentId);
     loadTournaments();
     loadCreatedOverlays();
     // Initialize Broadcast Channel
@@ -114,7 +116,7 @@ export default function OverlayEditor() {
     return () => {
         if (channelRef.current) channelRef.current.close();
     };
-  }, []);
+  }, [selectedTournamentId]);
 
   // Listen for match updates from the server to auto-update overlay
   useEffect(() => {
@@ -133,10 +135,19 @@ export default function OverlayEditor() {
      return () => clearInterval(interval);
   }, [selectedMatchId, showOverlay]);
 
-  const loadLiveMatches = async () => {
+
+
+  const loadLiveMatches = async (tournamentId?: string) => {
     try {
         // API now returns response.data directly
-        const data = await matchAPI.getAllMatches();
+        let data;
+        if (tournamentId) {
+          // Tournament-specific matches only
+          data = await tournamentAPI.getTournamentMatches(tournamentId);
+        } else {
+          // All matches fallback
+          data = await matchAPI.getAllMatches();
+        }
         // Handle different response formats
         let allMatchesData: any[] = [];
         if (Array.isArray(data)) {
@@ -148,12 +159,13 @@ export default function OverlayEditor() {
         }
         // Store all matches for overlay creation
         setAllMatches(allMatchesData);
-        // Filter for live/active matches display (fix overlay selection)
-        const live = allMatchesData.filter((m: Match) => 
-          ['live', 'ongoing', 'in_progress'].includes((m.status || '').toLowerCase())
-        );
-        setMatches(live);
-        if (live.length === 0) {
+        // Filter for tournament matches only (per user request)
+        const tournamentMatches = Array.isArray(data.data) ? data.data : data.matches || data || [];
+        setMatches(tournamentMatches.filter((m: Match) => 
+          ['live', 'ongoing', 'in_progress', 'upcoming', 'ready'].includes((m.status || '').toLowerCase())
+        ));
+        console.log(`✅ Tournament matches loaded: ${tournamentMatches.length} total, ${matches.length} ready`);
+        if (matches.length === 0) {
           console.log('No live matches found for overlays');
         }
     } catch (e) {
@@ -224,7 +236,7 @@ export default function OverlayEditor() {
     }
     
     // Get the selected match to extract tournament
-    const selectedMatch = allMatches.find(m => m._id === createFormData.match);
+    const selectedMatch = allMatches.find((m: Match) => m._id === createFormData.match);
     if (!selectedMatch) {
       alert('Selected match not found');
       return;
@@ -491,9 +503,31 @@ export default function OverlayEditor() {
 
             {/* Match Selection Dropdown */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm mb-6">
-                <h2 className="text-xl font-bold mb-4 dark:text-white">
-                    Data Source ({matches.length} active match{matches.length !== 1 ? 'es' : ''})
-                  </h2>
+                <div className="space-y-4">
+                  <h2 className="text-xl font-bold dark:text-white">Data Source</h2>
+                  
+                  {/* NEW: Tournament Selector */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Tournament (Optional Filter)
+                    </label>
+                    <select 
+                      value={selectedTournamentId}
+                      onChange={(e) => setSelectedTournamentId(e.target.value)}
+                      className="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="">All Tournaments ({matches.length} matches)</option>
+                      {tournaments.map(t => (
+                        <option key={t._id} value={t._id}>
+                          {t.name} ({t.matches?.length || 0} matches)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <h3 className="text-lg font-semibold dark:text-white">
+                    Matches ({matches.length})
+                  </h3>
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Sync with Live Match
@@ -797,7 +831,7 @@ export default function OverlayEditor() {
                   required
                 >
                   <option value="">Select Match</option>
-                  {allMatches.map((matchItem) => (
+                  {allMatches.map((matchItem: Match) => (
                     <option key={matchItem._id} value={matchItem._id}>
                       {matchItem.team1?.name || 'Team 1'} vs {matchItem.team2?.name || 'Team 2'} 
                       ({matchItem.status || 'scheduled'})
@@ -901,4 +935,6 @@ export default function OverlayEditor() {
       )}
     </div>
   );
-}
+</div>
+)
+ }

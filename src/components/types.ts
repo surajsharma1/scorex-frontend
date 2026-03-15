@@ -57,6 +57,7 @@ export interface Team {
 }
 
 export interface Tournament {
+  matches: any;
   _id: string;
   name: string;
   description?: string;
