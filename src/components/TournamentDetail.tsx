@@ -866,11 +866,11 @@ const fetchMatches = async () => {
                     <button 
                       onClick={async () => {
                         try {
-                          await matchApi.updateMatchStatus(match._id, 'upcoming');
+                          await matchApi.updateMatchStatus(match._id, 'live');
                           handleLiveScoreClick(match);
                         } catch (error) {
                           console.error('Failed to update status:', error);
-                          alert('Failed to prepare match');
+                          handleLiveScoreClick(match);
                         }
                       }} 
                       className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm flex-1 text-center"
