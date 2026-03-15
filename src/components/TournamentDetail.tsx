@@ -348,25 +348,44 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
     });
   };
 
-  const handleLiveScoreClick = (match: Match) => {
-    console.log('Live Score clicked for match:', match);
-    console.log('Match teams:', {
-      teamA: match.teamA,
-      teamB: match.teamB,
-      team1: match.team1,
-      team2: match.team2
-    });
-    
-    // ✅ Client-side validation: only allow toss for upcoming matches
-    const matchStatus = (match.status || '').toLowerCase().trim();
-    if (matchStatus !== 'upcoming') {
-      alert(`Cannot start toss: Match status is "${matchStatus}". Only "upcoming" matches can have toss.`);
-      return;
-    }
-    
-    setPendingMatchForToss(match);
-    setShowTossModal(true);
-  };
+    const handleLiveScoreClick = (match: Match) => {
+      console.log('Live Score clicked for match:', match);
+      console.log('Match teams:', {
+        teamA: match.teamA,
+        teamB: match.teamB,
+        team1: match.team1,
+        team2: match.team2
+      });
+      
+      // Check tab-closed flag or live/upcoming status
+      const matchStatus = (match.status || '').toLowerCase().trim();
+      const tabClosedKey = `matchTabClosed:${match._id}`;
+      const tabClosedFlag = localStorage.getItem(tabClosedKey);
+      
+      const canStart = matchStatus === 'live' || 
+                       matchStatus === 'upcoming' || 
+                       tabClosedFlag === 'true';
+      
+      if (!canStart) {
+        alert(`Cannot start: Status "${matchStatus}". Only live/upcoming or tab-closed matches allowed.`);
+        return;
+      }
+      
+      // Clear flag after use
+      if (tabClosedFlag === 'true') {
+        localStorage.removeItem(tabClosedKey);
+      }
+      
+      if (matchStatus === 'live') {
+        // Direct to scoring (skip toss)
+        setSelectedMatch(match);
+        resetInnings(); // Load current state
+        return;
+      }
+      
+      setPendingMatchForToss(match);
+      setShowTossModal(true);
+    };
   
   const isValidObjectId = (id: string): boolean => {
     return /^[0-9a-fA-F]{24}$/.test(id);
@@ -417,10 +436,7 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
       const response = await matchApi.saveToss(pendingMatchForToss._id, tossWinner, tossDecision, true);
       console.log('✅ Toss API success:', response);
       
-      // Refresh matches to get updated status='live'
-      await fetchMatches();
-      
-      // Extract players safely
+      // Extract players safely BEFORE refresh (prevents modal state loss)
       const team1Data = pendingMatchForToss.teamA || pendingMatchForToss.team1 || { players: [] };
       const team2Data = pendingMatchForToss.teamB || pendingMatchForToss.team2 || { players: [] };
       
@@ -436,8 +452,19 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
       
       console.log('👥 Player lists ready. Opening selection modal.');
       
+      // Close toss modal BEFORE refresh
       setShowTossModal(false);
       setShowPlayerSelectionModal(true);
+      
+      // Delayed refresh to avoid state loss during modal transition
+      setTimeout(async () => {
+        try {
+          await fetchMatches();
+          console.log('🔄 Matches refreshed after toss');
+        } catch (refreshError) {
+          console.warn('Refresh after toss failed:', refreshError);
+        }
+      }, 1500);
       
     } catch (error: any) {
       console.error('💥 Toss API FAILED:', {
@@ -551,6 +578,28 @@ Check backend console for 📡 startMatch logs.`;
       fetchTeams();
     }
   }, [id]);
+
+  // Tab close recovery handler
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (selectedMatch?._id && selectedMatch.status === 'upcoming') {
+        localStorage.setItem(`matchTabClosed:${selectedMatch._id}`, 'true');
+      }
+      matches.forEach((match: any) => {
+        if (match.status === 'upcoming' && pendingMatchForToss?._id === match._id) {
+          localStorage.setItem(`matchTabClosed:${match._id}`, 'true');
+        }
+      });
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
+    };
+  }, [selectedMatch, matches, pendingMatchForToss]);
 
   useEffect(() => {
     const newSocket = io(import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000');
