@@ -29,7 +29,7 @@ export default function Login({ onLogin }: LoginProps) {
       if (data.success) {
         localStorage.setItem('token', data.data.token);
         localStorage.setItem('user', JSON.stringify(data.data.user));
-        navigate('/');
+        navigate('/dashboard');
       } else {
         alert(data.message);
       }

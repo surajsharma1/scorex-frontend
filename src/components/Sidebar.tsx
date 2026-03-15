@@ -24,7 +24,7 @@ export default function Sidebar({ user, logout }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(true);
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: Trophy, label: 'Tournaments', path: '/tournaments' },
     { icon: Users, label: 'Teams', path: '/teams' },
     { icon: MessageCircle, label: 'Live Matches', path: '/live' },
