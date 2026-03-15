@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { userAPI } from '../services/api';
+import { getCurrentUser } from '../utils/auth';
 import { Users, Search, Ban, Unlock, Crown, Shield, Trash2, Activity, Trophy, MessageSquare, Calendar, X, Clock, RefreshCw } from 'lucide-react';
 
 interface User {
@@ -15,7 +16,9 @@ interface User {
 }
 
 export default function AdminPanel() {
-  const [users, setUsers] = useState<User[]>([]);
+const [users, setUsers] = useState<User[]>([]);
+  const [rawData, setRawData] = useState<any>(null);
+
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMembershipModal, setShowMembershipModal] = useState(false);
@@ -24,20 +27,41 @@ export default function AdminPanel() {
   const [durationMonths, setDurationMonths] = useState<number>(1);
   const [stats, setStats] = useState({
     totalUsers: 0,
-    totalTournaments: 0,
-    totalMatches: 0,
+    adminUsers: 0,
+    organizerUsers: 0,
     activeUsers: 0
   });
+  const currentUser = getCurrentUser();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadUsers();
+    loadStats();
   }, []);
+
+  const loadStats = async () => {
+    try {
+      const res = await userAPI.getAdminStats();
+      console.log('Admin stats:', res);
+      setStats({
+        totalUsers: res.totalUsers || 0,
+        adminUsers: res.adminUsers || 0,
+        organizerUsers: res.organizerUsers || 0,
+        activeUsers: res.totalUsers || 0
+      });
+    } catch (e) {
+      console.error('Failed to load admin stats:', e);
+    }
+  };
 
   const loadUsers = async () => {
     try {
       const res = await userAPI.getAllUsers();
-      setUsers(res.data.users || res.data || []);
+      console.log('Raw API response:', res);
+      console.log('res.data:', res.data);
+      setRawData(res.data);
+      setUsers(Array.isArray(res.data?.users) ? res.data.users : res.data || []);
+
     } catch (e: any) {
       const errInfo = {
         status: e.response?.status,
@@ -59,8 +83,8 @@ export default function AdminPanel() {
   useEffect(() => {
     setStats({
       totalUsers: users.length,
-      totalTournaments: 0,
-      totalMatches: 0,
+      adminUsers: 0,
+      organizerUsers: 0,
       activeUsers: users.filter(u => !u.deleted).length
     });
   }, [users]);
@@ -194,6 +218,12 @@ export default function AdminPanel() {
         <p className="text-gray-500 dark:text-gray-400">Manage users and system settings</p>
       </div>
 
+      {/* Current Admin */}
+      <div className="mb-6 p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl text-white">
+        <p className="text-lg font-bold">Logged in as Admin: <span className="underline">{currentUser?.username || 'Unknown'}</span></p>
+        <p className="text-blue-100">{currentUser?.email}</p>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
@@ -210,6 +240,30 @@ export default function AdminPanel() {
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
+            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
+              <Shield className="w-6 h-6 text-red-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Admins</p>
+              <p className="text-2xl font-bold dark:text-white">{stats.adminUsers}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+              <Crown className="w-6 h-6 text-indigo-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Organizers</p>
+              <p className="text-2xl font-bold dark:text-white">{stats.organizerUsers}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3">
             <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
               <Activity className="w-6 h-6 text-green-600" />
             </div>
@@ -219,34 +273,26 @@ export default function AdminPanel() {
             </div>
           </div>
         </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-              <Trophy className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Tournaments</p>
-              <p className="text-2xl font-bold dark:text-white">{stats.totalTournaments}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-              <Calendar className="w-6 h-6 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Matches</p>
-              <p className="text-2xl font-bold dark:text-white">{stats.totalMatches}</p>
-            </div>
-          </div>
-        </div>
       </div>
+
+      {/* Debug Raw Data */}
+      {rawData && (
+        <div className="mb-8 p-6 bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 rounded-xl">
+          <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-yellow-900 dark:text-yellow-200">
+            🔍 Debug: Raw API Response Data
+          </h3>
+          <pre className="text-xs overflow-auto max-h-96 bg-white dark:bg-gray-800 p-4 rounded-lg border font-mono">
+            {JSON.stringify(rawData, null, 2)}
+          </pre>
+          <p className="text-xs mt-2 text-yellow-700 dark:text-yellow-300">
+            Users count: {rawData.users?.length || 0} | If empty, check auth/backend
+          </p>
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className="mb-6">
+
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
