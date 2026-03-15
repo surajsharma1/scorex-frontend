@@ -1,4 +1,5 @@
 import { io, Socket, ManagerOptions, SocketOptions } from 'socket.io-client';
+import { getSocketUrl } from './env';
 
 // Define typed events
 export interface ServerToClientEvents {
@@ -27,9 +28,9 @@ export interface ClientToServerEvents {
   joinUserRoom: (userId: string) => void;
 }
 
-// Dynamic URL handling for Vite/Env (Strip /api/v1 to get the root domain for WebSockets)
-const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api/v1';
-const SOCKET_URL = baseUrl.replace(/\/api\/v1\/?$/, '');
+// Production-ready socket URL (handles env/relative/localhost)
+const SOCKET_URL = getSocketUrl();
+
 
 // ==========================================
 // SESSION MANAGEMENT
