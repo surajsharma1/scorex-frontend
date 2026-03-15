@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getApiBaseUrl } from '../services/env';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User } from 'lucide-react';
 
@@ -16,8 +17,7 @@ export default function Login({ onLogin }: LoginProps) {
     setLoading(true);
     
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${apiBase}/auth/login`, {
+      const res = await fetch(`${getApiBaseUrl()}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -106,9 +106,8 @@ export default function Login({ onLogin }: LoginProps) {
 
         <button
           type="button"
-          onClick={() => {
-            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            window.location.href = `${apiBase}/auth/google`;
+        onClick={() => {
+            window.location.href = `${getApiBaseUrl()}/auth/google`;
           }}
           className="w-full bg-white hover:bg-gray-100 text-gray-900 font-bold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 text-lg flex items-center justify-center gap-3 border border-gray-200"
         >
