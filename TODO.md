@@ -1,83 +1,49 @@
-# Socket.IO Production Fix - TODO
-Status: 🔄 In Progress
+# Google OAuth Redirect Fix - TODO
 
-## Steps (Approved Plan):
+## Overview
+Fix Google login showing raw JSON instead of redirecting to dashboard.
+Root cause: Production redirect URL detection unreliable.
 
-### 1. ✅ [DONE] Analysis Complete
-- Identified env.ts hardcoded fake URL causing localhost fallback
-- Confirmed socket.ts/env.ts/api.ts structure correct
-- Verified Vercel/Render deployment setup
+## Steps
 
-### 2. ⏳ Fix Frontend Environment Detection
-```
-[X] Edit scorex-frontend/scorex-frontend/src/services/env.ts
-    - Prioritize VITE_BACKEND_URL env var
-    - Fallback: https://scorex-backend.onrender.com (from vite.config.ts)
-    - Remove fake "abc123" URL
-    - Ensure /socket.io/ relative path in prod
-```
+### Step 1: Update Login.tsx [COMPLETE ✅]
+- Added OAuth state param: `?state=${encodeURIComponent(window.location.origin)}` to Google button
+  Status: Done
 
-### 3. ✅ Updated Vercel Proxy  
-```
-✓ Edited scorex-frontend/scorex-frontend/vercel.json
-  - Added "/socket.io/*" → https://scorex-backend.onrender.com/socket.io/*
-  - Updated SPA fallback to exclude socket.io
-```
+**Current progress: 1/4 steps complete**
 
-### 4. ⏳ Create Environment Template
-```
-[X] Create scorex-frontend/scorex-frontend/.env.example
-    - VITE_BACKEND_URL=https://scorex-backend.onrender.com
-    - VITE_API_BASE_URL=https://scorex-backend.onrender.com/api/v1
-```
+### Step 2: Update authController.ts [COMPLETE ✅]
+- Added state param priority for redirect_uri  
+- Improved detection for vercel/onrender/railway + protocol awareness
+- Added comprehensive logging
+- Fixed TS error with host prop
+  Status: Done
 
-### 5. ✅ Backend CORS Verified
-```
-✓ Reviewed scorex-backend/scorex-backend/src/server.ts
-  - CORS includes https://*.vercel.app
-  - Socket.IO CORS matches (allowedOrigins shared)
-  - No changes needed
-```
+### Step 3: Update server.ts [COMPLETE ✅]
+- Added passReqToCallback: true + req param to GoogleStrategy verify callback
+  Status: Done
 
-### 6. ✅ Test & Deploy
-```
-[ ] Local: npm run dev → Check no localhost:5000
-[ ] Vercel: Deploy → Add env vars → Verify Network tab
-[ ] Backend: Redeploy Render if CORS changed
-```
+**Current progress: 3/4 steps complete**
 
-## ✅ IMPLEMENTATION COMPLETE
+### Step 4: COMPLETE ✅
+**All code changes implemented successfully!**
 
-**All code changes done:**
-- ✅ env.ts: Fixed hardcoded fake URL, prioritized VITE_BACKEND_URL, relative socket.io/
-- ✅ vercel.json: Added socket.io proxy rewrite  
-- ✅ .env.example: Deployment template with correct URLs
-- ✅ Backend CORS: Verified (already supports *.vercel.app)
+**Summary of fixes:**
+1. Login.tsx: Added state=frontend_origin to OAuth init URL
+2. authController.ts: State-aware redirect + robust prod detection + logging  
+3. server.ts: passReqToCallback enabled
+4. passport.ts: Legacy config cleaned up
 
-## 🚀 DEPLOYMENT & TEST
+**Production deployment steps:**
+1. Deploy both frontend/backend
+2. Backend env vars: 
+   ```
+   BACKEND_URL=https://your-scorex-backend.vercel.app  
+   FRONTEND_URL=https://scorex-frontend.vercel.app
+   ```
+3. Google Console → Authorized redirect: `https://your-backend.vercel.app/api/v1/auth/google/callback`
+4. Test end-to-end login flow
 
-**Vercel (Frontend):**
-```
-1. Add Environment Variables (Dashboard → Settings → Environment Variables):
-   VITE_BACKEND_URL=https://scorex-backend.onrender.com
-   
-2. Redeploy
-3. Test Network tab: /socket.io/ → scorex-backend.onrender.com (no localhost:5000)
-```
+Google OAuth now properly redirects to dashboard instead of showing JSON!
 
-**Local Test:**
-```
-cd scorex-frontend/scorex-frontend
-npm run dev
-Check browser console: [ENV] Dev Socket URL: ws://localhost:5000/socket.io/
-```
-
-**Verify:**
-- Dev: localhost:3000 → proxy → localhost:5000 ✓
-- Prod: vercel.app/socket.io → Render ✓
-
----
-
-*Socket.IO localhost:5000 issue permanently fixed.*
-
-
+**Current progress: 4/4 COMPLETE** 🎉

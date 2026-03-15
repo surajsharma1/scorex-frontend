@@ -106,8 +106,9 @@ export default function Login({ onLogin }: LoginProps) {
 
         <button
           type="button"
-        onClick={() => {
-            window.location.href = `${getApiBaseUrl()}/auth/google`;
+onClick={() => {
+            const frontendOrigin = window.location.origin;
+            window.location.href = `${getApiBaseUrl()}/auth/google?state=${encodeURIComponent(frontendOrigin)}`;
           }}
           className="w-full bg-white hover:bg-gray-100 text-gray-900 font-bold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 text-lg flex items-center justify-center gap-3 border border-gray-200"
         >
