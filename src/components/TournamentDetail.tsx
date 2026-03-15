@@ -355,27 +355,46 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
   
   const handleTossSave = async () => {
     if (!pendingMatchForToss || !tossWinner || !tossDecision) {
-      alert('Please select toss winner and decision');
+      alert(`Please select toss winner (${tossWinner || 'none'}) and decision (${tossDecision || 'none'})`);
       return;
     }
     
+    console.log('💰 Saving toss:', {
+      matchId: pendingMatchForToss._id,
+      tossWinnerId: tossWinner,
+      tossDecision,
+      teamA: pendingMatchForToss.teamA,
+      teamB: pendingMatchForToss.teamB
+    });
+    
     try {
       await matchApi.saveToss(pendingMatchForToss._id, tossWinner, tossDecision);
+      console.log('✅ Toss saved successfully');
       
-      const team1 = pendingMatchForToss.teamA as Team || pendingMatchForToss.team1 as Team;
-      const team2 = pendingMatchForToss.teamB as Team || pendingMatchForToss.team2 as Team;
+      // Safely extract teams with fallbacks
+      const team1Data = pendingMatchForToss.teamA || pendingMatchForToss.team1 || { players: [] };
+      const team2Data = pendingMatchForToss.teamB || pendingMatchForToss.team2 || { players: [] };
       
-      const t1Players = team1?.players?.map((p: any) => ({ id: p.id || p._id, name: p.name })) || [];
-      const t2Players = team2?.players?.map((p: any) => ({ id: p.id || p._id, name: p.name })) || [];
+      const t1Players = (team1Data.players || []).map((p: any) => ({ 
+        id: p.id || p._id || `t1-${Math.random()}`, 
+        name: p.name || 'Player TBD' 
+      }));
+      const t2Players = (team2Data.players || []).map((p: any) => ({ 
+        id: p.id || p._id || `t2-${Math.random()}`, 
+        name: p.name || 'Player TBD' 
+      }));
+      
+      console.log('👥 Players extracted:', { t1Players: t1Players.length, t2Players: t2Players.length });
       
       setTeam1Players(t1Players);
       setTeam2Players(t2Players);
       
       setShowTossModal(false);
       setShowPlayerSelectionModal(true);
-    } catch (error) {
-      console.error('Failed to save toss:', error);
-      alert('Failed to save toss');
+    } catch (error: any) {
+      console.error('❌ Failed to save toss:', error);
+      console.error('Error response:', error.response?.data);
+      alert(`Failed to save toss: ${error.response?.data?.message || error.message || 'Unknown error'}`);
     }
   };
   
@@ -530,19 +549,35 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
     return [];
   };
 
-  const fetchMatches = async () => {
+const fetchMatches = async () => {
     if (!id) return;
     try {
-      const teamsRes = await teamAPI.getTeams(id);
-      const tournamentTeams: Team[] = teamsRes?.data?.teams || teamsRes?.data || [];
+      console.log('🔍 Fetching matches for tournament:', id);
       
-      const teamMap = new Map();
-      tournamentTeams.forEach((team: any) => {
-        teamMap.set(team._id, team);
+      // Step 1: Fetch ALL teams comprehensively (not just tournament-specific)
+      const allTeamsRes = await teamAPI.getTeams();
+      const tournamentTeamsRes = await teamAPI.getTeams(id);
+      
+      const allTeams: any[] = allTeamsRes?.data?.teams || allTeamsRes?.data || [];
+      const tournamentTeams: any[] = tournamentTeamsRes?.data?.teams || tournamentTeamsRes?.data || [];
+      
+      console.log('📊 Teams found:', { allTeams: allTeams.length, tournamentTeams: tournamentTeams.length });
+      
+      // Create comprehensive team map (prioritize tournament teams)
+      const teamMap = new Map<string, any>();
+      [...tournamentTeams, ...allTeams].forEach((team: any) => {
+        if (team._id && !teamMap.has(team._id.toString())) {
+          teamMap.set(team._id.toString(), {
+            _id: team._id,
+            name: team.name || 'Unnamed Team',
+            shortName: team.shortName || team.name?.slice(0,3)?.toUpperCase() || 'TEAM'
+          });
+        }
       });
       
+      // Step 2: Fetch tournament matches
       const data = await tournamentAPI.getTournamentMatches(id);
-      console.log('Fetched matches data:', data);
+      console.log('📋 Raw matches data:', data);
       
       let matchesArray: any[] = [];
       if (Array.isArray(data)) {
@@ -553,19 +588,29 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
         matchesArray = data.matches;
       }
       
-      const enrichedMatches = matchesArray.map((match: any) => {
-        const teamAData = teamMap.get(match.teamA) || (typeof match.teamA === 'object' ? match.teamA : { name: match.teamA });
-        const teamBData = teamMap.get(match.teamB) || (typeof match.teamB === 'object' ? match.teamB : { name: match.teamB });
+      console.log('🔢 Matches array length:', matchesArray.length);
+      
+      // Step 3: Robust population
+      const enrichedMatches = matchesArray.map((match: any, index: number) => {
+        console.log(`Match ${index}:`, {
+          rawTeamA: match.teamA,
+          rawTeamB: match.teamB,
+          teamAResolved: teamMap.get(match.teamA?.toString()),
+          teamBResolved: teamMap.get(match.teamB?.toString())
+        });
+        
+        const teamAData = teamMap.get(match.teamA?.toString()) || 
+                         (typeof match.teamA === 'object' ? match.teamA : { name: match.teamAName || 'Team A', _id: match.teamA });
+                         
+        const teamBData = teamMap.get(match.teamB?.toString()) || 
+                         (typeof match.teamB === 'object' ? match.teamB : { name: match.teamBName || 'Team B', _id: match.teamB });
         
         let populatedTossWinner = match.tossWinner;
         if (typeof match.tossWinner === 'string') {
-          const tossTeam = teamMap.get(match.tossWinner);
-          if (tossTeam) {
-            populatedTossWinner = tossTeam;
-          }
+          populatedTossWinner = teamMap.get(match.tossWinner) || { name: 'Toss TBD', _id: match.tossWinner };
         }
         
-        return {
+        const enrichedMatch = {
           ...match,
           teamA: teamAData,
           teamB: teamBData,
@@ -573,11 +618,24 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
           team2: teamBData,
           tossWinner: populatedTossWinner
         };
+        
+        console.log(`✅ Enriched match ${index}:`, {
+          teamAName: teamAData.name,
+          teamBName: teamBData.name
+        });
+        
+        return enrichedMatch;
       });
       
       setMatches(enrichedMatches);
+      console.log('🎉 Matches populated successfully:', enrichedMatches.length);
     } catch (error: any) {
-      console.error('Failed to fetch matches:', error);
+      console.error('❌ Failed to fetch matches:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        message: error.response?.data?.message || error.message,
+        url: error.config?.url
+      });
       setError('Failed to fetch matches: ' + (error.response?.data?.message || error.message));
       setMatches([]);
     }
@@ -889,7 +947,11 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => setTossWinner(pendingMatchForToss!.teamA?._id || pendingMatchForToss!.team1?._id || '')}
+                    onClick={() => {
+                      const teamId = pendingMatchForToss!.teamA?._id || pendingMatchForToss!.team1?._id;
+                      console.log('Team A button clicked:', { teamId, teamName: pendingMatchForToss!.teamA?.name || pendingMatchForToss!.team1?.name });
+                      if (teamId) setTossWinner(teamId);
+                    }}
                     className={`p-4 rounded-lg border-2 font-bold flex flex-col items-center gap-1 transition-all ${
                       tossWinner === (pendingMatchForToss!.teamA?._id || pendingMatchForToss!.team1?._id || '')
                         ? 'border-green-500 bg-green-500/20 shadow-lg scale-105'
@@ -897,11 +959,17 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
                     }`}
                   >
                     <div className="text-2xl">🏏</div>
-                    <div className="text-sm font-bold">{pendingMatchForToss!.teamA?.name || pendingMatchForToss!.team1?.name || 'Team A'}</div>
+                    <div className="text-sm font-bold truncate max-w-[100px]">
+                      {pendingMatchForToss!.teamA?.name || pendingMatchForToss!.team1?.name || 'Team A TBD'}
+                    </div>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setTossWinner(pendingMatchForToss!.teamB?._id || pendingMatchForToss!.team2?._id || '')}
+                    onClick={() => {
+                      const teamId = pendingMatchForToss!.teamB?._id || pendingMatchForToss!.team2?._id;
+                      console.log('Team B button clicked:', { teamId, teamName: pendingMatchForToss!.teamB?.name || pendingMatchForToss!.team2?.name });
+                      if (teamId) setTossWinner(teamId);
+                    }}
                     className={`p-4 rounded-lg border-2 font-bold flex flex-col items-center gap-1 transition-all ${
                       tossWinner === (pendingMatchForToss!.teamB?._id || pendingMatchForToss!.team2?._id || '')
                         ? 'border-green-500 bg-green-500/20 shadow-lg scale-105'
@@ -909,7 +977,9 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
                     }`}
                   >
                     <div className="text-2xl">🏏</div>
-                    <div className="text-sm font-bold">{pendingMatchForToss!.teamB?.name || pendingMatchForToss!.team2?.name || 'Team B'}</div>
+                    <div className="text-sm font-bold truncate max-w-[100px]">
+                      {pendingMatchForToss!.teamB?.name || pendingMatchForToss!.team2?.name || 'Team B TBD'}
+                    </div>
                   </button>
                 </div>
               </div>
