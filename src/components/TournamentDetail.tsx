@@ -604,15 +604,7 @@ const fetchMatches = async () => {
       const data = await tournamentAPI.getTournamentMatches(id);
       console.log('📋 Raw matches data:', data);
       
-      let matchesArray: any[] = [];
-      if (Array.isArray(data)) {
-        matchesArray = data;
-      } else if (data?.data && Array.isArray(data.data)) {
-        matchesArray = data.data;
-      } else if (data?.matches && Array.isArray(data.matches)) {
-        matchesArray = data.matches;
-      }
-      
+      let matchesArray: any[] = data.data || data;
       console.log('🔢 Matches array length:', matchesArray.length);
       
       // Step 3: Robust population
@@ -625,20 +617,24 @@ const fetchMatches = async () => {
         });
         
         // BULLETPROOF population - prioritize populated objects, fallback to map, ultimate fallback
-        let teamAData = null;
-        let teamBData = null;
+        // Use match.team1/team2 if available (backend standard)
+        const rawTeam1 = match.team1 || match.teamA;
+        const rawTeam2 = match.team2 || match.teamB;
+        
+        let team1Data = null;
+        let team2Data = null;
         
         // Direct populated object check
-        if (match.teamA && typeof match.teamA === 'object' && match.teamA.name) {
-          teamAData = { _id: match.teamA._id || match.teamA.id, name: match.teamA.name };
-        } else if (match.teamA) {
-          teamAData = teamMap.get(String(match.teamA)) || { _id: match.teamA, name: `Team A (${match.teamA?.slice(-4)})` };
+        if (rawTeam1 && typeof rawTeam1 === 'object' && rawTeam1.name) {
+          team1Data = { _id: rawTeam1._id || rawTeam1.id, name: rawTeam1.name };
+        } else if (rawTeam1) {
+          team1Data = teamMap.get(String(rawTeam1)) || { _id: rawTeam1, name: `Team 1 (${String(rawTeam1).slice(-4)})` };
         }
         
-        if (match.teamB && typeof match.teamB === 'object' && match.teamB.name) {
-          teamBData = { _id: match.teamB._id || match.teamB.id, name: match.teamB.name };
-        } else if (match.teamB) {
-          teamBData = teamMap.get(String(match.teamB)) || { _id: match.teamB, name: `Team B (${match.teamB?.slice(-4)})` };
+        if (rawTeam2 && typeof rawTeam2 === 'object' && rawTeam2.name) {
+          team2Data = { _id: rawTeam2._id || rawTeam2.id, name: rawTeam2.name };
+        } else if (rawTeam2) {
+          team2Data = teamMap.get(String(rawTeam2)) || { _id: rawTeam2, name: `Team 2 (${String(rawTeam2).slice(-4)})` };
         }
         
         let tossWinnerData = null;
@@ -652,10 +648,10 @@ const fetchMatches = async () => {
         
         const enrichedMatch = {
           ...match,
-          teamA: teamAData || { name: 'Team A TBD', _id: 'unknown' },
-          teamB: teamBData || { name: 'Team B TBD', _id: 'unknown' },
-          team1: teamAData || { name: 'Team A TBD', _id: 'unknown' },
-          team2: teamBData || { name: 'Team B TBD', _id: 'unknown' },
+          team1: team1Data || { name: 'Team 1 TBD', _id: 'unknown' },
+          team2: team2Data || { name: 'Team 2 TBD', _id: 'unknown' },
+          teamA: team1Data || { name: 'Team 1 TBD', _id: 'unknown' },
+          teamB: team2Data || { name: 'Team 2 TBD', _id: 'unknown' },
           tossWinner: tossWinnerData
         };
         
@@ -846,9 +842,9 @@ const fetchMatches = async () => {
               matches.map((match) => (
                 <div key={match._id} className="p-4 bg-gray-700 rounded-lg flex justify-between items-center">
                   <div>
-                    <h4 className="font-semibold">
-                      {match.teamA?.name || match.team1?.name || match.team1Name || match.name?.split(' vs ')[0] || 'Team A'} vs{' '}
-                      {match.teamB?.name || match.team2?.name || match.team2Name || (match.name ? match.name.split(' vs ')[1] : 'Team B')}
+<h4 className="font-semibold">
+                      {match.team1?.name || match.teamA?.name || match.team1Name || match.name?.split(' vs ')[0] || 'Team 1'} vs{' '}
+                      {match.team2?.name || match.teamB?.name || match.team2Name || (match.name ? match.name.split(' vs ')[1] : 'Team 2')}
                     </h4>
                     <p className="text-sm text-gray-400">
                       {match.score1 !== undefined 
