@@ -64,10 +64,16 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://scorex-backend.onrender.com',
         changeOrigin: true,
-        secure: false,
+        secure: true,
         rewrite: (path) => path.replace(/^\/api/, '/api/v1')
+      },
+      '/socket.io': {
+        target: 'https://scorex-backend.onrender.com',
+        ws: true,
+        changeOrigin: true,
+        secure: true
       }
     }
   },
