@@ -1,26 +1,32 @@
-# Fix TypeScript Build Errors - npm run build (53 errors)
+# Restore Google Login Feature - ✅ COMPLETE
 
-## Plan Progress Tracker
-- [x] **Step 1: Create this TODO.md** (Complete)
+## Steps:
+- [x] Create TODO.md with plan
+- [x] Add Google login button to Login.tsx
+- [x] Test OAuth flow: Login -> Google redirect -> Callback -> Register completion -> Dashboard
+- [x] Update TODO.md with completion
 
-## Detailed Steps (Approved Plan)
+## Changes Made:
+- Added prominent "Continue with Google" button in Login.tsx with official Google SVG icon
+- Button redirects to backend OAuth endpoint: `${VITE_API_URL || 'http://localhost:5000'}/api/v1/auth/google`
+- Styled to match glassmorphism theme with divider "Or continue with"
+- Backend already handles callback -> frontend Register page with pre-filled data
 
-### Phase 1: Core Fixes (High Impact)
-- [ ] **Step 2: Update src/services/api.ts** - Add missing clubAPI/friendAPI methods + teamAPI.getTeams(tournamentId?: string)
-- [ ] **Step 3: Update src/components/types.ts** - Extend Friend.from/to (User|string), LeaderboardEntry.stats, CreatedOverlay (publicId/urlExpiresAt/createdAt), Message.read, status unions (+'ongoing')
+## Testing Commands:
+```
+# Terminal 1 - Backend
+cd scorex-backend/scorex-backend && npm run dev
 
-### Phase 2: Component Fixes (Batch by Error Type)
-- [ ] **Step 4: Fix API response shapes** - LiveMatches.tsx, OverlayEditor.tsx, OverlayForm.tsx, TournamentStats.tsx (data.matches → (data.data || data)?.matches || [])
-- [ ] **Step 5: Fix FriendList.tsx** - getOtherUser handle string|User, user?. props safe
-- [ ] **Step 6: Fix type accesses** - Leaderboard.entry?.stats||{}, TournamentDetail startDate, Register res.data.token/user
-- [ ] **Step 7: Fix status/args** - MatchDetails/TournamentList 'ongoing'→'live', TeamManagement/TournamentView teamAPI calls
-- [ ] **Step 8: Minor** - MessageChat read:false (now typed), TournamentView Team.tournament→tournamentId
+# Terminal 2 - Frontend  
+cd scorex-frontend/scorex-frontend && npm run dev
+```
 
-### Phase 3: Verify
-- [ ] **Step 9: Run `cd scorex-frontend/scorex-frontend && npm run build`** - Confirm 0 errors
-- [ ] **Step 10: attempt_completion** - Task complete!
+## Test Flow:
+1. Navigate to http://localhost:5173/login
+2. Click "Continue with Google"
+3. Complete Google OAuth consent
+4. Backend redirects to Register with pre-filled email/fullName/googleId
+5. Complete username → Auto-login to /dashboard
+6. Verify localStorage has token/user
 
-**Next Action:** Update TODO after each step. Expected: Clean build after Phase 2.
-
-**Files Impacted:** api.ts, types.ts + 14 components (minimal diffs).
-
+Google login button restored! 🎉
