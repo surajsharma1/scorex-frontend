@@ -62,7 +62,7 @@ export interface Tournament {
   description?: string;
   startDate: string;
   endDate?: string;
-  status: 'upcoming' | 'ongoing' | 'completed';
+status: 'upcoming' | 'ongoing' | 'completed' | 'live';
   format: 'T20' | 'ODI' | 'Test';
   teams: Team[];
   numberOfTeams?: number;
@@ -91,7 +91,7 @@ export interface Match {
   team2: Team;
   date: string;
   venue: string;
-  status: 'scheduled' | 'ongoing' | 'completed' | 'upcoming';
+status: 'scheduled' | 'ongoing' | 'completed' | 'upcoming' | 'live';
   matchType: string;
   tossWinner?: string | { name: string };
   tossChoice?: 'bat' | 'bowl';
