@@ -3,20 +3,24 @@
    "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://scorex-backend.onrender.com/api/v1/$1"
-    },
-    {
-      "source": "/overlays/(.*)",
-      "destination": "/overlays/$1"
-    },
-    {
-      "source": "/((?!api|overlays).*)",
-      "destination": "/index.html"
-    }
-  ],
+    "rewrites": [
+      {
+        "source": "/api/(.*)",
+        "destination": "https://scorex-backend.onrender.com/api/v1/$1"
+      },
+      {
+        "source": "/socket.io/(.*)",
+        "destination": "https://scorex-backend.onrender.com/socket.io/$1"
+      },
+      {
+        "source": "/overlays/(.*)",
+        "destination": "/overlays/$1"
+      },
+      {
+        "source": "/((?!api|socket.io|overlays).*)",
+        "destination": "/index.html"
+      }
+    ],
   "headers": [
     {
       "source": "/(.*)",

@@ -34,30 +34,46 @@ export const getApiBaseUrl = (): string => {
 };
 
 export const getBackendBaseUrl = (): string => {
-  // Production: Use Render backend (Vercel frontend + Render backend)
-  if (isProduction()) {
-    return 'https://scorex-backend-abc123.onrender.com'; // Replace with your actual Render URL
+  // 1. Priority 1: Explicit VITE_BACKEND_URL (Vercel/Render)
+  const explicitBackendUrl = import.meta.env.VITE_BACKEND_URL;
+  if (explicitBackendUrl) {
+    console.log('[ENV] Using VITE_BACKEND_URL:', explicitBackendUrl);
+    return explicitBackendUrl;
   }
-  
+
+  // 2. Priority 2: Extract from VITE_API_BASE_URL
   const apiUrl = getApiBaseUrl();
-  // Strip /api/v1 suffix to get root backend domain
-  return apiUrl.replace(/\/api\/v1\/?$/, '');
+  const backendFromApi = apiUrl.replace(/\/api(\/v1)?(\/.*)?$/, '');
+  if (backendFromApi !== apiUrl) {
+    console.log('[ENV] Backend from API URL:', backendFromApi);
+    return backendFromApi;
+  }
+
+  // 3. Priority 3: Production fallback (real Render URL)
+  if (isProduction()) {
+    const renderUrl = 'https://scorex-backend.onrender.com';
+    console.log('[ENV] Production fallback Render URL:', renderUrl);
+    return renderUrl;
+  }
+
+  // 4. Dev fallback
+  console.log('[ENV] Dev fallback - localhost:5000');
+  return 'http://localhost:5000';
 };
 
 export const getSocketUrl = (): string => {
-  const backendBase = getBackendBaseUrl();
-  
-  // Use WebSocket protocol matching current page + backend base
-  const protocol = isProduction() ? 'wss' : 'ws';
-  
-  if (isProduction() && !backendBase.startsWith('http')) {
-    // Relative WebSocket for same-domain/CDN proxy setups
-    console.log('[ENV] Production relative socket (proxy/CDN)');
+  // 1. Priority 1: Relative path (Vercel proxy) - BEST for production
+  if (isProduction()) {
+    console.log('[ENV] Production: Using relative /socket.io/ (Vercel proxy)');
     return '/socket.io/';
   }
-  
-  console.log(`[ENV] Socket URL: ${protocol}://${backendBase}/socket.io/`);
-  return `${protocol}://${backendBase}/socket.io/`;
+
+  // 2. Dev: Use proper WS protocol
+  const backendBase = getBackendBaseUrl();
+  const protocol = getProtocol().replace('http', 'ws');
+  const url = `${protocol}://${backendBase}/socket.io/`;
+  console.log(`[ENV] Dev Socket URL: ${url}`);
+  return url;
 };
 
 // Export for debugging
