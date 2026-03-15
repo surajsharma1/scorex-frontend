@@ -290,11 +290,11 @@ export default function TournamentView() {
                           {matches.map(match => (
                               <div key={match._id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-center gap-4">
                                   <div className="flex-1">
-                                      <div className="flex items-center gap-3 mb-1">
-                                          <span className={`text-xs px-2 py-1 rounded font-bold uppercase ${getStatusColor(match.status)}`}>
-                                              {match.status}
+              <div className="flex items-center gap-3 mb-4">
+                                          <span className={`px-3 py-1 rounded-full text-sm font-bold ${match.status === 'live' ? 'bg-red-500 animate-pulse text-white' : 'bg-blue-500 text-white'}`}>
+                                              {match.status.toUpperCase()}
                                           </span>
-                                          <span className="text-sm text-gray-500">{new Date(match.date).toLocaleDateString()}</span>
+                                          <span className="text-sm text-gray-400">{new Date(match.date).toLocaleDateString()}</span>
                                       </div>
                                       <h4 className="text-lg font-bold">
                                           {match.name || match.team1?.name || match.team1Name || 'TBA'} <span className="text-gray-400 px-2">vs</span> {match.team2?.name || match.team2Name || 'TBA'}
