@@ -197,7 +197,9 @@ export default function TournamentDetail() {
       return;
     }
     try {
-      await matchApi.savePlayerSelections(pendingMatch._id, {
+      await matchApi.startMatch(pendingMatch._id, {
+        tossWinner: selectedTossWinner,
+        decision: selectedTossDecision as 'bat' | 'bowl',
         striker: selectedStriker,
         nonStriker: selectedNonStriker,
         bowler: selectedBowler,
@@ -666,8 +668,9 @@ export default function TournamentDetail() {
         </div>
       )}
 
-      {/* Toss Modal */}
-      {showTossModal && pendingMatchForToss && (
+      Toss Modal
+      { Legacy Toss Modal - can be removed if not needed
+      { {showTossModal && pendingMatchForToss && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-6">
           <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700 rounded-3xl p-8 max-w-md w-full shadow-2xl">
             <h3 className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
@@ -738,7 +741,7 @@ export default function TournamentDetail() {
             </div>
           </div>
         </div>
-      )}
+      { }
     </div>
   );
 }
