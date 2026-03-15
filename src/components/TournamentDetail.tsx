@@ -378,58 +378,82 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
       return;
     }
 
+    console.log('🎯 handleTossSave START:', {
+      matchId: pendingMatchForToss._id,
+      matchStatus: pendingMatchForToss.status,
+      tossWinnerId: tossWinner,
+      tossDecision,
+      isValidMatchId: isValidObjectId(pendingMatchForToss._id || ''),
+      isValidTeamId: isValidObjectId(tossWinner)
+    });
+
     // 🔍 Validate ObjectId before API call
     if (!isValidObjectId(tossWinner)) {
-      console.error('❌ Invalid tossWinner ID:', tossWinner, 'Must be 24-hex ObjectId');
-      alert(`Invalid team ID: ${tossWinner.slice(0,8)}... Please refresh page or create new match with valid teams.`);
+      console.error('❌ Invalid tossWinner ID:', tossWinner);
+      alert(`Invalid team ID: ${tossWinner.slice(0,8)}...`);
       return;
     }
 
-    if (!isValidObjectId(pendingMatchForToss._id)) {
+    if (!isValidObjectId(pendingMatchForToss._id || '')) {
       console.error('❌ Invalid match ID:', pendingMatchForToss._id);
-      alert('Invalid match. Please refresh or create new match.');
+      alert('Invalid match ID. Please refresh.');
       return;
     }
     
-    console.log('💰 Saving toss:', {
+    // 🎯 Backend expects these fields exactly
+    const tossPayload = {
+      tossWinner,
+      decision: tossDecision,
+      forceStart: true  // Critical: bypasses status check
+    };
+    
+    console.log('🚀 API CALL: matchApi.saveToss()', {
       matchId: pendingMatchForToss._id,
-      tossWinnerId: tossWinner,
-      tossDecision,
-      teamA: pendingMatchForToss.teamA,
-      teamB: pendingMatchForToss.teamB,
-      status: pendingMatchForToss.status,
-      forceStart: true,  // Bypass status check
-      validated: true
+      payload: tossPayload,
+      backendEndpoint: `/matches/${pendingMatchForToss._id}/toss`
     });
     
     try {
-      await matchApi.saveToss(pendingMatchForToss._id, tossWinner, tossDecision, true);  // forceStart: true
-      console.log('✅ Toss saved successfully');
+      const response = await matchApi.saveToss(pendingMatchForToss._id, tossWinner, tossDecision, true);
+      console.log('✅ Toss API success:', response);
       
-      // Safely extract teams with fallbacks
+      // Refresh matches to get updated status='live'
+      await fetchMatches();
+      
+      // Extract players safely
       const team1Data = pendingMatchForToss.teamA || pendingMatchForToss.team1 || { players: [] };
       const team2Data = pendingMatchForToss.teamB || pendingMatchForToss.team2 || { players: [] };
       
-      const t1Players = (team1Data.players || []).map((p: any) => ({ 
-        id: p.id || p._id || `t1-${Math.random()}`, 
+      setTeam1Players((team1Data.players || []).map((p: any) => ({ 
+        id: p._id || p.id || `t1-${Math.random()}`,
         name: p.name || 'Player TBD' 
-      }));
-      const t2Players = (team2Data.players || []).map((p: any) => ({ 
-        id: p.id || p._id || `t2-${Math.random()}`, 
+      })));
+      
+      setTeam2Players((team2Data.players || []).map((p: any) => ({ 
+        id: p._id || p.id || `t2-${Math.random()}`,
         name: p.name || 'Player TBD' 
-      }));
+      })));
       
-      console.log('👥 Players extracted:', { t1Players: t1Players.length, t2Players: t2Players.length });
-      
-      setTeam1Players(t1Players);
-      setTeam2Players(t2Players);
+      console.log('👥 Player lists ready. Opening selection modal.');
       
       setShowTossModal(false);
       setShowPlayerSelectionModal(true);
+      
     } catch (error: any) {
-      console.error('❌ Failed to save toss:', error);
-      console.error('Error response:', error.response?.data);
-      alert(`Failed to save toss: ${error.response?.data?.message || error.message || 'Unknown error'}`);
+      console.error('💥 Toss API FAILED:', {
+        status: error.response?.status,
+        message: error.response?.data?.message,
+        fullError: error.message,
+        response: error.response?.data
+      });
+      
+      const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+      const detailedMsg = `Toss failed: ${errorMsg}
+      
+Match: ${pendingMatchForToss._id} (status: ${pendingMatchForToss.status})
+Check backend console for 📡 startMatch logs.`;
+      
+      alert(detailedMsg);
     }
   };
   
