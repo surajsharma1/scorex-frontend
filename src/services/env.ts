@@ -15,7 +15,7 @@ export const getProtocol = () => {
 
 export const getApiBaseUrl = (): string => {
   // 1. Priority 1: Explicit env var (Vercel/Production)
-  const explicitApiUrl = import.meta.env.VITE_API_URL;
+  const explicitApiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
   if (explicitApiUrl) {
     console.log('[ENV] Using explicit VITE_API_URL:', explicitApiUrl);
     return explicitApiUrl;
