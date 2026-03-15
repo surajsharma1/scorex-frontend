@@ -14,17 +14,41 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      api.get('/auth/me').then(res => {
-        setUser(res.data.user);
-      }).catch(() => {
-        localStorage.removeItem('token');
-      }).finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
-  }, []);
+    const initAuth = () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        api.get('/api/v1/auth/me').then(res => {
+          setUser(res.data.data);
+        }).catch(() => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
+    };
+
+    initAuth();
+
+    // Listen for storage changes (OAuthCallback sets localStorage)
+    const handleStorageChange = () => {
+      const token = localStorage.getItem('token');
+      if (token && !user) {
+        initAuth();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // Also trigger on same tab changes
+    const interval = setInterval(() => {
+      if (localStorage.getItem('token') && !user) initAuth();
+    }, 500);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [user]);
 
   const login = (userData: any) => {
     localStorage.setItem('token', userData.token);
