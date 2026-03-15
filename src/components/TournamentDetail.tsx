@@ -67,8 +67,11 @@ export default function TournamentDetail() {
   const [tossDecision, setTossDecision] = useState<'bat' | 'bowl' | ''>('');
   const [pendingMatchForToss, setPendingMatchForToss] = useState<Match | null>(null);
   
-  // Player Selection Modal State  
+// Player Selection Modal State  
   const [showPlayerSelectionModal, setShowPlayerSelectionModal] = useState(false);
+  // PRESERVED POST-TOSS PLAYERS (survive fetchMatches refresh)
+  const [team1PlayersPostToss, setTeam1PlayersPostToss] = useState<{id: string, name: string}[]>([]);
+  const [team2PlayersPostToss, setTeam2PlayersPostToss] = useState<{id: string, name: string}[]>([]);
   const [team1Players, setTeam1Players] = useState<{id: string, name: string}[]>([]);
   const [team2Players, setTeam2Players] = useState<{id: string, name: string}[]>([]);
   const [selectedStriker, setSelectedStriker] = useState<{id: string, name: string} | null>(null);
@@ -377,9 +380,11 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
       }
       
       if (matchStatus === 'live') {
-        // Direct to scoring (skip toss)
+        // Direct to scoring (skip toss) - FIXED: trigger scoring UI
+        console.log('🎯 Direct scoring for live match:', match._id);
         setSelectedMatch(match);
-        resetInnings(); // Load current state
+        setSelectedTeamForUpdate('team1'); // Default to team1 or detect from match.innings
+        resetInnings('team1', true); // Load existing state → show scoreboard
         return;
       }
       
@@ -440,17 +445,24 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
       const team1Data = pendingMatchForToss.teamA || pendingMatchForToss.team1 || { players: [] };
       const team2Data = pendingMatchForToss.teamB || pendingMatchForToss.team2 || { players: [] };
       
-      setTeam1Players((team1Data.players || []).map((p: any) => ({ 
+      // PRESERVE PLAYERS BEFORE REFRESH (fixes empty modal)
+      const preservedTeam1Players = (team1Data.players || []).map((p: any) => ({ 
         id: p._id || p.id || `t1-${Math.random()}`,
         name: p.name || 'Player TBD' 
-      })));
-      
-      setTeam2Players((team2Data.players || []).map((p: any) => ({ 
+      }));
+      const preservedTeam2Players = (team2Data.players || []).map((p: any) => ({ 
         id: p._id || p.id || `t2-${Math.random()}`,
         name: p.name || 'Player TBD' 
-      })));
+      }));
       
-      console.log('👥 Player lists ready. Opening selection modal.');
+      setTeam1PlayersPostToss(preservedTeam1Players);
+      setTeam2PlayersPostToss(preservedTeam2Players);
+      
+      // TEMP for current modal (will use preserved after refresh)
+      setTeam1Players(preservedTeam1Players);
+      setTeam2Players(preservedTeam2Players);
+      
+      console.log('👥 Players preserved:', { team1Count: preservedTeam1Players.length, team2Count: preservedTeam2Players.length });
       
       // Close toss modal BEFORE refresh
       setShowTossModal(false);
@@ -493,12 +505,13 @@ Check backend console for 📡 startMatch logs.`;
     if (!pendingMatchForToss) return;
     
     try {
+      // Use PRESERVED players (not transient state)
       try {
         await matchApi.savePlayerSelections(pendingMatchForToss._id, {
-          team1Players,
-          team2Players,
-          battingOrder: [...team1Players, ...team2Players].map(p => p.id),
-          bowlingOrder: [...team2Players, ...team1Players].map(p => p.id),
+          team1Players: team1PlayersPostToss,
+          team2Players: team2PlayersPostToss,
+          battingOrder: [...team1PlayersPostToss, ...team2PlayersPostToss].map(p => p.id),
+          bowlingOrder: [...team2PlayersPostToss, ...team1PlayersPostToss].map(p => p.id),
           strikerId: selectedStriker.id,
           strikerName: selectedStriker.name,
           nonStrikerId: selectedNonStriker.id,
@@ -510,8 +523,9 @@ Check backend console for 📡 startMatch logs.`;
         console.log('Player selection save failed (non-critical):', playerError);
       }
       
-      const battingTeam = tossDecision === 'bat' ? team1Players : team2Players;
-      const players = battingTeam.map((p, i) => ({
+      // Use PRESERVED players for innings
+      const battingTeamPlayers = tossDecision === 'bat' ? team1PlayersPostToss : team2PlayersPostToss;
+      const players = battingTeamPlayers.map((p, i) => ({
         id: p.id,
         name: p.name,
         runsScored: 0,
@@ -537,6 +551,8 @@ Check backend console for 📡 startMatch logs.`;
       setSelectedMatch(pendingMatchForToss);
       setSelectedTeamForUpdate(tossDecision === 'bat' ? 'team1' : 'team2');
       setLastSavedOver(0);
+      
+      console.log('✅ Player selection saved → Scoring UI active');
       
     } catch (error) {
       console.error('Failed to initialize player selection:', error);

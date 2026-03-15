@@ -148,9 +148,14 @@ export default function OverlayEditor() {
         }
         // Store all matches for overlay creation
         setAllMatches(allMatchesData);
-        // Filter for live matches display
-        const live = allMatchesData.filter((m: Match) => m.status === 'ongoing');
+        // Filter for live/active matches display (fix overlay selection)
+        const live = allMatchesData.filter((m: Match) => 
+          ['live', 'ongoing', 'in_progress'].includes((m.status || '').toLowerCase())
+        );
         setMatches(live);
+        if (live.length === 0) {
+          console.log('No live matches found for overlays');
+        }
     } catch (e) {
         console.error("Failed to load matches");
     }
@@ -486,7 +491,9 @@ export default function OverlayEditor() {
 
             {/* Match Selection Dropdown */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm mb-6">
-                <h2 className="text-xl font-bold mb-4 dark:text-white">Data Source</h2>
+                <h2 className="text-xl font-bold mb-4 dark:text-white">
+                    Data Source ({matches.length} active match{matches.length !== 1 ? 'es' : ''})
+                  </h2>
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Sync with Live Match
@@ -497,11 +504,16 @@ export default function OverlayEditor() {
                         className="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white"
                     >
                         <option value="">-- Manual Control --</option>
-                        {matches.map(m => (
-                            <option key={m._id} value={m._id}>
-                                {m.team1?.name} vs {m.team2?.name}
-                            </option>
-                        ))}
+                        {matches.length > 0 ? (
+                          matches.map(m => (
+                              <option key={m._id} value={m._id}>
+                                  {m.team1?.name || 'Team 1'} vs {m.team2?.name || 'Team 2'} 
+                                  <span style={{color: 'green'}}> ({m.status || 'live'})</span>
+                              </option>
+                          ))
+                        ) : (
+                          <option disabled>No active matches - start a live match first</option>
+                        )}
                     </select>
                 </div>
                 
