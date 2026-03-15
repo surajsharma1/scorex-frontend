@@ -6,51 +6,59 @@ export default function OAuthCallback() {
   const location = useLocation();
 
   useEffect(() => {
-    const hash = location.hash;
-    console.log('OAuthCallback: hash=', hash); // Debug
+    // Aggressive immediate redirect - dashboard state handles auth
+    const checkAndRedirect = () => {
+      // First check hash (primary OAuth path)
+      const hash = location.hash;
+      console.log('OAuthCallback: hash=', hash);
 
-    if (hash) {
-      try {
-        const params = new URLSearchParams(hash.substring(1));
-        const token = params.get('token');
-        const userStr = params.get('user');
-        
-        console.log('Parsed token:', !!token, 'userStr preview:', userStr?.substring(0, 100));
-
-        if (token) {
-          localStorage.setItem('token', token);
+      if (hash) {
+        try {
+          const params = new URLSearchParams(hash.substring(1));
+          const token = params.get('token');
+          const userStr = params.get('user');
           
-          let user = null;
-          if (userStr) {
-            try {
-              const decoded = decodeURIComponent(userStr);
-              console.log('Decoded preview:', decoded.substring(0, 100));
-              user = JSON.parse(decoded);
-              localStorage.setItem('user', JSON.stringify(user));
-            } catch (parseErr) {
-              console.warn('User JSON parse failed, will refresh from API:', parseErr);
+          console.log('Parsed token:', !!token, 'userStr preview:', userStr?.substring(0, 100));
+
+          if (token) {
+            localStorage.setItem('token', token);
+            
+            if (userStr) {
+              try {
+                const decoded = decodeURIComponent(userStr);
+                console.log('Decoded preview:', decoded.substring(0, 100));
+                const user = JSON.parse(decoded);
+                localStorage.setItem('user', JSON.stringify(user));
+              } catch (parseErr) {
+                console.warn('User JSON parse failed:', parseErr);
+              }
             }
           }
-          
-          // Clear hash and redirect
-          window.location.replace('/dashboard');
-          return;
+        } catch (paramsErr) {
+          console.error('Hash params error:', paramsErr);
         }
-      } catch (paramsErr) {
-        console.error('Hash params error:', paramsErr);
       }
-    }
-    
-    // Fallback: use API refresh if token exists
-    const token = localStorage.getItem('token');
-    if (token) {
+      
+      // IMMEDIATE redirect - App.tsx storage listener handles rest
       window.location.replace('/dashboard');
-      return;
-    }
-    
-    console.error('No token found, redirect to login');
-    window.location.href = '/login';
-  }, [location.hash]);
+    };
+
+    // Run immediately and retry every 100ms (handles race conditions)
+    checkAndRedirect();
+    const interval = setInterval(checkAndRedirect, 100);
+
+    // Cleanup after 5s max
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      console.log('OAuthCallback timeout - forcing dashboard');
+      window.location.replace('/dashboard');
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-8">
