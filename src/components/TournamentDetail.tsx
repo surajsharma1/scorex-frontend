@@ -389,11 +389,13 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
       tossDecision,
       teamA: pendingMatchForToss.teamA,
       teamB: pendingMatchForToss.teamB,
+      status: pendingMatchForToss.status,
+      forceStart: true,  // Bypass status check
       validated: true
     });
     
     try {
-      await matchApi.saveToss(pendingMatchForToss._id, tossWinner, tossDecision);
+      await matchApi.saveToss(pendingMatchForToss._id, tossWinner, tossDecision, true);  // forceStart: true
       console.log('✅ Toss saved successfully');
       
       // Safely extract teams with fallbacks
@@ -851,11 +853,18 @@ const fetchMatches = async () => {
               matches.map((match) => (
                 <div key={match._id} className="p-4 bg-gray-700 rounded-lg flex justify-between items-center">
                   <div>
-<h4 className="font-semibold">
+                    <h4 className="font-semibold">
                       {match.team1?.name || match.teamA?.name || match.team1Name || match.name?.split(' vs ')[0] || 'Team 1'} vs{' '}
                       {match.team2?.name || match.teamB?.name || match.team2Name || (match.name ? match.name.split(' vs ')[1] : 'Team 2')}
                     </h4>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-gray-400 flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        match.status === 'upcoming' ? 'bg-blue-500' : 
+                        match.status === 'live' ? 'bg-green-500' :
+                        match.status === 'completed' ? 'bg-gray-500' : 'bg-yellow-500'
+                      }`}>
+                        {match.status || 'unknown'}
+                      </span>
                       {match.score1 !== undefined 
                         ? `${match.score1}/${match.wickets1} (${match.overs1})` 
                         : 'Not started'
@@ -864,18 +873,11 @@ const fetchMatches = async () => {
                   </div>
                   <div className="flex gap-2">
                     <button 
-                      onClick={async () => {
-                        try {
-                          await matchApi.updateMatchStatus(match._id, 'live');
-                          handleLiveScoreClick(match);
-                        } catch (error) {
-                          console.error('Failed to update status:', error);
-                          handleLiveScoreClick(match);
-                        }
-                      }} 
+                      onClick={() => handleLiveScoreClick(match)}
                       className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm flex-1 text-center"
+                      title={`Match Status: ${match.status || 'unknown'}`}
                     >
-                      Live Score
+                      {match.status === 'live' ? '📺 Live' : '⚡ Start Live'}
                     </button>
                     <button onClick={() => handleDeleteMatch(match._id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm">
                       Delete
