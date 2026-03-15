@@ -188,12 +188,12 @@ export default function LiveScoring() {
       await matchApi.scoreBall(matchId, {
         overNumber: currentOver,
         ballNumber: newBall,
-        bowler: selectedBowler?._id || '',
-        striker: selectedStriker?._id || '',
-        nonStriker: selectedNonStriker?._id || '',
+        bowlerId: selectedBowler?._id || '',
+        strikerId: selectedStriker?._id || '',
+        nonStrikerId: selectedNonStriker?._id || '',
         runsOffBat: runs,
         extras: 0,
-        extraType: 'None',
+        extraType: 'None' as const,
         isWicket: false,
         wicketType: 'None'
       });
@@ -217,12 +217,12 @@ export default function LiveScoring() {
       await matchApi.scoreBall(matchId, {
         overNumber: currentOver,
         ballNumber: currentBall + 1,
-        bowler: selectedBowler?._id || '',
-        striker: selectedStriker?._id || '',
-        nonStriker: selectedNonStriker?._id || '',
+        bowlerId: selectedBowler?._id || '',
+        strikerId: selectedStriker?._id || '',
+        nonStrikerId: selectedNonStriker?._id || '',
         runsOffBat: 0,
         extras: 0,
-        extraType: 'None',
+        extraType: 'None' as const,
         isWicket: true,
         wicketType: outType
       });
@@ -265,9 +265,9 @@ export default function LiveScoring() {
       await matchApi.scoreBall(matchId, {
         overNumber: currentOver,
         ballNumber: currentBall + 1,
-        bowler: selectedBowler?._id || '',
-        striker: selectedStriker?._id || '',
-        nonStriker: selectedNonStriker?._id || '',
+        bowlerId: selectedBowler?._id || '',
+        strikerId: selectedStriker?._id || '',
+        nonStrikerId: selectedNonStriker?._id || '',
         runsOffBat: 0,
         extras: extraRun,
         extraType: extraType as 'None' | 'WD' | 'NB' | 'B' | 'LB' | 'Penalty',
