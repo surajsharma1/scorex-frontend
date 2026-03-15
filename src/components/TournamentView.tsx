@@ -64,7 +64,7 @@ export default function TournamentView() {
   // Helper function to map backend match data to frontend format
   const mapBackendMatchToFrontend = (backendMatch: any): Match => {
     // Map status from backend format to frontend format
-    const statusMap: { [key: string]: 'scheduled' | 'ongoing' | 'completed' | 'upcoming' } = {
+    const statusMap: { [key: string]: 'scheduled' | 'ongoing' | 'completed' | 'upcoming' | 'live' } = {
       'Scheduled': 'scheduled',
       'Toss Completed': 'scheduled',
       'First Innings': 'ongoing',
