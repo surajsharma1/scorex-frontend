@@ -34,6 +34,11 @@ export const getApiBaseUrl = (): string => {
 };
 
 export const getBackendBaseUrl = (): string => {
+  // Production: Use Render backend (Vercel frontend + Render backend)
+  if (isProduction()) {
+    return 'https://scorex-backend-abc123.onrender.com'; // Replace with your actual Render URL
+  }
+  
   const apiUrl = getApiBaseUrl();
   // Strip /api/v1 suffix to get root backend domain
   return apiUrl.replace(/\/api\/v1\/?$/, '');
