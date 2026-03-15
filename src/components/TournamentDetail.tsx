@@ -360,9 +360,26 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
     setShowTossModal(true);
   };
   
+  const isValidObjectId = (id: string): boolean => {
+    return /^[0-9a-fA-F]{24}$/.test(id);
+  };
+
   const handleTossSave = async () => {
     if (!pendingMatchForToss || !tossWinner || !tossDecision) {
       alert(`Please select toss winner (${tossWinner || 'none'}) and decision (${tossDecision || 'none'})`);
+      return;
+    }
+
+    // 🔍 Validate ObjectId before API call
+    if (!isValidObjectId(tossWinner)) {
+      console.error('❌ Invalid tossWinner ID:', tossWinner, 'Must be 24-hex ObjectId');
+      alert(`Invalid team ID: ${tossWinner.slice(0,8)}... Please refresh page or create new match with valid teams.`);
+      return;
+    }
+
+    if (!isValidObjectId(pendingMatchForToss._id)) {
+      console.error('❌ Invalid match ID:', pendingMatchForToss._id);
+      alert('Invalid match. Please refresh or create new match.');
       return;
     }
     
@@ -371,7 +388,8 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
       tossWinnerId: tossWinner,
       tossDecision,
       teamA: pendingMatchForToss.teamA,
-      teamB: pendingMatchForToss.teamB
+      teamB: pendingMatchForToss.teamB,
+      validated: true
     });
     
     try {
