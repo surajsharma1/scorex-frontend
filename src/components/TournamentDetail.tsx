@@ -349,6 +349,13 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
   };
 
   const handleLiveScoreClick = (match: Match) => {
+    console.log('Live Score clicked for match:', match);
+    console.log('Match teams:', {
+      teamA: match.teamA,
+      teamB: match.teamB,
+      team1: match.team1,
+      team2: match.team2
+    });
     setPendingMatchForToss(match);
     setShowTossModal(true);
   };
