@@ -6,6 +6,7 @@ import Login from './components/Login';
 import Profile from './components/Profile';
 import TournamentView from './components/TournamentView';
 import Sidebar from './components/Sidebar';
+import OAuthCallback from './components/OAuthCallback';
 import api from './services/api';
 
 function App() {
@@ -49,6 +50,7 @@ function App() {
                 <Route path="/matches/:id" element={<LiveScoring />} />
                 <Route path="/tournaments/:id" element={<TournamentView />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </main>
@@ -57,6 +59,7 @@ function App() {
         {!user && (
           <Routes>
             <Route path="/login" element={<Login onLogin={login} />} />
+            <Route path="/oauth/callback" element={<OAuthCallback />} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         )}

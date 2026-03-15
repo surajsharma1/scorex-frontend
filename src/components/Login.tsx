@@ -16,7 +16,8 @@ export default function Login({ onLogin }: LoginProps) {
     setLoading(true);
     
     try {
-      const res = await fetch('http://localhost:5000/api/v1/auth/login', {
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${apiBase}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -107,7 +108,7 @@ export default function Login({ onLogin }: LoginProps) {
           type="button"
           onClick={() => {
             const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            window.location.href = `${apiBase}/api/v1/auth/google`;
+            window.location.href = `${apiBase}/auth/google`;
           }}
           className="w-full bg-white hover:bg-gray-100 text-gray-900 font-bold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 text-lg flex items-center justify-center gap-3 border border-gray-200"
         >
