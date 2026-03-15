@@ -127,7 +127,7 @@ export default function MatchDetails() {
                       <Play className="w-4 h-4" /> Go Live
                   </button>
               )}
-              {match.status === 'ongoing' && (
+{match.status === 'live' && (
                   <>
                       <button 
                         onClick={() => updateStatus('completed')}

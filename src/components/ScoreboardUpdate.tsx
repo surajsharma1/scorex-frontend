@@ -336,9 +336,7 @@ await tournamentAPI.updateTournament(tournament._id, scores);
       onUpdate(); 
       setLastSaved(new Date());
     }
-    } catch (err: unknown) { setError(err instanceof Error ? err.message : 'Failed to update scores'); }
-    finally { setLoading(false); }
-  };
+    } catch (err: unknown) { \n      setError(err instanceof Error ? err.message : 'Failed to update scores'); \n    } finally { \n      setLoading(false); \n    }\n  };
 
   const handlePlayerSelect = (slotIndex: number, playerIdx: number) => {
     const selectedPlayer = availablePlayers[playerIdx];
