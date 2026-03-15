@@ -199,21 +199,14 @@ export default function TournamentView() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-white">
       {/* Header & Selection */}
-        <div className="mb-8">
-          <button 
-            onClick={() => navigate('/tournaments')} 
-            className="mb-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center gap-2"
-          >
-            ← Back to Tournaments
-          </button>
-          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent flex items-center gap-2">
-                <Trophy /> Tournament Manager
-              </h1>
-           <p className="text-gray-500 dark:text-gray-400">Manage schedules, teams, and brackets</p>
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Trophy className="text-yellow-500" /> Tournament Manager
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">Manage schedules, teams, and brackets</p>
         </div>
         
         <select 
@@ -232,6 +225,7 @@ export default function TournamentView() {
       </div>
 
       {selectedTournament ? (
+
         <>
           {/* Tabs */}
           <div className="flex bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-1 mb-8 shadow-2xl">
@@ -290,11 +284,11 @@ export default function TournamentView() {
                           {matches.map(match => (
                               <div key={match._id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-center gap-4">
                                   <div className="flex-1">
-              <div className="flex items-center gap-3 mb-4">
-                                          <span className={`px-3 py-1 rounded-full text-sm font-bold ${match.status === 'live' ? 'bg-red-500 animate-pulse text-white' : 'bg-blue-500 text-white'}`}>
-                                              {match.status.toUpperCase()}
+              <div className="flex items-center gap-3 mb-1">
+                                          <span className={`text-xs px-2 py-1 rounded font-bold uppercase ${getStatusColor(match.status)}`}>
+                                              {match.status}
                                           </span>
-                                          <span className="text-sm text-gray-400">{new Date(match.date).toLocaleDateString()}</span>
+                                          <span className="text-sm text-gray-500">{new Date(match.date).toLocaleDateString()}</span>
                                       </div>
                                       <h4 className="text-lg font-bold">
                                           {match.name || match.team1?.name || match.team1Name || 'TBA'} <span className="text-gray-400 px-2">vs</span> {match.team2?.name || match.team2Name || 'TBA'}
