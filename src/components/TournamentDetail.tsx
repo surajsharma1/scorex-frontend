@@ -356,6 +356,14 @@ const newTeamKey = selectedTeamForUpdate === 'team1' ? 'team2' : 'team1';
       team1: match.team1,
       team2: match.team2
     });
+    
+    // ✅ Client-side validation: only allow toss for upcoming matches
+    const matchStatus = (match.status || '').toLowerCase().trim();
+    if (matchStatus !== 'upcoming') {
+      alert(`Cannot start toss: Match status is "${matchStatus}". Only "upcoming" matches can have toss.`);
+      return;
+    }
+    
     setPendingMatchForToss(match);
     setShowTossModal(true);
   };
@@ -874,10 +882,19 @@ const fetchMatches = async () => {
                   <div className="flex gap-2">
                     <button 
                       onClick={() => handleLiveScoreClick(match)}
-                      className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm flex-1 text-center"
-                      title={`Match Status: ${match.status || 'unknown'}`}
+                      disabled={(match.status || '').toLowerCase() !== 'upcoming'}
+                      className={`px-3 py-1 rounded text-sm flex-1 text-center transition-all ${
+                        (match.status || '').toLowerCase() === 'upcoming' 
+                          ? 'bg-green-600 hover:bg-green-700' 
+                          : 'bg-gray-600 cursor-not-allowed opacity-50'
+                      }`}
+                      title={(match.status || '').toLowerCase() === 'upcoming' 
+                        ? `Match Status: ${match.status || 'unknown'} - Ready for toss` 
+                        : `Cannot start: Match status "${match.status || 'unknown'}" - Only "upcoming" allowed`
+                      }
                     >
-                      {match.status === 'live' ? '📺 Live' : '⚡ Start Live'}
+                      {(match.status || '').toLowerCase() === 'live' ? '📺 Live' : 
+                       (match.status || '').toLowerCase() === 'upcoming' ? '⚡ Start Toss' : '⏳ Not Ready'}
                     </button>
                     <button onClick={() => handleDeleteMatch(match._id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm">
                       Delete
