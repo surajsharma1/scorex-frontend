@@ -91,14 +91,35 @@ export default function LiveScoring() {
   useEffect(() => {
     if (!matchId) return;
     
-    const loadMatch = async () => {
+  const loadMatch = async () => {
       try {
         setLoading(true);
+        console.log('Loading match:', matchId);
         const res = await matchApi.getMatch(matchId);
         const matchData = res.data?.data || res.data;
+        console.log('Raw match data:', matchData);
         
         if (matchData) {
-          setMatch(matchData);
+          // Robust team population
+          const team1Data = matchData.team1 || { name: 'Team 1', _id: matchData.team1 };
+          const team2Data = matchData.team2 || { name: 'Team 2', _id: matchData.team2 };
+          
+          console.log('Team data:', { team1: team1Data, team2: team2Data });
+          
+          const populatedMatch = {
+            ...matchData,
+            team1: {
+              _id: team1Data._id || team1Data,
+              name: team1Data.name || 'Team 1'
+            },
+            team2: {
+              _id: team2Data._id || team2Data,
+              name: team2Data.name || 'Team 2'
+            }
+          };
+          
+          setMatch(populatedMatch);
+          
           if (matchData.status === 'live') {
             setTossDone(true);
             setInningsStarted(true);
@@ -119,6 +140,7 @@ export default function LiveScoring() {
         setLoading(false);
       }
     };
+
     
     loadMatch();
   }, [matchId]);
@@ -423,18 +445,38 @@ export default function LiveScoring() {
             <h2 className="text-xl font-bold mb-4 text-center">Match Setup</h2>
             {!tossDone ? (
               <div className="space-y-4">
+
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">Toss Winner</label>
-                  <select 
-                    value={tossWinner}
-                    onChange={(e) => setTossWinner(e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg p-3"
-                  >
-                    <option value="">Select Team</option>
-                    <option value={match.team1._id}>{match.team1.name}</option>
-                    <option value={match.team2._id}>{match.team2.name}</option>
-                  </select>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setTossWinner(match.team1._id || '')}
+                      className={`p-3 rounded-lg border-2 font-bold text-sm transition-all ${
+                        tossWinner === (match.team1._id || '')
+                          ? 'border-green-500 bg-green-500/20 shadow-lg'
+                          : 'border-gray-600 hover:border-blue-500 hover:bg-blue-500/10'
+                      }`}
+                    >
+                      {match.team1.name || 'Team 1'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTossWinner(match.team2._id || '')}
+                      className={`p-3 rounded-lg border-2 font-bold text-sm transition-all ${
+                        tossWinner === (match.team2._id || '')
+                          ? 'border-green-500 bg-green-500/20 shadow-lg'
+                          : 'border-gray-600 hover:border-blue-500 hover:bg-blue-500/10'
+                      }`}
+                    >
+                      {match.team2.name || 'Team 2'}
+                    </button>
+                  </div>
+                  <div className="text-xs text-gray-400 text-center">
+                    Selected: {tossWinner ? '✅' : 'None'}
+                  </div>
                 </div>
+
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">Decision</label>
                   <div className="grid grid-cols-2 gap-4">

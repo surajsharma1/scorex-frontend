@@ -599,36 +599,53 @@ const fetchMatches = async () => {
       
       // Step 3: Robust population
       const enrichedMatches = matchesArray.map((match: any, index: number) => {
-        console.log(`Match ${index}:`, {
-          rawTeamA: match.teamA,
-          rawTeamB: match.teamB,
-          teamAResolved: teamMap.get(match.teamA?.toString()),
-          teamBResolved: teamMap.get(match.teamB?.toString())
+        console.log(`🔍 Match ${index} RAW:`, {
+          teamA: match.teamA,
+          teamB: match.teamB,
+          teamA_type: typeof match.teamA,
+          teamB_type: typeof match.teamB
         });
         
-        const teamAData = teamMap.get(match.teamA?.toString()) || 
-                         (typeof match.teamA === 'object' ? match.teamA : { name: match.teamAName || 'Team A', _id: match.teamA });
-                         
-        const teamBData = teamMap.get(match.teamB?.toString()) || 
-                         (typeof match.teamB === 'object' ? match.teamB : { name: match.teamBName || 'Team B', _id: match.teamB });
+        // BULLETPROOF population - prioritize populated objects, fallback to map, ultimate fallback
+        let teamAData = null;
+        let teamBData = null;
         
-        let populatedTossWinner = match.tossWinner;
-        if (typeof match.tossWinner === 'string') {
-          populatedTossWinner = teamMap.get(match.tossWinner) || { name: 'Toss TBD', _id: match.tossWinner };
+        // Direct populated object check
+        if (match.teamA && typeof match.teamA === 'object' && match.teamA.name) {
+          teamAData = { _id: match.teamA._id || match.teamA.id, name: match.teamA.name };
+        } else if (match.teamA) {
+          teamAData = teamMap.get(String(match.teamA)) || { _id: match.teamA, name: `Team A (${match.teamA?.slice(-4)})` };
+        }
+        
+        if (match.teamB && typeof match.teamB === 'object' && match.teamB.name) {
+          teamBData = { _id: match.teamB._id || match.teamB.id, name: match.teamB.name };
+        } else if (match.teamB) {
+          teamBData = teamMap.get(String(match.teamB)) || { _id: match.teamB, name: `Team B (${match.teamB?.slice(-4)})` };
+        }
+        
+        let tossWinnerData = null;
+        if (match.tossWinner) {
+          if (typeof match.tossWinner === 'object' && match.tossWinner.name) {
+            tossWinnerData = match.tossWinner;
+          } else {
+            tossWinnerData = teamMap.get(String(match.tossWinner)) || { _id: match.tossWinner, name: 'Toss TBD' };
+          }
         }
         
         const enrichedMatch = {
           ...match,
-          teamA: teamAData,
-          teamB: teamBData,
-          team1: teamAData,
-          team2: teamBData,
-          tossWinner: populatedTossWinner
+          teamA: teamAData || { name: 'Team A TBD', _id: 'unknown' },
+          teamB: teamBData || { name: 'Team B TBD', _id: 'unknown' },
+          team1: teamAData || { name: 'Team A TBD', _id: 'unknown' },
+          team2: teamBData || { name: 'Team B TBD', _id: 'unknown' },
+          tossWinner: tossWinnerData
         };
         
-        console.log(`✅ Enriched match ${index}:`, {
-          teamAName: teamAData.name,
-          teamBName: teamBData.name
+        console.log(`✅ Match ${index} ENRICHED:`, {
+          teamA_name: enrichedMatch.teamA.name,
+          teamA_id: enrichedMatch.teamA._id,
+          teamB_name: enrichedMatch.teamB.name, 
+          teamB_id: enrichedMatch.teamB._id
         });
         
         return enrichedMatch;
