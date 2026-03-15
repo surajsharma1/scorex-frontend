@@ -162,7 +162,7 @@ const [tournamentMatches, setTournamentMatches] = useState<Match[]>([]);
         // Filter for tournament matches only (per user request)
         const tournamentMatches = Array.isArray(data.data) ? data.data : data.matches || data || [];
         setMatches(tournamentMatches.filter((m: Match) => 
-          ['live', 'ongoing', 'in_progress', 'upcoming', 'ready'].includes((m.status || '').toLowerCase())
+          ['live', 'ongoing', 'in_progress', 'upcoming'].includes((m.status || '').toLowerCase())
         ));
         console.log(`✅ Tournament matches loaded: ${tournamentMatches.length} total, ${matches.length} ready`);
         if (matches.length === 0) {

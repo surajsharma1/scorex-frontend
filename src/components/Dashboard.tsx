@@ -85,11 +85,11 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-           <h1 className="text-3xl font-bold dark:text-white">Dashboard</h1>
-           <p className="text-gray-500 dark:text-gray-400">Overview of your cricket organization</p>
+           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Dashboard</h1>
+           <p className="text-gray-300">Overview of your cricket organization</p>
         </div>
         <button 
           onClick={() => navigate('/tournaments/create')}
@@ -145,8 +145,8 @@ export default function Dashboard() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="text-lg font-bold mb-6 dark:text-white">Match Activity</h3>
+        <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 shadow-xl">
+          <h3 className="text-lg font-bold text-gray-300 mb-6">Match Activity</h3>
           <div className="h-64 flex justify-center w-full">
             <Bar data={barData} options={{ maintainAspectRatio: false, responsive: true }} />
           </div>

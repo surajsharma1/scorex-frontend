@@ -367,7 +367,7 @@ export default function LiveScoring() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
       {/* CAROUSEL TICKER - At the very top */}
       <div className="w-full bg-black/90 backdrop-blur-xl border-b border-white/10 h-10 flex items-center overflow-hidden relative z-50">
         <div className="bg-red-600 h-full px-4 flex items-center justify-center z-20 shadow-[4px_0_15px_rgba(220,38,38,0.5)]">
@@ -396,7 +396,7 @@ export default function LiveScoring() {
         <div className="bg-gray-800 rounded-xl p-4 mb-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
             <div>
-              <h1 className="text-lg md:text-xl font-bold">{match.name}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">{match.name}</h1>
               <p className="text-gray-400 text-sm">{match.venue} • {match.format}</p>
             </div>
             <div className="flex items-center gap-2">

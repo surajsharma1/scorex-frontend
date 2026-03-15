@@ -380,9 +380,9 @@ export default function TournamentDetail() {
                       className="px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-xl text-white font-medium min-w-[120px] focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-gray-600"
                     >
                       <option value="upcoming">Upcoming</option>
-                      <option value="ready">Ready</option>
                       <option value="live">🔴 Live</option>
                       <option value="completed">✅ Completed</option>
+                      <option value="cancelled">❌ Cancelled</option>
                     </select>
 
                     {/* Quick Actions */}

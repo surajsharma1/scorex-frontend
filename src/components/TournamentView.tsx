@@ -199,13 +199,20 @@ export default function TournamentView() {
   };
 
   return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6">
       {/* Header & Selection */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <div>
-           <h1 className="text-3xl font-bold flex items-center gap-2">
-             <Trophy className="text-yellow-500" /> Tournament Manager
-           </h1>
+        <div className="mb-8">
+          <button 
+            onClick={() => navigate('/tournaments')} 
+            className="mb-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center gap-2"
+          >
+            ← Back to Tournaments
+          </button>
+          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent flex items-center gap-2">
+                <Trophy /> Tournament Manager
+              </h1>
            <p className="text-gray-500 dark:text-gray-400">Manage schedules, teams, and brackets</p>
         </div>
         
@@ -227,17 +234,17 @@ export default function TournamentView() {
       {selectedTournament ? (
         <>
           {/* Tabs */}
-          <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6 overflow-x-auto">
-             {['overview', 'matches', 'teams', 'bracket'].map(tab => (
-                 <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-6 py-3 font-medium capitalize whitespace-nowrap ${
-                        activeTab === tab 
-                        ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400' 
-                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
-                    }`}
-                 >
+          <div className="flex bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-1 mb-8 shadow-2xl">
+            {(['overview', 'matches', 'teams', 'bracket'] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${
+                  activeTab === tab
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105'
+                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                }`}
+              >
                     {tab}
                  </button>
              ))}
@@ -250,9 +257,9 @@ export default function TournamentView() {
               {/* OVERVIEW TAB */}
               {!loading && activeTab === 'overview' && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                          <h3 className="text-lg font-bold mb-2">Total Matches</h3>
-                          <p className="text-4xl font-black text-blue-600">{matches.length}</p>
+                      <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 shadow-xl">
+                          <h3 className="text-lg font-bold text-gray-300 mb-2">Total Matches</h3>
+                          <div className="text-4xl font-black text-blue-400">{matches.length}</div>
                       </div>
                       <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                           <h3 className="text-lg font-bold mb-2">Registered Teams</h3>
