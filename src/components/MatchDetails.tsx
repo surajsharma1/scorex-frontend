@@ -23,7 +23,7 @@ export default function MatchDetails() {
   const fetchMatch = async () => {
     if (!id) return;
     try {
-      const response = await matchAPI.getMatchById(id);
+      const response = await matchAPI.getMatch(id);
       
       // Check if the response indicates the match wasn't found
       if (response.status === 404 || (response.data && response.data.message === 'Match not found')) {
@@ -79,7 +79,7 @@ export default function MatchDetails() {
       }
   };
 
-  const updateStatus = async (status: 'scheduled' | 'ongoing' | 'completed') => {
+  const updateStatus = async (status: 'upcoming' | 'live' | 'completed') => {
       if(!match) return;
       if(!confirm(`Change status to ${status}?`)) return;
       try {
@@ -119,7 +119,7 @@ export default function MatchDetails() {
           </div>
           
           <div className="flex gap-2">
-              {match.status === 'scheduled' && (
+              {match.status === 'upcoming' && (
                   <button 
                     onClick={() => updateStatus('ongoing')}
                     className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 animate-pulse"

@@ -62,7 +62,7 @@ const LiveTournament: React.FC = () => {
   const fetchMatchData = async () => {
     if (!id) return;
     try {
-      const response = await matchAPI.getMatchById(id);
+      const response = await matchAPI.getMatch(id);
       
       // Check if the response indicates the match wasn't found
       if (response.status === 404 || (response.data && response.data.message === 'Match not found')) {
@@ -146,13 +146,13 @@ const LiveTournament: React.FC = () => {
                     {tournament?.name || 'Live Match'}
                 </h1>
                 <div className="flex items-center gap-2">
-                    {match.status === 'ongoing' && (
+                    {match.status === 'live' && (
                         <span className="flex h-3 w-3 relative">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                         </span>
                     )}
-                    <span className="text-sm font-medium text-red-500">{match.status === 'ongoing' ? 'LIVE' : match.status}</span>
+                    <span className="text-sm font-medium text-red-500">{match.status === 'live' ? 'LIVE' : match.status}</span>
                 </div>
             </div>
         </div>

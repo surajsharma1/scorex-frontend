@@ -110,7 +110,7 @@ export default function TournamentView() {
     try {
       // Load Matches
       if (activeTab === 'matches' || activeTab === 'overview') {
-        const resMatches = await matchAPI.getAllMatches();
+const resMatches = await matchAPI.getMatches();
         
         // Handle different response structures:
         // 1. { success: true, data: [...], count: X } - current backend format

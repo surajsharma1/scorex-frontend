@@ -124,7 +124,7 @@ const [tournamentMatches, setTournamentMatches] = useState<Match[]>([]);
      
      const interval = setInterval(async () => {
          try {
-             const res = await matchAPI.getMatchById(selectedMatchId);
+             const res = await matchAPI.getMatch(selectedMatchId!);
              const matchData = res.data;
              pushDataToOverlay(matchData);
          } catch (e) {
@@ -146,7 +146,7 @@ const [tournamentMatches, setTournamentMatches] = useState<Match[]>([]);
           data = await tournamentAPI.getTournamentMatches(tournamentId);
         } else {
           // All matches fallback
-          data = await matchAPI.getAllMatches();
+data = await matchAPI.getMatches();
         }
         // Handle different response formats
         let allMatchesData: any[] = [];

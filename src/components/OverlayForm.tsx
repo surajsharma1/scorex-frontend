@@ -12,7 +12,7 @@ export default function OverlayForm() {
   useEffect(() => {
     const fetchMatches = async () => {
       try {
-        const data = await matchAPI.getAllMatches();
+const data = await matchAPI.getMatches();
         // Handle different response formats
         let matchesData: any[] = [];
         if (Array.isArray(data)) {

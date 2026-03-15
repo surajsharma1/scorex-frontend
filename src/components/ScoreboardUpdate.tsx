@@ -171,9 +171,9 @@ export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: Scor
     isSavingRef.current = true;
     try {
       if (matchId) {
-        await matchAPI.updateMatchScore(matchId, scores);
+await matchAPI.updateMatch(matchId, scores);
       } else {
-        await tournamentAPI.updateLiveScores(tournament._id, scores);
+await tournamentAPI.updateTournament(tournament._id, scores);
       }
       setLastSaved(new Date());
       onUpdate();
@@ -325,10 +325,17 @@ export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: Scor
   };
 
   const handleScoreUpdate = async () => {
-    try { setLoading(true); setError('');
-      if (matchId) await matchAPI.updateMatchScore(matchId, liveScores);
-      else await tournamentAPI.updateLiveScores(tournament._id, liveScores);
-      onUpdate(); setLastSaved(new Date());
+    try { 
+      setLoading(true); 
+      setError('');
+      if (matchId) {
+        await matchAPI.updateMatch(matchId!, liveScores);
+      } else {
+        await tournamentAPI.updateTournament(tournament._id, { liveScores });
+      }
+      onUpdate(); 
+      setLastSaved(new Date());
+    }
     } catch (err: unknown) { setError(err instanceof Error ? err.message : 'Failed to update scores'); }
     finally { setLoading(false); }
   };

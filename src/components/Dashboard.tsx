@@ -1,55 +1,57 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { Bar, Pie } from 'react-chartjs-2';
-import { 
-  Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement 
+import {
+  Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement,
+  Title, Tooltip, Legend
 } from 'chart.js';
-import { Trophy, Users, Activity, Plus, ArrowRight } from 'lucide-react';
+import { Trophy, Users, Activity, Plus, ArrowRight, BarChart3 } from 'lucide-react';
+import api, { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
+
+interface Stats {
+  tournaments: number;
+  matches: number;
+  teams: number;
+  liveMatches: number;
+}
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({
-    tournaments: 0,
-    matches: 0,
-    teams: 0,
-    liveMatches: 0
+  const [stats, setStats] = useState<Stats>({
+    tournaments: 0, matches: 0, teams: 0, liveMatches: 0
   });
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
     try {
-      console.log('Fetching dashboard data...');
-      // Fetch USER-SPECIFIC data
-      const [tRes, mRes, teamRes] = await Promise.all([
+      const [tournamentsRes, matchesRes, teamsRes, liveRes] = await Promise.all([
         tournamentAPI.getTournaments(),
-        matchAPI.getAllMatches(),
-        teamAPI.getTeams()
+        matchAPI.getMatches(),
+        teamAPI.getTeams(),
+        matchAPI.getLiveMatches()
       ]);
 
-      console.log('Dashboard API responses:', { tRes, mRes, teamRes });
+      const tournaments = Array.isArray(tournamentsRes.data) 
+        ? tournamentsRes.data.length 
+        : tournamentsRes.data?.tournaments?.length || 0;
+      
+      const matches = Array.isArray(matchesRes.data) 
+        ? matchesRes.data.length 
+        : matchesRes.data?.matches?.length || 0;
+      
+      const teams = Array.isArray(teamsRes.data) 
+        ? teamsRes.data.length 
+        : teamsRes.data?.teams?.length || 0;
 
-      const matches = mRes.data?.matches || mRes.data || [];
-      const live = matches.filter((m: any) => m.status === 'ongoing').length;
+      const liveMatches = Array.isArray(liveRes.data) 
+        ? liveRes.data.length 
+        : liveRes.data?.length || 0;
 
-      setStats({
-        tournaments: Array.isArray(tRes.data) ? tRes.data.length : (tRes.data?.tournaments || []).length,
-        matches: matches.length,
-        teams: Array.isArray(teamRes.data) ? teamRes.data.length : (teamRes.data?.teams || []).length,
-        liveMatches: live
-      });
-    } catch (e: any) {
-      console.error("Failed to load dashboard stats", e);
-      console.error("Error details:", e.response?.data || e.message);
-      // Set default values on error so dashboard still shows
-      setStats({
-        tournaments: 0,
-        matches: 0,
-        teams: 0,
-        liveMatches: 0
-      });
+      setStats({ tournaments, matches, teams, liveMatches });
+    } catch (error) {
+      console.error('Dashboard data fetch failed:', error);
     } finally {
       setLoading(false);
     }
@@ -57,105 +59,104 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData();
+    const interval = setInterval(fetchDashboardData, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
   }, []);
 
-  // Chart Data Configuration
-  const barData = {
+  const chartData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
     datasets: [{
-      label: 'Matches Played',
-      data: [12, 19, 3, 5, 2, 3], // TODO: Connect to real analytics API
-      backgroundColor: 'rgba(59, 130, 246, 0.5)',
+      label: 'Matches',
+      data: [12, 19, 3, 5, 2, 3],
+      backgroundColor: 'rgba(59, 130, 246, 0.6)',
       borderColor: 'rgb(59, 130, 246)',
-      borderWidth: 1,
+      borderWidth: 2,
     }]
   };
 
   const pieData = {
-    labels: ['Won Batting 1st', 'Won Chasing', 'Draw/Tie'],
+    labels: ['Won 1st Bat', 'Chasing Wins', 'Ties/No Result'],
     datasets: [{
-      data: [12, 19, 3], 
+      data: [55, 40, 5],
       backgroundColor: [
-        'rgba(255, 99, 132, 0.6)',
-        'rgba(54, 162, 235, 0.6)',
-        'rgba(255, 206, 86, 0.6)',
+        'rgba(34, 197, 94, 0.8)',
+        'rgba(59, 130, 246, 0.8)',
+        'rgba(251, 191, 36, 0.8)'
       ],
-      borderWidth: 1,
+      borderWidth: 2
     }]
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-6 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Dashboard</h1>
-           <p className="text-gray-300">Overview of your cricket organization</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 p-8">
+      {/* Header */}
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
+          <div>
+            <h1 className="text-5xl font-black bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              ScoreX Dashboard
+            </h1>
+            <p className="text-xl text-slate-300 mt-2">Your cricket empire at a glance</p>
+          </div>
+          <button 
+            onClick={() => navigate('/tournaments/new')}
+            className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 flex items-center gap-3"
+          >
+            <Plus size={24} />
+            New Tournament
+          </button>
         </div>
-        <button 
-          onClick={() => navigate('/tournaments/create')}
-          className="bg-green-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-green-700 transition shadow-lg shadow-green-900/20 font-bold"
-        >
-          <Plus className="w-5 h-5" /> New Tournament
-        </button>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatsCard 
-           title="Total Tournaments" 
-           value={stats.tournaments} 
-           icon={<Trophy className="w-6 h-6 text-blue-600" />} 
-           bg="bg-blue-100 dark:bg-blue-900/30"
-        />
-        <StatsCard 
-           title="Matches Managed" 
-           value={stats.matches} 
-           icon={<Activity className="w-6 h-6 text-green-600" />} 
-           bg="bg-green-100 dark:bg-green-900/30"
-        />
-        <StatsCard 
-           title="Active Teams" 
-           value={stats.teams} 
-           icon={<Users className="w-6 h-6 text-purple-600" />} 
-           bg="bg-purple-100 dark:bg-purple-900/30"
-        />
-        
-        {/* Live Match Card */}
-        <div 
-            onClick={() => navigate('/matches/live')}
-            className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border-2 border-red-100 dark:border-red-900/30 cursor-pointer hover:shadow-md hover:border-red-500/50 transition-all group"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Live Now</p>
-              <div className="flex items-center gap-3 mt-1">
-                <h3 className="text-3xl font-black text-red-500">{stats.liveMatches}</h3>
-                {stats.liveMatches > 0 && (
-                    <span className="flex h-3 w-3 relative">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                    </span>
-                )}
-              </div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <StatsCard 
+            title="Tournaments" 
+            value={stats.tournaments.toLocaleString()} 
+            change="+12%"
+            icon={<Trophy size={32} />}
+            color="from-blue-500 to-blue-600"
+          />
+          <StatsCard 
+            title="Matches" 
+            value={stats.matches.toLocaleString()} 
+            change="+28%"
+            icon={<BarChart3 size={32} />}
+            color="from-emerald-500 to-teal-600"
+          />
+          <StatsCard 
+            title="Teams" 
+            value={stats.teams.toLocaleString()} 
+            change="+5%"
+            icon={<Users size={32} />}
+            color="from-purple-500 to-indigo-600"
+          />
+          <LiveStatsCard 
+            value={stats.liveMatches}
+            onClick={() => navigate('/live')}
+          />
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 shadow-2xl">
+            <h3 className="text-2xl font-bold mb-6 text-white">Recent Activity</h3>
+            <div className="h-80">
+              <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
             </div>
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-red-500 group-hover:translate-x-1 transition-all" />
           </div>
-        </div>
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 shadow-xl">
-          <h3 className="text-lg font-bold text-gray-300 mb-6">Match Activity</h3>
-          <div className="h-64 flex justify-center w-full">
-            <Bar data={barData} options={{ maintainAspectRatio: false, responsive: true }} />
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="text-lg font-bold mb-6 dark:text-white">Win Distribution</h3>
-          <div className="h-64 flex justify-center w-full">
-            <Pie data={pieData} options={{ maintainAspectRatio: false, responsive: true }} />
+          <div className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 shadow-2xl">
+            <h3 className="text-2xl font-bold mb-6 text-white">Win Distribution</h3>
+            <div className="h-80">
+              <Pie data={pieData} options={{ responsive: true, maintainAspectRatio: false }} />
+            </div>
           </div>
         </div>
       </div>
@@ -163,17 +164,53 @@ export default function Dashboard() {
   );
 }
 
-// Helper Component for Stats
-function StatsCard({ title, value, icon, bg }: any) {
-  return (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
-            <div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{title}</p>
-                <h3 className="text-3xl font-black dark:text-white mt-1">{value}</h3>
-            </div>
-            <div className={`p-4 rounded-xl ${bg}`}>
-                {icon}
-            </div>
-        </div>
-    )
+interface StatsCardProps {
+  title: string;
+  value: string | number;
+  change: string;
+  icon: React.ReactNode;
+  color: string;
 }
+
+function StatsCard({ title, value, change, icon, color }: StatsCardProps) {
+  return (
+    <div className="group bg-white/10 hover:bg-white/20 backdrop-blur-xl p-8 rounded-3xl border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-slate-400 font-medium text-sm uppercase tracking-wide">{title}</p>
+          <p className="text-4xl font-black text-white mt-2">{value}</p>
+          <span className="inline-flex items-center gap-1 text-emerald-400 font-semibold mt-2">
+            <ArrowUp className="w-4 h-4" /> {change}
+          </span>
+        </div>
+        <div className={`p-4 rounded-2xl bg-gradient-to-br ${color} shadow-lg group-hover:scale-110 transition-all`}>
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LiveStatsCard({ value, onClick }: { value: number; onClick: () => void }) {
+  return (
+    <div 
+      className="group bg-gradient-to-br from-red-500 to-orange-500 p-8 rounded-3xl shadow-2xl cursor-pointer hover:shadow-red-500/25 transition-all hover:-translate-y-2 relative overflow-hidden"
+      onClick={onClick}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-red-400/20 to-orange-400/20 animate-shimmer"></div>
+      <div className="relative z-10">
+        <p className="text-white/90 font-medium text-sm uppercase tracking-wide">Live Matches</p>
+        <div className="flex items-center gap-3 mt-2">
+          <h3 className="text-4xl font-black text-white">{value}</h3>
+          {value > 0 && (
+            <div className="flex h-6 w-6 relative">
+              <div className="animate-ping absolute inset-0 rounded-full bg-white/75 opacity-75"></div>
+              <div className="relative inset-0 w-6 h-6 bg-white rounded-full"></div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
