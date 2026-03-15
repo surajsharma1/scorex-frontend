@@ -826,7 +826,6 @@ const fetchMatches = async () => {
           <p className="text-gray-300">Tournament: {tournament.name}</p>
           <div className="flex items-center gap-3 mb-2">
             <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-              tournament.status === 'ongoing' ? 'bg-green-100 text-green-800' :
               tournament.status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
               tournament.status === 'ongoing' ? 'bg-green-100 text-green-800' :
               tournament.status === 'completed' ? 'bg-gray-100 text-gray-800' :
