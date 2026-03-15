@@ -157,6 +157,12 @@ export const matchApi = {
     return response.data;
   },
 
+  // Update match status
+  updateMatchStatus: async (matchId: string, status: string) => {
+    const response = await apiClient.put(`/matches/${matchId}/status`, { status });
+    return response.data;
+  },
+
   // Delete match
   deleteMatch: async (matchId: string) => {
     const response = await apiClient.delete(`/matches/${matchId}`);

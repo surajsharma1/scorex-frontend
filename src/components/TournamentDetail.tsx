@@ -855,7 +855,15 @@ const fetchMatches = async () => {
                   </div>
                   <div className="flex gap-2">
                     <button 
-                      onClick={() => handleLiveScoreClick(match)} 
+                      onClick={async () => {
+                        try {
+                          await matchApi.updateMatchStatus(match._id, 'upcoming');
+                          handleLiveScoreClick(match);
+                        } catch (error) {
+                          console.error('Failed to update status:', error);
+                          alert('Failed to prepare match');
+                        }
+                      }} 
                       className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm flex-1 text-center"
                     >
                       Live Score
