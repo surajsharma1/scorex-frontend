@@ -5,9 +5,8 @@
 
 export const isProduction = () => {
   return import.meta.env.MODE === 'production' || 
-         import.meta.env.PROD === 'true' ||
-         window.location.hostname !== 'localhost' && 
-         window.location.hostname !== '127.0.0.1';
+         import.meta.env.PROD ||
+         (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
 };
 
 export const getProtocol = () => {
