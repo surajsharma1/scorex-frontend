@@ -4,6 +4,7 @@ import { Tournament, Match, Team } from './types';
 import io, { Socket } from 'socket.io-client';
 import TeamManagement from './TeamManagement';
 import TournamentStats from './TournamentStats';
+import ScoreboardUpdate from './ScoreboardUpdate';
 import { matchApi } from '../services/matchApi';
 import { tournamentAPI, teamAPI } from '../services/api';
 
@@ -84,11 +85,17 @@ export default function TournamentDetail() {
     })),
   });
 
-  // Toss/Player modals
+  // Sequential modals states
   const [showTossModal, setShowTossModal] = useState(false);
-  const [pendingMatchForToss, setPendingMatchForToss] = useState<Match | null>(null);
-  const [tossWinner, setTossWinner] = useState<string>('');
-  const [tossDecision, setTossDecision] = useState<'bat' | 'bowl' | ''>('');
+  const [showPlayerModal, setShowPlayerModal] = useState(false);
+  const [showScoreModal, setShowScoreModal] = useState(false);
+  const [matchSetupStage, setMatchSetupStage] = useState<'toss' | 'players' | 'scoring' | 'complete'>('toss');
+  const [pendingMatch, setPendingMatch] = useState<Match | null>(null);
+  const [selectedTossWinner, setSelectedTossWinner] = useState<string>('');
+  const [selectedTossDecision, setSelectedTossDecision] = useState<'bat' | 'bowl' | ''>('');
+  const [selectedStriker, setSelectedStriker] = useState<string>('');
+  const [selectedNonStriker, setSelectedNonStriker] = useState<string>('');
+  const [selectedBowler, setSelectedBowler] = useState<string>('');
 
   useEffect(() => {
     if (id) {
@@ -178,20 +185,41 @@ export default function TournamentDetail() {
       alert('Toss only for upcoming matches');
       return;
     }
-    setPendingMatchForToss(match);
+    setPendingMatch(match);
+    setSelectedTossWinner('');
+    setSelectedTossDecision('');
     setShowTossModal(true);
   };
 
+  const handlePlayerSave = async () => {
+    if (!pendingMatch || !selectedStriker || !selectedNonStriker || !selectedBowler) {
+      alert('Please select all players');
+      return;
+    }
+    try {
+      await matchApi.savePlayerSelections(pendingMatch._id, {
+        striker: selectedStriker,
+        nonStriker: selectedNonStriker,
+        bowler: selectedBowler,
+      });
+      setShowPlayerModal(false);
+      setMatchSetupStage('scoring');
+      setShowScoreModal(true);
+    } catch (error: any) {
+      alert(`Player selection failed: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
   const handleTossSave = async () => {
-    if (!pendingMatchForToss || !tossWinner || !tossDecision) return alert('Complete all fields');
+    if (!pendingMatch || !selectedTossWinner || !selectedTossDecision) return alert('Complete all fields');
     
     try {
-      await matchApi.saveToss(pendingMatchForToss._id, tossWinner, tossDecision);
+      await matchApi.saveToss(pendingMatch._id, selectedTossWinner, selectedTossDecision);
       setShowTossModal(false);
-      setTossWinner('');
-      setTossDecision('');
+      setMatchSetupStage('players');
+      setPendingMatch(pendingMatch); // Keep for player modal
+      setShowPlayerModal(true);
       await fetchMatches();
-      alert('Toss saved! Set status to "live" to start scoring.');
     } catch (error: any) {
       alert(`Toss failed: ${error.response?.data?.message || error.message}`);
     }
@@ -387,21 +415,36 @@ export default function TournamentDetail() {
 
                     {/* Quick Actions */}
                     <div className="flex gap-1">
-                      {match.tossWinner ? (
-                        <button className="px-3 py-2 bg-purple-600/80 hover:bg-purple-600 text-xs rounded-lg font-bold transition-all">
+                      {matchSetupStage === 'toss' || matchSetupStage === 'players' ? (
+                        <button 
+                          onClick={() => {
+                            setPendingMatch(match);
+                            setMatchSetupStage('players');
+                            setShowPlayerModal(true);
+                          }}
+                          disabled={matchSetupStage !== 'players'}
+                          className="px-3 py-2 bg-purple-600/80 hover:bg-purple-600 disabled:opacity-50 text-xs rounded-lg font-bold transition-all"
+                        >
                           👥 Players
                         </button>
                       ) : match.status === 'upcoming' && (
                         <button 
-                          onClick={() => handleTossClick(match)}
+                          onClick={() => {
+                            setPendingMatch(match);
+                            setMatchSetupStage('toss');
+                            setShowTossModal(true);
+                          }}
                           className="px-3 py-2 bg-orange-500/80 hover:bg-orange-500 text-xs rounded-lg font-bold transition-all"
                         >
                           ⚡ Toss
                         </button>
                       )}
                       <button 
-                        onClick={() => setSelectedMatch(match)}
-                        disabled={(localMatchStatuses[match._id!] || match.status) !== 'live'}
+                        onClick={() => {
+                          setPendingMatch(match);
+                          setShowScoreModal(true);
+                        }}
+                        disabled={matchSetupStage !== 'scoring' || (localMatchStatuses[match._id!] || match.status) !== 'live'}
                         className="px-4 py-2 bg-green-600/80 hover:bg-green-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-xs rounded-lg font-bold shadow-lg transition-all"
                       >
                         📺 Live Score
@@ -515,6 +558,110 @@ export default function TournamentDetail() {
                 {loading ? 'Creating...' : 'Create Match'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Player Selection Modal */}
+      {showPlayerModal && pendingMatch && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+          <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700 rounded-3xl p-8 max-w-lg w-full shadow-2xl">
+            <h3 className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-purple-400 to-indigo-500 bg-clip-text text-transparent">
+              Player Selection
+            </h3>
+            <p className="text-gray-400 text-center mb-8">
+              Select striker, non-striker, and bowler for {pendingMatch.team1?.name} vs {pendingMatch.team2?.name}
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Striker</label>
+                <select 
+                  value={selectedStriker} 
+                  onChange={(e) => setSelectedStriker(e.target.value)}
+                  className="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">Select Striker</option>
+                  {(pendingMatch.team1?.players || pendingMatch.team2?.players || []).map((p: any) => (
+                    <option key={p._id || p.id} value={p._id || p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Non-Striker</label>
+                <select 
+                  value={selectedNonStriker} 
+                  onChange={(e) => setSelectedNonStriker(e.target.value)}
+                  className="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">Select Non-Striker</option>
+                  {(pendingMatch.team1?.players || pendingMatch.team2?.players || []).map((p: any) => (
+                    <option key={p._id || p.id} value={p._id || p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Bowler</label>
+                <select 
+                  value={selectedBowler} 
+                  onChange={(e) => setSelectedBowler(e.target.value)}
+                  className="w-full p-3 bg-gray-800/50 border border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">Select Bowler</option>
+                  {(pendingMatch.team1?.players || pendingMatch.team2?.players || []).map((p: any) => (
+                    <option key={p._id || p.id} value={p._id || p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-8">
+              <button 
+                onClick={handlePlayerSave}
+                disabled={!selectedStriker || !selectedNonStriker || !selectedBowler}
+                className="flex-1 py-4 px-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 disabled:opacity-50 font-bold text-lg rounded-2xl shadow-xl transition-all"
+              >
+                Next: Scoreboard
+              </button>
+              <button 
+                onClick={() => {
+                  setShowPlayerModal(false);
+                  setSelectedStriker('');
+                  setSelectedNonStriker('');
+                  setSelectedBowler('');
+                }}
+                className="flex-1 py-4 px-6 bg-gray-700/50 hover:bg-gray-600 font-bold text-lg rounded-2xl border border-gray-600 transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Score Modal */}
+      {showScoreModal && pendingMatch && tournament && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700 rounded-3xl p-6 max-w-4xl w-full max-h-[90vh] shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
+                Live Scoreboard - {pendingMatch.team1?.name} vs {pendingMatch.team2?.name}
+              </h3>
+              <button 
+                onClick={() => {
+                  setShowScoreModal(false);
+                  setMatchSetupStage('complete');
+                }}
+                className="p-2 hover:bg-gray-800 rounded-xl transition-all"
+              >
+                ✕
+              </button>
+            </div>
+            <ScoreboardUpdate 
+              tournament={tournament} 
+              matchId={pendingMatch._id}
+              onUpdate={() => fetchMatches()}
+            />
           </div>
         </div>
       )}
