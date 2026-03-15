@@ -107,11 +107,10 @@ export const matchApi = {
   },
 
   // Save toss
-  saveToss: async (matchId: string, tossWinnerId: string, decision: string) => {
-    const formattedDecision = decision.charAt(0).toUpperCase() + decision.slice(1);
+  saveToss: async (matchId: string, tossWinnerId: string, decision: 'bat' | 'bowl') => {
     const response = await apiClient.put(`/matches/${matchId}/toss`, {
-      tossWinnerId,
-      decision: formattedDecision
+      tossWinner: tossWinnerId,
+      decision: decision.toLowerCase() as 'bat' | 'bowl'
     });
     return response.data;
   },
