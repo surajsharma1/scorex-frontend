@@ -88,9 +88,15 @@ export default function FriendList() {
   };
 
   // Get the other user from a friend object
+
   const getOtherUser = (friend: Friend) => {
-    return friend.to?._id ? friend.to : friend.from;
+    const candidate = friend.to || friend.from;
+    if (typeof candidate === 'string') {
+      return { _id: candidate, username: candidate, email: '' } as User;
+    }
+    return candidate;
   };
+
 
   if (loading) {
     return (
@@ -151,12 +157,17 @@ export default function FriendList() {
                 return (
                   <div key={friend._id} className="bg-gray-800 p-4 rounded-lg flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center font-bold text-lg">
-                        {user?.username?.charAt(0).toUpperCase() || '?'}
+
+                        <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center font-bold text-lg">
+                        {(typeof user === 'string' ? (user as string).charAt(0) : user?.username || '')?.toUpperCase() || '?'}
                       </div>
+
                       <div>
-                        <h3 className="font-bold">{user?.username || 'Unknown User'}</h3>
-                        <p className="text-sm text-gray-400">{user?.email || ''}</p>
+
+
+                        <h3 className="font-bold">{typeof user === 'string' ? user : user?.username || 'Unknown User'}</h3>
+                        <p className="text-sm text-gray-400">{(typeof user === 'string' ? '' : user?.email) || ''}</p>
+
                       </div>
                     </div>
                     <button
@@ -187,9 +198,12 @@ export default function FriendList() {
                 return (
                   <div key={friend._id} className="bg-gray-800 p-4 rounded-lg flex items-center justify-between">
                     <div className="flex items-center gap-4">
+
                       <div className="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center font-bold text-lg">
-                        {user?.username?.charAt(0).toUpperCase() || '?'}
+                        {(typeof user === 'string' ? (user as string).charAt(0) : user?.username || '')?.toUpperCase() || '?'}
                       </div>
+
+
                       <div>
                         <h3 className="font-bold">{user?.username || 'Unknown User'}</h3>
                         <p className="text-sm text-gray-400">Wants to connect</p>
@@ -246,9 +260,12 @@ export default function FriendList() {
               {searchResults.map((user) => (
                 <div key={user._id} className="bg-gray-800 p-4 rounded-lg flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center font-bold text-lg">
-                      {user.username?.charAt(0).toUpperCase() || '?'}
+
+                        <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center font-bold text-lg">
+                      {(typeof user === 'string' ? (user as string).charAt(0) : user?.username || '')?.toUpperCase() || '?'}
                     </div>
+
+
                     <div>
                       <h3 className="font-bold">{user.username}</h3>
                       <p className="text-sm text-gray-400">{user.email}</p>

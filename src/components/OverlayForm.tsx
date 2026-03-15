@@ -19,9 +19,10 @@ const data = await matchAPI.getMatches();
           matchesData = data;
         } else if (data?.data && Array.isArray(data.data)) {
           matchesData = data.data;
-        } else if (data?.matches && Array.isArray(data.matches)) {
-          matchesData = data.matches;
+        } else if ((data.data || data)?.matches && Array.isArray((data.data || data)?.matches)) {
+          matchesData = (data.data || data)?.matches;
         }
+
         setMatches(Array.isArray(matchesData) ? matchesData : []);
       } catch (error) {
         console.error('Failed to fetch matches');

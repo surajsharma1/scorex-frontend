@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User } from 'lucide-react';
 
 interface LoginProps {
-  onLogin: (userData: any) => void;
+  onLogin?: (userData: any) => void;
 }
 
 export default function Login({ onLogin }: LoginProps) {
@@ -23,12 +23,17 @@ export default function Login({ onLogin }: LoginProps) {
       });
       
       const data = await res.json();
+
+
       if (data.success) {
-        onLogin(data);
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
         navigate('/');
       } else {
         alert(data.message);
       }
+
+
     } catch (error) {
       alert('Login failed');
     } finally {

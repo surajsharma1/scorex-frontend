@@ -79,7 +79,9 @@ export default function MatchDetails() {
       }
   };
 
-  const updateStatus = async (status: 'upcoming' | 'live' | 'completed') => {
+
+  const updateStatus = async (status: 'upcoming' | 'live' | 'completed' | 'ongoing') => {
+
       if(!match) return;
       if(!confirm(`Change status to ${status}?`)) return;
       try {

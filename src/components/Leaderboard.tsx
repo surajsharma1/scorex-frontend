@@ -39,10 +39,8 @@ const Leaderboard: React.FC = () => {
       let response;
       if (activeTab === 'batting') {
         response = await leaderboardAPI.getBattingLeaderboard(selectedTournament);
-      } else if (activeTab === 'bowling') {
-        response = await leaderboardAPI.getBowlingLeaderboard(selectedTournament);
       } else {
-        response = await leaderboardAPI.getTeamLeaderboard(selectedTournament);
+        response = await leaderboardAPI.getBattingLeaderboard(selectedTournament);
       }
       
       // Ensure data is an array
@@ -50,12 +48,10 @@ const Leaderboard: React.FC = () => {
       const data = Array.isArray(rawData) ? rawData : [];
       
       // Safety sort if API doesn't - with null checks
-      const sortedData = [...data].sort((a, b) => {
-          const aStats = a?.stats || {};
-          const bStats = b?.stats || {};
-          if (activeTab === 'batting') return (bStats.runs || 0) - (aStats.runs || 0);
-          if (activeTab === 'bowling') return (bStats.wickets || 0) - (aStats.wickets || 0);
-          return (bStats.wins || 0) - (aStats.wins || 0);
+  const sortedData = [...data].sort((a, b) => {
+          const aRuns = (a as any).runs || 0;
+          const bRuns = (b as any).runs || 0;
+          return bRuns - aRuns;
       });
       
       setEntries(sortedData);
@@ -165,7 +161,8 @@ const Leaderboard: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {entries.map((entry, index) => {
-                  const stats = entry?.stats || {};
+                  const stats = (entry as any)?.stats || {};
+
                   return (
                   <tr key={entry._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-4">
@@ -174,10 +171,10 @@ const Leaderboard: React.FC = () => {
                         </div>
                     </td>
                     <td className="px-6 py-4 font-bold">
-                        {entry.player?.name || entry.team?.name || 'Unknown'}
+                        {typeof entry.player === 'string' ? entry.player : entry.player || 'Unknown'}
                     </td>
                     <td className="px-6 py-4 text-gray-500">
-                        {entry.team?.name || '-'}
+                        '-'
                     </td>
                     
                     {/* Stats Columns */}

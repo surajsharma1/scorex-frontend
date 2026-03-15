@@ -94,7 +94,8 @@ export default function TournamentView() {
       color: backendTeam.color || '#3B82F6',
       logo: backendTeam.logo,
       players: backendTeam.players || [],
-      tournament: backendTeam.tournament,
+      tournamentId: backendTeam.tournament,
+
       stats: backendTeam.statistics || {
         played: 0,
         won: 0,

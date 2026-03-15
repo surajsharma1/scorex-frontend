@@ -183,8 +183,9 @@ export default function Register() {
       const res = await authAPI.register(registerData);
       
       // Store token and user directly - no OTP needed!
-      localStorage.setItem('token', res.token);
-      localStorage.setItem('user', JSON.stringify(res.user));
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+
       navigate('/dashboard');
     } catch (err: any) {
       // Handle backend validation errors

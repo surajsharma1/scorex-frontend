@@ -15,6 +15,8 @@ import {
 interface SidebarProps {
   user: any;
   logout: () => void;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
 export default function Sidebar({ user, logout }: SidebarProps) {

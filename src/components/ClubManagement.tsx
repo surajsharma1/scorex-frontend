@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Club } from './types';
 import { clubAPI } from '../services/api';
 import { Users, Plus, Loader, Crown } from 'lucide-react';
@@ -20,10 +19,8 @@ export default function ClubManagement() {
   const loadClubs = async () => {
     setLoading(true);
     try {
-      const [allRes, myRes] = await Promise.all([
-          clubAPI.getClubs(),
-          clubAPI.getMyClubs()
-      ]);
+      const allRes = await clubAPI.getClubs();
+      const myRes = await clubAPI.getClubs();
       setClubs(allRes.data.clubs || []);
       setMyClubs(myRes.data.clubs || []);
     } catch (err) {

@@ -154,13 +154,17 @@ data = await matchAPI.getMatches();
           allMatchesData = data;
         } else if (data?.data && Array.isArray(data.data)) {
           allMatchesData = data.data;
-        } else if (data?.matches && Array.isArray(data.matches)) {
-          allMatchesData = data.matches;
+
+        } else if ((data.data || data)?.matches && Array.isArray((data.data || data)?.matches)) {
+          allMatchesData = (data.data || data)?.matches;
         }
+
         // Store all matches for overlay creation
         setAllMatches(allMatchesData);
         // Filter for tournament matches only (per user request)
-        const tournamentMatches = Array.isArray(data.data) ? data.data : data.matches || data || [];
+
+        const tournamentMatches = Array.isArray((data.data || data)) ? (data.data || data) : (data.data || data)?.matches || data || [];
+
         setMatches(tournamentMatches.filter((m: Match) => 
           ['live', 'ongoing', 'in_progress', 'upcoming'].includes((m.status || '').toLowerCase())
         ));

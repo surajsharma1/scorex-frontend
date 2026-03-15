@@ -5,7 +5,7 @@ import {
   Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement,
   Title, Tooltip, Legend
 } from 'chart.js';
-import { Trophy, Users, Activity, Plus, ArrowRight, BarChart3 } from 'lucide-react';
+import { Trophy, Users, Activity, Plus, ArrowRight, BarChart3, ArrowUp } from 'lucide-react';
 import api, { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);

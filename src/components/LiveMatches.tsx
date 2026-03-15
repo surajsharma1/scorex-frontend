@@ -46,9 +46,10 @@ export default function LiveMatches() {
         matchesData = data;
       } else if (data?.data && Array.isArray(data.data)) {
         matchesData = data.data;
-      } else if (data?.matches && Array.isArray(data.matches)) {
-        matchesData = data.matches;
+      } else if ((data.data || data)?.matches && Array.isArray((data.data || data)?.matches)) {
+        matchesData = (data.data || data)?.matches;
       }
+
       setMatches(matchesData);
     } catch (error: any) {
       console.error('Failed to fetch matches:', error);
@@ -76,9 +77,11 @@ export default function LiveMatches() {
               matchesData = data;
             } else if (data?.data && Array.isArray(data.data)) {
               matchesData = data.data;
-            } else if (data?.matches && Array.isArray(data.matches)) {
-              matchesData = data.matches;
+
+            } else if (((data as any).data || data)?.matches && Array.isArray(((data as any).data || data)?.matches)) {
+              matchesData = ((data as any).data || data)?.matches;
             }
+
             if (Array.isArray(matchesData)) {
               allMatches.push(...matchesData);
             }

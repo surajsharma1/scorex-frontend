@@ -23,26 +23,6 @@ import Profile from './Profile';
 import AdminPanel from './AdminPanel';
 import { Menu } from 'lucide-react';
 
-// --- Dashboard Layout Wrapper ---
-const DashboardLayout = () => {
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
-
-  return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white overflow-hidden">
-      <button 
-        className="fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md md:hidden"
-        onClick={() => setSidebarOpen(!isSidebarOpen)}
-      >
-        <Menu className="w-6 h-6" />
-      </button>
-      <Sidebar isOpen={isSidebarOpen} onToggle={() => setSidebarOpen(false)} />
-      <main className="flex-1 md:ml-64 h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
-        <Outlet />
-      </main>
-    </div>
-  );
-};
-
 function App() {
   const token = localStorage.getItem('token');
   
@@ -57,10 +37,32 @@ function App() {
   } catch (e) {
     console.error("Error parsing user data from localStorage:", e);
     localStorage.removeItem('user');
-
-    console.error("Error parsing user data from localStorage:", e);
-    localStorage.removeItem('user');
   }
+
+  const DashboardLayout = () => {
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+    const logout = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.reload();
+    };
+
+    return (
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white overflow-hidden">
+        <button 
+          className="fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md md:hidden"
+          onClick={() => setSidebarOpen(!isSidebarOpen)}
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onToggle={() => setSidebarOpen(false)} />
+        <main className="flex-1 md:ml-64 h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
+          <Outlet />
+        </main>
+      </div>
+    );
+  };
 
   return (
     <Routes>
@@ -99,3 +101,4 @@ function App() {
 }
 
 export default App;
+

@@ -17,21 +17,29 @@ export interface Player {
   jerseyNumber?: string;
 }
 
+
 export interface Team {
   _id: string;
   name: string;
   shortName: string;
   color?: string;
+  logo?: string;
   players: Player[];
   captain?: string;
   tournamentId?: string;
+  stats?: any;
+  batsmen?: any[];
+  bowler?: any;
 }
+
 
 export interface Tournament {
   _id: string;
   name: string;
   type: 'round_robin' | 'knockout' | 'league';
-  status: 'upcoming' | 'live' | 'completed';
+
+  status: 'upcoming' | 'live' | 'completed' | 'ongoing';
+
   format: 'T10' | 'T20' | 'ODI' | 'Test';
   organizer: string;
   teams: Team[];
@@ -53,7 +61,9 @@ export interface Match {
   team2: Team;
   team1Name: string;
   team2Name: string;
-  status: 'upcoming' | 'live' | 'completed';
+
+  status: 'upcoming' | 'live' | 'completed' | 'ongoing' | 'scheduled';
+
   venue?: string;
   format?: string;
   matchType?: string;
@@ -83,6 +93,8 @@ export interface Match {
   liveScores?: LiveScores;
   innings?: Innings[];
   date: string;
+  requiredRunRate?: number;
+  team1RRR?: number;
 }
 
 export interface Innings {
@@ -156,12 +168,23 @@ export interface TeamInnings {
   bowler: Bowler;
 }
 
+
+
+
 export interface Message {
   _id: string;
   content: string;
-  sender: User;
-  timestamp: string;
+  from?: string;
+  to?: string;
+  read?: boolean;
+  updatedAt?: string;
+  createdAt: string;
+  sender?: User;
+  timestamp?: string;
 }
+
+
+
 
 export interface Overlay {
   _id: string;
@@ -175,7 +198,60 @@ export interface PaginationMeta {
   page: number;
   limit: number;
   pages: number;
+  hasNext: boolean;
 }
+
+export interface Club {
+  _id: string;
+  name: string;
+  description?: string;
+  members: User[];
+}
+
+
+
+export interface Friend {
+  _id: string;
+  user1: string;
+  user2: string;
+  from?: User | string;
+  to?: User | string;
+  status: 'pending' | 'accepted' | 'blocked';
+}
+
+
+
+
+export interface LeaderboardEntry {
+  _id: string;
+  player: string;
+  runs: number;
+  wickets: number;
+  matches: number;
+  average: number;
+  strikeRate: number;
+  tournamentId?: string;
+  stats?: Record<string, any>;
+}
+
+
+
+
+export interface CreatedOverlay {
+  _id: string;
+  name: string;
+  template: string;
+  config: any;
+  matchId?: string;
+  tournamentId?: string;
+  publicId?: string;
+  urlExpiresAt?: string;
+  createdAt?: string;
+  publicUrl?: string;
+  isUrlExpired?: boolean;
+}
+
+
 
 export interface ApiResponse<T> {
   success: boolean;

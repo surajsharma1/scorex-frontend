@@ -39,7 +39,9 @@ export default function TournamentStats({ tournamentId, matches }: TournamentSta
       // API returns directly in the response.data due to axios interceptor
       // Format: { success: true, data: { playerStats: [...] } }
       // The api.ts already returns response.data
-      const playerStats = response?.data?.playerStats || response?.playerStats || [];
+
+  const playerStats = response?.data?.playerStats || (response as any)?.playerStats || [];
+
       if (playerStats) {
         setStats(playerStats);
       }

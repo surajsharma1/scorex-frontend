@@ -30,7 +30,9 @@ export const tournamentAPI = {
 };
 
 export const teamAPI = {
-  getTeams: () => api.get('/teams'),
+
+  getTeams: (tournamentId?: string) => tournamentId ? api.get(`/tournaments/${tournamentId}/teams`) : api.get('/teams'),
+
   getTeamsByTournament: (id: string) => api.get(`/tournaments/${id}/teams`),
   createTeam: (data: any) => api.post('/teams', data),
   addPlayer: (id: string, data: any) => api.post(`/teams/${id}/players`, data),
@@ -48,7 +50,9 @@ export const matchAPI = {
   endInnings: (id: string) => api.post(`/matches/${id}/end-innings`),
   endMatch: (id: string, data: any) => api.post(`/matches/${id}/end`, data),
   getLiveMatches: () => api.get('/matches/live'),
-  deleteMatch: (id: string) => api.delete(`/matches/${id}`)
+  deleteMatch: (id: string) => api.delete(`/matches/${id}`),
+  getMatchesByTournament: (tournamentId: string) => api.get('/matches', { params: { tournament: tournamentId } }),
+  getTournamentStats: (tournamentId: string) => api.get(`/matches/stats/${tournamentId}`)
 };
 
 export const authAPI = {
@@ -74,11 +78,46 @@ export const overlayAPI = {
   createOverlay: (data: any) => api.post('/overlays', data),
   getOverlay: (id: string) => api.get(`/overlays/${id}`),
   updateOverlay: (id: string, data: any) => api.put(`/overlays/${id}`, data),
+  deleteOverlay: (id: string) => api.delete(`/overlays/${id}`),
+  regenerateOverlay: (id: string) => api.post(`/overlays/${id}/regenerate`),
 };
 
 export const paymentAPI = {
   createPayment: (data: any) => api.post('/payments', data),
   getPayments: () => api.get('/payments'),
+  createSubscription: (planName: string) => api.post('/payments/subscription', { plan: planName }),
+  createRazorpayOrder: (amount: number, planName: string) => api.post('/payments/razorpay-order', { amount, plan: planName }),
+  verifyRazorpayPayment: (data: any) => api.post('/payments/verify-razorpay', data),
+};
+
+export const bracketAPI = {
+  updateBracket: (tournamentId: string, data: any) => api.put(`/tournaments/${tournamentId}/bracket`, data),
+};
+
+
+export const clubAPI = {
+  getClubs: () => api.get('/clubs'),
+  getMyClubs: () => api.get('/clubs/my'),
+  createClub: (data: any) => api.post('/clubs', data),
+  joinClub: (id: string) => api.post(`/clubs/${id}/join`),
+};
+
+
+
+export const friendAPI = {
+  getFriends: () => api.get('/friends'),
+  getPendingRequests: () => api.get('/friends/requests'),
+  sendRequest: (userId: string) => api.post(`/friends/${userId}/request`),
+  acceptRequest: (requestId: string) => api.post(`/friends/requests/${requestId}/accept`),
+  rejectRequest: (requestId: string) => api.post(`/friends/requests/${requestId}/reject`),
+  removeFriend: (friendId: string) => api.delete(`/friends/${friendId}`),
+};
+
+
+export const leaderboardAPI = {
+  getBattingLeaderboard: (tournamentId?: string) => tournamentId 
+    ? api.get(`/leaderboards/batting/${tournamentId}`) 
+    : api.get('/leaderboards/batting'),
 };
 
 export default api;

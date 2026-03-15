@@ -205,7 +205,8 @@ export default function TournamentDetail() {
             </span>
             <span>{tournament.format}</span>
             <span>{tournament.venue}</span>
-            <span>{tournament.startDate?.toLocaleDateString()}</span>
+            <span>{tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'TBD'}</span>
+
           </div>
           <p className="text-gray-400 text-lg">{tournament.description}</p>
         </div>
