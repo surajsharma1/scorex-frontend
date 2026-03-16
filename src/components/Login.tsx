@@ -29,7 +29,17 @@ export default function Login() {
     } finally { setLoading(false); }
   };
 
-  const handleGoogle = () => {
+  const handleGoogle = async () => {
+    try {
+      // Quick health check before OAuth redirect
+      const healthRes = await fetch(`${getApiBaseUrl()}/api/health/google`, { mode: 'no-cors' });
+      if (!healthRes.ok) {
+        setError('Backend service temporarily unavailable (503). Render free tier may be sleeping. Try again in 1-2 minutes.');
+        return;
+      }
+    } catch {
+      // Health check often fails cross-origin, proceed anyway
+    }
     const state = encodeURIComponent(window.location.origin);
     window.location.href = `${getApiBaseUrl()}/auth/google?state=${state}`;
   };
