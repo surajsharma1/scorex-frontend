@@ -38,7 +38,7 @@ export default function TournamentDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tournament, setTournament] = useState<Tournament | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'matches' | 'teams' | 'stats'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'matches' | 'teams' | 'stats' | 'overlays'>('overview');
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [showMatchForm, setShowMatchForm] = useState(false);
@@ -199,18 +199,19 @@ export default function TournamentDetail() {
           <h1 className="text-5xl font-black mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             {tournament.name}
           </h1>
-          <div className="flex items-center gap-4 text-xl text-gray-300 mb-6">
-            <span className={`px-4 py-2 rounded-full font-bold text-sm ${
-              tournament.status === 'live' ? 'bg-green-500 text-white' :
-              tournament.status === 'upcoming' ? 'bg-blue-500 text-white' :
-              'bg-gray-500 text-white'
-            }`}>
-              {tournament.status?.toUpperCase()}
-            </span>
-            <span>{tournament.format}</span>
-            <span>{tournament.venue}</span>
-            <span>{tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'TBD'}</span>
-          </div>
+              <div className="flex items-center gap-4 text-xl text-gray-300 mb-6">
+                <span className={`px-4 py-2 rounded-full font-bold text-sm ${
+                  tournament.status === 'live' ? 'bg-green-500 text-white' :
+                  tournament.status === 'upcoming' ? 'bg-blue-500 text-white' :
+                  'bg-gray-500 text-white'
+                }`}>
+                  {tournament.status?.toUpperCase()}
+                </span>
+                <span>{tournament.format}</span>
+                <span>{tournament.venue}</span>
+                <span>{tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'TBD'}</span>
+              </div>
+              <OverlayManager tournamentId={id} matches={matches} />
           <p className="text-gray-400 text-lg">{tournament.description}</p>
         </div>
       </div>

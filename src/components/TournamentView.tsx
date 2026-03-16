@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import TeamManagement from './TeamManagement';
 import MatchDetail from './MatchDetail';
+import OverlayManager from './OverlayManager';
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 const StatusBadge = ({ status }: { status: string }) => {
@@ -568,84 +569,8 @@ export default function TournamentView() {
 
 
               {/* OVERLAYS */}
-              {activeTab === 'overlays' && (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3">
-                    <Layers className="w-6 h-6 text-blue-400" />
-                    <h2 className="text-2xl font-bold text-white">Tournament Overlays</h2>
-                  </div>
-                  
-                  {/* Tournament-specific matches for overlay creation */}
-                  <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6">
-                    <h3 className="text-lg font-bold text-slate-200 mb-4">Available Matches ({matches.length})</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-64 overflow-y-auto">
-                      {matches.map(match => (
-                        <div key={match._id} className="group bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-blue-500 hover:bg-slate-700 transition-all">
-                          <div className="flex items-center justify-between mb-2">
-                            <StatusBadge status={match.status || 'upcoming'} />
-                            <div className="text-xs text-slate-500">
-                              {match.format} | {new Date(match.date || 0).toLocaleDateString('en-IN')}
-                            </div>
-                          </div>
-                          <h4 className="font-semibold text-white mb-1 truncate">
-                            {match.team1Name || match.team1?.name} vs {match.team2Name || match.team2?.name}
-                          </h4>
-                          <p className="text-sm text-slate-400 mb-3">
-                            {match.venue || 'TBD'}
-                          </p>
-                          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-3 rounded-lg transition-all group-hover:scale-105">
-                            Create Overlay
-                          </button>
-                        </div>
-                      ))}
-                      {matches.length === 0 && (
-                        <div className="col-span-full text-center py-12 text-slate-500">
-                          <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                          <p>No matches for overlays. Schedule matches first.</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Quick overlay templates preview */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <div className="bg-gradient-to-br from-blue-600 to-indigo-800 rounded-xl p-4 text-white text-center hover:scale-105 transition-all cursor-pointer">
-                      <div className="w-12 h-12 bg-white/20 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <Zap className="w-6 h-6" />
-                      </div>
-                      <h4 className="font-bold text-sm">Live Score Bar</h4>
-                      <p className="text-xs opacity-90">Level 1 - Basic</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-xl p-4 text-white text-center hover:scale-105 transition-all cursor-pointer">
-                      <div className="w-12 h-12 bg-white/20 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <Trophy className="w-6 h-6" />
-                      </div>
-                      <h4 className="font-bold text-sm">Tournament Standings</h4>
-                      <p className="text-xs opacity-90">Level 1 - Standings</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-600 to-violet-700 rounded-xl p-4 text-white text-center hover:scale-105 transition-all cursor-pointer">
-                      <div className="w-12 h-12 bg-white/20 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <Activity className="w-6 h-6" />
-                      </div>
-                      <h4 className="font-bold text-sm">Player Stats</h4>
-                      <p className="text-xs opacity-90">Level 2 - Advanced</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl p-4 text-white text-center hover:scale-105 transition-all cursor-pointer">
-                      <div className="w-12 h-12 bg-white/20 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <Flame className="w-6 h-6" />
-                      </div>
-                      <h4 className="font-bold text-sm">Highlight Reel</h4>
-                      <p className="text-xs opacity-90">Level 2 - Effects</p>
-                    </div>
-                  </div>
-
-                  <div className="text-center pt-8 border-t border-slate-800">
-                    <button className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all shadow-xl">
-                      <Plus className="w-5 h-5" />
-                      Create Tournament Overlay
-                    </button>
-                  </div>
-                </div>
+{activeTab === 'overlays' && (
+                <OverlayManager tournamentId={selected._id} matches={matches} />
               )}
 
 
