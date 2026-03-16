@@ -1,73 +1,36 @@
 import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../App';
+import api from '../services/api';
+import { Zap } from 'lucide-react';
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { login } = useAuth();
 
   useEffect(() => {
-    // Aggressive immediate redirect - dashboard state handles auth
-    const checkAndRedirect = () => {
-      // First check hash (primary OAuth path)
-      const hash = location.hash;
-      console.log('OAuthCallback: hash=', hash);
-
-      if (hash) {
-        try {
-          const params = new URLSearchParams(hash.substring(1));
-          const token = params.get('token');
-          const userStr = params.get('user');
-          
-          console.log('Parsed token:', !!token, 'userStr preview:', userStr?.substring(0, 100));
-
-          if (token) {
-            localStorage.setItem('token', token);
-            
-            if (userStr) {
-              try {
-                const decoded = decodeURIComponent(userStr);
-                console.log('Decoded preview:', decoded.substring(0, 100));
-                const user = JSON.parse(decoded);
-                localStorage.setItem('user', JSON.stringify(user));
-              } catch (parseErr) {
-                console.warn('User JSON parse failed:', parseErr);
-              }
-            }
-          }
-        } catch (paramsErr) {
-          console.error('Hash params error:', paramsErr);
-        }
-      }
-      
-      // IMMEDIATE redirect - App.tsx storage listener handles rest
-      window.location.replace('/dashboard');
-    };
-
-    // Run immediately and retry every 100ms (handles race conditions)
-    checkAndRedirect();
-    const interval = setInterval(checkAndRedirect, 100);
-
-    // Cleanup after 5s max
-    const timeout = setTimeout(() => {
-      clearInterval(interval);
-      console.log('OAuthCallback timeout - forcing dashboard');
-      window.location.replace('/dashboard');
-    }, 5000);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (!token) { navigate('/login?error=no_token'); return; }
+    localStorage.setItem('token', token);
+    api.get('/auth/me')
+      .then(res => {
+        const u = res.data.data;
+        login({ token, data: { token, user: u } });
+        navigate('/dashboard');
+      })
+      .catch(() => { localStorage.removeItem('token'); navigate('/login?error=oauth_failed'); });
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-8">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-white mb-4">Logging you in...</h1>
-        <p className="text-slate-400">Completing Google login, please wait</p>
-        <p className="text-sm mt-4 text-slate-500">If not redirected in 5s, <a href="/login" className="text-blue-400 hover:underline">click here</a></p>
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
+          <Zap className="w-8 h-8 text-white" />
+        </div>
+        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-slate-400">Completing sign in...</p>
       </div>
     </div>
   );
 }
-

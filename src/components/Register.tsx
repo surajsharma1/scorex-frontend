@@ -1,380 +1,74 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../App';
 import { authAPI } from '../services/api';
-import { Loader2, Mail, Lock, User, CheckCircle, ArrowRight, KeyRound, AlertCircle, Check } from 'lucide-react';
-
-// Validation functions
-const validateUsername = (username: string): string | null => {
-  if (!username) return 'Username is required';
-  if (username.length < 3) return 'Username must be at least 3 characters';
-  if (username.length > 50) return 'Username must be less than 50 characters';
-  if (!/^[a-zA-Z0-9_]+$/.test(username)) return 'Username can only contain letters, numbers, and underscores';
-  return null;
-};
-
-const validateEmail = (email: string): string | null => {
-  if (!email) return 'Email is required';
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) return 'Please enter a valid email address';
-  return null;
-};
-
-const validatePassword = (password: string): string | null => {
-  if (!password) return 'Password is required';
-  if (password.length < 6) return 'Password must be at least 6 characters';
-  if (password.length > 100) return 'Password must be less than 100 characters';
-  if (!/(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~])/.test(password)) {
-    return 'Password must contain at least one letter, one number, and one special character';
-  }
-  return null;
-};
-
-const validateConfirmPassword = (password: string, confirmPassword: string): string | null => {
-  if (!confirmPassword) return 'Please confirm your password';
-  if (password !== confirmPassword) return 'Passwords do not match';
-  return null;
-};
-
-interface FieldErrors {
-  username: string | null;
-  email: string | null;
-  password: string | null;
-  confirmPassword: string | null;
-}
+import { Mail, Lock, User, Zap, AlertTriangle } from 'lucide-react';
 
 export default function Register() {
-  const [searchParams] = useSearchParams();
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [googleId, setGoogleId] = useState<string | null>(null);
-  const [isGoogleSignup, setIsGoogleSignup] = useState(false);
-  const [touched, setTouched] = useState({
-    username: false,
-    email: false,
-    password: false,
-    confirmPassword: false
-  });
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
-    username: null,
-    email: null,
-    password: null,
-    confirmPassword: null
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const [form, setForm] = useState({ username: '', email: '', password: '', confirmPassword: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Effect to handle Google OAuth pre-filled data from URL query params
-  useEffect(() => {
-    const email = searchParams.get('email');
-    const fullName = searchParams.get('fullName');
-    const googleIdParam = searchParams.get('googleId');
-
-    if (googleIdParam) {
-      setGoogleId(googleIdParam);
-      setIsGoogleSignup(true);
-    }
-
-    if (email) {
-      setFormData(prev => ({ ...prev, email }));
-      // Mark email as touched since it's pre-filled
-      setTouched(prev => ({ ...prev, email: true }));
-    }
-
-    // Optionally pre-fill username from fullName
-    if (fullName) {
-      // Convert full name to a potential username (lowercase, remove spaces)
-      const potentialUsername = fullName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-      setFormData(prev => ({ ...prev, username: potentialUsername }));
-      setTouched(prev => ({ ...prev, username: true }));
-    }
-  }, [searchParams]);
-
-  // Validate a single field
-  const validateField = (name: string, value: string): string | null => {
-    switch (name) {
-      case 'username':
-        return validateUsername(value);
-      case 'email':
-        return validateEmail(value);
-      case 'password':
-        return validatePassword(value);
-      case 'confirmPassword':
-        return validateConfirmPassword(formData.password, value);
-      default:
-        return null;
-    }
-  };
-
-  // Handle input change with real-time validation
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Validate on change if field has been touched
-    if (touched[name as keyof typeof touched]) {
-      const error = validateField(name, name === 'confirmPassword' ? formData.password : value);
-      setFieldErrors(prev => ({ ...prev, [name]: error }));
-    }
-  };
-
-  // Handle blur - mark field as touched and validate
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setTouched(prev => ({ ...prev, [name]: true }));
-    const error = validateField(name, name === 'confirmPassword' ? formData.password : value);
-    setFieldErrors(prev => ({ ...prev, [name]: error }));
-  };
-
-  // Check if form is valid
-  const isFormValid = (): boolean => {
-    const usernameError = validateUsername(formData.username);
-    const emailError = validateEmail(formData.email);
-    const passwordError = validatePassword(formData.password);
-    const confirmPasswordError = validateConfirmPassword(formData.password, formData.confirmPassword);
-    
-    return !usernameError && !emailError && !passwordError && !confirmPasswordError;
-  };
-
-  // Submit Registration - auto-verify users now
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate all fields
-    const usernameError = validateUsername(formData.username);
-    const emailError = validateEmail(formData.email);
-    const passwordError = validatePassword(formData.password);
-    const confirmPasswordError = validateConfirmPassword(formData.password, formData.confirmPassword);
-    
-    setFieldErrors({
-      username: usernameError,
-      email: emailError,
-      password: passwordError,
-      confirmPassword: confirmPasswordError
-    });
-    
-    setTouched({
-      username: true,
-      email: true,
-      password: true,
-      confirmPassword: true
-    });
-
-    if (usernameError || emailError || passwordError || confirmPasswordError) {
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    
+    if (form.password !== form.confirmPassword) { setError('Passwords do not match'); return; }
+    if (form.password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    setLoading(true); setError('');
     try {
-      // Registration now returns token directly (auto-verify)
-      const registerData = {
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-        ...(googleId && { googleId }) // Include googleId if present (Google OAuth signup)
-      };
-      
-      const res = await authAPI.register(registerData);
-      
-      // Store token and user directly - no OTP needed!
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-
-      navigate('/dashboard');
-    } catch (err: any) {
-      // Handle backend validation errors
-      if (err.response?.data?.errors) {
-        const errors: FieldErrors = { username: null, email: null, password: null, confirmPassword: null };
-        err.response.data.errors.forEach((err: { field: string; message: string }) => {
-          if (err.field in errors) {
-            errors[err.field as keyof FieldErrors] = err.message;
-          }
-        });
-        setFieldErrors(errors);
-      } else {
-        setError(err.response?.data?.message || 'Registration failed');
-      }
-    } finally {
-      setLoading(false);
-    }
+      const res = await authAPI.register({ username: form.username, email: form.email, password: form.password });
+      if (res.data.success) { login(res.data); navigate('/dashboard'); }
+      else setError(res.data.message || 'Registration failed');
+    } catch (e: any) {
+      setError(e.response?.data?.message || 'Registration failed');
+    } finally { setLoading(false); }
   };
+
+  const fields = [
+    { key: 'username', label: 'Username', type: 'text', icon: User, placeholder: 'johndoe' },
+    { key: 'email', label: 'Email', type: 'email', icon: Mail, placeholder: 'you@example.com' },
+    { key: 'password', label: 'Password', type: 'password', icon: Lock, placeholder: '••••••••' },
+    { key: 'confirmPassword', label: 'Confirm Password', type: 'password', icon: Lock, placeholder: '••••••••' },
+  ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
-      <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            {isGoogleSignup ? 'Complete Your Profile' : 'Create Account'}
-          </h1>
-          <p className="text-gray-400">
-            {isGoogleSignup 
-              ? 'Sign up with Google to complete your registration' 
-              : 'Join ScoreX today'}
-          </p>
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
+            <Zap className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-black text-white">Join ScoreX</h1>
+          <p className="text-slate-500 mt-1">Create your account</p>
         </div>
-
-        {isGoogleSignup && (
-          <div className="mb-4 p-3 bg-blue-900/30 border border-blue-500/50 rounded-lg text-blue-200 text-sm">
-            You're signing up with Google. Please choose a username and complete your profile.
-          </div>
-        )}
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-red-200 text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleRegister} className="space-y-4">
-          {/* Username Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Username</label>
-            <div className="relative">
-              <User className={`absolute left-3 top-3 w-5 h-5 ${fieldErrors.username ? 'text-red-500' : touched.username && !fieldErrors.username ? 'text-green-500' : 'text-gray-500'}`} />
-              <input 
-                type="text" 
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className={`w-full pl-10 p-3 bg-gray-700 border rounded-xl focus:ring-2 outline-none transition-colors ${
-                  fieldErrors.username 
-                    ? 'border-red-500 focus:ring-red-500' 
-                    : touched.username && !fieldErrors.username 
-                      ? 'border-green-500 focus:ring-green-500' 
-                      : 'border-gray-600 focus:ring-green-500'
-                }`}
-                placeholder="cricket_fan_99"
-              />
-              {touched.username && !fieldErrors.username && formData.username && (
-                <Check className="absolute right-3 top-3 w-5 h-5 text-green-500" />
-              )}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          {error && (
+            <div className="mb-4 p-3 bg-red-900/30 border border-red-700/40 rounded-xl flex items-center gap-2 text-red-300 text-sm">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />{error}
             </div>
-            {fieldErrors.username && touched.username && (
-              <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" />
-                {fieldErrors.username}
-              </p>
-            )}
-            <p className="mt-1 text-xs text-gray-500">3-50 characters, letters, numbers, and underscores only</p>
-          </div>
-
-          {/* Email Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
-            <div className="relative">
-              <Mail className={`absolute left-3 top-3 w-5 h-5 ${fieldErrors.email ? 'text-red-500' : touched.email && !fieldErrors.email ? 'text-green-500' : 'text-gray-500'}`} />
-              <input 
-                type="email" 
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className={`w-full pl-10 p-3 bg-gray-700 border rounded-xl focus:ring-2 outline-none transition-colors ${
-                  fieldErrors.email 
-                    ? 'border-red-500 focus:ring-red-500' 
-                    : touched.email && !fieldErrors.email 
-                      ? 'border-green-500 focus:ring-green-500' 
-                      : 'border-gray-600 focus:ring-green-500'
-                }`}
-                placeholder="you@example.com"
-              />
-              {touched.email && !fieldErrors.email && formData.email && (
-                <Check className="absolute right-3 top-3 w-5 h-5 text-green-500" />
-              )}
-            </div>
-            {fieldErrors.email && touched.email && (
-              <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" />
-                {fieldErrors.email}
-              </p>
-            )}
-          </div>
-
-          {/* Password Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
-            <div className="relative">
-              <Lock className={`absolute left-3 top-3 w-5 h-5 ${fieldErrors.password ? 'text-red-500' : touched.password && !fieldErrors.password ? 'text-green-500' : 'text-gray-500'}`} />
-              <input 
-                type="password" 
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className={`w-full pl-10 p-3 bg-gray-700 border rounded-xl focus:ring-2 outline-none transition-colors ${
-                  fieldErrors.password 
-                    ? 'border-red-500 focus:ring-red-500' 
-                    : touched.password && !fieldErrors.password 
-                      ? 'border-green-500 focus:ring-green-500' 
-                      : 'border-gray-600 focus:ring-green-500'
-                }`}
-                placeholder="Min 6 chars with letter, number & special char"
-              />
-              {touched.password && !fieldErrors.password && formData.password && (
-                <Check className="absolute right-3 top-3 w-5 h-5 text-green-500" />
-              )}
-            </div>
-            {fieldErrors.password && touched.password && (
-              <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" />
-                {fieldErrors.password}
-              </p>
-            )}
-          </div>
-
-          {/* Confirm Password Field */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label>
-            <div className="relative">
-              <CheckCircle className={`absolute left-3 top-3 w-5 h-5 ${fieldErrors.confirmPassword ? 'text-red-500' : touched.confirmPassword && !fieldErrors.confirmPassword ? 'text-green-500' : 'text-gray-500'}`} />
-              <input 
-                type="password" 
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                className={`w-full pl-10 p-3 bg-gray-700 border rounded-xl focus:ring-2 outline-none transition-colors ${
-                  fieldErrors.confirmPassword 
-                    ? 'border-red-500 focus:ring-red-500' 
-                    : touched.confirmPassword && !fieldErrors.confirmPassword 
-                      ? 'border-green-500 focus:ring-green-500' 
-                      : 'border-gray-600 focus:ring-green-500'
-                }`}
-                placeholder="Retype password"
-              />
-              {touched.confirmPassword && !fieldErrors.confirmPassword && formData.confirmPassword && (
-                <Check className="absolute right-3 top-3 w-5 h-5 text-green-500" />
-              )}
-            </div>
-            {fieldErrors.confirmPassword && touched.confirmPassword && (
-              <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" />
-                {fieldErrors.confirmPassword}
-              </p>
-            )}
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full py-3 mt-4 bg-green-600 hover:bg-green-700 rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <>Create Account <ArrowRight className="w-5 h-5" /></>}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center text-sm text-gray-400">
-          Already have an account?{' '}
-          <Link to="/login" className="text-green-400 hover:text-green-300 font-bold">
-            Log In
-          </Link>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {fields.map(f => (
+              <div key={f.key}>
+                <label className="text-slate-400 text-sm font-semibold mb-1.5 block">{f.label}</label>
+                <div className="relative">
+                  <f.icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input type={f.type} value={(form as any)[f.key]}
+                    onChange={e => setForm({ ...form, [f.key]: e.target.value })}
+                    placeholder={f.placeholder} required
+                    className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 text-white rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors" />
+                </div>
+              </div>
+            ))}
+            <button type="submit" disabled={loading}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl transition-all mt-2">
+              {loading ? 'Creating account...' : 'Create Account'}
+            </button>
+          </form>
+          <p className="text-center mt-5 text-slate-500 text-sm">
+            Already have an account? <Link to="/login" className="text-blue-400 hover:text-blue-300 font-semibold">Sign in</Link>
+          </p>
         </div>
       </div>
     </div>

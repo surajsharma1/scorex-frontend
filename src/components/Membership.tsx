@@ -1,320 +1,103 @@
-import { useState, useEffect, useCallback } from 'react';
-import Payment from './Payment';
-import { Clock, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+import { useState } from 'react';
+import { useAuth } from '../App';
+import { Check, Zap, Crown, Star } from 'lucide-react';
 
-interface CountdownTimerProps {
-  expiryDate: Date;
-  onExpired: () => void;
-}
-
-function CountdownTimer({ expiryDate, onExpired }: CountdownTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<{
-    days: number;
-    hours: number;
-    minutes: number;
-    seconds: number;
-    total: number;
-  }>({ days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 });
-
-  useEffect(() => {
-    const calculateTimeLeft = () => {
-      const now = new Date().getTime();
-      const expiry = expiryDate.getTime();
-      const difference = expiry - now;
-
-      if (difference <= 0) {
-        return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 };
-      }
-
-      return {
-        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-        minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((difference % (1000 * 60)) / 1000),
-        total: difference
-      };
-    };
-
-    // Initial calculation
-    const initialTime = calculateTimeLeft();
-    setTimeLeft(initialTime);
-
-    if (initialTime.total <= 0) {
-      onExpired();
-      return;
-    }
-
-    // Update every second
-    const timer = setInterval(() => {
-      const newTime = calculateTimeLeft();
-      setTimeLeft(newTime);
-
-      if (newTime.total <= 0) {
-        clearInterval(timer);
-        onExpired();
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [expiryDate, onExpired]);
-
-  if (timeLeft.total <= 0) {
-    return null;
-  }
-
-  return (
-    <div className="mt-4">
-      <p className="text-sm text-gray-600 dark:text-dark-accent mb-2">Time Remaining:</p>
-      <div className="flex flex-wrap gap-3">
-        <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 text-center min-w-[70px]">
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{timeLeft.days}</div>
-          <div className="text-xs text-blue-600 dark:text-blue-400">Days</div>
-        </div>
-        <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 text-center min-w-[70px]">
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{timeLeft.hours}</div>
-          <div className="text-xs text-blue-600 dark:text-blue-400">Hours</div>
-        </div>
-        <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 text-center min-w-[70px]">
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{timeLeft.minutes}</div>
-          <div className="text-xs text-blue-600 dark:text-blue-400">Minutes</div>
-        </div>
-        <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 text-center min-w-[70px]">
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{timeLeft.seconds}</div>
-          <div className="text-xs text-blue-600 dark:text-blue-400">Seconds</div>
-        </div>
-      </div>
-    </div>
-  );
-}
+const PLANS = [
+  {
+    name: 'Free', price: 0, period: '', icon: Zap, color: 'border-slate-700',
+    headerColor: 'from-slate-800 to-slate-900',
+    features: ['Up to 3 tournaments', 'Basic scoring', '5 overlays', 'Standard support'],
+    level: 0
+  },
+  {
+    name: 'Premium', price: 499, period: '/month', icon: Star, color: 'border-blue-500/50',
+    headerColor: 'from-blue-900/60 to-blue-800/40',
+    features: ['Unlimited tournaments', 'Live scoring + undo', '20 premium overlays', 'Priority support', 'Match analytics', 'Export data'],
+    level: 1, popular: true
+  },
+  {
+    name: 'Enterprise', price: 1499, period: '/month', icon: Crown, color: 'border-purple-500/50',
+    headerColor: 'from-purple-900/60 to-purple-800/40',
+    features: ['Everything in Premium', 'Custom overlays', 'White-label', 'API access', 'Dedicated support', 'Club management'],
+    level: 2
+  },
+];
 
 export default function Membership() {
-  const [showPayment, setShowPayment] = useState(true);
-  const [currentMembership, setCurrentMembership] = useState<string>('free');
-  const [membershipExpiresAt, setMembershipExpiresAt] = useState<Date | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string>('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isExpired, setIsExpired] = useState(false);
+  const { user } = useAuth();
+  const [loading, setLoading] = useState<string | null>(null);
 
-  const fetchMembershipFromToken = useCallback(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        let membership = payload.membership || 'free';
-        
-        // Check if membership has expired
-        if (payload.membershipExpiresAt) {
-          const expiryDate = new Date(payload.membershipExpiresAt);
-          setMembershipExpiresAt(expiryDate);
-          
-          if (expiryDate < new Date()) {
-            // Membership has expired
-            membership = 'free';
-            setIsExpired(true);
-          } else {
-            setIsExpired(false);
-          }
-        } else {
-          setMembershipExpiresAt(null);
-          setIsExpired(false);
-        }
-        
-        setCurrentMembership(membership);
-      } catch (error) {
-        console.error('Error parsing token:', error);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchMembershipFromToken();
-  }, [fetchMembershipFromToken]);
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      // Fetch fresh data from server
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}/api/v1/users/me`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      if (response.ok) {
-        const userData = await response.json();
-        // Update localStorage with fresh token if available
-        if (userData.token) {
-          localStorage.setItem('token', userData.token);
-        }
-      }
-      
-      // Refresh from token
-      fetchMembershipFromToken();
-      
-      setSuccessMessage('Membership refreshed!');
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (error) {
-      console.error('Error refreshing membership:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  const handleClose = () => {
-    setShowPayment(false);
-  };
-
-  const handleSuccess = (plan: string, expiryDate?: Date) => {
-    console.log('Membership upgraded to:', plan);
-    setShowPayment(false);
-    
-    // Re-fetch membership from the updated token in localStorage
-    // This ensures we get the correct membership value ('basic' or 'premium')
-    fetchMembershipFromToken();
-    
-    if (expiryDate) {
-      setMembershipExpiresAt(expiryDate);
-      setIsExpired(false);
-    }
-    setSuccessMessage(`Successfully upgraded to ${plan}!`);
-    
+  const handleUpgrade = async (plan: typeof PLANS[0]) => {
+    if (plan.level === 0) return;
+    setLoading(plan.name);
+    // Razorpay integration placeholder
     setTimeout(() => {
-      setSuccessMessage('');
-    }, 5000);
+      alert(`Razorpay checkout for ${plan.name} - ₹${plan.price}/month\n\nIntegrate Razorpay SDK here with your key.`);
+      setLoading(null);
+    }, 500);
   };
 
-  const handleExpired = useCallback(() => {
-    setIsExpired(true);
-    setCurrentMembership('free');
-    setMembershipExpiresAt(null);
-  }, []);
-
-  const getMembershipColor = (membership: string) => {
-    if (membership === 'free') {
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-    }
-    if (membership.includes('lv1')) {
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-    }
-    if (membership.includes('lv2')) {
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
-    }
-    return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-  };
-
-  const getMembershipName = (membership: string) => {
-    if (membership === 'free') return 'Free Plan';
-    if (membership.includes('lv1')) {
-      // Parse duration from plan name
-      if (membership.includes('1-day')) return 'Premium LV1 - 1 Day';
-      if (membership.includes('1-week')) return 'Premium LV1 - 1 Week';
-      if (membership.includes('1-month')) return 'Premium LV1 - 1 Month';
-      return 'Premium Level 1';
-    }
-    if (membership.includes('lv2')) {
-      // Parse duration from plan name
-      if (membership.includes('1-day')) return 'Premium LV2 - 1 Day';
-      if (membership.includes('1-week')) return 'Premium LV2 - 1 Week';
-      if (membership.includes('1-month')) return 'Premium LV2 - 1 Month';
-      return 'Premium Level 2';
-    }
-    return membership.charAt(0).toUpperCase() + membership.slice(1);
-  };
+  const currentLevel = (user as any)?.membershipLevel || 0;
 
   return (
-    <div className="space-y-8 bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-dark-light min-h-screen p-6">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-blue-600 dark:text-dark-accent mb-4">Membership</h1>
-        <p className="text-gray-600 dark:text-dark-accent">Upgrade your plan to unlock more features</p>
-      </div>
-
-      {successMessage && (
-        <div className="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 px-4 py-3 rounded text-center">
-          {successMessage}
-        </div>
-      )}
-
-      {/* Current Membership Status */}
-      <div className="bg-white dark:bg-dark-bg-alt rounded-xl shadow-sm border border-gray-200 dark:border-dark-primary/30 p-6">
-        <div className="flex justify-between items-start mb-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-light">Current Plan</h2>
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh'}
-          </button>
-        </div>
-        
-        <div className="flex items-center gap-3 mb-4">
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${getMembershipColor(currentMembership)}`}>
-            {currentMembership !== 'free' && <CheckCircle className="w-4 h-4" />}
-            {getMembershipName(currentMembership)}
+    <div className="p-6 max-w-5xl">
+      <div className="text-center mb-10">
+        <h1 className="text-3xl font-black text-white">Membership Plans</h1>
+        <p className="text-slate-500 mt-2">Upgrade to unlock premium features and overlays</p>
+        {currentLevel > 0 && (
+          <div className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-400 text-sm font-semibold">
+            <Star className="w-4 h-4" /> Currently on {PLANS[currentLevel]?.name}
           </div>
-          
-          {isExpired && (
-            <div className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-sm">
-              <AlertCircle className="w-4 h-4" />
-              Expired
-            </div>
-          )}
-        </div>
-
-        {/* Countdown Timer */}
-        {membershipExpiresAt && currentMembership !== 'free' && !isExpired && (
-          <CountdownTimer expiryDate={membershipExpiresAt} onExpired={handleExpired} />
-        )}
-
-        {/* Expiry Date Display */}
-        {membershipExpiresAt && currentMembership !== 'free' && (
-          <p className="mt-4 text-sm text-gray-600 dark:text-dark-accent">
-            {isExpired ? (
-              <span className="text-red-500">Expired on: {membershipExpiresAt.toLocaleDateString()}</span>
-            ) : (
-              <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                Expires on: <strong>{membershipExpiresAt.toLocaleDateString()}</strong> at{' '}
-                <strong>{membershipExpiresAt.toLocaleTimeString()}</strong>
-              </span>
-            )}
-          </p>
-        )}
-
-        {!membershipExpiresAt && currentMembership === 'free' && (
-          <p className="mt-4 text-sm text-gray-500 dark:text-dark-accent/70">
-            You are on the free plan with no expiration.
-          </p>
         )}
       </div>
 
-      {showPayment && (
-        <Payment onClose={handleClose} onSuccess={handleSuccess} />
-      )}
-
-      {!showPayment && currentMembership !== 'free' && (
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-dark-accent mb-4">You already have an active membership!</p>
-          <button
-            onClick={() => setShowPayment(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-          >
-            Upgrade Plan
-          </button>
-        </div>
-      )}
-
-      {!showPayment && currentMembership === 'free' && (
-        <div className="text-center">
-          <button
-            onClick={() => setShowPayment(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-          >
-            Get Premium
-          </button>
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {PLANS.map(plan => {
+          const isCurrent = plan.level === currentLevel;
+          const isLower = plan.level < currentLevel;
+          return (
+            <div key={plan.name} className={`relative bg-slate-900 border-2 rounded-2xl overflow-hidden transition-all ${plan.color} ${plan.popular ? 'scale-105 shadow-xl shadow-blue-500/10' : ''}`}>
+              {plan.popular && (
+                <div className="absolute top-0 left-0 right-0 bg-blue-600 text-white text-xs font-bold text-center py-1">
+                  MOST POPULAR
+                </div>
+              )}
+              <div className={`bg-gradient-to-br ${plan.headerColor} px-6 pt-${plan.popular ? '8' : '6'} pb-6`}>
+                <plan.icon className={`w-8 h-8 mb-3 ${plan.level === 0 ? 'text-slate-400' : plan.level === 1 ? 'text-blue-400' : 'text-purple-400'}`} />
+                <h3 className="text-white font-black text-xl">{plan.name}</h3>
+                <div className="mt-2 flex items-end gap-1">
+                  <span className="text-3xl font-black text-white">₹{plan.price}</span>
+                  <span className="text-slate-400 text-sm mb-0.5">{plan.period}</span>
+                </div>
+              </div>
+              <div className="px-6 py-5">
+                <ul className="space-y-3 mb-6">
+                  {plan.features.map(f => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-slate-300">
+                      <Check className={`w-4 h-4 flex-shrink-0 ${plan.level === 2 ? 'text-purple-400' : plan.level === 1 ? 'text-blue-400' : 'text-slate-500'}`} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => handleUpgrade(plan)}
+                  disabled={isCurrent || isLower || loading === plan.name}
+                  className={`w-full py-3 rounded-xl font-bold text-sm transition-all disabled:cursor-not-allowed
+                    ${isCurrent ? 'bg-green-900/30 border border-green-500/40 text-green-400 cursor-default' :
+                      isLower ? 'bg-slate-800 text-slate-600' :
+                      plan.level === 2 ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-600/20' :
+                      plan.level === 1 ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20' :
+                      'bg-slate-700 text-slate-300'}`}>
+                  {loading === plan.name ? 'Processing...' :
+                   isCurrent ? '✓ Current Plan' :
+                   isLower ? 'Downgrade' :
+                   plan.level === 0 ? 'Free Forever' : `Upgrade to ${plan.name}`}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

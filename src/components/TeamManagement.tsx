@@ -1,359 +1,229 @@
-import { useState, useEffect } from 'react';
-import { Plus, Upload, Edit, Trash2, Loader2, User, Settings, Shield } from 'lucide-react';
-import { teamAPI, tournamentAPI } from '../services/api';
-import { Team, Tournament, Player } from './types';
-import PlayerSearch from './PlayerSearch';
+import { useState, useEffect, useCallback } from 'react';
+import { teamAPI } from '../services/api';
+import { Plus, Trash2, Users, X, ChevronDown, ChevronUp, User } from 'lucide-react';
 
-interface TeamManagementProps {
-  selectedTournament?: Tournament | null;
+interface Props {
+  tournamentId: string;
+  onTeamsChange?: () => void;
 }
 
-export default function TeamManagement({ selectedTournament }: TeamManagementProps) {
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedTournamentId, setSelectedTournamentId] = useState<string>(selectedTournament?._id || '');
-  
-  // Form State
-  const [formData, setFormData] = useState({
-    name: '',
-    shortName: '',
-    color: '#16a34a',
-    tournament: selectedTournament?._id || '',
-  });
-  
-  // Player Form State
-  const [showPlayerForm, setShowPlayerForm] = useState(false);
-  const [playerForm, setPlayerForm] = useState({
-    name: '',
-    role: 'Batsman',
-    jerseyNumber: '',
-  });
+export default function TeamManagement({ tournamentId, onTeamsChange }: Props) {
+  const [teams, setTeams] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
+  const [teamForm, setTeamForm] = useState({ name: '', shortName: '' });
+  const [playerForm, setPlayerForm] = useState({ name: '', role: 'batsman' });
+  const [addingPlayerTo, setAddingPlayerTo] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadTournaments();
-  }, []);
-
-  useEffect(() => {
-    if (selectedTournamentId) {
-      loadTeams(selectedTournamentId);
-    }
-  }, [selectedTournamentId]);
-
-  const loadTournaments = async () => {
+  const loadTeams = useCallback(async () => {
     try {
-      setError(null);
-      const res = await tournamentAPI.getTournaments();
-      // Handle the new response format { success, count, data }
-      let list: Tournament[] = [];
-      if (Array.isArray(res.data)) {
-        list = res.data;
-      } else if (res.data?.data && Array.isArray(res.data.data)) {
-        list = res.data.data;
-      } else if (res.data?.tournaments && Array.isArray(res.data.tournaments)) {
-        list = res.data.tournaments;
-      }
-      setTournaments(list);
-      // Auto-select first if none selected
-      if (!selectedTournamentId && list.length > 0) {
-        setSelectedTournamentId(list[0]._id);
-      }
-    } catch (e: any) {
-      console.error("Failed to load tournaments", e);
-      setError(e.response?.data?.message || e.message || 'Failed to load tournaments');
-      setTournaments([]);
-    }
-  };
+      const res = await teamAPI.getTeams(tournamentId);
+      setTeams(res.data.data || []);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  }, [tournamentId]);
 
-  const loadTeams = async (tId: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await teamAPI.getTeams(tId);
-      // Handle different response formats
-      let teamsList: Team[] = [];
-      if (res.data?.teams) {
-        teamsList = res.data.teams;
-      } else if (Array.isArray(res.data)) {
-        teamsList = res.data;
-      }
-      setTeams(teamsList);
-      setSelectedTeam(null); // Reset selection on tournament change
-    } catch (e: any) {
-      console.error("Failed to load teams", e);
-      setError(e.response?.data?.message || e.message || 'Failed to load teams');
-      setTeams([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => { loadTeams(); }, [loadTeams]);
 
-  const handleCreateTeam = async (e: React.FormEvent) => {
+  const createTeam = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !selectedTournamentId) return;
-    
-    setLoading(true);
-    setError(null);
+    if (!teamForm.name) return;
+    setSaving(true); setError('');
     try {
-      const payload = { ...formData, tournament: selectedTournamentId };
-      const res = await teamAPI.createTeam(payload);
-      // Handle different response formats
-      const newTeam = res.data?.team || res.data;
-      setTeams([...teams, newTeam]);
-      setShowCreateForm(false);
-      setFormData({ name: '', shortName: '', color: '#16a34a', tournament: selectedTournamentId });
+      await teamAPI.createTeam({ ...teamForm, tournamentId });
+      setTeamForm({ name: '', shortName: '' });
+      setShowCreateTeam(false);
+      await loadTeams();
+      onTeamsChange?.();
     } catch (e: any) {
-      console.error("Failed to create team", e);
-      setError(e.response?.data?.message || e.message || 'Failed to create team');
-      alert("Failed to create team: " + (e.response?.data?.message || e.message));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddPlayer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTeam) return;
-
-    // Validation: Check duplicate Jersey number
-    if (selectedTeam.players?.some(p => p.jerseyNumber === playerForm.jerseyNumber)) {
-        alert("Jersey number already exists in this team!");
-        return;
-    }
-
-    try {
-      const res = await teamAPI.addPlayer(selectedTeam._id, playerForm);
-      // Update local state
-      const updatedTeam = res.data?.team || res.data;
-      setTeams(teams.map(t => t._id === updatedTeam._id ? updatedTeam : t));
-      setSelectedTeam(updatedTeam);
-      setShowPlayerForm(false);
-      setPlayerForm({ name: '', role: 'Batsman', jerseyNumber: '' });
-    } catch (e: any) {
-      console.error("Failed to add player", e);
-      alert("Failed to add player: " + (e.response?.data?.message || e.message));
-    }
+      setError(e.response?.data?.message || 'Failed to create team');
+    } finally { setSaving(false); }
   };
 
   const deleteTeam = async (id: string) => {
-      if(!confirm("Delete this team?")) return;
-      try {
-          await teamAPI.deleteTeam(id);
-          setTeams(teams.filter(t => t._id !== id));
-          if(selectedTeam?._id === id) setSelectedTeam(null);
-      } catch(e: any) {
-          alert("Failed to delete team: " + (e.response?.data?.message || e.message));
-      }
+    if (!confirm('Delete this team?')) return;
+    try {
+      await teamAPI.deleteTeam(id);
+      setTeams(prev => prev.filter(t => t._id !== id));
+      onTeamsChange?.();
+    } catch (e) { console.error(e); }
   };
 
+  const addPlayer = async (teamId: string, e: React.FormEvent) => {
+    e.preventDefault();
+    if (!playerForm.name) return;
+    setSaving(true); setError('');
+    try {
+      // Create player and add to team
+      const res = await teamAPI.addPlayer(teamId, playerForm);
+      await loadTeams();
+      setPlayerForm({ name: '', role: 'batsman' });
+      setAddingPlayerTo(null);
+    } catch (e: any) {
+      setError(e.response?.data?.message || 'Failed to add player');
+    } finally { setSaving(false); }
+  };
+
+  const removePlayer = async (teamId: string, playerId: string) => {
+    if (!confirm('Remove this player?')) return;
+    try {
+      await teamAPI.removePlayer(teamId, playerId);
+      await loadTeams();
+    } catch (e) { console.error(e); }
+  };
+
+  const roleColors: Record<string, string> = {
+    batsman: 'bg-blue-500/20 text-blue-400',
+    bowler: 'bg-red-500/20 text-red-400',
+    'all-rounder': 'bg-purple-500/20 text-purple-400',
+    'wicket-keeper': 'bg-amber-500/20 text-amber-400',
+    'batsman-wicket-keeper': 'bg-teal-500/20 text-teal-400',
+  };
+
+  if (loading) return (
+    <div className="flex justify-center py-12">
+      <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Error Message */}
-      {error && (
-        <div className="col-span-full mb-4">
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <p className="text-red-600 dark:text-red-400 font-medium">Error</p>
-            <p className="text-red-500 dark:text-red-500 text-sm mt-1">{error}</p>
-            <button
-              onClick={() => loadTournaments()}
-              className="mt-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-            >
-              Retry
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-white font-bold text-lg">Teams ({teams.length})</h2>
+        <button onClick={() => setShowCreateTeam(!showCreateTeam)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all">
+          <Plus className="w-4 h-4" /> Add Team
+        </button>
+      </div>
+
+      {error && <div className="p-3 bg-red-900/30 border border-red-700/40 rounded-xl text-red-300 text-sm">{error}</div>}
+
+      {/* Create team form */}
+      {showCreateTeam && (
+        <form onSubmit={createTeam} className="bg-slate-900 border border-slate-700 rounded-2xl p-4 space-y-3">
+          <h3 className="text-white font-semibold">New Team</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-slate-400 text-xs font-semibold mb-1 block">Team Name *</label>
+              <input value={teamForm.name} onChange={e => setTeamForm({ ...teamForm, name: e.target.value })}
+                placeholder="e.g. Mumbai Indians" required
+                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="text-slate-400 text-xs font-semibold mb-1 block">Short Name (up to 4)</label>
+              <input value={teamForm.shortName} onChange={e => setTeamForm({ ...teamForm, shortName: e.target.value.toUpperCase().slice(0, 4) })}
+                placeholder="MI" maxLength={4}
+                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button type="submit" disabled={saving}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-all">
+              {saving ? 'Creating...' : 'Create Team'}
+            </button>
+            <button type="button" onClick={() => setShowCreateTeam(false)}
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 text-sm rounded-xl transition-all">
+              Cancel
             </button>
           </div>
-        </div>
+        </form>
       )}
 
-      {/* Sidebar: Team List */}
-      <div className="md:col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col h-[600px]">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="font-bold mb-2 dark:text-white">Select Tournament</h3>
-            <select 
-                value={selectedTournamentId}
-                onChange={(e) => setSelectedTournamentId(e.target.value)}
-                className="w-full p-2 rounded border bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-                <option value="">-- Select --</option>
-                {tournaments.map(t => (
-                    <option key={t._id} value={t._id}>{t.name}</option>
-                ))}
-            </select>
-            
-            <button 
-                onClick={() => setShowCreateForm(true)}
-                disabled={!selectedTournamentId}
-                className="w-full mt-3 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-                <Plus className="w-4 h-4" /> New Team
-            </button>
+      {teams.length === 0 ? (
+        <div className="text-center py-12 bg-slate-900 border border-slate-800 rounded-2xl">
+          <Users className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+          <p className="text-slate-500">No teams yet</p>
+          <button onClick={() => setShowCreateTeam(true)} className="mt-3 text-blue-400 hover:text-blue-300 text-sm font-semibold">+ Add First Team</button>
         </div>
-
-        <div className="flex-1 overflow-y-auto p-2">
-            {loading ? <div className="text-center p-4 dark:text-white">Loading...</div> : (
-                <div className="space-y-2">
-                    {teams.map(team => (
-                        <div 
-                            key={team._id}
-                            onClick={() => setSelectedTeam(team)}
-                            className={`p-3 rounded-lg cursor-pointer flex items-center justify-between transition-colors ${
-                                selectedTeam?._id === team._id 
-                                    ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700' 
-                                    : 'hover:bg-gray-50 dark:hover:bg-gray-700'
-                            }`}
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs" style={{backgroundColor: team.color || '#666'}}>
-                                    {(team.shortName || team.name?.substring(0,2) || 'TM').toUpperCase()}
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-sm dark:text-white">{team.name}</p>
-                                    <p className="text-xs text-gray-500">{team.players?.length || 0} Players</p>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                    {teams.length === 0 && selectedTournamentId && <p className="text-center text-gray-400 mt-10">No teams found</p>}
-                    {!selectedTournamentId && <p className="text-center text-gray-400 mt-10">Select a tournament</p>}
+      ) : (
+        <div className="space-y-3">
+          {teams.map(team => (
+            <div key={team._id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3">
+                <button className="flex items-center gap-3 flex-1 text-left"
+                  onClick={() => setExpandedTeam(expandedTeam === team._id ? null : team._id)}>
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center text-white font-black text-sm flex-shrink-0">
+                    {team.shortName || team.name[0]}
+                  </div>
+                  <div>
+                    <p className="text-white font-bold">{team.name}</p>
+                    <p className="text-slate-500 text-xs">{team.players?.length || 0} players</p>
+                  </div>
+                  {expandedTeam === team._id ? <ChevronUp className="w-4 h-4 text-slate-500 ml-auto" /> : <ChevronDown className="w-4 h-4 text-slate-500 ml-auto" />}
+                </button>
+                <div className="flex items-center gap-2 ml-3">
+                  <button onClick={() => setAddingPlayerTo(addingPlayerTo === team._id ? null : team._id)}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-600/20 hover:bg-green-600/30 border border-green-600/40 text-green-400 text-xs font-semibold transition-all">
+                    <Plus className="w-3 h-3" /> Player
+                  </button>
+                  <button onClick={() => deleteTeam(team._id)}
+                    className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-900/20 transition-all">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-            )}
-        </div>
-      </div>
+              </div>
 
-      {/* Main Content: Team Details */}
-      <div className="md:col-span-2">
-          {selectedTeam ? (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                  <div className="flex justify-between items-start mb-6">
-                      <div className="flex items-center gap-4">
-                          <div className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold text-white shadow-lg" style={{backgroundColor: selectedTeam.color || '#666'}}>
-                              {(selectedTeam.shortName || selectedTeam.name?.substring(0,2) || 'TM').toUpperCase()}
-                          </div>
-                          <div>
-                              <h2 className="text-2xl font-bold dark:text-white">{selectedTeam.name}</h2>
-                              <p className="text-gray-500">Squad Size: {selectedTeam.players?.length || 0}</p>
-                          </div>
-                      </div>
-                      <button onClick={() => deleteTeam(selectedTeam._id)} className="text-red-500 hover:bg-red-50 p-2 rounded">
-                          <Trash2 className="w-5 h-5" />
-                      </button>
-                  </div>
+              {/* Add player form */}
+              {addingPlayerTo === team._id && (
+                <form onSubmit={e => addPlayer(team._id, e)}
+                  className="px-4 pb-3 border-t border-slate-800 pt-3 flex gap-2 flex-wrap">
+                  <input value={playerForm.name} onChange={e => setPlayerForm({ ...playerForm, name: e.target.value })}
+                    placeholder="Player name" required
+                    className="flex-1 min-w-[140px] bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+                  <select value={playerForm.role} onChange={e => setPlayerForm({ ...playerForm, role: e.target.value })}
+                    className="bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                    <option value="batsman">Batsman</option>
+                    <option value="bowler">Bowler</option>
+                    <option value="all-rounder">All-Rounder</option>
+                    <option value="wicket-keeper">Wicket Keeper</option>
+                    <option value="batsman-wicket-keeper">Batsman WK</option>
+                  </select>
+                  <button type="submit" disabled={saving}
+                    className="px-3 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-all">
+                    Add
+                  </button>
+                  <button type="button" onClick={() => setAddingPlayerTo(null)}
+                    className="px-3 py-2 bg-slate-700 text-slate-400 text-sm rounded-xl transition-all hover:bg-slate-600">
+                    <X className="w-4 h-4" />
+                  </button>
+                </form>
+              )}
 
-                  <div className="mb-6">
-                      <div className="flex justify-between items-center mb-4">
-                          <h3 className="font-bold text-lg dark:text-white">Squad List</h3>
-                          <button 
-                            onClick={() => setShowPlayerForm(true)}
-                            className="text-sm bg-green-600 text-white px-3 py-1.5 rounded flex items-center gap-1"
-                          >
-                              <Plus className="w-4 h-4" /> Add Player
+              {/* Players list */}
+              {expandedTeam === team._id && (
+                <div className="border-t border-slate-800">
+                  {!team.players?.length ? (
+                    <p className="text-slate-600 text-sm px-4 py-3">No players added yet</p>
+                  ) : (
+                    <div className="divide-y divide-slate-800/50">
+                      {team.players.map((player: any, i: number) => (
+                        <div key={player._id || i} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-800/30 group">
+                          <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-xs font-bold flex-shrink-0">
+                            {i + 1}
+                          </div>
+                          <User className="w-4 h-4 text-slate-600 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white text-sm font-medium truncate">{player.name}</p>
+                          </div>
+                          <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${roleColors[player.role] || 'bg-slate-700 text-slate-400'}`}>
+                            {player.role?.replace('-', ' ')}
+                          </span>
+                          <button onClick={() => removePlayer(team._id, player._id)}
+                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-600 hover:text-red-400 transition-all">
+                            <X className="w-3.5 h-3.5" />
                           </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {selectedTeam.players?.map((player, idx) => (
-                              <div key={idx} className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
-                                  <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center font-bold text-gray-600 dark:text-gray-300 mr-3">
-                                      {player.jerseyNumber || '#'}
-                                  </div>
-                                  <div className="flex-1">
-                                      <p className="font-semibold dark:text-white">{player.name}</p>
-                                      <p className="text-xs text-gray-500 uppercase">{player.role}</p>
-                                  </div>
-                              </div>
-                          ))}
-                          {(!selectedTeam.players || selectedTeam.players.length === 0) && (
-                            <p className="col-span-full text-center text-gray-400 py-4">No players in squad</p>
-                          )}
-                      </div>
-                  </div>
-              </div>
-          ) : (
-              <div className="h-full flex flex-col items-center justify-center bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 p-10">
-                  <Shield className="w-16 h-16 text-gray-300 mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">Select a team to manage squad</p>
-              </div>
-          )}
-      </div>
-
-      {/* CREATE TEAM MODAL */}
-      {showCreateForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
-                  <h3 className="text-xl font-bold mb-4 dark:text-white">Create New Team</h3>
-                  <form onSubmit={handleCreateTeam} className="space-y-4">
-                      <input 
-                        placeholder="Team Name" 
-                        value={formData.name}
-                        onChange={e => setFormData({...formData, name: e.target.value})}
-                        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        required 
-                      />
-                      <input 
-                        placeholder="Short Name (e.g. CSK)" 
-                        value={formData.shortName}
-                        onChange={e => setFormData({...formData, shortName: e.target.value.toUpperCase()})}
-                        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        maxLength={4}
-                      />
-                      <div className="flex items-center gap-2">
-                          <input 
-                             type="color" 
-                             value={formData.color}
-                             onChange={e => setFormData({...formData, color: e.target.value})}
-                             className="h-10 w-10 border-0 p-0 rounded cursor-pointer"
-                          />
-                          <span className="text-sm text-gray-500">Team Color</span>
-                      </div>
-                      <div className="flex gap-2 mt-4">
-                          <button type="button" onClick={() => setShowCreateForm(false)} className="flex-1 py-2 bg-gray-200 rounded dark:bg-gray-700 dark:text-white">Cancel</button>
-                          <button type="submit" className="flex-1 py-2 bg-blue-600 text-white rounded font-bold">Create</button>
-                      </div>
-                  </form>
-              </div>
-          </div>
-      )}
-
-      {/* ADD PLAYER MODAL */}
-      {showPlayerForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
-                  <h3 className="text-xl font-bold mb-4 dark:text-white">Add Player</h3>
-                  <form onSubmit={handleAddPlayer} className="space-y-4">
-                      <input 
-                        placeholder="Full Name" 
-                        value={playerForm.name}
-                        onChange={e => setPlayerForm({...playerForm, name: e.target.value})}
-                        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        required 
-                      />
-                      <select 
-                        value={playerForm.role}
-                        onChange={e => setPlayerForm({...playerForm, role: e.target.value})}
-                        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      >
-                          <option value="Batsman">Batsman</option>
-                          <option value="Bowler">Bowler</option>
-                          <option value="All-rounder">All-rounder</option>
-                          <option value="Wicket Keeper">Wicket Keeper</option>
-                      </select>
-                      <input 
-                        type="number"
-                        placeholder="Jersey Number" 
-                        value={playerForm.jerseyNumber}
-                        onChange={e => setPlayerForm({...playerForm, jerseyNumber: e.target.value})}
-                        className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        required 
-                      />
-                      <div className="flex gap-2 mt-4">
-                          <button type="button" onClick={() => setShowPlayerForm(false)} className="flex-1 py-2 bg-gray-200 rounded dark:bg-gray-700 dark:text-white">Cancel</button>
-                          <button type="submit" className="flex-1 py-2 bg-green-600 text-white rounded font-bold">Add Player</button>
-                      </div>
-                  </form>
-              </div>
-          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

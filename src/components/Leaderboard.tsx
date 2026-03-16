@@ -1,217 +1,104 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { LeaderboardEntry, Tournament } from './types';
-import { leaderboardAPI, tournamentAPI } from '../services/api';
-import { Trophy, Medal, Award, Loader, TrendingUp, Filter } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { tournamentAPI, matchAPI } from '../services/api';
+import { Trophy, BarChart2, TrendingUp } from 'lucide-react';
 
-type LeaderboardType = 'batting' | 'bowling' | 'teams';
-
-const Leaderboard: React.FC = () => {
-  const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<LeaderboardType>('batting');
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [selectedTournament, setSelectedTournament] = useState<string>('');
+export default function Leaderboard() {
+  const [tournaments, setTournaments] = useState<any[]>([]);
+  const [selectedTournament, setSelectedTournament] = useState('');
+  const [pointsTable, setPointsTable] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadTournaments();
+    tournamentAPI.getMyTournaments().then(r => {
+      const list = r.data.data || [];
+      setTournaments(list);
+      if (list.length > 0) setSelectedTournament(list[0]._id);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
-    loadLeaderboard();
-  }, [activeTab, selectedTournament]);
-
-  const loadTournaments = async () => {
-    try {
-      const response = await tournamentAPI.getTournaments();
-      const list = response.data.tournaments || response.data || [];
-      setTournaments(Array.isArray(list) ? list : []);
-    } catch (err) {
-      console.error('Failed to load tournaments', err);
-      setTournaments([]);
-    }
-  };
-
-  const loadLeaderboard = async () => {
+    if (!selectedTournament) return;
     setLoading(true);
-    try {
-      let response;
-      if (activeTab === 'batting') {
-        response = await leaderboardAPI.getBattingLeaderboard(selectedTournament);
-      } else {
-        response = await leaderboardAPI.getBattingLeaderboard(selectedTournament);
-      }
-      
-      // Ensure data is an array
-      const rawData = response.data.leaderboard || response.data || [];
-      const data = Array.isArray(rawData) ? rawData : [];
-      
-      // Safety sort if API doesn't - with null checks
-  const sortedData = [...data].sort((a, b) => {
-          const aRuns = (a as any).runs || 0;
-          const bRuns = (b as any).runs || 0;
-          return bRuns - aRuns;
-      });
-      
-      setEntries(sortedData);
-    } catch (err) {
-      console.error('Failed to load leaderboard', err);
-      setEntries([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getRankIcon = (index: number) => {
-    if (index === 0) return <Trophy className="h-6 w-6 text-yellow-500" />;
-    if (index === 1) return <Medal className="h-6 w-6 text-gray-400" />;
-    if (index === 2) return <Award className="h-6 w-6 text-orange-500" />;
-    return <span className="font-bold text-gray-500 w-6 text-center">{index + 1}</span>;
-  };
+    tournamentAPI.getPointsTable(selectedTournament)
+      .then(r => setPointsTable(r.data.data || []))
+      .catch(() => setPointsTable([]))
+      .finally(() => setLoading(false));
+  }, [selectedTournament]);
 
   return (
-    <div className="space-y-6 p-6 min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+    <div className="p-6 max-w-5xl">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <TrendingUp className="text-blue-600" /> Leaderboards
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">Top performers and team standings</p>
+          <h1 className="text-2xl font-black text-white flex items-center gap-2"><Trophy className="w-6 h-6 text-amber-400" /> Leaderboard</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Tournament points table</p>
         </div>
-        
-        <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded-lg border dark:border-gray-700">
-            <Filter className="w-4 h-4 text-gray-400" />
-            <select
-                value={selectedTournament}
-                onChange={(e) => setSelectedTournament(e.target.value)}
-                className="bg-transparent border-none focus:ring-0 text-sm font-medium"
-            >
-                <option value="">All Tournaments</option>
-                {tournaments.map(t => (
-                    <option key={t._id} value={t._id}>{t.name}</option>
-                ))}
-            </select>
-        </div>
+        {tournaments.length > 0 && (
+          <select value={selectedTournament} onChange={e => setSelectedTournament(e.target.value)}
+            className="bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+            {tournaments.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+          </select>
+        )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm border dark:border-gray-700 w-fit">
-        {['batting', 'bowling', 'teams'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as LeaderboardType)}
-            className={`px-6 py-2 rounded-md font-medium capitalize transition-all ${
-              activeTab === tab
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-        {loading ? (
-          <div className="p-12 flex justify-center">
-            <Loader className="animate-spin text-blue-600 h-8 w-8" />
+      {loading ? (
+        <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" /></div>
+      ) : !selectedTournament ? (
+        <div className="text-center py-16 bg-slate-900 border border-slate-800 rounded-2xl">
+          <Trophy className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+          <p className="text-slate-500">Create a tournament first to see its leaderboard</p>
+        </div>
+      ) : (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-800 flex items-center gap-2">
+            <BarChart2 className="w-5 h-5 text-amber-400" />
+            <h2 className="text-white font-bold">Points Table</h2>
           </div>
-        ) : entries.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">
-             <Trophy className="w-12 h-12 mx-auto mb-3 opacity-20" />
-             <p>No stats available for this selection.</p>
-          </div>
-        ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-900/50 text-xs uppercase text-gray-500 font-semibold">
-                <tr>
-                  <th className="px-6 py-4 text-left w-20">Rank</th>
-                  <th className="px-6 py-4 text-left">Name</th>
-                  <th className="px-6 py-4 text-left">Team</th>
-                  {activeTab === 'batting' && (
-                      <>
-                        <th className="px-6 py-4 text-right text-blue-600">Runs</th>
-                        <th className="px-6 py-4 text-right">Innings</th>
-                        <th className="px-6 py-4 text-right">Average</th>
-                        <th className="px-6 py-4 text-right">Strike Rate</th>
-                      </>
-                  )}
-                  {activeTab === 'bowling' && (
-                      <>
-                        <th className="px-6 py-4 text-right text-purple-600">Wickets</th>
-                        <th className="px-6 py-4 text-right">Overs</th>
-                        <th className="px-6 py-4 text-right">Economy</th>
-                        <th className="px-6 py-4 text-right">Best</th>
-                      </>
-                  )}
-                  {activeTab === 'teams' && (
-                      <>
-                        <th className="px-6 py-4 text-right text-green-600">Points</th>
-                        <th className="px-6 py-4 text-right">Played</th>
-                        <th className="px-6 py-4 text-right">Won</th>
-                        <th className="px-6 py-4 text-right">Lost</th>
-                        <th className="px-6 py-4 text-right">NRR</th>
-                      </>
-                  )}
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-700 bg-slate-800/50">
+                  <th className="text-left py-3 px-4 text-slate-400 font-semibold">#</th>
+                  <th className="text-left py-3 px-4 text-slate-400 font-semibold">Team</th>
+                  <th className="text-center py-3 px-3 text-slate-400 font-semibold">M</th>
+                  <th className="text-center py-3 px-3 text-slate-400 font-semibold">W</th>
+                  <th className="text-center py-3 px-3 text-slate-400 font-semibold">L</th>
+                  <th className="text-center py-3 px-3 text-slate-400 font-semibold">T/NR</th>
+                  <th className="text-center py-3 px-3 text-slate-400 font-semibold">NRR</th>
+                  <th className="text-center py-3 px-3 text-blue-400 font-bold">PTS</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {entries.map((entry, index) => {
-                  const stats = (entry as any)?.stats || {};
-
-                  return (
-                  <tr key={entry._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                    <td className="px-6 py-4">
-                        <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 w-10 h-10 rounded-full">
-                            {getRankIcon(index)}
-                        </div>
+              <tbody>
+                {pointsTable.map((row, i) => (
+                  <tr key={row._id} className={`border-b border-slate-800 transition-colors hover:bg-slate-800/40 ${i === 0 ? 'bg-yellow-500/5' : i === 1 ? 'bg-slate-800/20' : ''}`}>
+                    <td className="py-4 px-4">
+                      <span className={`font-bold ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-slate-300' : i === 2 ? 'text-amber-600' : 'text-slate-600'}`}>
+                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 font-bold">
-                        {typeof entry.player === 'string' ? entry.player : entry.player || 'Unknown'}
+                    <td className="py-4 px-4">
+                      <p className="text-white font-bold">{row.name}</p>
+                      <p className="text-slate-600 text-xs">{row.shortName}</p>
                     </td>
-                    <td className="px-6 py-4 text-gray-500">
-                        '-'
+                    <td className="py-4 px-3 text-center text-slate-300">{row.played}</td>
+                    <td className="py-4 px-3 text-center text-green-400 font-semibold">{row.won}</td>
+                    <td className="py-4 px-3 text-center text-red-400">{row.lost}</td>
+                    <td className="py-4 px-3 text-center text-slate-500">{(row.tied || 0) + (row.nr || 0)}</td>
+                    <td className={`py-4 px-3 text-center font-mono text-xs font-semibold ${row.nrr >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {row.nrr >= 0 ? '+' : ''}{(row.nrr || 0).toFixed(3)}
                     </td>
-                    
-                    {/* Stats Columns */}
-                    {activeTab === 'batting' && (
-                        <>
-                            <td className="px-6 py-4 text-right font-black text-xl">{stats.runs || 0}</td>
-                            <td className="px-6 py-4 text-right">{stats.matches || 0}</td>
-                            <td className="px-6 py-4 text-right">{stats.average?.toFixed(2) || '-'}</td>
-                            <td className="px-6 py-4 text-right">{stats.strikeRate?.toFixed(2) || '-'}</td>
-                        </>
-                    )}
-                    {activeTab === 'bowling' && (
-                        <>
-                            <td className="px-6 py-4 text-right font-black text-xl">{stats.wickets || 0}</td>
-                            <td className="px-6 py-4 text-right">{stats.overs || 0}</td>
-                            <td className="px-6 py-4 text-right">{stats.economy?.toFixed(2) || '-'}</td>
-                            <td className="px-6 py-4 text-right">-</td>
-                        </>
-                    )}
-                    {activeTab === 'teams' && (
-                        <>
-                            <td className="px-6 py-4 text-right font-black text-xl">{(stats.wins || 0) * 2}</td>
-                            <td className="px-6 py-4 text-right">{stats.matches || 0}</td>
-                            <td className="px-6 py-4 text-right text-green-600">{stats.wins || 0}</td>
-                            <td className="px-6 py-4 text-right text-red-600">{stats.losses || 0}</td>
-                            <td className="px-6 py-4 text-right font-mono">{(Math.random() * 2 - 1).toFixed(3)}</td>
-                        </>
-                    )}
+                    <td className="py-4 px-3 text-center">
+                      <span className="text-blue-400 font-black text-lg">{row.points}</span>
+                    </td>
                   </tr>
-                )})}
+                ))}
+                {pointsTable.length === 0 && (
+                  <tr><td colSpan={8} className="py-12 text-center text-slate-600">No matches completed yet in this tournament</td></tr>
+                )}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default Leaderboard;
+}

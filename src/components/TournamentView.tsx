@@ -1,418 +1,604 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
-import { Tournament, Match, Team } from './types';
-import { Calendar, Users, Trophy, Plus, Edit, Trash2, ExternalLink, PlayCircle, CheckCircle } from 'lucide-react';
+import { useAuth } from '../App';
+import {
+  Plus, Trash2, Zap, BarChart2, Users, Trophy, Shield,
+  Calendar, MapPin, ChevronRight, X, ArrowLeft, Edit3,
+  Activity, Target, TrendingUp, Layers, CheckCircle, Clock
+} from 'lucide-react';
 import TeamManagement from './TeamManagement';
-import BracketView from './BracketView';
+import MatchDetail from './MatchDetail';
 
-export default function TournamentView() {
-  const navigate = useNavigate();
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [loading, setLoading] = useState(false);
-  
-  // Forms
-  const [showMatchForm, setShowMatchForm] = useState(false);
-  const [matchForm, setMatchForm] = useState({
-    team1: '',
-    team2: '',
-    date: '',
-    venue: '',
-    matchType: 'T20'
+// ─── Status badge ─────────────────────────────────────────────────────────────
+const StatusBadge = ({ status }: { status: string }) => {
+  const map: Record<string, string> = {
+    upcoming: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    live: 'bg-red-500/20 text-red-400 border-red-500/30 animate-pulse',
+    completed: 'bg-green-500/20 text-green-400 border-green-500/30',
+    ongoing: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+  };
+  return (
+    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border capitalize ${map[status] || map['upcoming']}`}>
+      {status === 'live' ? '● LIVE' : status}
+    </span>
+  );
+};
+
+// ─── Create Tournament Modal ──────────────────────────────────────────────────
+function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [form, setForm] = useState({
+    name: '', type: 'round_robin', format: 'T20',
+    startDate: '', venue: '', rules: '', prizePool: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadTournaments();
-  }, []);
-
-  useEffect(() => {
-    if (selectedTournament) {
-      loadTournamentDetails(selectedTournament._id);
-    }
-  }, [selectedTournament, activeTab]);
-
-  const loadTournaments = async () => {
-    try {
-      const res = await tournamentAPI.getTournaments();
-      
-      // Handle different response structures:
-      // 1. { success: true, data: [...], count: X } - current backend format
-      // 2. { tournaments: [...] } - legacy format
-      // 3. [...] - array directly
-      let list: any[] = [];
-      if (res.data.success && res.data.data) {
-        list = res.data.data;
-      } else if (res.data.tournaments) {
-        list = res.data.tournaments;
-      } else if (Array.isArray(res.data)) {
-        list = res.data;
-      }
-      
-      setTournaments(list);
-      if (list.length > 0 && !selectedTournament) {
-        setSelectedTournament(list[0]);
-      }
-    } catch (e) {
-      console.error("Failed to load tournaments", e);
-    }
-  };
-
-  // Helper function to map backend match data to frontend format
-  const mapBackendMatchToFrontend = (backendMatch: any): Match => {
-    // Map status from backend format to frontend format
-    const statusMap: { [key: string]: 'scheduled' | 'ongoing' | 'completed' | 'upcoming' | 'live' } = {
-      'Scheduled': 'scheduled',
-      'Toss Completed': 'scheduled',
-      'First Innings': 'ongoing',
-      'Second Innings': 'ongoing',
-      'Completed': 'completed',
-      'Abandoned': 'completed'
-    };
-
-    return {
-      _id: backendMatch._id,
-      tournament: backendMatch.tournamentId,
-      team1: backendMatch.teamA,
-      team2: backendMatch.teamB,
-      date: backendMatch.matchDate,
-      venue: backendMatch.venue,
-      status: statusMap[backendMatch.status] || 'scheduled',
-      matchType: backendMatch.format || 'Club',
-    } as Match;
-  };
-
-  // Helper function to map backend team data to frontend format
-  const mapBackendTeamToFrontend = (backendTeam: any): Team => {
-    return {
-      _id: backendTeam._id,
-      name: backendTeam.name,
-      shortName: backendTeam.name?.substring(0, 3).toUpperCase() || 'TM',
-      color: backendTeam.color || '#3B82F6',
-      logo: backendTeam.logo,
-      players: backendTeam.players || [],
-      tournamentId: backendTeam.tournament,
-
-      stats: backendTeam.statistics || {
-        played: 0,
-        won: 0,
-        lost: 0,
-        points: 0,
-        nrr: 0
-      }
-    };
-  };
-
-  const loadTournamentDetails = async (id: string) => {
-    setLoading(true);
-    try {
-      // Load Matches
-      if (activeTab === 'matches' || activeTab === 'overview') {
-const resMatches = await matchAPI.getMatches();
-        
-        // Handle different response structures:
-        // 1. { success: true, data: [...], count: X } - current backend format
-        // 2. { matches: [...] } - legacy format
-        // 3. [...] - array directly
-        let allMatches: any[] = [];
-        if (resMatches.data.success && resMatches.data.data) {
-          allMatches = resMatches.data.data;
-        } else if (resMatches.data.matches) {
-          allMatches = resMatches.data.matches;
-        } else if (Array.isArray(resMatches.data)) {
-          allMatches = resMatches.data;
-        }
-        
-        // Filter matches by tournament ID (handle both string and object references)
-        const tMatches = allMatches
-          .filter((m: any) => {
-            const tournamentRef = m.tournamentId || m.tournament;
-            if (!tournamentRef) return false;
-            return typeof tournamentRef === 'string' ? tournamentRef === id : tournamentRef._id === id;
-          })
-          .map(mapBackendMatchToFrontend);
-        
-        setMatches(tMatches);
-      }
-
-      // Load Teams
-      if (activeTab === 'teams' || activeTab === 'overview' || showMatchForm) {
-        const resTeams = await teamAPI.getTeams(id);
-        
-        // Handle different response structures:
-        // 1. { teams: [...], pagination: {...} } - current backend format
-        // 2. { data: [...] } - alternative format
-        let allTeams: any[] = [];
-        if (resTeams.data.teams) {
-          allTeams = resTeams.data.teams;
-        } else if (resTeams.data.data && Array.isArray(resTeams.data.data)) {
-          allTeams = resTeams.data.data;
-        } else if (Array.isArray(resTeams.data)) {
-          allTeams = resTeams.data;
-        }
-        
-        const mappedTeams = allTeams.map(mapBackendTeamToFrontend);
-        setTeams(mappedTeams);
-      }
-    } catch (e) {
-      console.error("Failed to load details", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateMatch = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTournament) return;
-
+    setLoading(true); setError('');
     try {
-      await matchAPI.createMatch({
-        ...matchForm,
-        tournament: selectedTournament._id
+      await tournamentAPI.createTournament({
+        ...form,
+        startDate: new Date(form.startDate).toISOString(),
+        prizePool: Number(form.prizePool) || 0
       });
-      setShowMatchForm(false);
-      loadTournamentDetails(selectedTournament._id); // Refresh
-      alert("Match scheduled successfully!");
-    } catch (err) {
-      alert("Failed to create match");
-    }
-  };
-
-  const deleteMatch = async (id: string) => {
-    if(!confirm("Are you sure?")) return;
-    try {
-      await matchAPI.deleteMatch(id);
-      setMatches(prev => prev.filter(m => m._id !== id));
-    } catch(e) {
-       console.error(e);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-      switch(status) {
-          case 'ongoing': return 'text-red-500 bg-red-100 dark:bg-red-900/20';
-          case 'completed': return 'text-green-500 bg-green-100 dark:bg-green-900/20';
-          default: return 'text-blue-500 bg-blue-100 dark:bg-blue-900/20';
-      }
+      onCreated();
+      onClose();
+    } catch (e: any) {
+      setError(e.response?.data?.message || 'Failed to create tournament');
+    } finally { setLoading(false); }
   };
 
   return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-white">
-      {/* Header & Selection */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Trophy className="text-yellow-500" /> Tournament Manager
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">Manage schedules, teams, and brackets</p>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md my-4">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-xl font-black text-white">New Tournament</h2>
+          <button onClick={onClose} className="text-slate-500 hover:text-white"><X className="w-5 h-5" /></button>
         </div>
-        
-        <select 
-            className="p-3 rounded-lg border bg-white dark:bg-gray-800 dark:border-gray-700 min-w-[250px]"
-            onChange={(e) => {
-                const t = tournaments.find(x => x._id === e.target.value);
-                if(t) setSelectedTournament(t);
-            }}
-            value={selectedTournament?._id || ''}
-        >
-            <option value="">Select Tournament</option>
-            {tournaments.map(t => (
-                <option key={t._id} value={t._id}>{t.name}</option>
+        {error && <div className="mb-4 p-3 bg-red-900/30 border border-red-700/40 rounded-xl text-red-300 text-sm">{error}</div>}
+        <form onSubmit={submit} className="space-y-4">
+          {[
+            { label: 'Tournament Name', key: 'name', type: 'text', required: true, placeholder: 'e.g. IPL Season 1' },
+            { label: 'Venue / Location', key: 'venue', type: 'text', required: true, placeholder: 'e.g. Wankhede Stadium' },
+            { label: 'Start Date', key: 'startDate', type: 'date', required: true },
+            { label: 'Prize Pool (₹)', key: 'prizePool', type: 'number', placeholder: '0' },
+          ].map(f => (
+            <div key={f.key}>
+              <label className="text-slate-400 text-xs font-semibold mb-1 block">{f.label}</label>
+              <input
+                type={f.type} value={(form as any)[f.key]} required={f.required}
+                placeholder={f.placeholder}
+                onChange={e => setForm({ ...form, [f.key]: e.target.value })}
+                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          ))}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-slate-400 text-xs font-semibold mb-1 block">Type</label>
+              <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}
+                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                <option value="round_robin">Round Robin</option>
+                <option value="knockout">Knockout</option>
+                <option value="league">League</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-slate-400 text-xs font-semibold mb-1 block">Format</label>
+              <select value={form.format} onChange={e => setForm({ ...form, format: e.target.value })}
+                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                {['T10', 'T20', 'ODI', 'Test'].map(f => <option key={f}>{f}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="text-slate-400 text-xs font-semibold mb-1 block">Rules (optional)</label>
+            <textarea value={form.rules} onChange={e => setForm({ ...form, rules: e.target.value })}
+              rows={2} placeholder="Tournament rules..."
+              className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 resize-none" />
+          </div>
+          <button type="submit" disabled={loading}
+            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold rounded-xl transition-all">
+            {loading ? 'Creating...' : 'Create Tournament'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── Create Match Modal ───────────────────────────────────────────────────────
+function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: {
+  tournamentId: string; teams: any[]; onClose: () => void; onCreated: () => void;
+}) {
+  const [form, setForm] = useState({ team1: '', team2: '', date: '', venue: '', format: 'T20', name: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (form.team1 === form.team2) { setError('Teams must be different'); return; }
+    setLoading(true); setError('');
+    try {
+      await matchAPI.createMatch({ ...form, tournamentId, date: new Date(form.date).toISOString() });
+      onCreated();
+      onClose();
+    } catch (e: any) {
+      setError(e.response?.data?.message || 'Failed to create match');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md my-4">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-xl font-black text-white">Schedule Match</h2>
+          <button onClick={onClose} className="text-slate-500 hover:text-white"><X className="w-5 h-5" /></button>
+        </div>
+        {error && <div className="mb-4 p-3 bg-red-900/30 border border-red-700/40 rounded-xl text-red-300 text-sm">{error}</div>}
+        <form onSubmit={submit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            {['team1', 'team2'].map((t, i) => (
+              <div key={t}>
+                <label className="text-slate-400 text-xs font-semibold mb-1 block">Team {i + 1}</label>
+                <select value={(form as any)[t]} onChange={e => setForm({ ...form, [t]: e.target.value })} required
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                  <option value="">-- Select --</option>
+                  {teams.map(tm => <option key={tm._id} value={tm._id}>{tm.name}</option>)}
+                </select>
+              </div>
             ))}
-        </select>
+          </div>
+          <div>
+            <label className="text-slate-400 text-xs font-semibold mb-1 block">Match Name (optional)</label>
+            <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+              placeholder="Auto-generated if empty"
+              className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-slate-400 text-xs font-semibold mb-1 block">Date & Time</label>
+              <input type="datetime-local" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required
+                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="text-slate-400 text-xs font-semibold mb-1 block">Format</label>
+              <select value={form.format} onChange={e => setForm({ ...form, format: e.target.value })}
+                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                {['T10', 'T20', 'ODI', 'Test'].map(f => <option key={f}>{f}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="text-slate-400 text-xs font-semibold mb-1 block">Venue</label>
+            <input value={form.venue} onChange={e => setForm({ ...form, venue: e.target.value })}
+              placeholder="e.g. Home Ground"
+              className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
+          </div>
+          <button type="submit" disabled={loading}
+            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold rounded-xl transition-all">
+            {loading ? 'Scheduling...' : 'Schedule Match'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── Points Table ─────────────────────────────────────────────────────────────
+function PointsTable({ tournamentId }: { tournamentId: string }) {
+  const [table, setTable] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    tournamentAPI.getPointsTable(tournamentId)
+      .then(r => setTable(r.data.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [tournamentId]);
+
+  if (loading) return <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-slate-700">
+            <th className="text-left py-3 px-3 text-slate-400 font-semibold">#</th>
+            <th className="text-left py-3 px-3 text-slate-400 font-semibold">Team</th>
+            <th className="text-center py-3 px-2 text-slate-400 font-semibold">P</th>
+            <th className="text-center py-3 px-2 text-slate-400 font-semibold">W</th>
+            <th className="text-center py-3 px-2 text-slate-400 font-semibold">L</th>
+            <th className="text-center py-3 px-2 text-slate-400 font-semibold">T/NR</th>
+            <th className="text-center py-3 px-2 text-slate-400 font-semibold">NRR</th>
+            <th className="text-center py-3 px-2 text-blue-400 font-bold">Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          {table.map((row: any, idx: number) => (
+            <tr key={row._id} className={`border-b border-slate-800 hover:bg-slate-800/40 transition-colors ${idx === 0 ? 'bg-yellow-500/5' : ''}`}>
+              <td className="py-3 px-3 text-slate-400 font-semibold">{idx + 1}</td>
+              <td className="py-3 px-3">
+                <div className="flex items-center gap-2">
+                  {idx === 0 && <span className="text-yellow-500">👑</span>}
+                  <div>
+                    <div className="text-white font-semibold">{row.name}</div>
+                    <div className="text-slate-600 text-xs">{row.shortName}</div>
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 px-2 text-center text-slate-300">{row.played}</td>
+              <td className="py-3 px-2 text-center text-green-400 font-semibold">{row.won}</td>
+              <td className="py-3 px-2 text-center text-red-400">{row.lost}</td>
+              <td className="py-3 px-2 text-center text-slate-400">{row.tied + row.nr}</td>
+              <td className={`py-3 px-2 text-center font-mono text-xs ${row.nrr >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {row.nrr >= 0 ? '+' : ''}{row.nrr?.toFixed(3)}
+              </td>
+              <td className="py-3 px-2 text-center text-blue-400 font-black text-base">{row.points}</td>
+            </tr>
+          ))}
+          {table.length === 0 && (
+            <tr><td colSpan={8} className="py-8 text-center text-slate-600">No matches completed yet</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+export default function TournamentView() {
+  const navigate = useNavigate();
+  const { id: paramId } = useParams<{ id: string }>();
+  const { user } = useAuth();
+
+  const [tournaments, setTournaments] = useState<any[]>([]);
+  const [selected, setSelected] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'matches' | 'teams' | 'overlays' | 'leaderboard'>('overview');
+  const [matches, setMatches] = useState<any[]>([]);
+  const [teams, setTeams] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateTournament, setShowCreateTournament] = useState(false);
+  const [showCreateMatch, setShowCreateMatch] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<any>(null);
+  const [statusMenu, setStatusMenu] = useState<string | null>(null);
+
+  // Load user's tournaments (account-distinct)
+  const loadTournaments = useCallback(async () => {
+    try {
+      const res = await tournamentAPI.getMyTournaments();
+      const list = res.data.data || [];
+      setTournaments(list);
+      if (paramId) {
+        const found = list.find((t: any) => t._id === paramId);
+        if (found) setSelected(found);
+      } else if (list.length > 0 && !selected) {
+        setSelected(list[0]);
+      }
+    } catch (e) {
+      console.error('Failed to load tournaments', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [paramId]);
+
+  useEffect(() => { loadTournaments(); }, [loadTournaments]);
+
+  // Load tournament details when selected changes
+  useEffect(() => {
+    if (!selected?._id) return;
+    const loadDetails = async () => {
+      try {
+        const [matchRes, teamRes] = await Promise.all([
+          matchAPI.getMatches({ tournament: selected._id, limit: 100 }),
+          teamAPI.getTeams(selected._id)
+        ]);
+        setMatches(matchRes.data.data || []);
+        setTeams(teamRes.data.data || []);
+      } catch (e) { console.error(e); }
+    };
+    loadDetails();
+  }, [selected, activeTab]);
+
+  const handleDeleteMatch = async (matchId: string) => {
+    if (!confirm('Delete this match?')) return;
+    try {
+      await matchAPI.deleteMatch(matchId);
+      setMatches(prev => prev.filter(m => m._id !== matchId));
+    } catch (e) { console.error(e); }
+  };
+
+  const handleStatusChange = async (matchId: string, status: string) => {
+    try {
+      await matchAPI.updateStatus(matchId, status);
+      setMatches(prev => prev.map(m => m._id === matchId ? { ...m, status } : m));
+      setStatusMenu(null);
+    } catch (e) { console.error(e); }
+  };
+
+  const handleDeleteTournament = async (id: string) => {
+    if (!confirm('Delete this tournament? This cannot be undone.')) return;
+    try {
+      await tournamentAPI.deleteTournament(id);
+      setTournaments(prev => prev.filter(t => t._id !== id));
+      if (selected?._id === id) setSelected(null);
+    } catch (e) { console.error(e); }
+  };
+
+  // If a match is selected, show MatchDetail
+  if (selectedMatch) {
+    return (
+      <MatchDetail
+        matchId={selectedMatch._id}
+        onBack={() => setSelectedMatch(null)}
+        openScoreboard={() => navigate(`/matches/${selectedMatch._id}/score`)}
+      />
+    );
+  }
+
+  const tabs = ['overview', 'matches', 'teams', 'overlays', 'leaderboard'] as const;
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex">
+      {/* Modals */}
+      {showCreateTournament && (
+        <CreateTournamentModal onClose={() => setShowCreateTournament(false)} onCreated={loadTournaments} />
+      )}
+      {showCreateMatch && selected && (
+        <CreateMatchModal
+          tournamentId={selected._id}
+          teams={teams}
+          onClose={() => setShowCreateMatch(false)}
+          onCreated={async () => {
+            const res = await matchAPI.getMatches({ tournament: selected._id, limit: 100 });
+            setMatches(res.data.data || []);
+          }}
+        />
+      )}
+
+      {/* Left panel: tournament list */}
+      <div className="w-72 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0">
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h2 className="text-white font-black text-lg">Tournaments</h2>
+          <button onClick={() => setShowCreateTournament(true)}
+            className="w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all">
+            <Plus className="w-4 h-4 text-white" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {loading ? (
+            <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>
+          ) : tournaments.length === 0 ? (
+            <div className="text-center py-12">
+              <Trophy className="w-10 h-10 text-slate-700 mx-auto mb-3" />
+              <p className="text-slate-600 text-sm">No tournaments yet</p>
+              <button onClick={() => setShowCreateTournament(true)}
+                className="mt-3 text-blue-400 hover:text-blue-300 text-sm font-semibold">
+                + Create First Tournament
+              </button>
+            </div>
+          ) : (
+            tournaments.map(t => (
+              <button key={t._id} onClick={() => { setSelected(t); setActiveTab('overview'); }}
+                className={`w-full text-left p-3 rounded-xl transition-all group ${selected?._id === t._id ? 'bg-blue-600/20 border border-blue-500/40' : 'hover:bg-slate-800 border border-transparent'}`}>
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className={`font-semibold text-sm truncate ${selected?._id === t._id ? 'text-white' : 'text-slate-300'}`}>{t.name}</p>
+                    <p className="text-slate-600 text-xs mt-0.5">{t.format} · {t.type?.replace('_', ' ')}</p>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                    <StatusBadge status={t.status || 'upcoming'} />
+                    <button onClick={e => { e.stopPropagation(); handleDeleteTournament(t._id); }}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-slate-600 hover:text-red-400 transition-all">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
       </div>
 
-      {selectedTournament ? (
-
-        <>
-          {/* Tabs */}
-          <div className="flex bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-1 mb-8 shadow-2xl">
-            {(['overview', 'matches', 'teams', 'bracket'] as const).map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${
-                  activeTab === tab
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105'
-                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
-                }`}
-              >
-                    {tab}
-                 </button>
-             ))}
+      {/* Right panel: tournament detail */}
+      <div className="flex-1 overflow-auto">
+        {!selected ? (
+          <div className="flex-1 flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <Trophy className="w-16 h-16 text-slate-800 mx-auto mb-4" />
+              <p className="text-slate-600 text-lg">Select or create a tournament</p>
+            </div>
           </div>
-
-          {/* Content Areas */}
-          <div className="min-h-[400px]">
-              {loading && <div className="text-center py-10">Loading data...</div>}
-
-              {/* OVERVIEW TAB */}
-              {!loading && activeTab === 'overview' && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 shadow-xl">
-                          <h3 className="text-lg font-bold text-gray-300 mb-2">Total Matches</h3>
-                          <div className="text-4xl font-black text-blue-400">{matches.length}</div>
-                      </div>
-                      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                          <h3 className="text-lg font-bold mb-2">Registered Teams</h3>
-                          <p className="text-4xl font-black text-green-600">{teams.length}</p>
-                      </div>
-                      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                          <h3 className="text-lg font-bold mb-2">Status</h3>
-                          <p className="text-xl font-medium uppercase tracking-wider">{selectedTournament.status}</p>
-                      </div>
+        ) : (
+          <div>
+            {/* Tournament header */}
+            <div className="bg-slate-900 border-b border-slate-800 px-6 py-5">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-2xl font-black text-white">{selected.name}</h1>
+                  <div className="flex items-center gap-4 mt-1.5 text-slate-500 text-sm">
+                    <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {selected.startDate ? new Date(selected.startDate).toLocaleDateString('en-IN') : 'TBD'}</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {selected.venue || 'TBD'}</span>
+                    <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5" /> {selected.format}</span>
+                    <StatusBadge status={selected.status || 'upcoming'} />
                   </div>
-              )}
-
-              {/* MATCHES TAB */}
-              {!loading && activeTab === 'matches' && (
-                  <div>
-                      <div className="flex justify-between mb-4">
-                          <h3 className="text-xl font-bold">Match Schedule</h3>
-                          <button 
-                            onClick={() => setShowMatchForm(true)}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                          >
-                             <Plus className="w-4 h-4" /> Add Match
-                          </button>
-                      </div>
-                      
-                      <div className="space-y-3">
-                          {matches.length === 0 && <p className="text-gray-500">No matches scheduled.</p>}
-                          {matches.map(match => (
-                              <div key={match._id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row justify-between items-center gap-4">
-                                  <div className="flex-1">
-              <div className="flex items-center gap-3 mb-1">
-                                          <span className={`text-xs px-2 py-1 rounded font-bold uppercase ${getStatusColor(match.status)}`}>
-                                              {match.status}
-                                          </span>
-                                          <span className="text-sm text-gray-500">{new Date(match.date).toLocaleDateString()}</span>
-                                      </div>
-                                      <h4 className="text-lg font-bold">
-                                          {match.name || match.team1?.name || match.team1Name || 'TBA'} <span className="text-gray-400 px-2">vs</span> {match.team2?.name || match.team2Name || 'TBA'}
-                                      </h4>
-                                      <p className="text-sm text-gray-500">{match.venue || 'No Venue'}</p>
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-2">
-                                      <button 
-                                        onClick={() => navigate(`/match/${match._id}`)}
-                                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg tooltip"
-                                        title="Scoring Console"
-                                      >
-                                          <Edit className="w-5 h-5" />
-                                      </button>
-                                      <button 
-                                        onClick={() => navigate(`/live-tournament/${match._id}`)}
-                                        className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg tooltip"
-                                        title="View Live Page"
-                                      >
-                                          <ExternalLink className="w-5 h-5" />
-                                      </button>
-                                      <button 
-                                        onClick={() => deleteMatch(match._id)}
-                                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg tooltip"
-                                        title="Delete Match"
-                                      >
-                                          <Trash2 className="w-5 h-5" />
-                                      </button>
-                                  </div>
-                              </div>
-                          ))}
-                      </div>
-                  </div>
-              )}
-
-              {/* TEAMS TAB */}
-              {!loading && activeTab === 'teams' && (
-                  <TeamManagement selectedTournament={selectedTournament} />
-              )}
-
-              {/* BRACKET TAB */}
-              {!loading && activeTab === 'bracket' && (
-                  <BracketView />
-              )}
-          </div>
-
-          {/* CREATE MATCH MODAL */}
-          {showMatchForm && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6">
-                      <h3 className="text-xl font-bold mb-4">Schedule Match</h3>
-                      <form onSubmit={handleCreateMatch} className="space-y-4">
-                          <div>
-                              <label className="block text-sm mb-1">Team 1</label>
-                              <select 
-                                className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600"
-                                value={matchForm.team1}
-                                onChange={e => setMatchForm({...matchForm, team1: e.target.value})}
-                                required
-                              >
-                                  <option value="">Select Team</option>
-                                  {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
-                              </select>
-                          </div>
-                          <div>
-                              <label className="block text-sm mb-1">Team 2</label>
-                              <select 
-                                className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600"
-                                value={matchForm.team2}
-                                onChange={e => setMatchForm({...matchForm, team2: e.target.value})}
-                                required
-                              >
-                                  <option value="">Select Team</option>
-                                  {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
-                              </select>
-                          </div>
-                          <div>
-                              <label className="block text-sm mb-1">Date & Time</label>
-                              <input 
-                                type="datetime-local" 
-                                className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600"
-                                value={matchForm.date}
-                                onChange={e => setMatchForm({...matchForm, date: e.target.value})}
-                                required
-                              />
-                          </div>
-                          <div>
-                              <label className="block text-sm mb-1">Venue</label>
-                              <input 
-                                type="text" 
-                                className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600"
-                                value={matchForm.venue}
-                                onChange={e => setMatchForm({...matchForm, venue: e.target.value})}
-                                placeholder="Stadium Name"
-                              />
-                          </div>
-                          <div className="flex gap-3 mt-6">
-                              <button 
-                                type="button"
-                                onClick={() => setShowMatchForm(false)}
-                                className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 rounded text-gray-800 dark:text-gray-200"
-                              >
-                                  Cancel
-                              </button>
-                              <button 
-                                type="submit"
-                                className="flex-1 py-2 bg-blue-600 text-white rounded font-bold"
-                              >
-                                  Create Match
-                              </button>
-                          </div>
-                      </form>
-                  </div>
+                </div>
               </div>
-          )}
-        </>
-      ) : (
-        <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700">
-            <Trophy className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-            <p className="text-xl text-gray-500">Please select a tournament to manage</p>
-        </div>
-      )}
+
+              {/* Tabs */}
+              <div className="flex gap-1 mt-4 -mb-5 border-b border-slate-800 pt-2">
+                {tabs.map(tab => (
+                  <button key={tab} onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-2.5 text-sm font-semibold capitalize transition-all border-b-2 -mb-px ${
+                      activeTab === tab
+                        ? 'border-blue-500 text-blue-400'
+                        : 'border-transparent text-slate-500 hover:text-slate-300'
+                    }`}>
+                    {tab === 'leaderboard' ? 'Points Table' : tab}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tab content */}
+            <div className="p-6">
+              {/* OVERVIEW */}
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                      { label: 'Teams', value: selected.teams?.length || 0, icon: Users, color: 'text-blue-400' },
+                      { label: 'Matches', value: matches.length, icon: Activity, color: 'text-green-400' },
+                      { label: 'Live Now', value: matches.filter((m: any) => m.status === 'live').length, icon: Zap, color: 'text-red-400' },
+                      { label: 'Completed', value: matches.filter((m: any) => m.status === 'completed').length, icon: CheckCircle, color: 'text-purple-400' },
+                    ].map(stat => (
+                      <div key={stat.label} className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-slate-500 text-xs font-semibold">{stat.label}</p>
+                          <stat.icon className={`w-4 h-4 ${stat.color}`} />
+                        </div>
+                        <p className={`text-3xl font-black ${stat.color}`}>{stat.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                    <h3 className="text-white font-bold mb-3">Tournament Details</h3>
+                    <div className="grid grid-cols-2 gap-y-3 text-sm">
+                      <div><span className="text-slate-500">Type</span><div className="text-white capitalize">{selected.type?.replace('_', ' ')}</div></div>
+                      <div><span className="text-slate-500">Format</span><div className="text-white">{selected.format}</div></div>
+                      <div><span className="text-slate-500">Start Date</span><div className="text-white">{selected.startDate ? new Date(selected.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'TBD'}</div></div>
+                      <div><span className="text-slate-500">Venue</span><div className="text-white">{selected.venue || 'TBD'}</div></div>
+                      {selected.prizePool > 0 && <div><span className="text-slate-500">Prize Pool</span><div className="text-white">₹{selected.prizePool.toLocaleString()}</div></div>}
+                    </div>
+                    {selected.rules && (
+                      <div className="mt-4 pt-4 border-t border-slate-800">
+                        <p className="text-slate-500 text-xs font-semibold mb-1">Rules</p>
+                        <p className="text-slate-300 text-sm whitespace-pre-line">{selected.rules}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* MATCHES */}
+              {activeTab === 'matches' && (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-white font-bold text-lg">Matches ({matches.length})</h2>
+                    <button onClick={() => setShowCreateMatch(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all">
+                      <Plus className="w-4 h-4" /> Schedule Match
+                    </button>
+                  </div>
+
+                  {matches.length === 0 ? (
+                    <div className="text-center py-12 bg-slate-900 border border-slate-800 rounded-2xl">
+                      <Activity className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+                      <p className="text-slate-500">No matches scheduled yet</p>
+                      <button onClick={() => setShowCreateMatch(true)} className="mt-3 text-blue-400 hover:text-blue-300 text-sm font-semibold">+ Schedule First Match</button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {matches.map(match => (
+                        <div key={match._id} className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition-all group">
+                          <div className="flex items-center justify-between">
+                            <button onClick={() => setSelectedMatch(match)} className="flex-1 text-left">
+                              <div className="flex items-center gap-3 mb-2">
+                                <StatusBadge status={match.status} />
+                                <span className="text-slate-600 text-xs">{match.format} · {match.venue}</span>
+                                <span className="text-slate-600 text-xs">{match.date ? new Date(match.date).toLocaleDateString('en-IN') : ''}</span>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <div className="text-right flex-1">
+                                  <p className="text-white font-bold">{match.team1Name || match.team1?.name}</p>
+                                  {match.status !== 'upcoming' && <p className="text-slate-400 text-sm">{match.team1Score || 0}/{match.team1Wickets || 0} ({(match.team1Overs || 0).toFixed ? (match.team1Overs || 0).toFixed(1) : 0})</p>}
+                                </div>
+                                <div className="text-slate-600 font-bold text-sm">vs</div>
+                                <div className="flex-1">
+                                  <p className="text-white font-bold">{match.team2Name || match.team2?.name}</p>
+                                  {match.status !== 'upcoming' && <p className="text-slate-400 text-sm">{match.team2Score || 0}/{match.team2Wickets || 0} ({(match.team2Overs || 0).toFixed ? (match.team2Overs || 0).toFixed(1) : 0})</p>}
+                                </div>
+                              </div>
+                            </button>
+
+                            <div className="flex items-center gap-2 ml-4">
+                              {/* Status button */}
+                              <div className="relative">
+                                <button onClick={() => setStatusMenu(statusMenu === match._id ? null : match._id)}
+                                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-semibold transition-all border border-slate-700">
+                                  <Clock className="w-3 h-3" /> Status
+                                </button>
+                                {statusMenu === match._id && (
+                                  <div className="absolute right-0 top-8 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-20 overflow-hidden w-36">
+                                    {['upcoming', 'live', 'completed', 'abandoned'].map(s => (
+                                      <button key={s} onClick={() => handleStatusChange(match._id, s)}
+                                        className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700 capitalize transition-colors">
+                                        {s}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              {/* Live score button */}
+                              <button onClick={() => navigate(`/matches/${match._id}/score`)}
+                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-600/20 hover:bg-red-600/40 border border-red-600/40 text-red-400 text-xs font-semibold transition-all">
+                                <Zap className="w-3 h-3" /> Live Score
+                              </button>
+                              {/* Delete */}
+                              <button onClick={() => handleDeleteMatch(match._id)}
+                                className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-900/20 transition-all">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TEAMS */}
+              {activeTab === 'teams' && (
+                <TeamManagement tournamentId={selected._id} onTeamsChange={() => {}} />
+              )}
+
+              {/* OVERLAYS */}
+              {activeTab === 'overlays' && (
+                <div className="space-y-4">
+                  <h2 className="text-white font-bold text-lg">Overlays</h2>
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center">
+                    <Layers className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+                    <p className="text-slate-400 font-semibold mb-1">Streaming Overlays</p>
+                    <p className="text-slate-600 text-sm">Connect an overlay to display live score data on your stream</p>
+                    <p className="text-slate-600 text-xs mt-2">Upgrade to Premium for full overlay access</p>
+                  </div>
+                </div>
+              )}
+
+              {/* POINTS TABLE */}
+              {activeTab === 'leaderboard' && (
+                <div>
+                  <h2 className="text-white font-bold text-lg mb-4">Points Table</h2>
+                  <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
+                      <Trophy className="w-4 h-4 text-yellow-500" />
+                      <span className="text-slate-400 text-sm font-semibold">{selected.name} · {selected.format}</span>
+                    </div>
+                    <PointsTable tournamentId={selected._id} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Close status menu on click outside */}
+      {statusMenu && <div className="fixed inset-0 z-10" onClick={() => setStatusMenu(null)} />}
     </div>
   );
 }
