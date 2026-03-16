@@ -12,8 +12,8 @@ export default function Profile() {
 
   useEffect(() => {
     api.get('/auth/me').then(res => {
-      setUser(res.data.data || res.data.user);
-      setFormData({ username: res.data.data?.username || '', email: res.data.data?.email || '' });
+      setUser(res.data.data || res.data);
+      setFormData({ username: (res.data.data || res.data)?.username || '', email: (res.data.data || res.data)?.email || '' });
       setLoading(false);
     }).catch(() => navigate('/login'));
   }, [navigate]);
