@@ -566,18 +566,22 @@ export default function TournamentView() {
                 <TeamManagement tournamentId={selected._id} onTeamsChange={() => {}} />
               )}
 
+
               {/* OVERLAYS */}
               {activeTab === 'overlays' && (
                 <div className="space-y-4">
                   <h2 className="text-white font-bold text-lg">Overlays</h2>
-                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center">
-                    <Layers className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-                    <p className="text-slate-400 font-semibold mb-1">Streaming Overlays</p>
-                    <p className="text-slate-600 text-sm">Connect an overlay to display live score data on your stream</p>
-                    <p className="text-slate-600 text-xs mt-2">Upgrade to Premium for full overlay access</p>
+                  <div className="border-2 border-dashed border-blue-500/30 rounded-2xl p-6 text-center bg-blue-500/5">
+                    <Zap className="w-12 h-12 text-blue-400 mx-auto mb-3 animate-pulse" />
+                    <p className="text-slate-400 font-semibold mb-1">Overlays Ready</p>
+                    <p className="text-slate-600 text-sm">Create broadcast overlays for live stream graphics</p>
+                    <p className="text-xs mt-2 text-blue-400">
+                      <a href="/overlays" className="underline hover:no-underline font-semibold">Go to Overlay Editor →</a>
+                    </p>
                   </div>
                 </div>
               )}
+
 
               {/* POINTS TABLE */}
               {activeTab === 'leaderboard' && (
