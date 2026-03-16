@@ -2,53 +2,20 @@ import { useState, useEffect, useRef } from 'react';
 import { Eye, Plus, Save, Trash2, Edit, Copy, RefreshCw, ExternalLink, X } from 'lucide-react';
 import { overlayAPI, matchAPI, tournamentAPI } from '../services/api';
 import { CreatedOverlay, Match, Tournament } from './types';
-import { getApiBaseUrl } from '../services/env';
+import { getApiBaseUrl } from '../services/env'; 
 
-// Level 1 (Scoreboard) overlays - same as OverlayEditor
-const LEVEL1_OVERLAYS = [
-  { id: 'lvl1-broadcast-bar', name: 'Broadcast Bar', file: 'lvl1-broadcast-bar.html', category: 'Scoreboard', color: 'from-blue-600 to-indigo-800' },
-  { id: 'lvl1-curved-compact', name: 'Curved Compact', file: 'lvl1-curved-compact.html', category: 'Scoreboard', color: 'from-gray-600 to-gray-800' },
-  { id: 'lvl1-dark-angular', name: 'Dark Angular', file: 'lvl1-dark-angular.html', category: 'Scoreboard', color: 'from-gray-800 to-black' },
-  { id: 'lvl1-grass-theme', name: 'Grass Theme', file: 'lvl1-grass-theme.html', category: 'Scoreboard', color: 'from-green-600 to-green-800' },
-  { id: 'lvl1-high-vis', name: 'High Visibility', file: 'lvl1-high-vis.html', category: 'Scoreboard', color: 'from-yellow-500 to-orange-600' },
-  { id: 'lvl1-minimal-dark', name: 'Minimal Dark', file: 'lvl1-minimal-dark.html', category: 'Scoreboard', color: 'from-gray-700 to-gray-900' },
-  { id: 'lvl1-modern-bar', name: 'Modern Bar', file: 'lvl1-modern-bar.html', category: 'Scoreboard', color: 'from-blue-500 to-blue-700' },
-  { id: 'lvl1-modern-blue', name: 'Modern Blue', file: 'lvl1-modern-blue.html', category: 'Scoreboard', color: 'from-cyan-500 to-blue-600' },
-  { id: 'lvl1-paper-style', name: 'Paper Style', file: 'lvl1-paper-style.html', category: 'Scoreboard', color: 'from-amber-100 to-amber-300' },
-  { id: 'lvl1-red-card', name: 'Red Card', file: 'lvl1-red-card.html', category: 'Scoreboard', color: 'from-red-600 to-red-800' },
-  { id: 'lvl1-retro-board', name: 'Retro Board', file: 'lvl1-retro-board.html', category: 'Scoreboard', color: 'from-amber-700 to-yellow-900' },
-  { id: 'lvl1-side-panel', name: 'Side Panel', file: 'lvl1-side-panel.html', category: 'Scoreboard', color: 'from-purple-600 to-purple-800' },
-  { id: 'lvl1-simple-text', name: 'Simple Text', file: 'lvl1-simple-text.html', category: 'Scoreboard', color: 'from-gray-500 to-gray-700' },
-];
+interface OverlayTemplate {
+  id: string;
+  name: string;
+  file: string;
+  category: string;
+  color: string;
+}
 
-// Level 2 (Replay/Effects) overlays
-const LEVEL2_OVERLAYS = [
-  { id: 'lvl2-broadcast-pro', name: 'Broadcast Pro', file: 'lvl2-broadcast-pro.html', category: 'Replay/Effects', color: 'from-blue-500 to-indigo-700' },
-  { id: 'lvl2-cosmic-orbit', name: 'Cosmic Orbit', file: 'lvl2-cosmic-orbit.html', category: 'Replay/Effects', color: 'from-purple-500 to-pink-700' },
-  { id: 'lvl2-cyber-glitch', name: 'Cyber Glitch', file: 'lvl2-cyber-glitch.html', category: 'Replay/Effects', color: 'from-pink-500 to-purple-600' },
-  { id: 'lvl2-flame-thrower', name: 'Flame Thrower', file: 'lvl2-flame-thrower.html', category: 'Replay/Effects', color: 'from-orange-500 to-red-700' },
-  { id: 'lvl2-glass-morphism', name: 'Glass Morphism', file: 'lvl2-glass-morphism.html', category: 'Replay/Effects', color: 'from-cyan-400 to-blue-600' },
-  { id: 'lvl2-gold-rush', name: 'Gold Rush', file: 'lvl2-gold-rush.html', category: 'Replay/Effects', color: 'from-yellow-500 to-amber-700' },
-  { id: 'lvl2-hologram', name: 'Hologram', file: 'lvl2-hologram.html', category: 'Replay/Effects', color: 'from-cyan-500 to-blue-800' },
-  { id: 'lvl2-matrix-rain', name: 'Matrix Rain', file: 'lvl2-matrix-rain.html', category: 'Replay/Effects', color: 'from-green-600 to-black' },
-  { id: 'lvl2-neon-pulse', name: 'Neon Pulse', file: 'lvl2-neon-pulse.html', category: 'Replay/Effects', color: 'from-green-400 to-cyan-600' },
-  { id: 'lvl2-particle-storm', name: 'Particle Storm', file: 'lvl2-particle-storm.html', category: 'Replay/Effects', color: 'from-purple-500 to-pink-600' },
-  { id: 'lvl2-rgb-split', name: 'RGB Split', file: 'lvl2-rgb-split.html', category: 'Replay/Effects', color: 'from-red-500 via-blue-500 to-green-500' },
-  { id: 'lvl2-speed-racer', name: 'Speed Racer', file: 'lvl2-speed-racer.html', category: 'Replay/Effects', color: 'from-yellow-500 to-orange-700' },
-  { id: 'lvl2-tech-hud', name: 'Tech HUD', file: 'lvl2-tech-hud.html', category: 'Replay/Effects', color: 'from-cyan-600 to-blue-900' },
-  { id: 'lvl2-thunder-strike', name: 'Thunder Strike', file: 'lvl2-thunder-strike.html', category: 'Replay/Effects', color: 'from-yellow-400 to-purple-700' },
-  { id: 'lvl2-vinyl-spin', name: 'Vinyl Spin', file: 'lvl2-vinyl-spin.html', category: 'Replay/Effects', color: 'from-pink-500 to-purple-700' },
-  { id: 'lvl2-water-flow', name: 'Water Flow', file: 'lvl2-water-flow.html', category: 'Replay/Effects', color: 'from-blue-400 to-cyan-600' },
-];
-
-// All templates
-const OVERLAY_TEMPLATES = [...LEVEL1_OVERLAYS, ...LEVEL2_OVERLAYS];
-
-const CATEGORIES = [
-  { value: 'all', label: 'All Overlays' },
-  { value: 'Scoreboard', label: 'Level 1 - Scoreboard' },
-  { value: 'Replay/Effects', label: 'Level 2 - Replay/Effects' },
-];
+interface Category {
+  value: string;
+  label: string;
+}
 
 interface OverlayManagerProps {
   tournamentId?: string;
@@ -56,12 +23,13 @@ interface OverlayManagerProps {
 }
 
 export default function OverlayManager({ tournamentId, matches: propMatches }: OverlayManagerProps) {
-  const [selectedTemplate, setSelectedTemplate] = useState(OVERLAY_TEMPLATES[0]);
+  const [selectedTemplate, setSelectedTemplate] = useState<OverlayTemplate | null>(null);
+  const [templates, setTemplates] = useState<OverlayTemplate[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(true);
   const [matches, setMatches] = useState<Match[]>([]);
-  const [selectedMatchId, setSelectedMatchId] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [categories, setCategories] = useState<Category[]>([]);
   
-  // Create modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createFormData, setCreateFormData] = useState({
     name: '',
@@ -70,11 +38,9 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   });
   const [createLoading, setCreateLoading] = useState(false);
   
-  // Overlays list state
   const [createdOverlays, setCreatedOverlays] = useState<CreatedOverlay[]>([]);
   const [overlaysLoading, setOverlaysLoading] = useState(false);
   
-  // Modal states
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewOverlay, setPreviewOverlay] = useState<CreatedOverlay | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -82,16 +48,38 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const [editFormData, setEditFormData] = useState({ name: '' });
   const [editLoading, setEditLoading] = useState(false);
   
-  // UI states
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [previewIframeRef] = useRef<HTMLIFrameElement>(null);
+  const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
   const getApiBaseUrlLocal = (): string => {
     return import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || 'http://localhost:5000';
   };
 
-  // Load overlays
+  useEffect(() => {
+    // Load templates
+    fetch('/templates.json')
+      .then(res => res.json())
+      .then((data: OverlayTemplate[]) => {
+        setTemplates(data);
+        if (data.length > 0) {
+          setSelectedTemplate(data[0]);
+        }
+        // Generate categories
+        const cats: Category[] = [{ value: 'all', label: 'All Overlays' }];
+        const uniqueCats = [...new Set(data.map(t => t.category))];
+        uniqueCats.forEach(cat => {
+          cats.push({ value: cat, label: cat.replace('Scoreboard', 'Level 1 - Scoreboard').replace('Replay/Effects', 'Level 2 - Replay/Effects') });
+        });
+        setCategories(cats);
+      })
+      .catch(err => {
+        console.error('Failed to load templates:', err);
+        setTemplates([]);
+      })
+      .finally(() => setTemplatesLoading(false));
+  }, []);
+
   const loadCreatedOverlays = async () => {
     try {
       setOverlaysLoading(true);
@@ -123,7 +111,6 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
     }
   };
 
-  // Load matches (tournament-specific or all)
   const loadMatches = async () => {
     try {
       let matchesData: Match[] = [];
@@ -149,6 +136,10 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
     loadMatches();
     loadCreatedOverlays();
   }, [tournamentId]);
+
+  const filteredOverlays = selectedCategory === 'all' 
+    ? templates 
+    : templates.filter(o => o.category === selectedCategory);
 
   const handleCreateOverlay = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -281,27 +272,19 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
     return `${minutes}m`;
   };
 
-  const filteredOverlays = selectedCategory === 'all' 
-    ? OVERLAY_TEMPLATES 
-    : OVERLAY_TEMPLATES.filter(o => o.category === selectedCategory);
-
   return (
     <>
-      {/* Tournament Context Header */}
-      {tournamentId &amp;&amp; (
+      {tournamentId && (
         <div className="mb-6 p-4 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl border border-blue-500/30">
           <h2 className="text-xl font-bold text-blue-100 flex items-center gap-2">
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.25 5.5c-.375 0-.75.188-1.038.5L6.5 8.25a1.25 1.25 0 002 2h3.586l-.707.707a.5 .5 0 00.854.707l1.5-1.5A1.25 1.25 0 0013.75 10H9.688l.707.707a.5 .5 0 00-.708.707l-1.5-1.5a1.25 1.25 0 00-2.076-1.167l-2.5 2.5A1.25 1.25 0 003.75 13H7a1.25 1.25 0 002.5 0V10H13a1.25 1.25 0 002.5 0v-2.5A1.25 1.25 0 0013.75 6h-3.688l-.707-.707a.5 .5 0 00.708-.707l1.5 1.5a1.25 1.25 0 002.076 1.167l2.5-2.5A1.25 1.25 0 0016.25 7V9.5A1.25 1.25 0 0115 10.75H12.5a1.25 1.25 0 01-2.5 0V9H4a1.25 1.25 0 01-2.5 0V7a1.25 1.25 0 012.5-1.25h3.688l.707.707a.5 .5 0 00-.708.707L6.5 6.75a1.25 1.25 0 012.076-1.167l2.5 2.5A1.25 1.25 0 0110.25 8v-2.5z"/></svg>
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.25 5.5c-.375 0-.75.188-1.038.5L6.5 8.25a1.25 1.25 0 002 2h3.586l-.707.707a.5 .5 0 00.854.707l1.5-1.5A1.25 1.25 0 0013.75 10H9.688l.707.707a.5 .5 0 00-.708.707l-1.5-1.5a1.25 1.25 0 00-2.076-1.167l-2.5 2.5A1.25 1.25 0 003.75 13H7a1.25 1.25 0 002.5 0V10H13a1.25 1.25 0 002.5 0v-2.5A1.25 1.25 0 0013.75 6h-3.688l-.707-.707a.5 .5 0 00.708-.707l1.5 1.5a1.25 1.25 0 002.076 1.167l2.5-2.5A1.25 1.25 0 0016.25 7V9.5A1.25 1.25 0 0115 10.75H12.5a1.25 1.25 0 01-2.5 0V9H4a1.25 1.25 0 01-2.5 0V7a1.25 1.25 0 012.5-1.25h3.688l.707.707a.5 .5 0 00-.708.707L6.5 6.75a1.25 1.25 0 002.076-1.167l2.5 2.5A1.25 1.25 0 0110.25 8v-2.5z"/></svg>
             Tournament Overlays ({matches.length} matches)
           </h2>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Left: Template & Match Selector */}
         <div className="lg:col-span-1 space-y-6">
-          
-          {/* Create Button */}
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-sm sticky top-4">
             <button 
               onClick={() => setShowCreateModal(true)}
@@ -312,7 +295,6 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
             </button>
           </div>
 
-          {/* Template Selector */}
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
             <h3 className="text-lg font-bold mb-4 dark:text-white">Templates ({filteredOverlays.length})</h3>
             <select 
@@ -320,20 +302,25 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white mb-4"
             >
-              {CATEGORIES.map(cat => (
+              {categories.map(cat => (
                 <option key={cat.value} value={cat.value}>{cat.label}</option>
               ))}
             </select>
             <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-              {filteredOverlays.map(template => (
+              {templatesLoading ? (
+                <p>Loading templates...</p>
+              ) : filteredOverlays.map(template => (
                 <div 
                   key={template.id}
-                  onClick={() => setCreateFormData({...createFormData, template: template.file})}
+                  onClick={() => {
+                    setCreateFormData({...createFormData, template: template.file});
+                    setSelectedTemplate(template);
+                  }}
                   className={`p-3 rounded-lg cursor-pointer transition-all hover:shadow-md border-2 hover:border-green-400 hover:scale-[1.02] ${
                     createFormData.template === template.file ? 'border-green-500 bg-green-50 dark:bg-green-900/20 ring-2 ring-green-200' : 'border-gray-200 dark:border-gray-700'
                   }`}
                 >
-                  <div className={`h-12 bg-gradient-to-br ${template.color} rounded-lg flex items-center justify-center mb-2">
+                  <div className={`h-12 bg-gradient-to-br ${template.color} rounded-lg flex items-center justify-center mb-2`}>
                     <span className="text-white font-bold text-sm tracking-wide">{template.name.substring(0,3)}</span>
                   </div>
                   <p className="text-xs font-semibold text-gray-900 dark:text-white text-center">{template.name}</p>
@@ -343,14 +330,12 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
             </div>
           </div>
 
-          {/* Match Selector */}
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
             <h3 className="text-lg font-bold mb-4 dark:text-white">Matches ({matches.length})</h3>
             <select 
               value={createFormData.match}
               onChange={(e) => setCreateFormData({...createFormData, match: e.target.value})}
               className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white"
-              placeholder="Select match"
             >
               <option value="">Select Match</option>
               {matches.map(m => (
@@ -362,7 +347,6 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
           </div>
         </div>
 
-        {/* Right: My Overlays List */}
         <div className="lg:col-span-2">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
             <h2 className="text-xl font-bold mb-6 dark:text-white">My Overlays ({createdOverlays.length})</h2>
@@ -445,14 +429,15 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                     </div>
                     
                     <div className="flex items-center justify-between text-xs">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        overlay.isUrlExpired 
-                          ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' 
-                          : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                      }`}>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          overlay.isUrlExpired
+                            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                        }`}>
+
                         {overlay.isUrlExpired ? '⚠️ Expired' : '✅ Active'}
                       </span>
-                      {overlay.urlExpiresAt &amp;&amp; (
+                      {overlay.urlExpiresAt && (
                         <span className="text-gray-500 dark:text-gray-400">
                           {formatTimeRemaining(overlay.urlExpiresAt)} left
                         </span>
@@ -466,8 +451,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
         </div>
       </div>
 
-      {/* Create Modal */}
-      {showCreateModal &amp;&amp; (
+      {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
@@ -497,16 +481,9 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                   required
                 >
                   <option value="">Select Template</option>
-                  <optgroup label="Level 1 - Scoreboard">
-                    {LEVEL1_OVERLAYS.map(t => (
-                      <option key={t.id} value={t.file}>{t.name}</option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Level 2 - Replay/Effects">
-                    {LEVEL2_OVERLAYS.map(t => (
-                      <option key={t.id} value={t.file}>{t.name}</option>
-                    ))}
-                  </optgroup>
+                  {templates.map(t => (
+                    <option key={t.id} value={t.file}>{t.name} ({t.category})</option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -547,8 +524,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
         </div>
       )}
 
-      {/* Preview Modal */}
-      {showPreviewModal &amp;&amp; previewOverlay &amp;&amp; (
+      {showPreviewModal && previewOverlay && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col border border-gray-700">
             <div className="flex justify-between items-center p-6 border-b border-gray-700 bg-gray-800/50 backdrop-blur-sm rounded-t-2xl">
@@ -586,8 +562,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
         </div>
       )}
 
-      {/* Edit Modal */}
-      {showEditModal &amp;&amp; editOverlay &amp;&amp; (
+      {showEditModal && editOverlay && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-6">
@@ -632,3 +607,4 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
     </>
   );
 }
+
