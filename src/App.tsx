@@ -14,6 +14,7 @@ import Membership from './components/Membership';
 import ClubManagement from './components/ClubManagement';
 import FriendList from './components/FriendList';
 import Leaderboard from './components/Leaderboard';
+import OverlayEditor from './components/OverlayEditor';
 import ForgotPassword from './components/ForgotPassword';
 import Frontpage from './components/Frontpage';
 
@@ -179,6 +180,11 @@ export default function App() {
           <Route path="/leaderboard" element={
             <ProtectedRoute>
               <DashboardLayout><Leaderboard /></DashboardLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/overlays" element={
+            <ProtectedRoute>
+              <DashboardLayout><OverlayEditor /></DashboardLayout>
             </ProtectedRoute>
           } />
 

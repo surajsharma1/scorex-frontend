@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { useAuth } from '../App';
 import {
@@ -576,7 +576,7 @@ export default function TournamentView() {
                     <p className="text-slate-400 font-semibold mb-1">Overlays Ready</p>
                     <p className="text-slate-600 text-sm">Create broadcast overlays for live stream graphics</p>
                     <p className="text-xs mt-2 text-blue-400">
-                      <a href="/overlays" className="underline hover:no-underline font-semibold">Go to Overlay Editor →</a>
+                      <Link to="/overlays" className="underline hover:no-underline font-semibold">Go to Overlay Editor →</Link>
                     </p>
                   </div>
                 </div>
