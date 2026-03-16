@@ -9,6 +9,8 @@ import {
 interface SidebarProps {
   user: any;
   logout: () => void;
+  isOpen?: boolean;   // NEW: Fixes App.tsx prop error
+  onToggle?: () => void;  // NEW: Fixes App.tsx prop error
 }
 
 const navItems = [
@@ -22,7 +24,7 @@ const navItems = [
   { icon: User,            label: 'Profile',     path: '/profile' },
 ];
 
-export default function Sidebar({ user, logout }: SidebarProps) {
+export default function Sidebar({ user, logout, isOpen = false, onToggle }: SidebarProps) {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [dark, setDark] = useState(() => {
@@ -133,3 +135,4 @@ export default function Sidebar({ user, logout }: SidebarProps) {
     </aside>
   );
 }
+

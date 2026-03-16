@@ -148,7 +148,7 @@ export default function TournamentDetail() {
     setLocalMatchStatuses(prev => ({ ...prev, [matchId]: newStatus }));
     
     try {
-      await matchAPI.updateMatchStatus(matchId, newStatus);
+      await matchAPI.updateStatus(matchId, newStatus);  // FIXED: was updateMatchStatus
       await fetchMatches();
     } catch (error: any) {
       setLocalMatchStatuses(prev => {
@@ -200,13 +200,16 @@ export default function TournamentDetail() {
             {tournament.name}
           </h1>
           <div className="flex items-center gap-4 text-xl text-gray-300 mb-6">
-            <span className="px-4 py-2 bg-blue-500/20 rounded-xl border border-blue-500/30 font-semibold">
+            <span className={`px-4 py-2 rounded-full font-bold text-sm ${
+              tournament.status === 'live' ? 'bg-green-500 text-white' :
+              tournament.status === 'upcoming' ? 'bg-blue-500 text-white' :
+              'bg-gray-500 text-white'
+            }`}>
               {tournament.status?.toUpperCase()}
             </span>
             <span>{tournament.format}</span>
             <span>{tournament.venue}</span>
             <span>{tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'TBD'}</span>
-
           </div>
           <p className="text-gray-400 text-lg">{tournament.description}</p>
         </div>
@@ -269,12 +272,24 @@ export default function TournamentDetail() {
                 </div>
               </div>
               <div className="flex gap-4">
+                <select 
+                  value={localMatchStatuses[match._id] || match.status || ''}
+                  onChange={(e) => handleStatusChange(match, e.target.value)}
+                  className="px-4 py-2 bg-gray-800 text-white rounded-xl border border-gray-600 focus:border-blue-500"
+                >
+                  <option value="upcoming">Upcoming</option>
+                  <option value="live">Live</option>
+                  <option value="completed">Completed</option>
+                </select>
                 <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl">
                   View Scorecard
                 </button>
                 {match.status === 'upcoming' && (
-                  <button className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl">
-                    Start Match
+                  <button 
+                    onClick={() => handleTossClick(match)}
+                    className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl flex items-center gap-2"
+                  >
+                    Toss 🪙
                   </button>
                 )}
               </div>
@@ -282,6 +297,50 @@ export default function TournamentDetail() {
           ))}
         </div>
       </div>
+
+      {/* Toss Modal */}
+      {showTossModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl p-8 max-w-md w-full">
+            <h2 className="text-2xl font-bold mb-6 text-white text-center">Toss Decision</h2>
+            <div className="space-y-4">
+              <select 
+                value={selectedTossWinner} 
+                onChange={(e) => setSelectedTossWinner(e.target.value)}
+                className="w-full p-3 bg-gray-800 border border-gray-600 rounded-xl text-white"
+              >
+                <option value="">Select Toss Winner</option>
+                <option value={pendingMatchForToss?.team1?._id}>{pendingMatchForToss?.team1?.name}</option>
+                <option value={pendingMatchForToss?.team2?._id}>{pendingMatchForToss?.team2?.name}</option>
+              </select>
+              <select 
+                value={selectedTossDecision} 
+                onChange={(e) => setSelectedTossDecision(e.target.value as 'bat' | 'bowl')}
+                className="w-full p-3 bg-gray-800 border border-gray-600 rounded-xl text-white"
+              >
+                <option value="">Toss Decision</option>
+                <option value="bat">Bat First</option>
+                <option value="bowl">Bowl First</option>
+              </select>
+              <div className="flex gap-3">
+                <button 
+                  onClick={handleTossSave}
+                  disabled={!selectedTossWinner || !selectedTossDecision}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all"
+                >
+                  Save Toss
+                </button>
+                <button 
+                  onClick={() => setShowTossModal(false)}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

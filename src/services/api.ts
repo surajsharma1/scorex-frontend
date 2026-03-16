@@ -37,6 +37,7 @@ export const tournamentAPI = {
   generateBracket: (id: string) => api.post(`/tournaments/${id}/bracket`),
   startTournament: (id: string) => api.post(`/tournaments/${id}/start`),
   getPointsTable: (id: string) => api.get(`/tournaments/${id}/points-table`),
+  getTournamentMatches: (id: string) => api.get(`/tournaments/${id}/matches`),  
 };
 
 // ─── Match API ────────────────────────────────────────────────────────────────
@@ -55,6 +56,7 @@ export const matchAPI = {
   endInnings: (id: string) => api.post(`/matches/${id}/end-innings`),
   endMatch: (id: string, data: any) => api.post(`/matches/${id}/end`, data),
   updateStatus: (id: string, status: string) => api.put(`/matches/${id}/status`, { status }),
+  getTournamentStats: (tournamentId: string) => api.get(`/tournaments/${tournamentId}/stats`),  
 };
 
 // ─── Team API ─────────────────────────────────────────────────────────────────
@@ -74,6 +76,7 @@ export const authAPI = {
   register: (data: any) => api.post('/auth/register', data),
   getMe: () => api.get('/auth/me'),
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (token: string, password: string) => api.post('/auth/reset-password', { token, password }),  
 };
 
 // ─── User API ─────────────────────────────────────────────────────────────────
@@ -89,6 +92,8 @@ export const overlayAPI = {
   createOverlay: (data: any) => api.post('/overlays', data),
   getOverlay: (id: string) => api.get(`/overlays/${id}`),
   deleteOverlay: (id: string) => api.delete(`/overlays/${id}`),
+  regenerateOverlay: (id: string) => api.post(`/overlays/${id}/regenerate-url`),  
+  updateOverlay: (id: string, data: any) => api.put(`/overlays/${id}`, data),     
 };
 
 // ─── Club API ─────────────────────────────────────────────────────────────────
@@ -110,10 +115,33 @@ export const friendAPI = {
   removeFriend: (friendId: string) => api.delete(`/friends/${friendId}`),
 };
 
+// ─── Message API ──────────────────────────────────────────────────────────────
+export const messageAPI = {
+  getMessages: (params: { recipientId: string } | string, limit: number = 50) => {
+    if (typeof params === 'string') {
+      // Backward compatibility
+      return api.get('/messages', { params: { recipientId: params, limit } });
+    }
+    return api.get('/messages', { params });
+  },
+  sendMessage: (data: { recipientId: string; content: string }) => api.post('/messages', data),
+  getConversations: () => api.get('/messages/conversations'),
+};
+
+// ─── Bracket API ──────────────────────────────────────────────────────────────
+export const bracketAPI = {
+  getBracket: (tournamentId: string) => api.get(`/tournaments/${tournamentId}/bracket`),
+  updateBracket: (tournamentId: string, data: any) => api.put(`/tournaments/${tournamentId}/bracket`, data),
+  generateBracket: (tournamentId: string) => api.post(`/tournaments/${tournamentId}/bracket/generate`),
+};
+
 // ─── Payment API ──────────────────────────────────────────────────────────────
 export const paymentAPI = {
   createRazorpayOrder: (amount: number, plan: string) => api.post('/payments/razorpay-order', { amount, plan }),
   verifyPayment: (data: any) => api.post('/payments/verify-razorpay', data),
+  createSubscription: (planName: string) => api.post('/payments/subscription', { plan: planName }),  
+  verifyRazorpayPayment: (data: any) => api.post('/payments/verify-razorpay-payment', data),         
 };
 
 export default api;
+

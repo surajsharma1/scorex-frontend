@@ -3,11 +3,11 @@ import { teamAPI } from '../services/api';
 import { Plus, Trash2, Users, X, ChevronDown, ChevronUp, User } from 'lucide-react';
 
 interface Props {
-  tournamentId: string;
+  tournamentId?: string;  // CHANGED: Optional to fix App.tsx route error
   onTeamsChange?: () => void;
 }
 
-export default function TeamManagement({ tournamentId, onTeamsChange }: Props) {
+export default function TeamManagement({ tournamentId = '', onTeamsChange }: Props) {
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateTeam, setShowCreateTeam] = useState(false);
@@ -20,7 +20,7 @@ export default function TeamManagement({ tournamentId, onTeamsChange }: Props) {
 
   const loadTeams = useCallback(async () => {
     try {
-      const res = await teamAPI.getTeams(tournamentId);
+      const res = await teamAPI.getTeams(tournamentId || undefined);
       setTeams(res.data.data || []);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -33,7 +33,7 @@ export default function TeamManagement({ tournamentId, onTeamsChange }: Props) {
     if (!teamForm.name) return;
     setSaving(true); setError('');
     try {
-      await teamAPI.createTeam({ ...teamForm, tournamentId });
+      await teamAPI.createTeam({ ...teamForm, ...(tournamentId && { tournamentId }) });
       setTeamForm({ name: '', shortName: '' });
       setShowCreateTeam(false);
       await loadTeams();
@@ -228,3 +228,4 @@ export default function TeamManagement({ tournamentId, onTeamsChange }: Props) {
     </div>
   );
 }
+

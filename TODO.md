@@ -1,10 +1,7 @@
-# Login to Dashboard Fix Progress
+# Scorex Frontend Build Fix Progress
 
 ## Steps:
-- [x] 1. Read services/env.ts ✓ (API URL correct: /api/v1)
-- [x] 2. Fix Login.tsx ✓ (data.data → data.token/data.user)
-- [x] 3. Fix Profile.tsx ✓ (res.data.data → res.data)
-- [ ] 4. Test login redirect to dashboard
-- [ ] 5. Start dev servers and verify full functionality
-
-**Current: Steps 1-3 complete. Test login now.**
+- [ ] 1. Add "type": "module" to package.json
+- [ ] 2. Verify `npm run build` produces no warnings
+- [ ] 3. Test dev server `npm run dev`
+- [ ] 4. Update deployment configs if needed

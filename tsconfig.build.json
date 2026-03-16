@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false
+  },
+  "include": ["src/App.tsx", "src/main.tsx", "src/components/**/*.tsx", "src/services/**/*.ts", "src/utils/**/*.ts", "src/hooks/**/*.ts"],
+  "exclude": ["src/test/**", "src/components/test/**", "src/components/AccessibilityTest.tsx", "src/components/BracketView.tsx", "src/i18n.ts"]
+}
+

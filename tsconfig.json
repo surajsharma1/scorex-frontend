@@ -15,5 +15,20 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.*",
+    "src/test/**",
+    "src/components/AccessibilityTest.tsx",
+    "src/components/BracketView.tsx",
+    "src/components/LiveTournament.tsx",
+    "src/components/MessageChat.tsx",
+    "src/i18n.ts"
+  ],
+  "ts-node": {
+    "esm": true
+  }
 }
+

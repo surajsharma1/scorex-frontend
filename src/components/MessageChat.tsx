@@ -56,7 +56,7 @@ const MessageChat: React.FC<MessageChatProps> = ({ friend, onClose }) => {
 
   const loadMessages = async () => {
     try {
-      const response = await messageAPI.getMessages(friend._id);
+      const response = await messageAPI.getMessages({ recipientId: friend._id });  // FIXED: object param
       setMessages(response.data.messages || []);
       scrollToBottom();
     } catch (error) {
@@ -92,7 +92,7 @@ const MessageChat: React.FC<MessageChatProps> = ({ friend, onClose }) => {
       setNewMessage('');
       scrollToBottom();
 
-      await messageAPI.sendMessage(friend._id, tempMsg.content);
+      await messageAPI.sendMessage({ recipientId: friend._id, content: tempMsg.content });  // FIXED: object param
       // Real confirmation will come via socket or re-fetch
     } catch (error) {
       console.error('Failed to send message');
@@ -177,3 +177,4 @@ const MessageChat: React.FC<MessageChatProps> = ({ friend, onClose }) => {
 };
 
 export default MessageChat;
+

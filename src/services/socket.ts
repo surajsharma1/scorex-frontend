@@ -11,6 +11,8 @@ export interface ServerToClientEvents {
   matchStatusUpdate: (data: any) => void;
   tournamentUpdate: (data: any) => void;
   notification: (data: any) => void;
+  inningsEnded: () => void;  // NEW: Fixes LiveScoring socket.on/off
+  matchEnded: (data: any) => void;  // NEW: Fixes LiveScoring socket.on/off
   
   // Live Match feature events
   match_updated: (updatedMatchState: any) => void;
@@ -52,6 +54,7 @@ const clearStaleSession = () => {
 
 // Clear any stale session on module load
 clearStaleSession();
+
 
 // ==========================================
 // SOCKET CONNECTION WITH PROPER ERROR HANDLING
@@ -222,3 +225,4 @@ class SocketService {
 
 // Export a singleton instance for older components
 export const socketService = new SocketService();
+
