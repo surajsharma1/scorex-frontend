@@ -15,7 +15,7 @@ import OverlayEditor from './OverlayEditor';
 import OverlayForm from './OverlayForm';
 import Payment from './Payment';
 import Leaderboard from './Leaderboard';
-import TeamManagement from './TeamManagement';
+
 import FriendList from './FriendList';
 import ClubManagement from './ClubManagement';
 import Membership from './Membership';
@@ -83,7 +83,7 @@ function App() {
         <Route path="/tournaments/:id" element={<TournamentDetail />} />
         <Route path="/overlays" element={<OverlayEditor />} />
         <Route path="/overlays/create" element={<OverlayForm />} />
-        <Route path="/teams" element={<TeamManagement />} />
+
         <Route path="/friends" element={<FriendList />} />
         <Route path="/clubs" element={<ClubManagement />} />
         <Route path="/membership" element={<Membership />} />
