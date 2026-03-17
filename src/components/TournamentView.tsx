@@ -503,7 +503,8 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
   ] as const;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-black text-white">
+min-h-screen" style={{ background: 'var(--bg-primary)' }} text-white"
+
       {/* Tournament Selector Overlay */}
 {showTournamentSelector && (
         <>
@@ -623,12 +624,14 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
         ) : (
           <div className="space-y-8">
             {/* Tournament Header */}
-            <div className="bg-slate-900/50 backdrop-blur-xl rounded-3xl border border-slate-700/50 p-6 md:p-8">
+`rounded-3xl p-6 md:p-8` style={{ background: 'var(--bg-card)', backdropFilter: 'blur(12px)', border: '1px solid var(--border)' }}"
+
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
                   <button
                     onClick={() => setShowTournamentSelector(true)}
-                    className="p-3 sm:p-4 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-2xl transition-all group"
+style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)' }} hover:style={{ background: 'var(--bg-card-hover)' }}
+
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -677,7 +680,8 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
               </div>
 
               {/* Tabs Navigation */}
-              <div className="flex flex-wrap gap-2 -mx-2 px-2 pb-4 border-b border-slate-800">
+"flex flex-wrap gap-2 -mx-2 px-2 pb-4 border-b" style={{ borderColor: 'var(--border)' }}"
+
                 {tabs.map((tab) => {
                   const Icon =
                     tab === 'overview'
@@ -789,11 +793,13 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
                       </button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+"flex flex-col gap-6"
+
                       {matches.map((match) => (
                         <div
                           key={match._id}
-                          className="group relative overflow-hidden rounded-3xl bg-slate-900/70 backdrop-blur-xl border border-slate-700/50 p-6 hover:shadow-2xl hover:shadow-blue-500/25 hover:border-blue-500/50 transition-all duration-300 hover:-translate-y-2 min-h-[22rem]"
+"group rounded-2xl p-4 transition-all hover:-translate-y-1 snap-center shadow-lg hover:shadow-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}"
+
                         >
                           {/* Status Badge */}
                   <StatusBadge
