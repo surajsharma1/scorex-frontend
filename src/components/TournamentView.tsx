@@ -7,25 +7,10 @@ import {
   Calendar, MapPin, ChevronRight, X, ArrowLeft, Edit3,
   Activity, Target, TrendingUp, Layers, CheckCircle, Clock
 } from 'lucide-react';
-import StatusBadge from './StatusBadge';
 import TeamManagement from './TeamManagement';
 import MatchDetail from './MatchDetail';
 import OverlayManager from './OverlayManager';
-
-// ─── Status badge ─────────────────────────────────────────────────────────────
-const StatusBadge = ({ status }: { status: string }) => {
-  const map: Record<string, string> = {
-    upcoming: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    live: 'bg-red-500/20 text-red-400 border-red-500/30 animate-pulse',
-    completed: 'bg-green-500/20 text-green-400 border-green-500/30',
-    ongoing: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  };
-  return (
-    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border capitalize ${map[status] || map['upcoming']}`}>
-      {status === 'live' ? '● LIVE' : status}
-    </span>
-  );
-};
+import StatusBadge from './StatusBadge';
 
 // ─── Create Tournament Modal ──────────────────────────────────────────────────
 function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
@@ -406,7 +391,7 @@ useEffect(() => {
                     </p>
                   </div>
                   <div className="flex flex-col items-end flex-shrink-0 gap-1 ml-2">
-                    <StatusBadge status={t.status || 'upcoming'} />
+                    <StatusBadge status={t.status || 'upcoming'} className="!shadow-md" />
                     <button onClick={e => { e.stopPropagation(); handleDeleteTournament(t._id); }}
                       className="opacity-0 group-hover:opacity-100 p-1.5 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/20 transition-all shadow-sm hover:shadow-md">
                       <Trash2 className="w-4 h-4" />
@@ -588,13 +573,10 @@ useEffect(() => {
                             boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
                           }}>
                           {/* Status badge - floating */}
-                          <StatusBadge status={match.status} style={{
-                            position: 'absolute' as const,
-                            top: '1rem',
-                            right: '1rem',
-                            zIndex: 20,
-                            transform: 'translate(0,0)',
-                          } as React.CSSProperties} className="!shadow-lg !shadow-black/30 !drop-shadow-2xl" />
+                          <StatusBadge 
+                            status={match.status} 
+                            className="absolute top-4 right-4 !shadow-lg !shadow-black/30 !drop-shadow-2xl z-20"
+                          />
                           
                           {/* Team matchup */}
                           <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6 mb-4 relative z-10">
