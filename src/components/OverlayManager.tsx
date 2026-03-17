@@ -88,7 +88,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
       
       const overlaysWithComputed = (Array.isArray(overlaysData) ? overlaysData : []).map((overlay: CreatedOverlay) => {
         const baseUrl = getApiBaseUrlLocal();
-        const publicUrl = `${baseUrl}/api/v1/overlays/public/${overlay.publicId}`;
+        const publicUrl = `${baseUrl}/api/v1/overlays/public/${overlay.publicId}?template=${overlay.template}`;
         
         let isUrlExpired = false;
         if (overlay.urlExpiresAt) {
@@ -316,9 +316,10 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                     setCreateFormData({...createFormData, template: template.file});
                     setSelectedTemplate(template);
                   }}
-                  className={`p-3 rounded-lg cursor-pointer transition-all hover:shadow-md border-2 hover:border-green-400 hover:scale-[1.02] ${
-                    createFormData.template === template.file ? 'border-green-500 bg-green-50 dark:bg-green-900/20 ring-2 ring-green-200' : 'border-gray-200 dark:border-gray-700'
-                  }`}
+                  className={createFormData.template === template.file 
+                    ? 'p-3 rounded-lg cursor-pointer transition-all hover:shadow-md border-2 hover:border-green-400 hover:scale-[1.02] border-green-500 bg-green-50 dark:bg-green-900/20 ring-2 ring-green-200'
+                    : 'p-3 rounded-lg cursor-pointer transition-all hover:shadow-md border-2 hover:border-green-400 hover:scale-[1.02] border-gray-200 dark:border-gray-700'
+                  }
                 >
                   <div className={`h-12 bg-gradient-to-br ${template.color} rounded-lg flex items-center justify-center mb-2`}>
                     <span className="text-white font-bold text-sm tracking-wide">{template.name.substring(0,3)}</span>
@@ -429,11 +430,10 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                     </div>
                     
                     <div className="flex items-center justify-between text-xs">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          overlay.isUrlExpired
-                            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                            : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                        }`}>
+                        <span className={overlay.isUrlExpired
+                          ? "px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                          : "px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                        }>
 
                         {overlay.isUrlExpired ? '⚠️ Expired' : '✅ Active'}
                       </span>
