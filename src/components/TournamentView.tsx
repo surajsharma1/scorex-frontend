@@ -400,7 +400,12 @@ export default function TournamentView() {
   // Load user's tournaments
   const loadTournaments = useCallback(async () => {
     try {
-      const res = await tournamentAPI.getMyTournaments?.() || tournamentAPI.getTournaments();
+      let res;
+      if (tournamentAPI.getMyTournaments) {
+        res = await tournamentAPI.getMyTournaments();
+      } else {
+        res = await tournamentAPI.getTournaments();
+      }
       const list = res.data.data || res.data.tournaments || [];
       setTournaments(list);
       if (paramId) {
@@ -566,14 +571,13 @@ export default function TournamentView() {
           tournamentId={selected._id}
           teams={teams}
           onClose={() => setShowCreateMatch(false)}
-          onCreated={async () => {
-            const res = await matchAPI.getMatches({
-              tournament: selected._id,
-              limit: 100,
-            });
-            const responseData = await res;
-            setMatches(responseData.data?.data || []);
-          }}
+            onCreated={async () => {
+              const res = await matchAPI.getMatches({
+                tournament: selected._id,
+                limit: 100,
+              });
+              setMatches(res.data?.data || []);
+            }}
         />
       )}
 

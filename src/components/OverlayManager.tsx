@@ -289,10 +289,11 @@ if (tournamentId) {
           background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(147,51,234,0.1))', 
           borderColor: 'rgba(59,130,246,0.3)'
         }}>
-          <h2 className="text-xl font-bold" style={{ color: 'var(--accent)' }} className="flex items-center gap-2">
+          <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: 'var(--accent)' }}>
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.25 5.5c-.375 0-.75.188-1.038.5L6.5 8.25a1.25 1.25 0 002 2h3.586l-.707.707a.5 .5 0 00.854.707l1.5-1.5A1.25 1.25 0 0013.75 10H9.688l.707.707a.5 .5 0 00-.708.707l-1.5-1.5a1.25 1.25 0 00-2.076-1.167l-2.5 2.5A1.25 1.25 0 003.75 13H7a1.25 1.25 0 002.5 0V10H13a1.25 1.25 0 002.5 0v-2.5A1.25 1.25 0 0013.75 6h-3.688l-.707-.707a.5 .5 0 00.708-.707l1.5 1.5a1.25 1.25 0 002.076 1.167l2.5-2.5A1.25 1.25 0 0016.25 7V9.5A1.25 1.25 0 0115 10.75H12.5a1.25 1.25 0 01-2.5 0V9H4a1.25 1.25 0 01-2.5 0V7a1.25 1.25 0 012.5-1.25h3.688l.707.707a.5 .5 0 00-.708.707L6.5 6.75a1.25 1.25 0 002.076-1.167l2.5 2.5A1.25 1.25 0 0110.25 8v-2.5z"/></svg>
             Tournament Overlays ({matches.length} matches)
           </h2>
+
         </div>
       )}
 
