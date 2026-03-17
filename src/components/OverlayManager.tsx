@@ -130,6 +130,8 @@ const loadMatches = async () => {
       console.error('Failed to load matches');
       setMatches(propMatches || []);
     }
+  };
+
   const refreshMatches = () => {
     loadMatches();
     // Auto-select first live match for better UX after refresh
