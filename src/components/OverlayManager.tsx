@@ -26,7 +26,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const [selectedTemplate, setSelectedTemplate] = useState<OverlayTemplate | null>(null);
   const [templates, setTemplates] = useState<OverlayTemplate[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(true);
-const [matches, setMatches] = useState<Match[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [matchesLoading, setMatchesLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -53,7 +53,7 @@ const [matches, setMatches] = useState<Match[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
-const baseUrlLocal = getBackendBaseUrl();
+  const baseUrlLocal = getBackendBaseUrl();
 
   useEffect(() => {
     // Load templates
@@ -68,7 +68,7 @@ const baseUrlLocal = getBackendBaseUrl();
         const cats: Category[] = [{ value: 'all', label: 'All Overlays' }];
         const uniqueCats = [...new Set(data.map(t => t.category))];
         uniqueCats.forEach(cat => {
-          cats.push({ value: cat, label: `${cat}.replace('Scoreboard', 'Level 1 - Scoreboard').replace('Replay/Effects', 'Level 2 - Replay/Effects')` });
+          cats.push({ value: cat, label: `${cat.replace('Scoreboard', 'Level 1 - Scoreboard').replace('Replay/Effects', 'Level 2 - Replay/Effects')}` });
         });
         setCategories(cats);
       })
@@ -110,11 +110,11 @@ const baseUrlLocal = getBackendBaseUrl();
     }
   };
 
-const loadMatches = async () => {
+  const loadMatches = async () => {
     setMatchesLoading(true);
     try {
       let matchesData: Match[] = [];
-if (tournamentId) {
+      if (tournamentId) {
         const res = await matchAPI.getMatches({tournament: tournamentId});
         matchesData = Array.isArray(res.data?.data) ? res.data.data : res.data || [];
       } else if (propMatches) {
@@ -312,12 +312,12 @@ if (tournamentId) {
               </button>
             </div>
 
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-            <h3 className="text-lg font-bold mb-4 dark:text-white">Templates ({filteredOverlays.length})</h3>
+          <div className="bg-slate-800/50 dark:bg-slate-800/50 p-6 rounded-xl shadow-sm border border-slate-700/50 backdrop-blur-xl">
+            <h3 className="text-lg font-bold mb-4 text-slate-200">Templatest ({filteredOverlays.length})</h3>
             <select 
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white mb-4"
+              className="w-full p-3 border border-slate-600 bg-slate-700/50 text-slate-200 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500"
             >
               {categories.map(cat => (
                 <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -325,7 +325,7 @@ if (tournamentId) {
             </select>
             <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
               {templatesLoading ? (
-                <p>Loading templates...</p>
+                <p className="text-slate-400">Loading templates...</p>
               ) : filteredOverlays.map(template => (
                 <div 
                   key={template.id}
@@ -334,27 +334,27 @@ if (tournamentId) {
                     setSelectedTemplate(template);
                   }}
                   className={createFormData.template === template.file 
-                    ? 'p-3 rounded-lg cursor-pointer transition-all hover:shadow-md border-2 hover:border-green-400 hover:scale-[1.02] border-green-500 bg-green-50 dark:bg-green-900/20 ring-2 ring-green-200'
-                    : 'p-3 rounded-lg cursor-pointer transition-all hover:shadow-md border-2 hover:border-green-400 hover:scale-[1.02] border-gray-200 dark:border-gray-700'
+                    ? 'p-3 rounded-lg cursor-pointer transition-all hover:shadow-md border-2 hover:border-emerald-400 hover:scale-[1.02] border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-400/50'
+                    : 'p-3 rounded-lg cursor-pointer transition-all hover:shadow-md border-2 hover:border-emerald-400 hover:scale-[1.02] border-slate-600'
                   }
                 >
-                  <div className={`h-12 bg-gradient-to-br ${template.color} rounded-lg flex items-center justify-center mb-2`}>
+                  <div className={`h-12 bg-gradient-to-br ${template.color} rounded-lg flex items-center justify-center mb-2 shadow-lg`}>
                     <span className="text-white font-bold text-sm tracking-wide">{template.name.substring(0,3)}</span>
                   </div>
-                  <p className="text-xs font-semibold text-gray-900 dark:text-white text-center">{template.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center">{template.category}</p>
+                  <p className="text-xs font-semibold text-slate-200 text-center">{template.name}</p>
+                  <p className="text-xs text-slate-400 text-center">{template.category}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+          <div className="bg-slate-800/50 p-6 rounded-xl shadow-sm border border-slate-700/50 backdrop-blur-xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold dark:text-white">Live Matches ({matches.length})</h3>
+              <h3 className="text-lg font-bold text-slate-200">Live Matches ({matches.length})</h3>
               <button 
                 onClick={refreshMatches}
                 disabled={matchesLoading}
-                className="flex items-center gap-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white text-sm font-semibold rounded-lg shadow-sm transition-all hover:shadow-md flex-shrink-0 ml-2"
+                className="flex items-center gap-1 px-3 py-2 bg-blue-500/80 hover:bg-blue-600 disabled:bg-blue-400/60 text-slate-100 text-sm font-semibold rounded-lg shadow-sm transition-all hover:shadow-md flex-shrink-0 ml-2 backdrop-blur-sm"
                 title="Refresh after creating new match"
               >
                 {matchesLoading ? (
@@ -364,12 +364,12 @@ if (tournamentId) {
                 )}
               </button>
             </div>
-            <div className={`p-3 rounded-lg ${matchesLoading ? 'bg-blue-50 dark:bg-blue-900/20 animate-pulse' : 'bg-gray-50 dark:bg-gray-700/50'}`}>
+            <div className={`p-3 rounded-lg border border-slate-600/50 ${matchesLoading ? 'bg-blue-500/10 animate-pulse' : 'bg-slate-700/30'}`} style={{backdropFilter: 'blur(10px)'}}>
               <select 
                 value={createFormData.match}
                 onChange={(e) => setCreateFormData({...createFormData, match: e.target.value})}
                 disabled={matchesLoading}
-                className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full p-3 border border-slate-600 bg-slate-700/50 text-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-slate-600/50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <option value="">{matchesLoading ? 'Loading matches...' : 'Select Live Match'}</option>
                 {matches.map(m => (
@@ -380,7 +380,7 @@ if (tournamentId) {
               </select>
             </div>
             {matchesLoading && (
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 flex items-center gap-1">
+              <p className="text-xs text-blue-400 mt-2 flex items-center gap-1">
                 <RefreshCw className="w-3 h-3 animate-spin" />
                 Refreshing live matches...
               </p>
@@ -389,75 +389,75 @@ if (tournamentId) {
         </div>
 
         <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-            <h2 className="text-xl font-bold mb-6 dark:text-white">My Overlays ({createdOverlays.length})</h2>
+          <div className="bg-slate-800/70 p-6 rounded-xl shadow-lg border border-slate-700/70 backdrop-blur-xl">
+            <h2 className="text-xl font-bold mb-6 text-slate-200">My Overlays ({createdOverlays.length})</h2>
             {overlaysLoading ? (
-              <p className="text-gray-500 dark:text-gray-400">Loading overlays...</p>
+              <p className="text-slate-400">Loading overlays...</p>
             ) : createdOverlays.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-slate-600">
+                  <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <p className="text-gray-500 dark:text-gray-400 mb-4">No overlays created yet</p>
-                <p className="text-sm text-gray-400">Click "Create Overlay" to get started</p>
+                <p className="text-slate-400 mb-4">No overlays created yet</p>
+                <p className="text-sm text-slate-500">Click "Create Overlay" to get started</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {createdOverlays.map((overlay) => (
-                  <div key={overlay._id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 hover:shadow-lg transition-all group">
+                  <div key={overlay._id} className="border border-slate-700/70 rounded-lg p-5 hover:shadow-2xl hover:shadow-blue-500/25 hover:border-blue-500/50 transition-all bg-slate-800/50 backdrop-blur-sm group">
                     <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-bold text-gray-900 dark:text-white text-lg pr-2 truncate flex-1 min-w-0">{overlay.name}</h3>
+                      <h3 className="font-bold text-slate-200 text-lg pr-2 truncate flex-1 min-w-0">{overlay.name}</h3>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                         <button
                           onClick={() => handlePreviewOverlay(overlay)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                          className="p-2 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg transition-all"
                           title="Preview"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleEditOverlay(overlay)}
-                          className="p-2 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-all"
+                          className="p-2 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg transition-all"
                           title="Edit"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteOverlay(overlay._id!)}
-                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                          className="p-2 text-red-400 hover:bg-red-500/20 border border-red-500/30 rounded-lg transition-all"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Template: {overlay.template}</p>
+                    <p className="text-sm text-slate-400 mb-3">Template: {overlay.template}</p>
                     
                     <div className="space-y-2 mb-4">
-                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Public URL</label>
+                      <label className="block text-xs font-medium text-slate-400 mb-1">Public URL</label>
                       <div className="flex gap-1">
                         <input
                           readOnly
                           value={overlay.publicUrl || ''}
-                          className="flex-1 text-xs px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-300 truncate"
+                          className="flex-1 text-xs px-3 py-2 bg-slate-700/70 border border-slate-600 text-slate-200 rounded-lg truncate"
                         />
                         <button
                           onClick={() => handleCopyUrl(overlay)}
-                          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                          className="p-2 hover:bg-slate-600/50 rounded-lg transition-colors border border-slate-600"
                           title="Copy URL"
                         >
                           {copiedId === overlay._id ? (
-                            <span className="text-green-600 font-bold">✓</span>
+                            <span className="text-emerald-400 font-bold">✓</span>
                           ) : (
-                            <Copy className="w-4 h-4" />
+                            <Copy className="w-4 h-4 text-slate-400" />
                           )}
                         </button>
                         <button
                           onClick={() => handleRegenerateUrl(overlay._id!)}
                           disabled={regeneratingId === overlay._id}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all disabled:opacity-50"
+                          className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-all disabled:opacity-50 border border-blue-500/30"
                           title="Regenerate (24h)"
                         >
                           {regeneratingId === overlay._id ? (
@@ -471,14 +471,14 @@ if (tournamentId) {
                     
                     <div className="flex items-center justify-between text-xs">
                         <span className={overlay.isUrlExpired
-                          ? "px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                          : "px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                          ? "px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30"
+                          : "px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                         }>
 
                         {overlay.isUrlExpired ? '⚠️ Expired' : '✅ Active'}
                       </span>
                       {overlay.urlExpiresAt && (
-                        <span className="text-gray-500 dark:text-gray-400">
+                        <span className="text-slate-500">
                           {formatTimeRemaining(overlay.urlExpiresAt)} left
                         </span>
                       )}
@@ -491,33 +491,34 @@ if (tournamentId) {
         </div>
       </div>
 
+      {/* Modals remain unchanged - already themed */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold dark:text-white">Create Overlay</h3>
-              <button onClick={() => setShowCreateModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                <X className="w-5 h-5 text-gray-500" />
+              <h3 className="text-xl font-bold text-slate-200">Create Overlay</h3>
+              <button onClick={() => setShowCreateModal(false)} className="p-1 hover:bg-slate-800 rounded-lg">
+                <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
             <form onSubmit={handleCreateOverlay} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2 dark:text-gray-300">Name</label>
+                <label className="block text-sm font-medium mb-2 text-slate-300">Name</label>
                 <input
                   type="text"
                   value={createFormData.name}
                   onChange={(e) => setCreateFormData({...createFormData, name: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-slate-600 bg-slate-800 text-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   placeholder="e.g. Final Match Scoreboard"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2 dark:text-gray-300">Template</label>
+                <label className="block text-sm font-medium mb-2 text-slate-300">Template</label>
                 <select
                   value={createFormData.template}
                   onChange={(e) => setCreateFormData({...createFormData, template: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-slate-600 bg-slate-800 text-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   required
                 >
                   <option value="">Select Template</option>
@@ -527,11 +528,11 @@ if (tournamentId) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2 dark:text-gray-300">Match</label>
+                <label className="block text-sm font-medium mb-2 text-slate-300">Match</label>
                 <select
                   value={createFormData.match}
                   onChange={(e) => setCreateFormData({...createFormData, match: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-slate-600 bg-slate-800 text-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   required
                 >
                   <option value="">Select Match</option>
@@ -545,11 +546,11 @@ if (tournamentId) {
               <button
                 type="submit"
                 disabled={createLoading}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 px-6 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-900 font-bold py-3 px-6 rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {createLoading ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
                     Creating...
                   </>
                 ) : (
@@ -566,27 +567,27 @@ if (tournamentId) {
 
       {showPreviewModal && previewOverlay && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col border border-gray-700">
-            <div className="flex justify-between items-center p-6 border-b border-gray-700 bg-gray-800/50 backdrop-blur-sm rounded-t-2xl">
+          <div className="bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col border border-slate-700">
+            <div className="flex justify-between items-center p-6 border-b border-slate-700 bg-slate-800/50 backdrop-blur-sm rounded-t-2xl">
               <div>
-                <h3 className="text-2xl font-bold text-white">{previewOverlay.name}</h3>
-                <p className="text-gray-400">{previewOverlay.template} • {previewOverlay.isUrlExpired ? 'Expired' : 'Active'}</p>
+                <h3 className="text-2xl font-bold text-slate-200">{previewOverlay.name}</h3>
+                <p className="text-slate-400">{previewOverlay.template} • {previewOverlay.isUrlExpired ? 'Expired' : 'Active'}</p>
               </div>
               <div className="flex gap-2">
                 <a
                   href={previewOverlay.publicUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-slate-100 rounded-xl font-medium transition-all shadow-lg"
                 >
                   <ExternalLink className="w-4 h-4" />
                   Open Fullscreen
                 </a>
                 <button 
                   onClick={() => setShowPreviewModal(false)}
-                  className="p-2 hover:bg-gray-700 rounded-xl transition-colors"
+                  className="p-2 hover:bg-slate-700 rounded-xl transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-400 hover:text-white" />
+                  <X className="w-6 h-6 text-slate-400 hover:text-slate-200" />
                 </button>
               </div>
             </div>
@@ -604,24 +605,24 @@ if (tournamentId) {
 
       {showEditModal && editOverlay && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 w-full max-w-md">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-xl p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold dark:text-white">Edit Overlay</h3>
-              <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                <X className="w-5 h-5 text-gray-500" />
+              <h3 className="text-xl font-bold text-slate-200">Edit Overlay</h3>
+              <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-slate-800 rounded-lg">
+                <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-medium mb-2 dark:text-gray-300">Name</label>
+                <label className="block text-sm font-medium mb-2 text-slate-300">Name</label>
                 <input
                   type="text"
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-4 py-3 border border-slate-600 bg-slate-800 text-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+              <div className="text-sm text-slate-400 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
                 <p><strong>Template:</strong> {editOverlay.template}</p>
                 <p><strong>Status:</strong> {editOverlay.isUrlExpired ? 'Expired' : 'Active'}</p>
               </div>
@@ -630,13 +631,13 @@ if (tournamentId) {
               <button
                 onClick={handleSaveEdit}
                 disabled={editLoading}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 px-6 rounded-xl transition-all"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-slate-100 font-bold py-3 px-6 rounded-xl transition-all shadow-lg"
               >
                 {editLoading ? 'Saving...' : 'Save Changes'}
               </button>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all"
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-3 px-6 rounded-xl transition-all"
               >
                 Cancel
               </button>

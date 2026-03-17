@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import OverlayManager from './OverlayManager';
 import { useNavigate, useParams } from 'react-router-dom';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { useAuth } from '../App';
@@ -387,7 +388,7 @@ export default function TournamentView() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selected, setSelected] = useState<Tournament | null>(null);
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'matches' | 'teams' | 'leaderboard'
+    'overview' | 'matches' | 'teams' | 'overlays' | 'leaderboard'
   >('overview');
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -493,6 +494,7 @@ export default function TournamentView() {
     'overview',
     'matches',
     'teams',
+    'overlays',
     'leaderboard',
   ] as const;
 
@@ -885,6 +887,10 @@ export default function TournamentView() {
                 <TeamManagement tournamentId={selected._id} onTeamsChange={() => {}} />
               )}
 
+              {activeTab === 'overlays' && selected && (
+                <OverlayManager tournamentId={selected._id} />
+              )}
+
               {activeTab === 'leaderboard' && (
                 <div>
                   <div className="flex items-center gap-3 mb-8">
@@ -901,8 +907,19 @@ export default function TournamentView() {
               )}
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Status Menu Backdrop */}
+          {statusMenu && (
+            <div
+              className="fixed inset-0 z-30"
+              onClick={() => setStatusMenu(null)}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
       {/* Status Menu Backdrop */}
       {statusMenu && (
