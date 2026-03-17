@@ -1,12 +1,15 @@
-# Scorex Frontend TODO
+# ScoreX Frontend TODO
 
-## Current Task: Fix TypeScript build error
-- [x] Plan approved for OverlayManager.tsx fix
-- [ ] Apply code edits
-- [ ] Test `npm run build`
-- [ ] Complete task
+## Current Task: Fix Overlay Match Name Display After Creation
 
-## Next Steps After Fix
-- Run full project build/test
-- Check for any new TypeScript errors
+✅ **Step 1 Complete**: Planning & file analysis done
+
+**Step 2 (In Progress)**: Edit OverlayManager.tsx to add refresh functionality
+
+**Next**: Test new match creation → refresh → overlay shows correct name
+
+---
+
+## Previous Tasks (Completed)
+- Backend overlay engine fixed (engine.js + utils.js)
 

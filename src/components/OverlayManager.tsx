@@ -26,7 +26,8 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const [selectedTemplate, setSelectedTemplate] = useState<OverlayTemplate | null>(null);
   const [templates, setTemplates] = useState<OverlayTemplate[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(true);
-  const [matches, setMatches] = useState<Match[]>([]);
+const [matches, setMatches] = useState<Match[]>([]);
+  const [matchesLoading, setMatchesLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categories, setCategories] = useState<Category[]>([]);
   
@@ -109,7 +110,8 @@ const baseUrlLocal = getApiBaseUrl().replace('/api/v1', '');
     }
   };
 
-  const loadMatches = async () => {
+const loadMatches = async () => {
+    setMatchesLoading(true);
     try {
       let matchesData: Match[] = [];
       if (tournamentId) {
@@ -128,6 +130,14 @@ const baseUrlLocal = getApiBaseUrl().replace('/api/v1', '');
       console.error('Failed to load matches');
       setMatches(propMatches || []);
     }
+  const refreshMatches = () => {
+    loadMatches();
+    // Auto-select first live match for better UX after refresh
+    setTimeout(() => {
+      if (matches.length > 0) {
+        setCreateFormData(prev => ({...prev, match: matches[0]._id || ''}));
+      }
+    }, 500);
   };
 
   useEffect(() => {
@@ -330,19 +340,42 @@ const baseUrlLocal = getApiBaseUrl().replace('/api/v1', '');
           </div>
 
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-            <h3 className="text-lg font-bold mb-4 dark:text-white">Matches ({matches.length})</h3>
-            <select 
-              value={createFormData.match}
-              onChange={(e) => setCreateFormData({...createFormData, match: e.target.value})}
-              className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white"
-            >
-              <option value="">Select Match</option>
-              {matches.map(m => (
-                <option key={m._id} value={m._id}>
-                  {m.team1?.name || 'Team 1'} vs {m.team2?.name || 'Team 2'} ({m.status || 'scheduled'})
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold dark:text-white">Live Matches ({matches.length})</h3>
+              <button 
+                onClick={refreshMatches}
+                disabled={matchesLoading}
+                className="flex items-center gap-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white text-sm font-semibold rounded-lg shadow-sm transition-all hover:shadow-md flex-shrink-0 ml-2"
+                title="Refresh after creating new match"
+              >
+                {matchesLoading ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            <div className={`p-3 rounded-lg ${matchesLoading ? 'bg-blue-50 dark:bg-blue-900/20 animate-pulse' : 'bg-gray-50 dark:bg-gray-700/50'}`}>
+              <select 
+                value={createFormData.match}
+                onChange={(e) => setCreateFormData({...createFormData, match: e.target.value})}
+                disabled={matchesLoading}
+                className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <option value="">{matchesLoading ? 'Loading matches...' : 'Select Live Match'}</option>
+                {matches.map(m => (
+                  <option key={m._id} value={m._id}>
+                    {m.name ? `${m.name} - ` : ''}{m.team1?.name || 'Team 1'} vs {m.team2?.name || 'Team 2'} ({m.status || 'scheduled'})
+                  </option>
+                ))}
+              </select>
+            </div>
+            {matchesLoading && (
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 flex items-center gap-1">
+                <RefreshCw className="w-3 h-3 animate-spin" />
+                Refreshing live matches...
+              </p>
+            )}
           </div>
         </div>
 
