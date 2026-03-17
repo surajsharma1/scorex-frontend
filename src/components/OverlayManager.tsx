@@ -52,7 +52,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
-  const getApiBaseUrlLocal = getApiBaseUrl().replace('/api/v1', '');;
+const baseUrlLocal = getApiBaseUrl().replace('/api/v1', '');
 
   useEffect(() => {
     // Load templates
@@ -67,7 +67,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
         const cats: Category[] = [{ value: 'all', label: 'All Overlays' }];
         const uniqueCats = [...new Set(data.map(t => t.category))];
         uniqueCats.forEach(cat => {
-          cats.push({ value: cat, label: cat.replace('Scoreboard', 'Level 1 - Scoreboard').replace('Replay/Effects', 'Level 2 - Replay/Effects') });
+          cats.push({ value: cat, label: `${cat}.replace('Scoreboard', 'Level 1 - Scoreboard').replace('Replay/Effects', 'Level 2 - Replay/Effects')` });
         });
         setCategories(cats);
       })
@@ -85,7 +85,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
       const overlaysData = res.data.overlays || res.data || [];
       
       const overlaysWithComputed = (Array.isArray(overlaysData) ? overlaysData : []).map((overlay: CreatedOverlay) => {
-        const baseUrl = getApiBaseUrlLocal();
+        const baseUrl = baseUrlLocal;
         const publicUrl = `${baseUrl}/api/v1/overlays/public/${overlay.publicId}?template=${overlay.template}`;
         
         let isUrlExpired = false;
