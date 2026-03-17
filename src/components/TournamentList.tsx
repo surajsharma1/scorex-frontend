@@ -50,25 +50,9 @@ export default function TournamentList() {
 
   return (
     <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 bg-gray-50 dark:bg-gray-900 min-h-screen">
-</xai:function_call}
-
-
-
-
-
-<xai:function_call name="edit_file">
-<parameter name="path">scorex-frontend/scorex-frontend/src/components/TournamentList.tsx
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">Tournaments</h1>
-</xai:function_call}
-
-
-
-
-
-<xai:function_call name="edit_file">
-<parameter name="path">scorex-frontend/scorex-frontend/src/components/TournamentList.tsx
           <p className="text-gray-500 dark:text-gray-400">Browse and join cricket leagues</p>
         </div>
         <Link 
@@ -79,7 +63,6 @@ export default function TournamentList() {
         </Link>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
           <p className="text-red-600 dark:text-red-400 font-medium">Error loading tournaments</p>
@@ -93,16 +76,7 @@ export default function TournamentList() {
         </div>
       )}
 
-      {/* Search and Filter Bar */}
       <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 lg:p-6 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-4">
-</xai:function_call}
-
-
-
-
-
-<xai:function_call name="edit_file">
-<parameter name="path">scorex-frontend/scorex-frontend/src/components/TournamentList.tsx
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
           <input 
@@ -140,14 +114,6 @@ export default function TournamentList() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-</xai:function_call}
-
-
-
-
-
-<xai:function_call name="edit_file">
-<parameter name="path">scorex-frontend/scorex-frontend/src/components/TournamentList.tsx
           {filteredTournaments.map((tournament) => (
             <Link 
               to={`/tournaments/${tournament._id}`} 
@@ -157,14 +123,6 @@ export default function TournamentList() {
               <div className="h-28 sm:h-32 lg:h-40 bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center">
                 <Trophy className="w-14 sm:w-16 lg:w-20 h-14 sm:h-16 lg:h-20 text-white opacity-20 group-hover:scale-110 transition-transform" />
               </div>
-</xai:function_call}
-
-
-
-
-
-<xai:function_call name="edit_file">
-<parameter name="path">scorex-frontend/scorex-frontend/src/components/TournamentList.tsx
               <div className="p-4 sm:p-5 lg:p-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2 sm:gap-0">
                   <h3 className="font-bold text-lg sm:text-xl lg:text-2xl text-gray-900 dark:text-white truncate pr-2 line-clamp-2">
@@ -208,4 +166,3 @@ export default function TournamentList() {
     </div>
   );
 }
-

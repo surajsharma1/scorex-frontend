@@ -183,27 +183,18 @@ export default function TournamentForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 lg:p-8 space-y-6">
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tournament Name</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              placeholder="Ex: Premier League 2024"
+              required
+            />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-</xai:function_call}
-
-
-
-
-
-<xai:function_call name="edit_file">
-<parameter name="path">scorex-frontend/scorex-frontend/src/components/TournamentForm.tsx
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tournament Name</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="Ex: Premier League 2024"
-                required
-              />
-            </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
               <div className="relative">
@@ -265,7 +256,6 @@ export default function TournamentForm() {
                 ))}
               </div>
             ) : (
-
               <div className="p-4 text-center text-gray-500 dark:text-gray-400 border rounded-lg">
                 No teams available. You can create a tournament without teams.
               </div>
@@ -293,4 +283,3 @@ export default function TournamentForm() {
     </div>
   );
 }
-
