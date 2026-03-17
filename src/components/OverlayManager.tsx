@@ -530,7 +530,7 @@ const loadMatches = async () => {
                   <option value="">Select Match</option>
                   {matches.map((m) => (
                     <option key={m._id} value={m._id}>
-                      {m.team1?.name || 'Team 1'} vs {m.team2?.name || 'Team 2'} ({m.status || 'scheduled'})
+                      {m.name ? `${m.name} - ` : ''}{m.team1?.name || 'Team 1'} vs {m.team2?.name || 'Team 2'} ({m.status || 'scheduled'})
                     </option>
                   ))}
                 </select>
