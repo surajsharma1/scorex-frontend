@@ -3,7 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { useAuth } from '../App';
 import {
-  Plus, Trash2, Zap, BarChart2, Users, Trophy, Shield,
+  Plus, Trash2, Zap, BarChart2, Users, Trophy, Shield, CheckCircle2,
   Calendar, MapPin, ChevronRight, X, ChevronDown, ArrowLeft, Edit3,
   Clock,
 } from 'lucide-react';
@@ -506,9 +506,9 @@ useEffect(() => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                   {[
                     { label: 'Teams', value: selected.teams?.length || 0, icon: Users, gradient: 'from-blue-500 to-cyan-600', glow: 'rgba(6,182,212,0.15)', action: () => setActiveTab('teams') },
-                    { label: 'Matches', value: matches.length, icon: Activity, gradient: 'from-emerald-500 to-green-600', glow: 'rgba(34,197,94,0.15)', action: () => setActiveTab('matches') },
+                    { label: 'Matches', value: matches.length, icon: Zap, gradient: 'from-emerald-500 to-green-600', glow: 'rgba(34,197,94,0.15)', action: () => setActiveTab('matches') },
                     { label: 'Live Now', value: matches.filter((m: any) => m.status === 'live').length, icon: Zap, gradient: 'from-red-500 to-rose-600', glow: 'rgba(239,68,68,0.15)', action: null },
-                    { label: 'Completed', value: matches.filter((m: any) => m.status === 'completed').length, icon: CheckCircle, gradient: 'from-purple-500 to-violet-600', glow: 'rgba(168,85,247,0.15)', action: null },
+                    { label: 'Completed', value: matches.filter((m: any) => m.status === 'completed').length, icon: CheckCircle2, gradient: 'from-purple-500 to-violet-600', glow: 'rgba(168,85,247,0.15)', action: null },
                   ].map(stat => (
                     <button key={stat.label} onClick={stat.action} className="group relative overflow-hidden rounded-2xl p-6 md:p-5 text-left transition-all duration-300 hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98]"
                       style={{ 
