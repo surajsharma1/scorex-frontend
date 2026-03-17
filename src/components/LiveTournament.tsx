@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Match, Tournament } from './types';
 import { matchAPI, tournamentAPI } from '../services/api';
+import { getApiBaseUrl } from '../services/env';
+
 import { 
   Radio, Loader, ArrowLeft, Video, Eye, Clock, MapPin, Trophy, 
   Activity, Share2, Youtube 
@@ -24,8 +26,8 @@ const LiveTournament: React.FC = () => {
     fetchMatchData();
 
     // Robust Socket Connection
-    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
-    const socketUrl = apiBase.replace(/\/api\/v1\/?$/, '');
+    const apiBase = getApiBaseUrl();
+    const socketUrl = apiBase.replace(/\/api\/v1\/?$/, ''); // env.ts already imported via socket.ts but safe
     
     socketRef.current = io(socketUrl, {
         transports: ['websocket', 'polling'],

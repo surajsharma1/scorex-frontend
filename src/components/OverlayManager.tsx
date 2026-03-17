@@ -52,9 +52,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
-  const getApiBaseUrlLocal = (): string => {
-    return import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || 'http://localhost:5000';
-  };
+  const getApiBaseUrlLocal = getApiBaseUrl().replace('/api/v1', '');;
 
   useEffect(() => {
     // Load templates
