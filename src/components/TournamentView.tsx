@@ -11,7 +11,7 @@ import TeamManagement from './TeamManagement';
 import MatchDetail from './MatchDetail';
 import OverlayManager from './OverlayManager';
 import StatusBadge from './StatusBadge';
-import ArrowLeft from 'lucide-react';
+
 
 
 // ─── Create Tournament Modal ──────────────────────────────────────────────────
@@ -253,6 +253,7 @@ export default function TournamentView() {
   const [showCreateMatch, setShowCreateMatch] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<any>(null);
   const [statusMenu, setStatusMenu] = useState<string | null>(null);
+  const [isMobileTournamentOpen, setIsMobileTournamentOpen] = useState(true);
 
   // Load user's tournaments (account-distinct)
   const loadTournaments = useCallback(async () => {
@@ -274,6 +275,14 @@ export default function TournamentView() {
   }, [paramId]);
 
   useEffect(() => { loadTournaments(); }, [loadTournaments]);
+
+  // Auto-open tournament list when no selection
+  useEffect(() => {
+    if (!selected) {
+      setIsMobileTournamentOpen(true);
+    }
+  }, [selected]);
+
 
   // Load tournament details when selected changes
 useEffect(() => {
@@ -333,6 +342,14 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--bg-primary)' }}>
+      {/* Mobile backdrop for tournament sidebar */}
+      {isMobileTournamentOpen && (
+        <div 
+          className="fixed inset-0 z-30 bg-black/50 md:hidden backdrop-blur-sm"
+          onClick={() => setIsMobileTournamentOpen(false)}
+        />
+      )}
+
 
       {/* Modals */}
       {showCreateTournament && (
@@ -350,8 +367,14 @@ useEffect(() => {
         />
       )}
 
-      {/* Left panel: tournament list */}
-<div className="w-full md:w-64 lg:w-72 xl:w-80 h-screen md:h-auto flex flex-col flex-shrink-0 overflow-hidden" style={{ background: 'var(--bg-secondary)', borderRight: '1px solid var(--border)' }}>
+      {/* Left panel: tournament list - collapsible on mobile like sidebar */}
+      <div className={`
+        fixed md:relative inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out
+        w-full h-full md:w-72 md:h-auto flex flex-col flex-shrink-0 overflow-hidden bg-[var(--bg-secondary)]
+        border-r border-[var(--border)]
+        ${isMobileTournamentOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `} style={{ background: 'var(--bg-secondary)' }}>
+
         <div className="p-4 md:px-3 md:py-4 border-b flex items-center justify-between shrink-0" style={{ borderColor: 'var(--border)' }}>
           <h2 className="text-sm md:text-base lg:text-lg font-black truncate" style={{ color: 'var(--text-primary)' }}>Tournaments</h2>
           <button onClick={() => setShowCreateTournament(true)}
@@ -375,7 +398,8 @@ useEffect(() => {
             </div>
           ) : (
             tournaments.map(t => (
-              <button key={t._id} onClick={() => { setSelected(t); setActiveTab('overview'); }}
+              <button key={t._id} onClick={() => { setSelected(t); setActiveTab('overview'); if (window.innerWidth < 768) setIsMobileTournamentOpen(false); }}
+
                 className={`w-full text-left p-4 md:p-3 rounded-2xl transition-all group hover:-translate-y-0.5 active:scale-[0.98] ${
                   selected?._id === t._id 
                     ? 'bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-400/40 shadow-md shadow-emerald-500/20 ring-2 ring-emerald-500/30' 
@@ -420,16 +444,22 @@ useEffect(() => {
             {/* Tournament header */}
             <div className="sticky top-0 z-20 border-b px-4 py-3 md:p-4 md:px-6 lg:px-8 md:py-5 bg-[var(--bg-secondary)]/95 backdrop-blur-xl md:static" style={{ borderColor: 'var(--border)' }}>
               <div className="flex flex-col md:flex-row md:items-center lg:items-start lg:justify-between gap-3">
-                <button onClick={() => setSelected(null)} className="md:hidden mb-3 p-2 rounded-2xl hover:bg-[var(--bg-card)] transition-all self-start">
-                  <ArrowLeft className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+                <button 
+                  onClick={() => setIsMobileTournamentOpen(!isMobileTournamentOpen)} 
+                  className="md:hidden mb-3 p-3 rounded-2xl hover:bg-slate-800/50 transition-all self-start flex items-center justify-center"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--text-muted)' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
                 </button>
+
                 <div className="flex-1 min-w-0">
                   <h1 className="text-lg md:text-xl lg:text-3xl xl:text-4xl font-black truncate pr-2" style={{ color: 'var(--text-primary)' }}>{selected.name}</h1>
                   <div className="flex flex-wrap items-center gap-2 mt-1 text-xs md:text-sm lg:text-base overflow-x-auto pb-1 md:pb-0 scrollbar-hide" style={{ color: 'var(--text-muted)' }}>
                     <span className="flex items-center gap-1 whitespace-nowrap"><Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" /> {selected.startDate ? new Date(selected.startDate).toLocaleDateString('en-IN') : 'TBD'}</span>
                     <span className="flex items-center gap-1 whitespace-nowrap"><MapPin className="w-3.5 h-3.5 md:w-4 md:h-4" /> {selected.venue || 'TBD'}</span>
                     <span className="flex items-center gap-1 whitespace-nowrap"><Shield className="w-3.5 h-3.5 md:w-4 md:h-4" /> {selected.format}</span>
-                    <StatusBadge status={selected.status || 'upcoming'} size="xs" />
+  <StatusBadge status={selected.status || 'upcoming'} />
                   </div>
                 </div>
               </div>
