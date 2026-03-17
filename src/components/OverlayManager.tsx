@@ -114,9 +114,9 @@ const loadMatches = async () => {
     setMatchesLoading(true);
     try {
       let matchesData: Match[] = [];
-      if (tournamentId) {
-        const res = await tournamentAPI.getTournamentMatches(tournamentId);
-        matchesData = Array.isArray(res.data) ? res.data : res.data?.matches || [];
+if (tournamentId) {
+        const res = await matchAPI.getMatches({tournament: tournamentId});
+        matchesData = Array.isArray(res.data?.data) ? res.data.data : res.data || [];
       } else if (propMatches) {
         matchesData = propMatches;
       } else {
