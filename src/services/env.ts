@@ -21,11 +21,11 @@ export const getApiBaseUrl = (): string => {
     return explicitApiUrl;
   }
 
-  // 2. Priority 2: Relative path (same-domain deployment + proxy/CDN)
+  // 2. Priority 2: Full backend URL for preview iframe (allows cross-origin)
   if (isProduction()) {
-    const relativePath = '/api/v1';
-    console.log('[ENV] Using relative API path for production');
-    return relativePath;
+    const fullBackendUrl = 'https://scorex-backend.onrender.com/api/v1';
+    console.log('[ENV] Production: Full backend URL for API/preview');
+    return fullBackendUrl;
   }
 
   // 3. Priority 3: Local dev fallback (Vite proxy)

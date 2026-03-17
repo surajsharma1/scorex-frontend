@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Eye, Plus, Save, Trash2, Edit, Copy, RefreshCw, ExternalLink, X } from 'lucide-react';
 import { overlayAPI, matchAPI, tournamentAPI } from '../services/api';
 import { CreatedOverlay, Match, Tournament } from './types';
-import { getApiBaseUrl } from '../services/env'; 
+import { getBackendBaseUrl } from '../services/env'; 
 
 interface OverlayTemplate {
   id: string;
@@ -53,7 +53,7 @@ const [matches, setMatches] = useState<Match[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
-const baseUrlLocal = getApiBaseUrl().replace('/api/v1', '');
+const baseUrlLocal = getBackendBaseUrl();
 
   useEffect(() => {
     // Load templates
