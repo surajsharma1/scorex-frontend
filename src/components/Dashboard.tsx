@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { useAuth } from '../App';
-import { Trophy, Activity, Users, Zap, Plus, ChevronRight } from 'lucide-react';
+import { Trophy, Activity, Users, Zap, Plus, ChevronRight, BarChart3, Globe } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -22,7 +22,6 @@ export default function Dashboard() {
         const tournaments = tRes.data.data || [];
         const matches = mRes.data.data || [];
         const live = lRes.data.data || [];
-        // Get teams count
         let teamsCount = 0;
         for (const t of tournaments.slice(0, 3)) {
           const tRes2 = await teamAPI.getTeams(t._id).catch(() => ({ data: { data: [] } }));
@@ -39,72 +38,81 @@ export default function Dashboard() {
   }, []);
 
   const statCards = [
-    { label: 'My Tournaments', value: stats.tournaments, icon: Trophy, color: 'from-amber-500 to-orange-600', action: () => navigate('/tournaments') },
-    { label: 'Total Matches', value: stats.matches, icon: Activity, color: 'from-blue-500 to-blue-700', action: () => navigate('/tournaments') },
-    { label: 'Teams', value: stats.teams, icon: Users, color: 'from-purple-500 to-purple-700', action: () => navigate('/tournaments') },
-    { label: 'Live Now', value: stats.live, icon: Zap, color: 'from-red-500 to-red-700', action: () => navigate('/live') },
+    { label: 'My Tournaments', value: stats.tournaments, icon: Trophy,   gradient: 'from-amber-500 to-orange-500',  glow: 'rgba(245,158,11,0.2)',  action: () => navigate('/tournaments') },
+    { label: 'Total Matches',  value: stats.matches,     icon: Activity, gradient: 'from-cyan-500 to-blue-500',     glow: 'rgba(6,182,212,0.2)',   action: () => navigate('/tournaments') },
+    { label: 'Teams',          value: stats.teams,       icon: Users,    gradient: 'from-purple-500 to-violet-500', glow: 'rgba(168,85,247,0.2)',  action: () => navigate('/tournaments') },
+    { label: 'Live Now',       value: stats.live,        icon: Zap,      gradient: 'from-green-500 to-emerald-500', glow: 'rgba(34,197,94,0.2)',   action: () => navigate('/live') },
   ];
 
   return (
-    <div className="p-6 max-w-5xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-white">Welcome, {user?.username} 👋</h1>
-        <p className="text-slate-500 mt-1">Here's what's happening with your tournaments</p>
+    <div className="p-6 max-w-5xl relative overflow-hidden min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.06) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 70%)' }} />
+
+      <div className="mb-8 relative">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-green-400 to-emerald-600" />
+          <h1 className="text-3xl font-black" style={{ color: 'var(--text-primary)' }}>
+            Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">{user?.username}</span> 👋
+          </h1>
+        </div>
+        <p className="ml-5 text-sm" style={{ color: 'var(--text-muted)' }}>Here's what's happening with your tournaments</p>
       </div>
 
-      {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map(card => (
           <button key={card.label} onClick={card.action}
-            className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-left hover:border-slate-700 transition-all group">
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center mb-3`}>
+            className="rounded-2xl p-5 text-left transition-all group hover:-translate-y-1 hover:scale-[1.02]"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: `0 4px 24px ${card.glow}` }}>
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-3 shadow-lg`}>
               <card.icon className="w-5 h-5 text-white" />
             </div>
-            <p className="text-3xl font-black text-white">{loading ? '–' : card.value}</p>
-            <p className="text-slate-500 text-sm mt-0.5">{card.label}</p>
+            <p className="text-3xl font-black" style={{ color: 'var(--text-primary)' }}>{loading ? '–' : card.value}</p>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{card.label}</p>
           </button>
         ))}
       </div>
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <button onClick={() => navigate('/tournaments')}
-          className="flex items-center gap-3 p-4 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/20 rounded-2xl transition-all text-left">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
-            <Plus className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <p className="text-white font-bold">New Tournament</p>
-            <p className="text-slate-500 text-xs">Create and organize a tournament</p>
-          </div>
-        </button>
-        <button onClick={() => navigate('/live')}
-          className="flex items-center gap-3 p-4 bg-red-600/10 hover:bg-red-600/20 border border-red-500/20 rounded-2xl transition-all text-left">
-          <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center flex-shrink-0">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <p className="text-white font-bold">Live Matches</p>
-            <p className="text-slate-500 text-xs">View all ongoing matches</p>
-          </div>
-        </button>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <QuickAction icon={<Plus className="w-5 h-5 text-white" />} iconBg="bg-gradient-to-br from-green-500 to-emerald-600"
+          title="New Tournament" desc="Create and organize a tournament"
+          accent="rgba(34,197,94,0.08)" accentBorder="rgba(34,197,94,0.2)" onClick={() => navigate('/tournaments')} />
+        <QuickAction icon={<Zap className="w-5 h-5 text-white" />} iconBg="bg-gradient-to-br from-red-500 to-rose-600"
+          title="Live Matches" desc="View all ongoing matches"
+          accent="rgba(239,68,68,0.08)" accentBorder="rgba(239,68,68,0.2)" onClick={() => navigate('/live')} />
+        <QuickAction icon={<BarChart3 className="w-5 h-5 text-white" />} iconBg="bg-gradient-to-br from-purple-500 to-violet-600"
+          title="Leaderboard" desc="Check tournament standings"
+          accent="rgba(168,85,247,0.08)" accentBorder="rgba(168,85,247,0.2)" onClick={() => navigate('/leaderboard')} />
+        <QuickAction icon={<Globe className="w-5 h-5 text-white" />} iconBg="bg-gradient-to-br from-blue-500 to-cyan-600"
+          title="Browse Clubs" desc="Join clubs and meet players"
+          accent="rgba(6,182,212,0.08)" accentBorder="rgba(6,182,212,0.2)" onClick={() => navigate('/clubs')} />
       </div>
 
-      {/* Live matches */}
       {liveMatches.length > 0 && (
         <div>
-          <h2 className="text-white font-bold text-lg mb-3 flex items-center gap-2">
-            <Zap className="w-4 h-4 text-red-400" /> Live Matches
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-lg flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Live Matches
+            </h2>
+            <button onClick={() => navigate('/live')} className="text-xs font-semibold flex items-center gap-1 hover:text-green-400 transition-colors" style={{ color: 'var(--text-muted)' }}>
+              View all <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
           <div className="space-y-3">
             {liveMatches.map(m => (
-              <div key={m._id} className="bg-slate-900 border border-red-500/20 rounded-2xl p-4 flex items-center justify-between">
+              <div key={m._id} className="rounded-2xl p-4 flex items-center justify-between transition-all hover:-translate-y-0.5"
+                style={{ background: 'var(--bg-card)', border: '1px solid rgba(239,68,68,0.2)', boxShadow: '0 4px 16px rgba(239,68,68,0.08)' }}>
                 <div>
-                  <p className="text-white font-bold">{m.name || `${m.team1Name} vs ${m.team2Name}`}</p>
-                  <p className="text-slate-500 text-xs">{m.team1Name} {m.team1Score}/{m.team1Wickets} vs {m.team2Name} {m.team2Score}/{m.team2Wickets}</p>
+                  <p className="font-bold" style={{ color: 'var(--text-primary)' }}>{m.name || `${m.team1Name} vs ${m.team2Name}`}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                    {m.team1Name} {m.team1Score}/{m.team1Wickets} vs {m.team2Name} {m.team2Score}/{m.team2Wickets}
+                  </p>
                 </div>
                 <button onClick={() => navigate(`/matches/${m._id}/score`)}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/40 border border-red-600/40 text-red-400 text-xs font-semibold rounded-lg transition-all">
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105"
+                  style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
                   <Zap className="w-3 h-3" /> Score
                 </button>
               </div>
@@ -113,5 +121,19 @@ export default function Dashboard() {
         </div>
       )}
     </div>
+  );
+}
+
+function QuickAction({ icon, iconBg, title, desc, accent, accentBorder, onClick }: any) {
+  return (
+    <button onClick={onClick} className="flex items-center gap-3 p-4 rounded-2xl transition-all text-left hover:-translate-y-0.5 group"
+      style={{ background: accent, border: `1px solid ${accentBorder}` }}>
+      <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0 shadow-md group-hover:scale-110 transition-transform`}>{icon}</div>
+      <div>
+        <p className="font-bold" style={{ color: 'var(--text-primary)' }}>{title}</p>
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{desc}</p>
+      </div>
+      <ChevronRight className="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-muted)' }} />
+    </button>
   );
 }

@@ -146,3 +146,21 @@ export const paymentAPI = {
 
 export default api;
 
+
+// ─── Membership API ───────────────────────────────────────────────────────────
+export const membershipAPI = {
+  getMembership: () => api.get('/payments/membership'),
+  getPrices: () => api.get('/admin/membership-prices'),
+  setPrices: (prices: any) => api.post('/admin/membership-prices', { prices }),
+  purchaseMembership: (level: number, duration: string) => api.post('/memberships/purchase', { level, duration }),
+  getMyMembership: () => api.get('/memberships/me'),
+};
+
+// ─── Admin API ────────────────────────────────────────────────────────────────
+export const adminAPI = {
+  getStats:      ()       => api.get('/stats/admin'),
+  getPrices:     ()       => api.get('/admin/membership-prices'),
+  setPrices:     (data: any) => api.post('/admin/membership-prices', data),
+};
+
+
