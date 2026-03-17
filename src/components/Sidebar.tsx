@@ -11,6 +11,8 @@ interface SidebarProps {
   logout: () => void;
   isOpen?: boolean;
   onToggle?: () => void;
+  isMobileMenuOpen?: boolean;
+  toggleMobileMenu?: () => void;
 }
 
 const navItems = [
@@ -24,7 +26,14 @@ const navItems = [
   { icon: User,            label: 'Profile',      path: '/profile' },
 ];
 
-export default function Sidebar({ user, logout, isOpen = false, onToggle }: SidebarProps) {
+export default function Sidebar({ 
+  user, 
+  logout, 
+  isOpen = false, 
+  onToggle, 
+  isMobileMenuOpen = false,
+  toggleMobileMenu 
+}: SidebarProps) {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [dark, setDark] = useState(() => {
@@ -32,6 +41,13 @@ export default function Sidebar({ user, logout, isOpen = false, onToggle }: Side
     if (saved) return saved === 'dark';
     return !window.matchMedia('(prefers-color-scheme: light)').matches;
   });
+
+  // Auto-collapse on mobile when menu closes
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      setCollapsed(false);
+    }
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     if (dark) {
@@ -50,8 +66,22 @@ export default function Sidebar({ user, logout, isOpen = false, onToggle }: Side
       className={`flex flex-col h-screen transition-all duration-300 flex-shrink-0 ${collapsed ? 'w-16' : 'w-60'}`}
       style={{ background: 'var(--bg-secondary)', borderRight: '1px solid var(--border)' }}
     >
-      {/* Logo + Collapse */}
+      {/* Logo + Collapse / Mobile Close */}
       <div className="flex items-center justify-between p-4 min-h-[64px]" style={{ borderBottom: '1px solid var(--border)' }}>
+        {/* Mobile close button */}
+        {isMobileMenuOpen && (
+          <button 
+            onClick={toggleMobileMenu}
+            className="p-1 -ml-1 rounded-lg hover:bg-slate-800/50 md:hidden transition-colors"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+        
+        {/* Logo */}
         {!collapsed && (
           <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate('/dashboard')}>
             <div className="relative">
@@ -70,7 +100,9 @@ export default function Sidebar({ user, logout, isOpen = false, onToggle }: Side
             S
           </div>
         )}
-        {!collapsed && (
+        
+        {/* Desktop collapse button */}
+        {!collapsed && !isMobileMenuOpen && (
           <button onClick={() => setCollapsed(true)} className="p-1 rounded-lg transition-all hover:bg-green-500/10" style={{ color: 'var(--text-muted)' }}>
             <ChevronLeft className="w-4 h-4" />
           </button>

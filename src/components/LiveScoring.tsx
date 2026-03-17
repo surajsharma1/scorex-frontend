@@ -32,11 +32,11 @@ function RunButtons({ onSelect, disabled = false, extraLabel = '' }: {
   extraLabel?: string;
 }) {
   return (
-    <div className="grid grid-cols-4 gap-2">
+<div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 md:gap-3">
       {[0, 1, 2, 3, 4, 5, 6].map(r => (
         <button key={r} disabled={disabled}
           onClick={() => onSelect(r)}
-          className="py-3 rounded-xl font-bold text-lg bg-slate-700 hover:bg-slate-600 text-white transition-all active:scale-95 disabled:opacity-40">
+          className="py-4 sm:py-3 md:py-4 rounded-xl font-bold text-lg sm:text-base lg:text-lg bg-slate-700 hover:bg-slate-600 text-white transition-all active:scale-95 disabled:opacity-40 shadow-md hover:shadow-lg">
           {extraLabel ? `${extraLabel}+${r}` : (r === 0 ? '•' : r)}
         </button>
       ))}

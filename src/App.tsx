@@ -71,14 +71,65 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 }
 
 // ─── Dashboard Layout ─────────────────────────────────────────────────────────
-function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardLayout({ 
+  children, 
+  isMobileMenuOpen, 
+  toggleMobileMenu 
+}: { 
+  children: React.ReactNode; 
+  isMobileMenuOpen?: boolean; 
+  toggleMobileMenu?: () => void; 
+}) {
   const { user, logout } = useAuth();
+  
   return (
-    <div className="min-h-screen flex" style={{ background: 'var(--bg-primary)' }}>
-      <Sidebar user={user} logout={logout} />
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+    <div className="min-h-screen flex md:flex" style={{ background: 'var(--bg-primary)' }}>
+      
+      {/* Mobile overlay backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 md:hidden backdrop-blur-sm"
+          onClick={toggleMobileMenu}
+        />
+      )}
+      
+      {/* Sidebar - Full screen overlay on mobile, fixed on desktop */}
+      <div className={`
+        fixed md:relative inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
+        w-full h-full md:w-64 md:h-auto md:flex-shrink-0 bg-slate-900 md:bg-[var(--bg-secondary)]
+        border-r border-slate-800 md:border-r-[var(--border)]
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `} style={{ background: 'var(--bg-secondary)' }}>
+        <Sidebar 
+          user={user} 
+          logout={logout} 
+          isMobileMenuOpen={isMobileMenuOpen}
+          toggleMobileMenu={toggleMobileMenu}
+        />
+      </div>
+      
+      {/* Main content */}
+      <div className="flex-1 flex flex-col overflow-hidden w-full md:ml-0">
+        {/* Mobile header with hamburger */}
+        <div className="md:hidden bg-slate-900/95 border-b border-slate-800 backdrop-blur-md sticky top-0 z-30 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleMobileMenu}
+              className="p-2 rounded-lg hover:bg-slate-800/50 transition-colors md:hidden"
+              aria-label="Toggle menu"
+            >
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <h1 className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>ScoreX</h1>
+          </div>
+        </div>
+        
+        <main className="flex-1 overflow-y-auto w-full">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
@@ -87,6 +138,14 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
+  
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [window.location.pathname]);
 
   // Apply saved theme on mount
   useEffect(() => {
@@ -138,13 +197,38 @@ export default function App() {
       membershipDuration: u.membershipDuration,
       fullName: u.fullName
     });
+    setIsMobileMenuOpen(false); // Close menu after login
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    setIsMobileMenuOpen(false);
   };
+
+  // Pass mobile menu props to protected routes with DashboardLayout
+  const ProtectedDashboardRoute = ({ children }: { children: React.ReactNode }) => (
+    <ProtectedRoute>
+      <DashboardLayout 
+        isMobileMenuOpen={isMobileMenuOpen} 
+        toggleMobileMenu={toggleMobileMenu}
+      >
+        {children}
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+
+  const AdminDashboardRoute = ({ children }: { children: React.ReactNode }) => (
+    <AdminRoute>
+      <DashboardLayout 
+        isMobileMenuOpen={isMobileMenuOpen} 
+        toggleMobileMenu={toggleMobileMenu}
+      >
+        {children}
+      </DashboardLayout>
+    </AdminRoute>
+  );
 
   return (
     <AuthContext.Provider value={{ user, login, logout, loading }}>
@@ -157,40 +241,22 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
 
-          {/* Protected routes */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>
-          } />
-          <Route path="/tournaments" element={
-            <ProtectedRoute><DashboardLayout><TournamentView /></DashboardLayout></ProtectedRoute>
-          } />
-          <Route path="/tournaments/:id" element={
-            <ProtectedRoute><DashboardLayout><TournamentView /></DashboardLayout></ProtectedRoute>
-          } />
-          <Route path="/live" element={
-            <ProtectedRoute><DashboardLayout><LiveMatches /></DashboardLayout></ProtectedRoute>
-          } />
-          <Route path="/matches/:id/score" element={
-            <ProtectedRoute><LiveScoring /></ProtectedRoute>
-          } />
-          <Route path="/profile" element={
-            <ProtectedRoute><DashboardLayout><Profile /></DashboardLayout></ProtectedRoute>
-          } />
-          <Route path="/membership" element={
-            <ProtectedRoute><DashboardLayout><Membership /></DashboardLayout></ProtectedRoute>
-          } />
-          <Route path="/clubs" element={
-            <ProtectedRoute><DashboardLayout><ClubManagement /></DashboardLayout></ProtectedRoute>
-          } />
-          <Route path="/friends" element={
-            <ProtectedRoute><DashboardLayout><FriendList /></DashboardLayout></ProtectedRoute>
-          } />
-          <Route path="/leaderboard" element={
-            <ProtectedRoute><DashboardLayout><Leaderboard /></DashboardLayout></ProtectedRoute>
-          } />
-          <Route path="/admin" element={
-            <AdminRoute><DashboardLayout><AdminPanel /></DashboardLayout></AdminRoute>
-          } />
+          {/* Protected dashboard routes */}
+          <Route path="/dashboard" element={<ProtectedDashboardRoute><Dashboard /></ProtectedDashboardRoute>} />
+          <Route path="/tournaments" element={<ProtectedDashboardRoute><TournamentView /></ProtectedDashboardRoute>} />
+          <Route path="/tournaments/:id" element={<ProtectedDashboardRoute><TournamentView /></ProtectedDashboardRoute>} />
+          <Route path="/live" element={<ProtectedDashboardRoute><LiveMatches /></ProtectedDashboardRoute>} />
+          <Route path="/profile" element={<ProtectedDashboardRoute><Profile /></ProtectedDashboardRoute>} />
+          <Route path="/membership" element={<ProtectedDashboardRoute><Membership /></ProtectedDashboardRoute>} />
+          <Route path="/clubs" element={<ProtectedDashboardRoute><ClubManagement /></ProtectedDashboardRoute>} />
+          <Route path="/friends" element={<ProtectedDashboardRoute><FriendList /></ProtectedDashboardRoute>} />
+          <Route path="/leaderboard" element={<ProtectedDashboardRoute><Leaderboard /></ProtectedDashboardRoute>} />
+          
+          {/* Admin */}
+          <Route path="/admin" element={<AdminDashboardRoute><AdminPanel /></AdminDashboardRoute>} />
+
+          {/* Live scoring (full screen, no sidebar) */}
+          <Route path="/matches/:id/score" element={<ProtectedRoute><LiveScoring /></ProtectedRoute>} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
