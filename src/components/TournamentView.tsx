@@ -503,7 +503,7 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
   ] as const;
 
   return (
-min-h-screen" style={{ background: 'var(--bg-primary)' }} text-white"
+    <div className="min-h-screen text-white" style={{ background: 'var(--bg-primary)' }}>
 
       {/* Tournament Selector Overlay */}
 {showTournamentSelector && (
@@ -624,13 +624,14 @@ min-h-screen" style={{ background: 'var(--bg-primary)' }} text-white"
         ) : (
           <div className="space-y-8">
             {/* Tournament Header */}
-`rounded-3xl p-6 md:p-8` style={{ background: 'var(--bg-card)', backdropFilter: 'blur(12px)', border: '1px solid var(--border)' }}"
+            <div className="rounded-3xl p-6 md:p-8" style={{ background: 'var(--bg-card)', backdropFilter: 'blur(12px)', border: '1px solid var(--border)' }}> 
 
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
                   <button
                     onClick={() => setShowTournamentSelector(true)}
-style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)' }} hover:style={{ background: 'var(--bg-card-hover)' }}
+                    className="group hover:bg-slate-800/70 transition-all rounded-2xl p-4 border border-slate-700 hover:border-blue-500/50"
+                    style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)' }}
 
                   >
                     <div className="flex items-center gap-3">
@@ -680,7 +681,7 @@ style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)' }
               </div>
 
               {/* Tabs Navigation */}
-"flex flex-wrap gap-2 -mx-2 px-2 pb-4 border-b" style={{ borderColor: 'var(--border)' }}"
+              <div className="flex flex-wrap gap-2 -mx-2 px-2 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
 
                 {tabs.map((tab) => {
                   const Icon =
@@ -793,12 +794,13 @@ style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)' }
                       </button>
                     </div>
                   ) : (
-"flex flex-col gap-6"
+                    <div className="flex flex-col gap-6">
 
                       {matches.map((match) => (
                         <div
                           key={match._id}
-"group rounded-2xl p-4 transition-all hover:-translate-y-1 snap-center shadow-lg hover:shadow-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}"
+                          className="group rounded-2xl p-4 transition-all hover:-translate-y-1 snap-center shadow-lg hover:shadow-xl"
+                          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
 
                         >
                           {/* Status Badge */}
