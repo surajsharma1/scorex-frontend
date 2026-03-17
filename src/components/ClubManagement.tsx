@@ -129,14 +129,9 @@ export default function ClubManagement() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-black p-6 max-w-4xl mx-auto relative z-10">
       {/* ERROR OVERLAY DEBUG - RED FLASH */}
-      {/* TEMP DEBUG - REMOVE AFTER CONFIRM */}
-      <div className="fixed inset-0 bg-green-500/30 flex items-center justify-center z-[9999] pointer-events-none text-2xl font-bold text-white">
-        ✅ CLUB MANAGEMENT LOADED - SAFE MODE
-      </div>
-
-
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
+
         <div>
           <h1 className="text-2xl font-black text-white flex items-center gap-2">
             <Building2 className="w-6 h-6 text-blue-400" /> Clubs
