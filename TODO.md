@@ -9,10 +9,13 @@ Fix profile theme consistency, improve match sections arrangement/selection, add
 - [x] 1. Update Profile.tsx to use CSS theme vars, add blur/shadows/responsiveness
 - [ ] 2. Test: cd scorex-frontend/scorex-frontend && npm run dev; check /profile
 
-- [ ] 3. Enhance TournamentView.tsx matches tab: better card grid, mobile layout, selection preview
-- [ ] 4. Add mobile horizontal scroll to TournamentView tabs (overflow-x-auto snap-x)
-- [ ] 5. Update Dashboard.tsx live matches: horizontal mobile scroll, consistent cards
-- [ ] 6. Polish AdminPanel.tsx: responsive grids, mobile tab scroll, spacing/shadows
+- [x] 3. Enhance TournamentView.tsx matches tab: better card grid, mobile layout, selection preview
+- [x] 4. Add mobile horizontal scroll to TournamentView tabs (overflow-x-auto snap-x)
+
+- [x] 5. Update Dashboard.tsx live matches: horizontal mobile scroll, consistent cards
+
+- [x] 6. Polish AdminPanel.tsx: responsive grids, mobile tab scroll, spacing/shadows
+
 - [ ] 7. Global: Sidebar/App mobile tabs scroll if needed; final test all pages mobile/desktop
 - [ ] 8. Complete: attempt_completion
 

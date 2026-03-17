@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { useAuth } from '../App';
 import { Trophy, Activity, Users, Zap, Plus, ChevronRight, BarChart3, Globe } from 'lucide-react';
+import StatusBadge from './StatusBadge';
+
+
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -100,24 +103,37 @@ export default function Dashboard() {
               View all <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          <div className="space-y-3">
+          <div className="flex overflow-x-auto gap-4 pb-2 scrollbar-hide snap-x snap-mandatory [&::-webkit-scrollbar]:hidden">
             {liveMatches.map(m => (
-              <div key={m._id} className="rounded-2xl p-4 flex items-center justify-between transition-all hover:-translate-y-0.5"
-                style={{ background: 'var(--bg-card)', border: '1px solid rgba(239,68,68,0.2)', boxShadow: '0 4px 16px rgba(239,68,68,0.08)' }}>
-                <div>
-                  <p className="font-bold" style={{ color: 'var(--text-primary)' }}>{m.name || `${m.team1Name} vs ${m.team2Name}`}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                    {m.team1Name} {m.team1Score}/{m.team1Wickets} vs {m.team2Name} {m.team2Score}/{m.team2Wickets}
-                  </p>
+              <div key={m._id} className="flex-none w-72 min-w-[280px] rounded-2xl p-4 transition-all hover:-translate-y-1 snap-center shadow-lg hover:shadow-xl"
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(239,68,68,0.15)' }}>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="px-2 py-1 bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold rounded-full flex items-center gap-1">
+                    <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+                    Live
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  <p className="font-bold line-clamp-2" style={{ color: 'var(--text-primary)' }}>{m.name || `${m.team1Name} vs ${m.team2Name}`}</p>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {m.team1Name} <span className="font-bold text-green-400">{m.team1Score}/{m.team1Wickets}</span>
+                    </span>
+                    <span className="text-xs font-bold mx-2">VS</span>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      <span className="font-bold text-green-400">{m.team2Score}/{m.team2Wickets}</span> {m.team2Name}
+                    </span>
+                  </div>
                 </div>
                 <button onClick={() => navigate(`/matches/${m._id}/score`)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105"
-                  style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
-                  <Zap className="w-3 h-3" /> Score
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600/90 to-orange-600/90 hover:from-red-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-red-500/30 transition-all duration-200 active:scale-95">
+                  <Zap className="w-4 h-4" /> Live Score
                 </button>
               </div>
             ))}
           </div>
+
         </div>
       )}
     </div>

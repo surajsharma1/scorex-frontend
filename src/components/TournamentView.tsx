@@ -430,15 +430,15 @@ useEffect(() => {
               </div>
 
               {/* Tabs */}
-              <div className="flex gap-1 mt-6 sm:mt-8 -mb-5 border-b pt-3 sm:pt-4" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 scrollbar-hide md:scrollbar-thin md:pb-0 md:overflow-visible gap-1 mt-6 sm:mt-8 -mb-5 border-b pt-3 sm:pt-4 [&::-webkit-scrollbar]:hidden md:[&::-webkit-scrollbar]:!visible" style={{ borderColor: 'var(--border)' }}>
                 {tabs.map(tab => (
                   <button key={tab} onClick={() => setActiveTab(tab)}
-                    className={`px-3 sm:px-4 py-2 text-sm font-semibold capitalize transition-all border-b-2 -mb-px flex-1 lg:flex-none ${
+                    className={`px-3 sm:px-4 py-2 text-sm font-semibold capitalize transition-all border-b-2 -mb-px flex-1 lg:flex-none snap-center shrink-0 whitespace-nowrap ${
                       activeTab === tab
-                        ? 'border-emerald-500 text-emerald-400 font-black'
-                        : 'border-transparent hover:text-gray-300 hover:border-gray-300'
-                    }`} style={{ color: activeTab === tab ? '#22c55e' : 'var(--text-secondary)' }}>
-                    {tab === 'leaderboard' ? 'Points Table' : tab}
+                        ? 'border-[var(--accent)] text-[var(--accent)] font-black shadow-md'
+                        : 'border-transparent hover:text-[var(--text-primary)] hover:border-[var(--border-hover)]'
+                    }`} style={{ color: activeTab === tab ? 'var(--accent)' : 'var(--text-secondary)' }}>
+                    {tab === 'leaderboard' ? 'Points Table' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                   </button>
                 ))}
               </div>
@@ -564,14 +564,16 @@ useEffect(() => {
                       </button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-6 space-y-4 lg:space-y-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
                       {matches.map(match => (
-                        <div key={match._id} className="group relative overflow-hidden rounded-3xl p-6 lg:p-7 transition-all duration-400 hover:-translate-y-2 hover:scale-[1.01] hover:shadow-2xl active:scale-[0.98]" 
+
+                          <div key={match._id} className="group relative overflow-hidden rounded-3xl p-6 transition-all duration-400 hover:shadow-[var(--accent-glow)] hover:border-[var(--accent-dim)] hover:shadow-2xl h-80 flex flex-col" 
                           style={{ 
                             background: 'var(--bg-card)', 
                             border: '1px solid var(--border)',
                             boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
                           }}>
+
                           {/* Status badge - floating */}
                           <StatusBadge 
                             status={match.status} 

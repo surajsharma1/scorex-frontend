@@ -84,35 +84,37 @@ export default function AdminPanel() {
       </div>
 
       {/* Section Nav */}
-      <div className="flex gap-1 mb-8 p-1 rounded-xl w-fit" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+      <div className="flex overflow-x-auto snap-x snap-mandatory gap-1 p-1 rounded-2xl w-full md:w-fit scrollbar-hide md:scrollbar-thin [&::-webkit-scrollbar]:hidden pb-2 md:pb-0" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
         {sections.map(s => (
           <button key={s.key} onClick={() => setActiveSection(s.key)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap snap-center shrink-0 md:flex-none md:px-4 md:py-2"
             style={activeSection === s.key
-              ? { background: 'linear-gradient(135deg, rgba(239,68,68,0.8), rgba(220,38,38,0.8))', color: '#fff', boxShadow: '0 0 12px rgba(239,68,68,0.25)' }
+              ? { background: 'linear-gradient(135deg, var(--accent), #10b981)', color: 'white', boxShadow: '0 0 20px rgba(34,197,94,0.4)' }
               : { color: 'var(--text-secondary)' }}>
-            <s.icon className="w-4 h-4" /> {s.label}
+            <s.icon className="w-5 h-5" /> {s.label}
           </button>
         ))}
       </div>
 
+
       {/* OVERVIEW */}
       {activeSection === 'overview' && (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
             {statCards.map(card => (
-              <div key={card.label} className="rounded-2xl p-5 transition-all"
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: `0 4px 24px ${card.glow}` }}>
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-3 shadow-lg`}>
-                  <card.icon className="w-5 h-5 text-white" />
+              <div key={card.label} className="group rounded-3xl p-6 transition-all hover:-translate-y-1"
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: `0 8px 32px ${card.glow}` }}>
+                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-4 shadow-xl group-hover:scale-110 transition-all`}>
+                  <card.icon className="w-6 h-6 text-white drop-shadow-lg" />
                 </div>
-                <p className="text-3xl font-black" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-3xl lg:text-2xl font-black mb-1" style={{ color: 'var(--text-primary)' }}>
                   {loading ? '–' : card.value.toLocaleString()}
                 </p>
-                <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{card.label}</p>
+                <p className="text-sm font-semibold tracking-tight" style={{ color: 'var(--text-muted)' }}>{card.label}</p>
               </div>
             ))}
           </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
