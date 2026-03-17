@@ -9,6 +9,7 @@ import {
   Radio, Loader, ArrowLeft, Video, Eye, Clock, MapPin, Trophy, 
   Activity, Share2, Youtube 
 } from 'lucide-react';
+import OverlayManager from './OverlayManager';
 import io, { Socket } from 'socket.io-client';
 
 const LiveTournament: React.FC = () => {
@@ -260,6 +261,17 @@ const LiveTournament: React.FC = () => {
                 )}
             </div>
         </div>
+
+        {/* Tournament Overlays - 🆕 NEW */}
+        {tournament && (
+          <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800/50 dark:to-gray-900/50 rounded-2xl border border-blue-200/50 dark:border-blue-800/50">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Eye className="w-6 h-6 text-blue-600" />
+              Tournament Overlays
+            </h3>
+            <OverlayManager tournamentId={tournament._id} />
+          </div>
+        )}
 
         {/* Match Info Details */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
