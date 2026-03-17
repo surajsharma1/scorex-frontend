@@ -31,7 +31,10 @@ export default function ClubManagement() {
     location: '' 
   });
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [apiError, setApiError] = useState('');
   const [toasts, setToasts] = useState<Toast[]>([]);
+
 
   // Debounced search
   useEffect(() => {
@@ -42,21 +45,34 @@ export default function ClubManagement() {
   }, [searchTerm]);
 
   const loadClubs = async (search = '') => {
+    console.log('[CLUBS] Loading clubs...', { search });
     setLoading(true);
+    setApiError('');
+    const params = search ? { search, limit: 50 } : { limit: 20 };
+    
+    // Load public clubs (independent)
     try {
-      const params = search ? { search, limit: 50 } : { limit: 20 };
-      const [allRes, myRes] = await Promise.all([
-        clubAPI.getClubs(params),
-        clubAPI.getMyClubs(params)
-      ]);
-      setClubs(allRes.data.data || allRes.data || []);
-      setMyClubs(myRes.data.data || myRes.data || []);
+      const allRes = await clubAPI.getClubs(params);
+      setClubs(allRes.data?.data || allRes.data || []);
+      console.log('[CLUBS] Public clubs loaded:', allRes.data?.data?.length || 0);
     } catch (e: any) {
-      addToast(e.response?.data?.message || 'Failed to load clubs', 'error');
+      console.error('[CLUBS] Public clubs FAILED:', e.response?.status, e.message);
+      setApiError(`Public clubs failed: ${e.response?.data?.message || e.message}`);
+    }
+    
+    // Load my clubs (independent)
+    try {
+      const myRes = await clubAPI.getMyClubs(params);
+      setMyClubs(myRes.data?.data || myRes.data || []);
+      console.log('[CLUBS] My clubs loaded:', myRes.data?.data?.length || 0);
+    } catch (e: any) {
+      console.error('[CLUBS] My clubs FAILED:', e.response?.status, e.message);
+      setApiError(prev => prev ? `${prev}; My clubs failed` : `My clubs failed: ${e.response?.data?.message || e.message}`);
     } finally {
       setLoading(false);
     }
   };
+
 
 
   const load = useCallback(() => loadClubs(searchTerm), [searchTerm]);
@@ -229,34 +245,52 @@ export default function ClubManagement() {
         </div>
       ))}
 
+      {/* API Error Banner */}
+      {apiError && (
+        <div className="bg-yellow-500/90 text-yellow-900 p-4 rounded-2xl mb-6 border-2 border-yellow-400/50 shadow-xl">
+          <AlertCircle className="w-5 h-5 inline ml-1 mb-1" />
+          <strong>API Error:</strong> {apiError}
+          <br />
+          <small className="font-mono text-xs mt-1 block">Check Console (F12) for details. Backend may be slow/offline.</small>
+        </div>
+      )}
+      
       {/* Clubs List */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-slate-400 text-lg">Loading clubs...</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-2 border-blue-500/20 rounded-3xl p-8">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6 shadow-2xl" />
+          <p className="text-blue-300 text-xl font-semibold">Loading clubs from server...</p>
+          <p className="text-slate-400 text-sm mt-2">Contacting scorex-backend.onrender.com</p>
         </div>
+
       ) : filteredClubs.length === 0 ? (
-        <div className="text-center py-20 bg-slate-900/50 border-2 border-dashed border-slate-700 rounded-3xl">
-          <Building2 className="w-16 h-16 text-slate-600 mx-auto mb-6" />
-          <h3 className="text-xl font-bold text-white mb-2">
-            {searchTerm ? 'No matching clubs' : 'No clubs yet'}
-          </h3>
-          <p className="text-slate-500 mb-6 max-w-md mx-auto">
+        <div className="text-center py-24 bg-gradient-to-br from-lime-500/20 to-emerald-500/20 border-4 border-dashed border-lime-400/50 rounded-3xl shadow-2xl animate-pulse">
+          <div className="w-24 h-24 bg-gradient-to-br from-lime-400 to-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl p-6">
+            <Building2 className="w-16 h-16 text-white drop-shadow-lg" />
+          </div>
+          <h2 className="text-3xl font-black bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent mb-4 drop-shadow-lg">
+            🏏 {searchTerm ? 'No Clubs Found' : 'No Clubs Yet!'}
+          </h2>
+          <p className="text-xl text-lime-100 mb-8 max-w-lg mx-auto leading-relaxed drop-shadow-md">
             {searchTerm 
-              ? `No clubs found for "${searchTerm}". Try a different search or create the first club!`
-              : 'Be the first to create a club and connect with other cricket fans.'
+              ? `No clubs match "${searchTerm}". Try different search or be the first!`
+              : 'No clubs available. Create your first cricket club or join existing ones!'
             }
           </p>
           {!searchTerm && (
             <button 
               onClick={() => setShowCreate(true)}
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl transition-all flex items-center gap-2 mx-auto"
+              className="px-10 py-4 bg-gradient-to-r from-lime-500 to-emerald-500 hover:from-lime-600 hover:to-emerald-600 text-white font-black text-lg rounded-3xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 flex items-center gap-3 mx-auto drop-shadow-2xl"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-6 h-6" />
               Create First Club
             </button>
           )}
+          <p className="text-lime-200/80 text-sm mt-8 font-medium">
+            💡 Console (F12) shows detailed API status
+          </p>
         </div>
+
       ) : (
         <div className="space-y-4">
           {filteredClubs.map(club => {
