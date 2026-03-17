@@ -5,8 +5,10 @@ import { useAuth } from '../App';
 import {
   Plus, Trash2, Zap, BarChart2, Users, Trophy, Shield,
   ArrowLeft, Edit3,
+  Calendar, MapPin, ChevronRight, X, ArrowLeft, Edit3,
   Activity, Target, TrendingUp, Layers, CheckCircle, Clock,
   ChevronDown
+
 
 } from 'lucide-react';
 import TeamManagement from './TeamManagement';
