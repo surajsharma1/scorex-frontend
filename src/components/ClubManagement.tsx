@@ -112,10 +112,29 @@ export default function ClubManagement() {
   };
 
   // Server-side filtering - no client filter needed
-  const filteredClubs = clubs;
+  const filteredClubs = Array.isArray(clubs) ? clubs : [];
+  const safeMyClubs = Array.isArray(myClubs) ? myClubs : [];
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[CLUBS DEBUG] Render:', { 
+      clubs: clubs?.length || 0, 
+      myClubs: myClubs?.length || 0, 
+      filtered: filteredClubs.length, 
+      loading, 
+      apiError 
+    });
+  }, [clubs, myClubs, filteredClubs.length, loading, apiError]);
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-black p-6 max-w-4xl mx-auto relative z-10">
+      {/* ERROR OVERLAY DEBUG - RED FLASH */}
+      {/* TEMP DEBUG - REMOVE AFTER CONFIRM */}
+      <div className="fixed inset-0 bg-green-500/30 flex items-center justify-center z-[9999] pointer-events-none text-2xl font-bold text-white">
+        ✅ CLUB MANAGEMENT LOADED - SAFE MODE
+      </div>
+
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -294,9 +313,10 @@ export default function ClubManagement() {
       ) : (
         <div className="space-y-4">
           {filteredClubs.map(club => {
-            const isMember = myClubs.some((c: Club) => c._id === club._id);
+            const isMember = safeMyClubs.some((c: Club) => c && c._id === club._id);
             return (
               <div key={club._id} className="group bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur-sm border border-slate-700/50 hover:border-blue-500/50 hover:shadow-2xl transition-all duration-300 rounded-2xl p-6 hover:-translate-y-1">
+
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4 flex-1">
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center text-white font-black text-xl shrink-0 shadow-2xl">
