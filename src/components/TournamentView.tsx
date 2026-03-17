@@ -253,7 +253,7 @@ export default function TournamentView() {
   const [showCreateMatch, setShowCreateMatch] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<any>(null);
   const [statusMenu, setStatusMenu] = useState<string | null>(null);
-  const [isMobileTournamentOpen, setIsMobileTournamentOpen] = useState(true);
+const [showTournamentSelector, setShowTournamentSelector] = useState(false);
 
   // Load user's tournaments (account-distinct)
   const loadTournaments = useCallback(async () => {
@@ -276,12 +276,12 @@ export default function TournamentView() {
 
   useEffect(() => { loadTournaments(); }, [loadTournaments]);
 
-  // Auto-open tournament list when no selection
+// Auto-select first tournament if none selected
   useEffect(() => {
-    if (!selected) {
-      setIsMobileTournamentOpen(true);
+    if (!selected && tournaments.length > 0) {
+      setSelected(tournaments[0]);
     }
-  }, [selected]);
+  }, [tournaments]);
 
 
   // Load tournament details when selected changes
@@ -341,14 +341,16 @@ useEffect(() => {
   const tabs = ['overview', 'matches', 'teams', 'overlays', 'leaderboard'] as const;
 
   return (
-    <div className="min-h-screen flex" style={{ background: 'var(--bg-primary)' }}>
-      {/* Mobile backdrop for tournament sidebar */}
-      {isMobileTournamentOpen && (
+    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      {/* Tournament selector modal */}
+      {showTournamentSelector && (
         <div 
-          className="fixed inset-0 z-30 bg-black/50 md:hidden backdrop-blur-sm"
-          onClick={() => setIsMobileTournamentOpen(false)}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowTournamentSelector(false)}
         />
       )}
+
+
 
 
       {/* Modals */}
@@ -367,68 +369,56 @@ useEffect(() => {
         />
       )}
 
-      {/* Left panel: tournament list - collapsible on mobile like sidebar */}
-      <div className={`
-        fixed md:relative inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out
-        w-full h-full md:w-72 md:h-auto flex flex-col flex-shrink-0 overflow-hidden bg-[var(--bg-secondary)]
-        border-r border-[var(--border)]
-        ${isMobileTournamentOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `} style={{ background: 'var(--bg-secondary)' }}>
-
-        <div className="p-4 md:px-3 md:py-4 border-b flex items-center justify-between shrink-0" style={{ borderColor: 'var(--border)' }}>
-          <h2 className="text-sm md:text-base lg:text-lg font-black truncate" style={{ color: 'var(--text-primary)' }}>Tournaments</h2>
-          <button onClick={() => setShowCreateTournament(true)}
-            className="w-10 h-10 md:w-8 md:h-8 flex-shrink-0 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 flex items-center justify-center transition-all shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 active:scale-95">
-            <Plus className="w-4 h-4 text-white" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-3 md:p-2 lg:p-3 space-y-2 md:space-y-1 scrollbar-thin scrollbar-thumb-[var(--scrollbar-thumb)] scrollbar-track-transparent">
-
-          {loading ? (
-            <div className="flex justify-center py-12 md:py-8"><div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>
-          ) : tournaments.length === 0 ? (
-            <div className="text-center py-16 md:py-12 px-4">
-              <Trophy className="w-12 h-12 md:w-10 md:h-10 text-slate-600/50 mx-auto mb-4" />
-              <p className="text-slate-500 text-sm md:text-base font-medium mb-3 px-2">No tournaments yet</p>
-              <button onClick={() => setShowCreateTournament(true)}
-                className="px-6 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl transition-all shadow-lg shadow-blue-500/25 hover:shadow-xl active:scale-95 inline-flex items-center gap-2">
-                <Plus className="w-4 h-4" /> Create First Tournament
-              </button>
-            </div>
-          ) : (
-            tournaments.map(t => (
-              <button key={t._id} onClick={() => { setSelected(t); setActiveTab('overview'); if (window.innerWidth < 768) setIsMobileTournamentOpen(false); }}
-
-                className={`w-full text-left p-4 md:p-3 rounded-2xl transition-all group hover:-translate-y-0.5 active:scale-[0.98] ${
-                  selected?._id === t._id 
-                    ? 'bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-400/40 shadow-md shadow-emerald-500/20 ring-2 ring-emerald-500/30' 
-                    : 'hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50 border border-transparent hover:border-slate-700/50 hover:shadow-lg hover:shadow-slate-500/20'
-                }`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className={`font-bold text-base md:text-sm truncate leading-tight ${
-                      selected?._id === t._id ? 'text-emerald-300 bg-gradient-to-r bg-clip-text from-emerald-400 to-green-400 text-transparent' : 'text-slate-200 group-hover:text-white'
-                    }`}>{t.name}</p>
-                    <p className="text-slate-500 text-xs md:text-xs mt-1 leading-tight flex flex-wrap items-center gap-1">
-                      <span className="capitalize">{t.format}</span>
-                      <span>•</span>
-                      <span className="capitalize">{t.type?.replace('_', ' ')}</span>
+      {/* Tournament selector modal */}
+      {showTournamentSelector && (
+        <div className="fixed inset-y-0 right-0 z-50 w-full md:w-96 bg-[var(--bg-secondary)] shadow-2xl shadow-black/30 transform transition-transform duration-300 overflow-hidden" style={{ background: 'var(--bg-secondary)' }}>
+          <div className="p-6 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
+            <h2 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>Tournaments</h2>
+            <button onClick={() => setShowTournamentSelector(false)} className="p-2 rounded-2xl hover:bg-slate-800/50 transition-all">
+              <X className="w-6 h-6" style={{ color: 'var(--text-muted)' }} />
+            </button>
+          </div>
+          <div className="p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-120px)]">
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : tournaments.length === 0 ? (
+              <div className="text-center py-12">
+                <Trophy className="w-16 h-16 text-slate-600/50 mx-auto mb-4" />
+                <p className="text-slate-500 mb-4">No tournaments yet</p>
+                <button onClick={() => setShowCreateTournament(true)}
+                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-2xl transition-all shadow-lg shadow-blue-500/25 hover:shadow-xl">
+                  <Plus className="w-5 h-5 inline mr-2" />
+                  Create First Tournament
+                </button>
+              </div>
+            ) : (
+              tournaments.map(t => (
+                <button key={t._id} onClick={() => { setSelected(t); setActiveTab('overview'); setShowTournamentSelector(false); }}
+                  className="w-full p-4 rounded-2xl transition-all group hover:-translate-y-1 active:scale-98 flex items-center gap-3"
+                  style={{ 
+                    background: selected?._id === t._id ? 'linear-gradient(135deg, var(--accent)/0.2, rgba(16,185,129,0.15))' : 'var(--bg-card)', 
+                    border: selected?._id === t._id ? '2px solid var(--accent)' : '1px solid var(--border)',
+                    boxShadow: selected?._id === t._id ? '0 8px 32px var(--accent-glow)' : '0 4px 20px rgba(0,0,0,0.1)'
+                  }}>
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                    <Trophy className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-lg truncate" style={{ color: 'var(--text-primary)' }}>{t.name}</p>
+                    <p className="text-sm flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
+                      <span>{t.format}</span> • <span>{t.type?.replace('_', ' ')}</span>
                     </p>
                   </div>
-                  <div className="flex flex-col items-end flex-shrink-0 gap-1 ml-2">
-                    <StatusBadge status={t.status || 'upcoming'} className="!shadow-md" />
-                    <button onClick={e => { e.stopPropagation(); handleDeleteTournament(t._id); }}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/20 transition-all shadow-sm hover:shadow-md">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </button>
-            ))
-          )}
+                  <StatusBadge status={t.status || 'upcoming'} />
+                </button>
+              ))
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
 
       {/* Right panel: tournament detail */}
       <div className="flex-1 overflow-auto">
@@ -445,12 +435,15 @@ useEffect(() => {
             <div className="sticky top-0 z-20 border-b px-4 py-3 md:p-4 md:px-6 lg:px-8 md:py-5 bg-[var(--bg-secondary)]/95 backdrop-blur-xl md:static" style={{ borderColor: 'var(--border)' }}>
               <div className="flex flex-col md:flex-row md:items-center lg:items-start lg:justify-between gap-3">
                 <button 
-                  onClick={() => setIsMobileTournamentOpen(!isMobileTournamentOpen)} 
-                  className="md:hidden mb-3 p-3 rounded-2xl hover:bg-slate-800/50 transition-all self-start flex items-center justify-center"
+                  onClick={() => setShowTournamentSelector(true)} 
+                  className="md:hidden mb-3 p-4 rounded-2xl hover:bg-emerald-500/20 border border-emerald-400/40 transition-all self-start flex items-center gap-3 shadow-md hover:shadow-emerald-500/30 active:scale-95"
+                  style={{ background: 'var(--bg-card)' }}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--text-muted)' }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
+                  <Trophy className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                  <span className="font-bold truncate max-w-[160px]" style={{ color: 'var(--text-primary)' }}>
+                    {selected ? selected.name : 'Select Tournament'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 ml-auto" style={{ color: 'var(--text-muted)' }} />
                 </button>
 
                 <div className="flex-1 min-w-0">
@@ -466,17 +459,35 @@ useEffect(() => {
 
               {/* Tabs */}
 
-              <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 scrollbar-hide md:scrollbar-thin md:pb-0 md:overflow-visible gap-1 mt-6 sm:mt-8 -mb-5 border-b pt-3 sm:pt-4 [&::-webkit-scrollbar]:hidden md:[&::-webkit-scrollbar]:!visible" style={{ borderColor: 'var(--border)' }}>
-                {tabs.map(tab => (
-                  <button key={tab} onClick={() => setActiveTab(tab)}
-                    className={`px-3 sm:px-4 py-2 text-sm font-semibold capitalize transition-all border-b-2 -mb-px flex-1 lg:flex-none snap-center shrink-0 whitespace-nowrap ${
-                      activeTab === tab
-                        ? 'border-[var(--accent)] text-[var(--accent)] font-black shadow-md'
-                        : 'border-transparent hover:text-[var(--text-primary)] hover:border-[var(--border-hover)]'
-                    }`} style={{ color: activeTab === tab ? 'var(--accent)' : 'var(--text-secondary)' }}>
-                    {tab === 'leaderboard' ? 'Points Table' : tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </button>
-                ))}
+              <div className="grid grid-cols-5 gap-2 mt-8 mb-2 -mx-4 px-4 md:mx-0 md:px-0 md:gap-3">
+                {tabs.map(tab => {
+                  const label = tab === 'leaderboard' ? 'Points' : tab.charAt(0).toUpperCase() + tab.slice(1);
+                  const isActive = activeTab === tab;
+                  const cardGrad = tab === 'overview' ? 'from-emerald-500 to-green-600' : 
+                    tab === 'matches' ? 'from-blue-500 to-cyan-600' : 
+                    tab === 'teams' ? 'from-purple-500 to-violet-600' : 
+                    tab === 'overlays' ? 'from-orange-500 to-amber-600' : 'from-indigo-500 to-purple-600';
+                  return (
+                    <button key={tab} onClick={() => setActiveTab(tab)}
+                      className={`group relative rounded-2xl p-4 transition-all hover:-translate-y-1 hover:scale-[1.02] active:scale-98 text-center flex flex-col items-center gap-2`}
+                      style={{ 
+                        background: isActive ? `linear-gradient(135deg, ${cardGrad.replace('from-', 'rgba(').replace('to-', ',0.15)')}` : 'var(--bg-card)', 
+                        border: isActive ? `1px solid var(--accent)` : '1px solid var(--border)',
+                        boxShadow: isActive ? '0 8px 32px var(--accent-glow)' : '0 4px 20px rgba(0,0,0,0.1)'
+                      }}>
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${cardGrad} flex items-center justify-center shadow-lg group-hover:scale-110 transition-all`}>
+                        {tab === 'overview' && <Trophy className="w-5 h-5 text-white" />}
+                        {tab === 'matches' && <Activity className="w-5 h-5 text-white" />}
+                        {tab === 'teams' && <Users className="w-5 h-5 text-white" />}
+                        {tab === 'overlays' && <Layers className="w-5 h-5 text-white" />}
+                        {tab === 'leaderboard' && <BarChart2 className="w-5 h-5 text-white" />}
+                      </div>
+                      <span className="font-bold text-xs md:text-sm whitespace-nowrap" style={{ color: isActive ? 'var(--accent)' : 'var(--text-primary)' }}>
+                        {label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
