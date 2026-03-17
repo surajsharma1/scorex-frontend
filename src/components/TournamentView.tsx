@@ -702,29 +702,21 @@ useEffect(() => {
                                 className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-secondary)] text-sm font-semibold transition-all shadow-sm hover:shadow-md">
                                 <Clock className="w-4 h-4" /> Status
                                 <ChevronRight className="w-4 h-4 ml-auto transition-transform group-hover:rotate-90" />
-                              </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </button>
-                          </div>
+                            </div>
 
-                          {/* Actions - Bottom row */}
-                          <div className="flex items-center gap-3 pt-4 border-t border-slate-800/50 relative z-10 backdrop-blur-sm">
-                            {/* Status dropdown */}
+                            {/* Status dropdown - main bottom */}
                             <div className="relative flex-1">
                               <button onClick={() => setStatusMenu(statusMenu === match._id ? null : match._id)}
-                                className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-slate-800/40 to-slate-700/40 hover:from-slate-700/60 hover:to-slate-600/60 backdrop-blur-sm border border-slate-700/40 text-slate-300 text-sm font-semibold transition-all shadow-sm hover:shadow-md group-hover:shadow-emerald-500/20">
+                                className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-secondary)] text-sm font-semibold transition-all shadow-sm hover:shadow-md">
                                 <Clock className="w-4 h-4" /> Status
                                 <ChevronRight className="w-4 h-4 ml-auto transition-transform group-hover:rotate-90" />
                               </button>
                               {statusMenu === match._id && (
-                                <div className="absolute top-full mt-2 left-0 right-0 bg-slate-900/95 backdrop-blur-md border border-slate-700/50 rounded-2xl shadow-2xl py-1 overflow-hidden z-30">
+                                <div className="absolute top-full mt-2 left-0 right-0 bg-[var(--bg-secondary)] backdrop-blur-md border border-[var(--border)] rounded-2xl shadow-2xl py-1 overflow-hidden z-30" style={{ background: 'var(--bg-secondary)' }}>
 
                                   {['upcoming', 'live', 'completed', 'abandoned'].map(s => (
                                     <button key={s} onClick={() => handleStatusChange(match._id, s)}
-                                      className="w-full text-left px-4 py-3 text-sm font-medium hover:bg-gradient-to-r hover:from-emerald-500/10 hover:to-green-500/10 border-b border-slate-800/30 last:border-b-0 capitalize transition-all hover:text-emerald-400">
+                                      className="w-full text-left px-4 py-3 text-sm font-medium hover:bg-[var(--accent)/0.1] border-b border-[var(--border)] last:border-b-0 capitalize transition-all hover:text-[var(--accent)]">
                                       {s.replace('_', ' ').toUpperCase()}
                                     </button>
                                   ))}
@@ -737,13 +729,6 @@ useEffect(() => {
                               className="px-6 py-2.5 bg-gradient-to-r from-red-600/90 to-rose-600/90 hover:from-red-700 hover:to-rose-700 text-white font-bold rounded-xl shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 transition-all duration-300 active:scale-95 flex items-center gap-2 text-sm whitespace-nowrap">
                               <Zap className="w-4 h-4" /> Live Score
                             </button>
-
-                            {/* Delete */}
-                            <button onClick={() => handleDeleteMatch(match._id)}
-                              className="flex items-center justify-center w-12 h-12 p-3 rounded-xl bg-red-500/20 hover:bg-red-500/40 border border-red-500/40 text-red-400 hover:text-red-300 font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 !opacity-100 group-hover:opacity-100 z-10">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-
                           </div>
 
                           {/* Background shimmer */}
