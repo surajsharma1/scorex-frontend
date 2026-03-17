@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import OverlayManager from './OverlayManager';
+import MatchDetail from './MatchDetail';
 import { useNavigate, useParams } from 'react-router-dom';
 import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { useAuth } from '../App';
@@ -396,7 +397,8 @@ export default function TournamentView() {
   const [showCreateTournament, setShowCreateTournament] = useState(false);
   const [showCreateMatch, setShowCreateMatch] = useState(false);
   const [statusMenu, setStatusMenu] = useState<string | null>(null);
-  const [showTournamentSelector, setShowTournamentSelector] = useState(false);
+[showTournamentSelector, setShowTournamentSelector] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
 
   // Load user's tournaments
   const loadTournaments = useCallback(async () => {
@@ -509,13 +511,22 @@ export default function TournamentView() {
           />
           <div className="fixed inset-y-0 right-0 z-50 w-full md:w-96 bg-slate-900 border-l border-slate-700 shadow-2xl transform transition-all">
             <div className="p-6 border-b border-slate-800 flex items-center justify-between">
-              <h2 className="text-xl font-bold">Your Tournaments</h2>
-              <button
-                onClick={() => setShowTournamentSelector(false)}
-                className="p-2 rounded-xl hover:bg-slate-800"
-              >
-                <X className="w-6 h-6" />
-              </button>
+<h2 className="text-xl font-bold">Your Tournaments</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowCreateTournament(true)}
+                  className="flex items-center gap-2 p-2 rounded-xl bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-500/40 text-emerald-300 transition-all text-sm font-semibold"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create
+                </button>
+                <button
+                  onClick={() => setShowTournamentSelector(false)}
+                  className="p-2 rounded-xl hover:bg-slate-800"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
             <div className="p-4 overflow-y-auto max-h-[calc(100vh-140px)] space-y-3">
               {tournaments.map((t) => (
@@ -865,9 +876,15 @@ export default function TournamentView() {
                                 </div>
                               )}
                             </div>
+<button
+                              onClick={() => setSelectedMatch(match._id)}
+                              className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all text-sm"
+                            >
+                              Details
+                            </button>
                             <button
                               onClick={() => navigate(`/matches/${match._id}/score`)}
-                              className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
+                              className="px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
                             >
                               Live Score
                             </button>
@@ -912,6 +929,16 @@ export default function TournamentView() {
             <div
               className="fixed inset-0 z-30"
               onClick={() => setStatusMenu(null)}
+            />
+          )}
+          {selectedMatch && (
+            <MatchDetail 
+              matchId={selectedMatch} 
+              onBack={() => setSelectedMatch(null)} 
+              openScoreboard={() => {
+                navigate(`/matches/${selectedMatch}/score`);
+                setSelectedMatch(null);
+              }} 
             />
           )}
         </div>
