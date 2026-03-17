@@ -11,6 +11,8 @@ import TeamManagement from './TeamManagement';
 import MatchDetail from './MatchDetail';
 import OverlayManager from './OverlayManager';
 import StatusBadge from './StatusBadge';
+import ArrowLeft from 'lucide-react';
+
 
 // ─── Create Tournament Modal ──────────────────────────────────────────────────
 function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
@@ -416,20 +418,24 @@ useEffect(() => {
         ) : (
 <div>
             {/* Tournament header */}
-            <div className="border-b px-4 sm:px-6 lg:px-8 py-4 sm:py-5" style={{ borderColor: 'var(--border)' }}>
-              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                <div>
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-black" style={{ color: 'var(--text-primary)' }}>{selected.name}</h1>
-                  <div className="flex flex-wrap items-center gap-3 mt-2 text-sm lg:text-base" style={{ color: 'var(--text-muted)' }}>
-                    <span className="flex items-center gap-1"><Calendar className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> {selected.startDate ? new Date(selected.startDate).toLocaleDateString('en-IN') : 'TBD'}</span>
-                    <span className="flex items-center gap-1"><MapPin className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> {selected.venue || 'TBD'}</span>
-                    <span className="flex items-center gap-1"><Shield className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> {selected.format}</span>
-                    <StatusBadge status={selected.status || 'upcoming'} />
+            <div className="sticky top-0 z-20 border-b px-4 py-3 md:p-4 md:px-6 lg:px-8 md:py-5 bg-[var(--bg-secondary)]/95 backdrop-blur-xl md:static" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex flex-col md:flex-row md:items-center lg:items-start lg:justify-between gap-3">
+                <button onClick={() => setSelected(null)} className="md:hidden mb-3 p-2 rounded-2xl hover:bg-[var(--bg-card)] transition-all self-start">
+                  <ArrowLeft className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+                </button>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-lg md:text-xl lg:text-3xl xl:text-4xl font-black truncate pr-2" style={{ color: 'var(--text-primary)' }}>{selected.name}</h1>
+                  <div className="flex flex-wrap items-center gap-2 mt-1 text-xs md:text-sm lg:text-base overflow-x-auto pb-1 md:pb-0 scrollbar-hide" style={{ color: 'var(--text-muted)' }}>
+                    <span className="flex items-center gap-1 whitespace-nowrap"><Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" /> {selected.startDate ? new Date(selected.startDate).toLocaleDateString('en-IN') : 'TBD'}</span>
+                    <span className="flex items-center gap-1 whitespace-nowrap"><MapPin className="w-3.5 h-3.5 md:w-4 md:h-4" /> {selected.venue || 'TBD'}</span>
+                    <span className="flex items-center gap-1 whitespace-nowrap"><Shield className="w-3.5 h-3.5 md:w-4 md:h-4" /> {selected.format}</span>
+                    <StatusBadge status={selected.status || 'upcoming'} size="xs" />
                   </div>
                 </div>
               </div>
 
               {/* Tabs */}
+
               <div className="flex overflow-x-auto snap-x snap-mandatory pb-4 scrollbar-hide md:scrollbar-thin md:pb-0 md:overflow-visible gap-1 mt-6 sm:mt-8 -mb-5 border-b pt-3 sm:pt-4 [&::-webkit-scrollbar]:hidden md:[&::-webkit-scrollbar]:!visible" style={{ borderColor: 'var(--border)' }}>
                 {tabs.map(tab => (
                   <button key={tab} onClick={() => setActiveTab(tab)}
