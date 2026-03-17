@@ -440,7 +440,7 @@ useEffect(() => {
               <div className="flex flex-col md:flex-row md:items-center lg:items-start lg:justify-between gap-3">
                 <button 
                   onClick={() => setShowTournamentSelector(true)} 
-                  className="md:hidden mb-3 p-4 rounded-2xl hover:bg-emerald-500/20 border border-emerald-400/40 transition-all self-start flex items-center gap-3 shadow-md hover:shadow-emerald-500/30 active:scale-95"
+                  className="md:hidden mb-3 p-4 rounded-2xl hover:bg-[var(--accent)/0.2] border border-[var(--accent)/0.4] transition-all self-start flex items-center gap-3 shadow-md hover:shadow-[var(--accent-glow)] active:scale-95"
                   style={{ background: 'var(--bg-card)' }}
                 >
                   <Trophy className="w-5 h-5" style={{ color: 'var(--accent)' }} />
@@ -450,8 +450,17 @@ useEffect(() => {
                   <ChevronDown className="w-4 h-4 ml-auto" style={{ color: 'var(--text-muted)' }} />
                 </button>
 
-                <div className="flex-1 min-w-0">
-                  <h1 className="text-lg md:text-xl lg:text-3xl xl:text-4xl font-black truncate pr-2" style={{ color: 'var(--text-primary)' }}>{selected.name}</h1>
+                <div className="flex flex-1 min-w-0 gap-3 items-center">
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-lg md:text-xl lg:text-3xl xl:text-4xl font-black truncate pr-2" style={{ color: 'var(--text-primary)' }}>{selected ? selected.name : 'Select Tournament'}</h1>
+                  </div>
+                  <button 
+                    onClick={() => setShowCreateTournament(true)}
+                    className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all whitespace-nowrap flex-shrink-0"
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Create
+                  </button>
+                </div>
                   <div className="flex flex-wrap items-center gap-2 mt-1 text-xs md:text-sm lg:text-base overflow-x-auto pb-1 md:pb-0 scrollbar-hide" style={{ color: 'var(--text-muted)' }}>
                     <span className="flex items-center gap-1 whitespace-nowrap"><Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" /> {selected.startDate ? new Date(selected.startDate).toLocaleDateString('en-IN') : 'TBD'}</span>
                     <span className="flex items-center gap-1 whitespace-nowrap"><MapPin className="w-3.5 h-3.5 md:w-4 md:h-4" /> {selected.venue || 'TBD'}</span>
@@ -463,32 +472,28 @@ useEffect(() => {
 
               {/* Tabs */}
 
-              <div className="grid grid-cols-5 gap-2 mt-8 mb-2 -mx-4 px-4 md:mx-0 md:px-0 md:gap-3">
+              {/* Horizontal Bar Tabs */}
+              <div className="flex flex-nowrap gap-1 mt-8 mb-4 -mx-2 px-2 overflow-x-auto pb-2 scrollbar-hide" style={{ borderBottomColor: 'var(--border)' }}>
                 {tabs.map(tab => {
                   const label = tab === 'leaderboard' ? 'Points' : tab.charAt(0).toUpperCase() + tab.slice(1);
                   const isActive = activeTab === tab;
-                  const cardGrad = tab === 'overview' ? 'from-emerald-500 to-green-600' : 
-                    tab === 'matches' ? 'from-blue-500 to-cyan-600' : 
-                    tab === 'teams' ? 'from-purple-500 to-violet-600' : 
-                    tab === 'overlays' ? 'from-orange-500 to-amber-600' : 'from-indigo-500 to-purple-600';
+                  const icons = {
+                    overview: Trophy,
+                    matches: Activity,
+                    teams: Users,
+                    overlays: Layers,
+                    leaderboard: BarChart2
+                  };
+                  const Icon = icons[tab];
                   return (
                     <button key={tab} onClick={() => setActiveTab(tab)}
-                      className={`group relative rounded-2xl p-4 transition-all hover:-translate-y-1 hover:scale-[1.02] active:scale-98 text-center flex flex-col items-center gap-2`}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-t-lg font-semibold whitespace-nowrap transition-all flex-shrink-0 hover:bg-[var(--bg-card)] ${isActive ? 'bg-[var(--bg-card)] shadow-md border-b-2 border-[var(--accent)]' : ''}`}
                       style={{ 
-                        background: isActive ? `linear-gradient(135deg, ${cardGrad.replace('from-', 'rgba(').replace('to-', ',0.15)')}` : 'var(--bg-card)', 
-                        border: isActive ? `1px solid var(--accent)` : '1px solid var(--border)',
-                        boxShadow: isActive ? '0 8px 32px var(--accent-glow)' : '0 4px 20px rgba(0,0,0,0.1)'
+                        color: isActive ? 'var(--accent)' : 'var(--text-muted)',
+                        borderColor: isActive ? 'var(--accent)' : 'transparent'
                       }}>
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${cardGrad} flex items-center justify-center shadow-lg group-hover:scale-110 transition-all`}>
-                        {tab === 'overview' && <Trophy className="w-5 h-5 text-white" />}
-                        {tab === 'matches' && <Activity className="w-5 h-5 text-white" />}
-                        {tab === 'teams' && <Users className="w-5 h-5 text-white" />}
-                        {tab === 'overlays' && <Layers className="w-5 h-5 text-white" />}
-                        {tab === 'leaderboard' && <BarChart2 className="w-5 h-5 text-white" />}
-                      </div>
-                      <span className="font-bold text-xs md:text-sm whitespace-nowrap" style={{ color: isActive ? 'var(--accent)' : 'var(--text-primary)' }}>
-                        {label}
-                      </span>
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-sm">{label}</span>
                     </button>
                   );
                 })}
@@ -618,38 +623,46 @@ useEffect(() => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
                       {matches.map(match => (
 
-                          <div key={match._id} className="group relative overflow-hidden rounded-3xl p-6 transition-all duration-400 hover:shadow-[var(--accent-glow)] hover:border-[var(--accent-dim)] hover:shadow-2xl min-h-80 flex flex-col" 
+                          <div key={match._id} className="group relative overflow-hidden rounded-3xl p-6 transition-all duration-400 hover:shadow-[var(--accent-glow)] hover:border-[var(--accent)/0.2] hover:shadow-2xl min-h-80 flex flex-col z-10" 
 
                           style={{ 
                             background: 'var(--bg-card)', 
                             border: '1px solid var(--border)',
                             boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
-                          }}>
+                          }}> 
 
                           {/* Status badge - floating */}
                           <StatusBadge 
                             status={match.status} 
-                            className="absolute top-4 right-4 !shadow-lg !shadow-black/30 !drop-shadow-2xl z-20"
+                            className="absolute top-4 right-20 !shadow-lg !shadow-black/30 !drop-shadow-2xl z-20"
                           />
                           
+                          {/* Delete - always visible */}
+                          <button 
+                            onClick={() => handleDeleteMatch(match._id)}
+                            className="absolute top-4 right-4 flex items-center justify-center w-10 h-10 p-2 rounded-xl bg-red-500/20 hover:bg-red-500/40 border-2 border-red-500/40 text-red-400 hover:text-red-300 font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 opacity-90 hover:opacity-100 z-30"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          
                           {/* Match name */}
-                          <h3 className="font-black text-xl mb-4 truncate pr-12 z-10 relative" style={{ color: 'var(--text-primary)' }}>
+                          <h3 className="font-black text-xl mb-4 truncate pr-24 relative z-10" style={{ color: 'var(--text-primary)' }}>
                             {match.name || `${match.team1Name || 'Team 1'} vs ${match.team2Name || 'Team 2'}`}
                           </h3>
 
                           
                           {/* Team matchup */}
-                          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6 mb-4 relative z-10">
+                          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6 mb-6 relative z-10 flex-1">
                             <button onClick={() => setSelectedMatch(match)} className="flex-1 text-left lg:pr-4">
-                              <div className="flex items-center gap-2 mb-3 opacity-100">
+                              <div className="flex flex-wrap items-center gap-2 mb-4 opacity-100">
 
-                                <span className="px-3 py-1 bg-slate-800/60 backdrop-blur-sm text-xs font-bold rounded-full text-slate-400 group-hover:text-emerald-400 transition-colors">
+                                <span className="px-3 py-1 bg-[var(--bg-secondary)]/80 backdrop-blur-sm text-xs font-bold rounded-full text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors" style={{ borderColor: 'var(--border)' }}>
                                   {match.format}
                                 </span>
-                                <span className="px-3 py-1 bg-slate-800/60 backdrop-blur-sm text-xs font-bold rounded-full text-slate-400 group-hover:text-slate-300 transition-colors">
+                                <span className="px-3 py-1 bg-[var(--bg-secondary)]/80 backdrop-blur-sm text-xs font-bold rounded-full text-[var(--text-muted)] group-hover:text-slate-300 transition-colors" style={{ borderColor: 'var(--border)' }}>
                                   {match.venue}
                                 </span>
-                                <span className="text-xs text-slate-500">
+                                <span className="text-xs text-[var(--text-muted)]">
                                   {match.date ? new Date(match.date).toLocaleDateString('en-IN') : ''}
                                 </span>
                               </div>
@@ -659,21 +672,37 @@ useEffect(() => {
                                     <p className="text-xl lg:text-lg font-black truncate" style={{ color: 'var(--text-primary)' }}>
                                       {match.team1Name || match.team1?.name}
                                     </p>
-                                    <div className="flex items-center justify-end gap-1 text-sm text-slate-500 mt-1">
+                                    <div className="flex items-center justify-end gap-1 text-sm text-[var(--text-muted)] mt-1">
                                       {Number(match.team1Overs || 0).toFixed(1)} ov
                                     </div>
                                   </div>
                                   <div className="text-center">
-                                    <div className="w-20 h-1 bg-gradient-to-r from-slate-800 to-slate-700 rounded-full group-hover:from-emerald-500 group-hover:to-green-500 transition-colors"></div>
-                                    <div className="text-slate-600 font-bold text-base my-2 tracking-wider uppercase">VS</div>
-                                    <div className="w-20 h-1 bg-gradient-to-r from-slate-800 to-slate-700 rounded-full group-hover:from-emerald-500 group-hover:to-green-500 transition-colors"></div>
+                                    <div className="w-20 h-1 bg-gradient-to-r from-[var(--bg-secondary)] to-[var(--border)] rounded-full group-hover:from-[var(--accent)] group-hover:to-[var(--accent-light)] transition-colors"></div>
+                                    <div className="text-[var(--text-muted)] font-bold text-base my-2 tracking-wider uppercase">VS</div>
+                                    <div className="w-20 h-1 bg-gradient-to-r from-[var(--bg-secondary)] to-[var(--border)] rounded-full group-hover:from-[var(--accent)] group-hover:to-[var(--accent-light)] transition-colors"></div>
                                   </div>
                                   <div className="flex-1">
-                                    <p className="text-xl lg:text-lg font-black truncate text-right" style={{ color: 'var(--text-primary)' }}>
+                                    <p className="text-xl lg:text-lg font-black truncate text-left" style={{ color: 'var(--text-primary)' }}>
                                       {match.team2Name || match.team2?.name}
                                     </p>
-                                    <div className="flex items-center gap-1 text-sm text-slate-500 mt-1 justify-end">
+                                    <div className="flex items-center gap-1 text-sm text-[var(--text-muted)] mt-1">
                                       {Number(match.team2Overs || 0).toFixed(1)} ov
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </button>
+                          </div>
+
+                          {/* Actions bottom - Status + Live */}
+                          <div className="flex items-center gap-3 pt-4 relative z-10">
+                            {/* Status dropdown */}
+                            <div className="relative flex-1">
+                              <button onClick={() => setStatusMenu(statusMenu === match._id ? null : match._id)}
+                                className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-secondary)] text-sm font-semibold transition-all shadow-sm hover:shadow-md">
+                                <Clock className="w-4 h-4" /> Status
+                                <ChevronRight className="w-4 h-4 ml-auto transition-transform group-hover:rotate-90" />
+                              </button>
                                     </div>
                                   </div>
                                 </div>
@@ -711,8 +740,8 @@ useEffect(() => {
 
                             {/* Delete */}
                             <button onClick={() => handleDeleteMatch(match._id)}
-                              className="flex items-center justify-center w-12 h-11 px-3 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/40 border border-red-500/40 text-red-400 hover:text-red-300 font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 whitespace-nowrap text-xs">
-                              <Trash2 className="w-4 h-4" /> Delete
+                              className="flex items-center justify-center w-12 h-12 p-3 rounded-xl bg-red-500/20 hover:bg-red-500/40 border border-red-500/40 text-red-400 hover:text-red-300 font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 !opacity-100 group-hover:opacity-100 z-10">
+                              <Trash2 className="w-4 h-4" />
                             </button>
 
                           </div>

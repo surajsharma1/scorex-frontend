@@ -285,8 +285,11 @@ if (tournamentId) {
   return (
     <>
       {tournamentId && (
-        <div className="mb-6 p-4 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl border border-blue-500/30">
-          <h2 className="text-xl font-bold text-blue-100 flex items-center gap-2">
+        <div className="mb-6 p-4 rounded-xl border" style={{ 
+          background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(147,51,234,0.1))', 
+          borderColor: 'rgba(59,130,246,0.3)'
+        }}>
+          <h2 className="text-xl font-bold" style={{ color: 'var(--accent)' }} className="flex items-center gap-2">
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.25 5.5c-.375 0-.75.188-1.038.5L6.5 8.25a1.25 1.25 0 002 2h3.586l-.707.707a.5 .5 0 00.854.707l1.5-1.5A1.25 1.25 0 0013.75 10H9.688l.707.707a.5 .5 0 00-.708.707l-1.5-1.5a1.25 1.25 0 00-2.076-1.167l-2.5 2.5A1.25 1.25 0 003.75 13H7a1.25 1.25 0 002.5 0V10H13a1.25 1.25 0 002.5 0v-2.5A1.25 1.25 0 0013.75 6h-3.688l-.707-.707a.5 .5 0 00.708-.707l1.5 1.5a1.25 1.25 0 002.076 1.167l2.5-2.5A1.25 1.25 0 0016.25 7V9.5A1.25 1.25 0 0115 10.75H12.5a1.25 1.25 0 01-2.5 0V9H4a1.25 1.25 0 01-2.5 0V7a1.25 1.25 0 012.5-1.25h3.688l.707.707a.5 .5 0 00-.708.707L6.5 6.75a1.25 1.25 0 002.076-1.167l2.5 2.5A1.25 1.25 0 0110.25 8v-2.5z"/></svg>
             Tournament Overlays ({matches.length} matches)
           </h2>
@@ -294,16 +297,19 @@ if (tournamentId) {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-4 rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-sm sticky top-4">
-            <button 
-              onClick={() => setShowCreateModal(true)}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg hover:shadow-green-500/25"
-            >
-              <Plus className="w-5 h-5" />
-              Create Overlay
-            </button>
-          </div>
+          <div className="lg:col-span-1 space-y-6">
+            <div className="p-4 rounded-xl border shadow-sm sticky top-4" style={{ 
+              background: 'var(--bg-card)', 
+              borderColor: 'var(--border)'
+            }}>
+              <button 
+                onClick={() => setShowCreateModal(true)}
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg hover:shadow-green-500/25"
+              >
+                <Plus className="w-5 h-5" />
+                Create Overlay
+              </button>
+            </div>
 
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
             <h3 className="text-lg font-bold mb-4 dark:text-white">Templates ({filteredOverlays.length})</h3>
