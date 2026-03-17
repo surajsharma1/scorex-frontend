@@ -98,12 +98,13 @@ export const overlayAPI = {
 
 // ─── Club API ─────────────────────────────────────────────────────────────────
 export const clubAPI = {
-  getClubs: () => api.get('/clubs'),
-  getMyClubs: () => api.get('/clubs/my'),
+  getClubs: (params?: { search?: string; page?: number; limit?: number }) => api.get('/clubs', { params }),
+  getMyClubs: (params?: { search?: string; page?: number; limit?: number }) => api.get('/clubs/my', { params }),
   createClub: (data: any) => api.post('/clubs', data),
   joinClub: (id: string) => api.post(`/clubs/${id}/join`),
   leaveClub: (id: string) => api.post(`/clubs/${id}/leave`),
 };
+
 
 // ─── Friend API ───────────────────────────────────────────────────────────────
 export const friendAPI = {

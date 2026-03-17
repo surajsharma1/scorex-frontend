@@ -44,26 +44,20 @@ export default function ClubManagement() {
   const loadClubs = async (search = '') => {
     setLoading(true);
     try {
+      const params = search ? { search, limit: 50 } : { limit: 20 };
       const [allRes, myRes] = await Promise.all([
-        clubAPI.getClubs(),
-        clubAPI.getMyClubs()
+        clubAPI.getClubs(params),
+        clubAPI.getMyClubs(params)
       ]);
-      let all = allRes.data.data || allRes.data || [];
-      // Client-side filter fallback
-      if (search) {
-        all = all.filter(club => 
-          club.name.toLowerCase().includes(search.toLowerCase()) ||
-          club.description?.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-      setClubs(all);
+      setClubs(allRes.data.data || allRes.data || []);
       setMyClubs(myRes.data.data || myRes.data || []);
-    } catch (e) {
-      addToast('Failed to load clubs', 'error');
+    } catch (e: any) {
+      addToast(e.response?.data?.message || 'Failed to load clubs', 'error');
     } finally {
       setLoading(false);
     }
   };
+
 
   const load = useCallback(() => loadClubs(searchTerm), [searchTerm]);
 
@@ -101,11 +95,8 @@ export default function ClubManagement() {
     }
   };
 
-  const filteredClubs = clubs.filter(club => 
-    !searchTerm || 
-    club.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    club.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Server-side filtering - no client filter needed
+  const filteredClubs = clubs;
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
