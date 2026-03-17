@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../App';
 import api from '../services/api';
-import { User, Mail, Shield, CreditCard, Edit3, Save, X } from 'lucide-react';
+import { User, Mail, Shield, CreditCard, Edit3, Save, X, RefreshCw } from 'lucide-react';
+
 
 export default function Profile() {
   const { user } = useAuth();
@@ -37,66 +38,155 @@ export default function Profile() {
   const membershipColors = ['text-slate-400', 'text-amber-400', 'text-purple-400'];
 
   return (
-    <div className="p-6 max-w-2xl">
-      <h1 className="text-2xl font-black text-white mb-6">Profile</h1>
+    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+      <div className="mb-8 flex items-center gap-3">
+        <div className="w-2 h-10 rounded-full bg-gradient-to-b from-[var(--accent)] to-green-600" />
+        <h1 className="text-3xl md:text-4xl font-black" style={{ color: 'var(--text-primary)' }}>Profile</h1>
+      </div>
 
-      {msg && <div className="mb-4 p-3 bg-blue-900/30 border border-blue-700/40 rounded-xl text-blue-300 text-sm">{msg}</div>}
+      {msg && (
+        <div className={`mb-6 p-4 rounded-3xl text-sm backdrop-blur-xl shadow-2xl ${
+          msg.includes('updated') ? 'bg-green-900/20 border border-green-700/40 text-green-300' : 'bg-red-900/20 border border-red-700/40 text-red-300'
+        }`} style={{ border: '1px solid var(--border)' }}>
+          {msg}
+        </div>
+      )}
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-4">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-black text-2xl">
-              {(profile?.username || user?.username || 'U')[0]?.toUpperCase()}
+      <div className="grid md:grid-cols-2 gap-8" style={{ 
+        background: 'var(--bg-card)', 
+        border: '1px solid var(--border)', 
+        borderRadius: '1.5rem', 
+        padding: '2rem', 
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+      }}>
+        {/* Profile Header */}
+        <div className="md:col-span-2 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-8 md:pb-12 border-b" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+          <div className="flex items-center gap-6">
+            <div className="relative group" style={{ 
+              width: '5rem', height: '5rem', 
+              background: 'linear-gradient(135deg, var(--accent), #10b981)', 
+              borderRadius: '1.5rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: '900', fontSize: '1.5rem', color: 'white',
+              boxShadow: '0 0 0 0.25rem rgba(34,197,94,0.2)'
+            }}>
+              <span>{(profile?.username || user?.username || 'U')[0]?.toUpperCase()}</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--accent)]/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-[1.5rem] blur-xl animate-pulse" />
             </div>
             <div>
-              <h2 className="text-white font-black text-xl">{profile?.username || user?.username}</h2>
-              <p className="text-slate-500 text-sm">{profile?.email || user?.email}</p>
-              <p className={`text-sm font-semibold mt-0.5 ${membershipColors[profile?.membershipLevel || 0]}`}>
+              <h2 className="text-2xl md:text-3xl font-black leading-tight" style={{ color: 'var(--text-primary)' }}>
+                {profile?.username || user?.username}
+              </h2>
+              <p className="text-lg mt-1" style={{ color: 'var(--text-muted)' }}>{profile?.email || user?.email}</p>
+              <p className={`text-base font-bold mt-1 px-3 py-1 rounded-xl inline-block ${
+                profile?.membershipLevel === 1 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-400/30' :
+                profile?.membershipLevel === 2 ? 'bg-purple-500/10 text-purple-400 border border-purple-400/30' :
+                'bg-slate-800/50 text-slate-400 border border-slate-700/50'
+              }`}>
                 {membershipLabels[profile?.membershipLevel || 0]} Member
               </p>
             </div>
           </div>
           <button onClick={() => setEditing(!editing)}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 text-sm rounded-xl transition-all">
-            {editing ? <><X className="w-4 h-4" /> Cancel</> : <><Edit3 className="w-4 h-4" /> Edit</>}
+            className="group flex items-center gap-2 px-6 py-3 font-bold text-sm rounded-2xl transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
+            style={{
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-hover)',
+              color: 'var(--text-secondary)',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.1)'
+            }}>
+            {editing ? (
+              <>
+                <X className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <span>Cancel</span>
+              </>
+            ) : (
+              <>
+                <Edit3 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <span>Edit Profile</span>
+              </>
+            )}
           </button>
         </div>
 
-        {editing ? (
-          <form onSubmit={save} className="space-y-4">
-            <div>
-              <label className="text-slate-400 text-sm font-semibold mb-1 block">Username</label>
-              <input value={form.username} onChange={e => setForm({ ...form, username: e.target.value })}
-                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="text-slate-400 text-sm font-semibold mb-1 block">Full Name</label>
-              <input value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })}
-                placeholder="Your full name"
-                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
-            </div>
-            <button type="submit" disabled={saving}
-              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-sm font-bold rounded-xl transition-all">
-              <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Changes'}
-            </button>
-          </form>
-        ) : (
-          <div className="space-y-3">
-            {[
-              { label: 'Email', value: profile?.email, icon: Mail },
-              { label: 'Role', value: profile?.role, icon: Shield },
-              { label: 'Full Name', value: profile?.fullName || '—', icon: User },
-              { label: 'Member Since', value: profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—', icon: CreditCard },
-            ].map(f => (
-              <div key={f.label} className="flex items-center gap-3 py-2.5 border-b border-slate-800 last:border-0">
-                <f.icon className="w-4 h-4 text-slate-600 flex-shrink-0" />
-                <span className="text-slate-500 text-sm w-28">{f.label}</span>
-                <span className="text-white text-sm capitalize">{f.value}</span>
+        {/* Edit Form or Details */}
+        <div className={editing ? 'md:col-span-2' : ''}>
+          {editing ? (
+            <form onSubmit={save} className="space-y-6" style={{ backdropFilter: 'blur(12px)' }}>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>Username</label>
+                  <input 
+                    value={form.username} 
+                    onChange={e => setForm({ ...form, username: e.target.value })}
+                    className="w-full px-4 py-3.5 text-sm font-semibold rounded-2xl focus:outline-none focus:ring-2 ring-[var(--accent)] transition-all"
+                    style={{
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-primary)'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>Full Name</label>
+                  <input 
+                    value={form.fullName} 
+                    onChange={e => setForm({ ...form, fullName: e.target.value })}
+                    placeholder="Enter your full name"
+                    className="w-full px-4 py-3.5 text-sm font-semibold rounded-2xl focus:outline-none focus:ring-2 ring-[var(--accent)] transition-all"
+                    style={{
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-primary)'
+                    }}
+                  />
+                </div>
               </div>
-            ))}
-          </div>
-        )}
+              <button type="submit" disabled={saving}
+                className="w-full lg:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-[var(--accent)] to-green-600 hover:from-green-600 hover:to-emerald-600 text-white font-black text-lg rounded-2xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? (
+                  <>
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5" />
+                    <span>Save Changes</span>
+                  </>
+                )}
+              </button>
+            </form>
+          ) : (
+            <div className="space-y-6" style={{ backdropFilter: 'blur(12px)' }}>
+              {[
+                { label: 'Email', value: profile?.email || '—', icon: Mail, className: '' },
+                { label: 'Role', value: profile?.role || 'User', icon: Shield, className: profile?.role === 'admin' ? 'border-red-500/30 bg-red-500/5' : '' },
+                { label: 'Full Name', value: profile?.fullName || '—', icon: User, className: '' },
+                { label: 'Member Since', value: profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—', icon: CreditCard, className: '' },
+              ].map(({ label, value, icon: Icon, className }, i) => (
+                <div key={label} className={`flex items-center gap-4 p-5 rounded-2xl group hover:-translate-y-1 transition-all ${className}`} 
+                     style={{
+                       background: 'var(--bg-elevated)',
+                       border: '1px solid var(--border)',
+                       boxShadow: '0 4px 14px rgba(0,0,0,0.08)'
+                     }}>
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--accent)]/10 p-3 flex-shrink-0 flex items-center justify-center group-hover:scale-110 transition-all">
+                    <Icon className="w-6 h-6 text-[var(--accent)]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-sm font-bold block mb-1 opacity-80" style={{ color: 'var(--text-secondary)' }}>{label}</span>
+                    <span className="text-lg font-black capitalize" style={{ color: 'var(--text-primary)' }}>{value}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
+
