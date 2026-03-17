@@ -473,11 +473,11 @@ useEffect(() => {
                 {tabs.map(tab => {
                   const label = tab === 'leaderboard' ? 'Points' : tab.charAt(0).toUpperCase() + tab.slice(1);
                   const isActive = activeTab === tab;
-                  const icons = {
+              const icons = {
                     overview: Trophy,
-                    matches: Activity,
+                    matches: Zap,
                     teams: Users,
-                    overlays: Layers,
+                    overlays: Zap,
                     leaderboard: BarChart2
                   };
                   const Icon = icons[tab];
