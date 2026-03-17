@@ -1,10 +1,30 @@
-# Fix Vercel Build Errors - Tournament Components
+# TournamentView Fixes
 
-## Plan Progress
-- [x] 1. Create this TODO.md
-- [ ] 2. Fix TournamentForm.tsx: Replace escaped HTML (<div>, =&amp;gt;) and remaining tool XML with valid JSX
-- [ ] 3. Fix TournamentList.tsx: Replace escaped HTML (<div>, =&amp;gt;) and remaining tool XML with valid JSX
-- [ ] 4. Run `cd scorex-frontend/scorex-frontend &amp;&amp; npm run build` to verify
-- [ ] 5. Test locally `npm run dev` if build passes
-- [ ] 6. Commit/push for Vercel redeploy
-- [x] Complete: Mark done &amp; remove
+## Status: In Progress
+
+### 1. [ ] Fix TS17001 Duplicate className attributes
+   - Line 367: Find and remove duplicate className
+   - Line 423: Find and remove duplicate className
+
+### 2. [ ] Add proper TypeScript types
+   - Import Tournament, Match, Team from './types'
+   - Type states: tournaments, selected, matches, teams
+
+### 3. [ ] Fix overs display crash
+   - Change `(match.team1Overs || 0).toFixed(1)` to `Number(match.team1Overs || 0).toFixed(1)`
+
+### 4. [ ] Fix useEffect dependency array
+   - loadDetails useEffect: deps `[selected?._id]` instead of `[selected, activeTab]`
+
+### 5. [ ] Add error handling
+   - PointsTable loading/error states
+   - Matches load errors
+
+### 6. [ ] Test
+   - Load tournaments
+   - Switch tabs without re-fetch
+   - View matches with overs display
+   - Points table
+   - Create match modal
+
+**Updated:** [timestamp]

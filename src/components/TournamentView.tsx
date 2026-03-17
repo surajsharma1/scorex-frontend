@@ -288,7 +288,7 @@ export default function TournamentView() {
   useEffect(() => { loadTournaments(); }, [loadTournaments]);
 
   // Load tournament details when selected changes
-  useEffect(() => {
+useEffect(() => {
     if (!selected?._id) return;
     const loadDetails = async () => {
       try {
@@ -301,7 +301,7 @@ export default function TournamentView() {
       } catch (e) { console.error(e); }
     };
     loadDetails();
-  }, [selected, activeTab]);
+  }, [selected?._id]);
 
   const handleDeleteMatch = async (matchId: string) => {
     if (!confirm('Delete this match?')) return;
@@ -364,7 +364,7 @@ export default function TournamentView() {
 
       {/* Left panel: tournament list */}
 <div className="w-64 sm:w-72 lg:w-80 flex flex-col flex-shrink-0" style={{ background: 'var(--bg-secondary)', borderRight: '1px solid var(--border)' }}>
-        <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 border-b" style={{ borderColor: 'var(--border)' }} className="flex items-center justify-between">
+        <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
           <h2 className="text-base sm:text-lg font-black" style={{ color: 'var(--text-primary)' }}>Tournaments</h2>
           <button onClick={() => setShowCreateTournament(true)}
             className="w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all shadow-glow">
@@ -418,9 +418,9 @@ export default function TournamentView() {
             </div>
           </div>
         ) : (
-          <div>
+<div>
             {/* Tournament header */}
-            <div className="border-b" style={{ borderColor: 'var(--border)' }} className="px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+            <div className="border-b px-4 sm:px-6 lg:px-8 py-4 sm:py-5" style={{ borderColor: 'var(--border)' }}>
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div>
                   <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-black" style={{ color: 'var(--text-primary)' }}>{selected.name}</h1>
@@ -522,12 +522,12 @@ export default function TournamentView() {
                               <div className="flex items-center gap-4">
                                 <div className="text-right flex-1">
                                   <p className="text-white font-bold">{match.team1Name || match.team1?.name}</p>
-                                  {match.status !== 'upcoming' && <p className="text-slate-400 text-sm">{match.team1Score || 0}/{match.team1Wickets || 0} ({(match.team1Overs || 0).toFixed ? (match.team1Overs || 0).toFixed(1) : 0})</p>}
+{Number(match.team1Overs || 0).toFixed(1)}
                                 </div>
                                 <div className="text-slate-600 font-bold text-sm">vs</div>
                                 <div className="flex-1">
                                   <p className="text-white font-bold">{match.team2Name || match.team2?.name}</p>
-                                  {match.status !== 'upcoming' && <p className="text-slate-400 text-sm">{match.team2Score || 0}/{match.team2Wickets || 0} ({(match.team2Overs || 0).toFixed ? (match.team2Overs || 0).toFixed(1) : 0})</p>}
+{Number(match.team2Overs || 0).toFixed(1)}
                                 </div>
                               </div>
                             </button>
