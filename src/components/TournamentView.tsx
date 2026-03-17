@@ -4,8 +4,10 @@ import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { useAuth } from '../App';
 import {
   Plus, Trash2, Zap, BarChart2, Users, Trophy, Shield,
-  Calendar, MapPin, ChevronRight, X, ArrowLeft, Edit3,
-  Activity, Target, TrendingUp, Layers, CheckCircle, Clock
+  ArrowLeft, Edit3,
+  Activity, Target, TrendingUp, Layers, CheckCircle, Clock,
+  ChevronDown
+
 } from 'lucide-react';
 import TeamManagement from './TeamManagement';
 import MatchDetail from './MatchDetail';
@@ -614,7 +616,8 @@ useEffect(() => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6">
                       {matches.map(match => (
 
-                          <div key={match._id} className="group relative overflow-hidden rounded-3xl p-6 transition-all duration-400 hover:shadow-[var(--accent-glow)] hover:border-[var(--accent-dim)] hover:shadow-2xl h-80 flex flex-col" 
+                          <div key={match._id} className="group relative overflow-hidden rounded-3xl p-6 transition-all duration-400 hover:shadow-[var(--accent-glow)] hover:border-[var(--accent-dim)] hover:shadow-2xl min-h-80 flex flex-col" 
+
                           style={{ 
                             background: 'var(--bg-card)', 
                             border: '1px solid var(--border)',
@@ -627,10 +630,17 @@ useEffect(() => {
                             className="absolute top-4 right-4 !shadow-lg !shadow-black/30 !drop-shadow-2xl z-20"
                           />
                           
+                          {/* Match name */}
+                          <h3 className="font-black text-xl mb-4 truncate pr-12 z-10 relative" style={{ color: 'var(--text-primary)' }}>
+                            {match.name || `${match.team1Name || 'Team 1'} vs ${match.team2Name || 'Team 2'}`}
+                          </h3>
+
+                          
                           {/* Team matchup */}
                           <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6 mb-4 relative z-10">
                             <button onClick={() => setSelectedMatch(match)} className="flex-1 text-left lg:pr-4">
-                              <div className="flex items-center gap-2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex items-center gap-2 mb-3 opacity-100">
+
                                 <span className="px-3 py-1 bg-slate-800/60 backdrop-blur-sm text-xs font-bold rounded-full text-slate-400 group-hover:text-emerald-400 transition-colors">
                                   {match.format}
                                 </span>
@@ -679,7 +689,8 @@ useEffect(() => {
                                 <ChevronRight className="w-4 h-4 ml-auto transition-transform group-hover:rotate-90" />
                               </button>
                               {statusMenu === match._id && (
-                                <div className="absolute bottom-12 left-0 right-0 bg-slate-900/95 backdrop-blur-md border border-slate-700/50 rounded-2xl shadow-2xl py-1 overflow-hidden z-30">
+                                <div className="absolute top-full mt-2 left-0 right-0 bg-slate-900/95 backdrop-blur-md border border-slate-700/50 rounded-2xl shadow-2xl py-1 overflow-hidden z-30">
+
                                   {['upcoming', 'live', 'completed', 'abandoned'].map(s => (
                                     <button key={s} onClick={() => handleStatusChange(match._id, s)}
                                       className="w-full text-left px-4 py-3 text-sm font-medium hover:bg-gradient-to-r hover:from-emerald-500/10 hover:to-green-500/10 border-b border-slate-800/30 last:border-b-0 capitalize transition-all hover:text-emerald-400">
@@ -698,9 +709,10 @@ useEffect(() => {
 
                             {/* Delete */}
                             <button onClick={() => handleDeleteMatch(match._id)}
-                              className="p-2.5 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/20 transition-all shadow-sm hover:shadow-md active:scale-95">
-                              <Trash2 className="w-5 h-5" />
+                              className="flex items-center justify-center w-12 h-11 px-3 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/40 border border-red-500/40 text-red-400 hover:text-red-300 font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 whitespace-nowrap text-xs">
+                              <Trash2 className="w-4 h-4" /> Delete
                             </button>
+
                           </div>
 
                           {/* Background shimmer */}
