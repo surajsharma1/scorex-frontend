@@ -396,8 +396,10 @@ export default function TournamentView() {
   const [loading, setLoading] = useState(true);
   const [showCreateTournament, setShowCreateTournament] = useState(false);
   const [showCreateMatch, setShowCreateMatch] = useState(false);
-  const [statusMenu, setStatusMenu] = useState<string | null>(null);
-[showTournamentSelector, setShowTournamentSelector] = useState(false);
+
+const [statusMenu, setStatusMenu] = useState<string | null>(null);
+const [showTournamentSelector, setShowTournamentSelector] = useState(false);
+
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
 
   // Load user's tournaments
@@ -503,15 +505,12 @@ export default function TournamentView() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-black text-white">
       {/* Tournament Selector Overlay */}
-      {showTournamentSelector && (
+{showTournamentSelector && (
         <>
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
-            onClick={() => setShowTournamentSelector(false)}
-          />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowTournamentSelector(false)} />
           <div className="fixed inset-y-0 right-0 z-50 w-full md:w-96 bg-slate-900 border-l border-slate-700 shadow-2xl transform transition-all">
             <div className="p-6 border-b border-slate-800 flex items-center justify-between">
-<h2 className="text-xl font-bold">Your Tournaments</h2>
+              <h2 className="text-xl font-bold">Your Tournaments</h2>
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowCreateTournament(true)}
@@ -925,7 +924,7 @@ export default function TournamentView() {
           </div>
 
           {/* Status Menu Backdrop */}
-          {statusMenu && (
+            {statusMenu && (
             <div
               className="fixed inset-0 z-30"
               onClick={() => setStatusMenu(null)}
@@ -944,6 +943,9 @@ export default function TournamentView() {
         </div>
       )}
     </div>
+  </div>
   );
 }
+
+
 
