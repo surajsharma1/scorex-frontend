@@ -320,7 +320,7 @@ export default function TournamentView() {
   };
 
   const handleDeleteTournament = async (id: string) => {
-    if (!confirm('Delete this tournament? This cannot be undone.')) return;
+    if (!confirm('Delete this tournament? This cannot be undone.') ) return;
     try {
       await tournamentAPI.deleteTournament(id);
       setTournaments(prev => prev.filter(t => t._id !== id));
@@ -331,18 +331,21 @@ export default function TournamentView() {
   // If a match is selected, show MatchDetail
   if (selectedMatch) {
     return (
-      <MatchDetail
-        matchId={selectedMatch._id}
-        onBack={() => setSelectedMatch(null)}
-        openScoreboard={() => navigate(`/matches/${selectedMatch._id}/score`)}
-      />
+      <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+        <MatchDetail
+          matchId={selectedMatch._id}
+          onBack={() => setSelectedMatch(null)}
+          openScoreboard={() => navigate(`/matches/${selectedMatch._id}/score`)}
+        />
+      </div>
     );
   }
 
   const tabs = ['overview', 'matches', 'teams', 'overlays', 'leaderboard'] as const;
 
   return (
-    <div className="min-h-screen bg-slate-950 flex">
+    <div className="min-h-screen flex" style={{ background: 'var(--bg-primary)' }}>
+
       {/* Modals */}
       {showCreateTournament && (
         <CreateTournamentModal onClose={() => setShowCreateTournament(false)} onCreated={loadTournaments} />
@@ -360,16 +363,17 @@ export default function TournamentView() {
       )}
 
       {/* Left panel: tournament list */}
-      <div className="w-72 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-          <h2 className="text-white font-black text-lg">Tournaments</h2>
+<div className="w-64 sm:w-72 lg:w-80 flex flex-col flex-shrink-0" style={{ background: 'var(--bg-secondary)', borderRight: '1px solid var(--border)' }}>
+        <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 border-b" style={{ borderColor: 'var(--border)' }} className="flex items-center justify-between">
+          <h2 className="text-base sm:text-lg font-black" style={{ color: 'var(--text-primary)' }}>Tournaments</h2>
           <button onClick={() => setShowCreateTournament(true)}
-            className="w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all">
+            className="w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all shadow-glow">
             <Plus className="w-4 h-4 text-white" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+        <div className="flex-1 overflow-y-auto p-2 sm:p-3 space-y-1">
+
           {loading ? (
             <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>
           ) : tournaments.length === 0 ? (
@@ -416,28 +420,28 @@ export default function TournamentView() {
         ) : (
           <div>
             {/* Tournament header */}
-            <div className="bg-slate-900 border-b border-slate-800 px-6 py-5">
-              <div className="flex items-start justify-between">
+            <div className="border-b" style={{ borderColor: 'var(--border)' }} className="px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div>
-                  <h1 className="text-2xl font-black text-white">{selected.name}</h1>
-                  <div className="flex items-center gap-4 mt-1.5 text-slate-500 text-sm">
-                    <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {selected.startDate ? new Date(selected.startDate).toLocaleDateString('en-IN') : 'TBD'}</span>
-                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {selected.venue || 'TBD'}</span>
-                    <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5" /> {selected.format}</span>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-black" style={{ color: 'var(--text-primary)' }}>{selected.name}</h1>
+                  <div className="flex flex-wrap items-center gap-3 mt-2 text-sm lg:text-base" style={{ color: 'var(--text-muted)' }}>
+                    <span className="flex items-center gap-1"><Calendar className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> {selected.startDate ? new Date(selected.startDate).toLocaleDateString('en-IN') : 'TBD'}</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> {selected.venue || 'TBD'}</span>
+                    <span className="flex items-center gap-1"><Shield className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> {selected.format}</span>
                     <StatusBadge status={selected.status || 'upcoming'} />
                   </div>
                 </div>
               </div>
 
               {/* Tabs */}
-              <div className="flex gap-1 mt-4 -mb-5 border-b border-slate-800 pt-2">
+              <div className="flex gap-1 mt-6 sm:mt-8 -mb-5 border-b pt-3 sm:pt-4" style={{ borderColor: 'var(--border)' }}>
                 {tabs.map(tab => (
                   <button key={tab} onClick={() => setActiveTab(tab)}
-                    className={`px-4 py-2.5 text-sm font-semibold capitalize transition-all border-b-2 -mb-px ${
+                    className={`px-3 sm:px-4 py-2 text-sm font-semibold capitalize transition-all border-b-2 -mb-px flex-1 lg:flex-none ${
                       activeTab === tab
-                        ? 'border-blue-500 text-blue-400'
-                        : 'border-transparent text-slate-500 hover:text-slate-300'
-                    }`}>
+                        ? 'border-emerald-500 text-emerald-400 font-black'
+                        : 'border-transparent hover:text-gray-300 hover:border-gray-300'
+                    }`} style={{ color: activeTab === tab ? '#22c55e' : 'var(--text-secondary)' }}>
                     {tab === 'leaderboard' ? 'Points Table' : tab}
                   </button>
                 ))}
@@ -445,44 +449,47 @@ export default function TournamentView() {
             </div>
 
             {/* Tab content */}
-            <div className="p-6">
+            <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+
               {/* OVERVIEW */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     {[
-                      { label: 'Teams', value: selected.teams?.length || 0, icon: Users, color: 'text-blue-400' },
-                      { label: 'Matches', value: matches.length, icon: Activity, color: 'text-green-400' },
-                      { label: 'Live Now', value: matches.filter((m: any) => m.status === 'live').length, icon: Zap, color: 'text-red-400' },
-                      { label: 'Completed', value: matches.filter((m: any) => m.status === 'completed').length, icon: CheckCircle, color: 'text-purple-400' },
+                      { label: 'Teams', value: selected.teams?.length || 0, icon: Users, gradient: 'from-blue-500 to-cyan-500', glow: 'rgba(6,182,212,0.2)' },
+                      { label: 'Matches', value: matches.length, icon: Activity, gradient: 'from-green-500 to-emerald-500', glow: 'rgba(34,197,94,0.2)' },
+                      { label: 'Live Now', value: matches.filter((m: any) => m.status === 'live').length, icon: Zap, gradient: 'from-red-500 to-rose-500', glow: 'rgba(239,68,68,0.2)' },
+                      { label: 'Completed', value: matches.filter((m: any) => m.status === 'completed').length, icon: CheckCircle, gradient: 'from-purple-500 to-violet-500', glow: 'rgba(168,85,247,0.2)' },
                     ].map(stat => (
-                      <div key={stat.label} className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-slate-500 text-xs font-semibold">{stat.label}</p>
-                          <stat.icon className={`w-4 h-4 ${stat.color}`} />
+                      <button key={stat.label} className="rounded-2xl p-4 sm:p-5 text-left transition-all group hover:-translate-y-1" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: `0 4px 24px ${stat.glow}` }}>
+                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center mb-3 shadow-lg group-hover:scale-110 transition-transform`}>
+                          <stat.icon className="w-5 h-5 text-white" />
                         </div>
-                        <p className={`text-3xl font-black ${stat.color}`}>{stat.value}</p>
-                      </div>
+                        <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>{stat.label}</p>
+                        <p className="text-2xl sm:text-3xl font-black" style={{ color: 'var(--text-primary)' }}>{stat.value}</p>
+                      </button>
                     ))}
                   </div>
-                  <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                    <h3 className="text-white font-bold mb-3">Tournament Details</h3>
-                    <div className="grid grid-cols-2 gap-y-3 text-sm">
-                      <div><span className="text-slate-500">Type</span><div className="text-white capitalize">{selected.type?.replace('_', ' ')}</div></div>
-                      <div><span className="text-slate-500">Format</span><div className="text-white">{selected.format}</div></div>
-                      <div><span className="text-slate-500">Start Date</span><div className="text-white">{selected.startDate ? new Date(selected.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'TBD'}</div></div>
-                      <div><span className="text-slate-500">Venue</span><div className="text-white">{selected.venue || 'TBD'}</div></div>
-                      {selected.prizePool > 0 && <div><span className="text-slate-500">Prize Pool</span><div className="text-white">₹{selected.prizePool.toLocaleString()}</div></div>}
+
+                  <div className="rounded-2xl p-5 sm:p-6 lg:p-8" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                    <h3 className="text-xl sm:text-2xl font-black mb-4" style={{ color: 'var(--text-primary)' }}>Tournament Details</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 text-sm lg:text-base">
+                      <div className="space-y-1"><span style={{ color: 'var(--text-muted)' }}>Type</span><div style={{ color: 'var(--text-primary)' }} className="capitalize font-medium">{selected.type?.replace('_', ' ')}</div></div>
+                      <div className="space-y-1"><span style={{ color: 'var(--text-muted)' }}>Format</span><div style={{ color: 'var(--text-primary)' }} className="font-medium">{selected.format}</div></div>
+                      <div className="space-y-1"><span style={{ color: 'var(--text-muted)' }}>Start Date</span><div style={{ color: 'var(--text-primary)' }}>{selected.startDate ? new Date(selected.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'TBD'}</div></div>
+                      <div className="space-y-1"><span style={{ color: 'var(--text-muted)' }}>Venue</span><div style={{ color: 'var(--text-primary)' }}>{selected.venue || 'TBD'}</div></div>
+                      {selected.prizePool > 0 && <div className="space-y-1"><span style={{ color: 'var(--text-muted)' }}>Prize Pool</span><div style={{ color: 'var(--text-primary)' }} className="font-semibold">₹{selected.prizePool.toLocaleString()}</div></div>}
                     </div>
                     {selected.rules && (
-                      <div className="mt-4 pt-4 border-t border-slate-800">
-                        <p className="text-slate-500 text-xs font-semibold mb-1">Rules</p>
-                        <p className="text-slate-300 text-sm whitespace-pre-line">{selected.rules}</p>
+                      <div className="mt-6 pt-6 border-t" style={{ borderColor: 'var(--border)' }}>
+                        <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>Rules</p>
+                        <p className="whitespace-pre-line" style={{ color: 'var(--text-secondary)' }}>{selected.rules}</p>
                       </div>
                     )}
                   </div>
                 </div>
               )}
+
 
               {/* MATCHES */}
               {activeTab === 'matches' && (

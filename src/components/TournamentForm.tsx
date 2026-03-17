@@ -148,14 +148,16 @@ export default function TournamentForm() {
 
   // Has access - show form
   return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-green-600 to-emerald-700 p-6 text-white">
-          <div className="flex justify-between items-start">
+    <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="max-w-full sm:max-w-2xl lg:max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+
+        <div className="bg-gradient-to-r from-green-600 to-emerald-700 p-4 sm:p-6 lg:p-8 text-white">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 sm:gap-0">
             <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Trophy className="w-6 h-6" /> Create Tournament
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2">
+                <Trophy className="w-5 sm:w-6 h-5 sm:h-6" /> Create Tournament
               </h2>
+
               <p className="text-green-100 opacity-90">Setup a new league or series</p>
             </div>
             {requiresPremium && (
@@ -180,8 +182,16 @@ export default function TournamentForm() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 lg:p-8 space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+</xai:function_call}
+
+
+
+
+
+<xai:function_call name="edit_file">
+<parameter name="path">scorex-frontend/scorex-frontend/src/components/TournamentForm.tsx
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tournament Name</label>
               <input
@@ -238,41 +248,42 @@ export default function TournamentForm() {
               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{formData.selectedTeams.length} Selected</span>
             </label>
             {availableTeams.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto border p-3 rounded-lg dark:border-gray-600">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-48 sm:max-h-56 lg:max-h-60 overflow-y-auto border p-3 sm:p-4 rounded-lg dark:border-gray-600">
                 {availableTeams.map(team => (
                   <div 
                     key={team._id}
                     onClick={() => handleTeamToggle(team._id)}
-                    className={`p-3 rounded-lg cursor-pointer border transition-all flex items-center justify-between ${
+                    className={`p-2 sm:p-3 rounded-lg cursor-pointer border transition-all flex items-center justify-between ${
                       formData.selectedTeams.includes(team._id)
                         ? 'bg-green-50 border-green-500 dark:bg-green-900/30'
                         : 'bg-gray-50 border-gray-200 dark:bg-gray-700 dark:border-gray-600'
                     }`}
                   >
-                    <span className="font-medium dark:text-white truncate">{team.name}</span>
+                    <span className="font-medium dark:text-white text-sm truncate">{team.name}</span>
                     {formData.selectedTeams.includes(team._id) && <CheckCircle className="w-4 h-4 text-green-600" />}
                   </div>
                 ))}
               </div>
             ) : (
+
               <div className="p-4 text-center text-gray-500 dark:text-gray-400 border rounded-lg">
                 No teams available. You can create a tournament without teams.
               </div>
             )}
           </div>
 
-          <div className="pt-4 border-t dark:border-gray-700 flex justify-end gap-3">
+          <div className="pt-4 border-t dark:border-gray-700 flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4">
              <button
                type="button"
                onClick={() => navigate('/tournaments')}
-               className="px-6 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700"
+               className="px-4 sm:px-6 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 w-full sm:w-auto"
              >
                Cancel
              </button>
              <button 
                type="submit" 
                disabled={loading}
-               className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all shadow-md disabled:opacity-50"
+               className="px-4 sm:px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all shadow-md disabled:opacity-50 w-full sm:w-auto"
              >
                {loading ? 'Creating...' : 'Create Tournament'}
              </button>
@@ -282,3 +293,4 @@ export default function TournamentForm() {
     </div>
   );
 }
+

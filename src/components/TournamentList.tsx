@@ -49,10 +49,26 @@ export default function TournamentList() {
   });
 
   return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 bg-gray-50 dark:bg-gray-900 min-h-screen">
+</xai:function_call}
+
+
+
+
+
+<xai:function_call name="edit_file">
+<parameter name="path">scorex-frontend/scorex-frontend/src/components/TournamentList.tsx
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tournaments</h1>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">Tournaments</h1>
+</xai:function_call}
+
+
+
+
+
+<xai:function_call name="edit_file">
+<parameter name="path">scorex-frontend/scorex-frontend/src/components/TournamentList.tsx
           <p className="text-gray-500 dark:text-gray-400">Browse and join cricket leagues</p>
         </div>
         <Link 
@@ -78,7 +94,15 @@ export default function TournamentList() {
       )}
 
       {/* Search and Filter Bar */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-4">
+      <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 lg:p-6 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-4">
+</xai:function_call}
+
+
+
+
+
+<xai:function_call name="edit_file">
+<parameter name="path">scorex-frontend/scorex-frontend/src/components/TournamentList.tsx
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
           <input 
@@ -115,21 +139,38 @@ export default function TournamentList() {
           <p className="text-sm mt-2">Create your first tournament to get started!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+</xai:function_call}
+
+
+
+
+
+<xai:function_call name="edit_file">
+<parameter name="path">scorex-frontend/scorex-frontend/src/components/TournamentList.tsx
           {filteredTournaments.map((tournament) => (
             <Link 
               to={`/tournaments/${tournament._id}`} 
               key={tournament._id}
               className="block bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden border border-gray-200 dark:border-gray-700 group"
             >
-              <div className="h-32 bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center">
-                <Trophy className="w-16 h-16 text-white opacity-20 group-hover:scale-110 transition-transform" />
+              <div className="h-28 sm:h-32 lg:h-40 bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center">
+                <Trophy className="w-14 sm:w-16 lg:w-20 h-14 sm:h-16 lg:h-20 text-white opacity-20 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="p-5">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-xl text-gray-900 dark:text-white truncate pr-2">
+</xai:function_call}
+
+
+
+
+
+<xai:function_call name="edit_file">
+<parameter name="path">scorex-frontend/scorex-frontend/src/components/TournamentList.tsx
+              <div className="p-4 sm:p-5 lg:p-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2 sm:gap-0">
+                  <h3 className="font-bold text-lg sm:text-xl lg:text-2xl text-gray-900 dark:text-white truncate pr-2 line-clamp-2">
                     {tournament.name}
                   </h3>
+
                   {tournament.status === 'ongoing' && (
                     <span className="flex items-center gap-1 text-xs font-bold text-red-600 bg-red-100 dark:bg-red-900/30 px-2 py-1 rounded-full animate-pulse">
                       <Radio className="w-3 h-3" /> LIVE
@@ -148,7 +189,7 @@ export default function TournamentList() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                <div className="pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
                   <span className={`text-xs px-2 py-1 rounded-md capitalize font-medium
                     ${tournament.status === 'completed' ? 'bg-gray-100 text-gray-600' : 
                       tournament.status === 'upcoming' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}
@@ -167,3 +208,4 @@ export default function TournamentList() {
     </div>
   );
 }
+
