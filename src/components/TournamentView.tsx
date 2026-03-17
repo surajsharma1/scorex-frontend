@@ -5,11 +5,7 @@ import { useAuth } from '../App';
 import {
   Plus, Trash2, Zap, BarChart2, Users, Trophy, Shield,
   Calendar, MapPin, ChevronRight, X, ChevronDown, ArrowLeft, Edit3,
-  Activity, Target, TrendingUp, Layers, CheckCircle, Clock
-
-
-
-
+  Clock,
 } from 'lucide-react';
 import TeamManagement from './TeamManagement';
 import MatchDetail from './MatchDetail';
@@ -585,7 +581,6 @@ useEffect(() => {
               </div>
               )}
 
-
               {/* MATCHES */}
               {activeTab === 'matches' && (
                 <div className="space-y-6">
@@ -611,7 +606,7 @@ useEffect(() => {
                         boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
                       }}>
                       <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 to-slate-800/30 opacity-0 group-hover:opacity-100 transition-opacity blur-xl" />
-                      <Activity className="w-20 h-20 md:w-16 md:h-16 text-slate-600/60 mx-auto mb-6 relative z-10 group-hover:scale-110 transition-transform" />
+                <Zap className="w-20 h-20 md:w-16 md:h-16 text-slate-600/60 mx-auto mb-6 relative z-10 group-hover:scale-110 transition-transform" />
                       <h3 className="text-xl md:text-2xl font-black mb-3 relative z-10" style={{ color: 'var(--text-primary)' }}>No Matches Yet</h3>
                       <p className="text-slate-500 text-lg mb-6 max-w-md mx-auto relative z-10 leading-relaxed">Schedule your first match to get started with live scoring and overlays.</p>
                       <button onClick={() => setShowCreateMatch(true)} 
@@ -696,15 +691,6 @@ useEffect(() => {
 
                           {/* Actions bottom - Status + Live */}
                           <div className="flex items-center gap-3 pt-4 relative z-10">
-                            {/* Status dropdown */}
-                            <div className="relative flex-1">
-                              <button onClick={() => setStatusMenu(statusMenu === match._id ? null : match._id)}
-                                className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-secondary)] text-sm font-semibold transition-all shadow-sm hover:shadow-md">
-                                <Clock className="w-4 h-4" /> Status
-                                <ChevronRight className="w-4 h-4 ml-auto transition-transform group-hover:rotate-90" />
-                            </div>
-
-                            {/* Status dropdown - main bottom */}
                             <div className="relative flex-1">
                               <button onClick={() => setStatusMenu(statusMenu === match._id ? null : match._id)}
                                 className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-secondary)] text-sm font-semibold transition-all shadow-sm hover:shadow-md">
@@ -713,7 +699,6 @@ useEffect(() => {
                               </button>
                               {statusMenu === match._id && (
                                 <div className="absolute top-full mt-2 left-0 right-0 bg-[var(--bg-secondary)] backdrop-blur-md border border-[var(--border)] rounded-2xl shadow-2xl py-1 overflow-hidden z-30" style={{ background: 'var(--bg-secondary)' }}>
-
                                   {['upcoming', 'live', 'completed', 'abandoned'].map(s => (
                                     <button key={s} onClick={() => handleStatusChange(match._id, s)}
                                       className="w-full text-left px-4 py-3 text-sm font-medium hover:bg-[var(--accent)/0.1] border-b border-[var(--border)] last:border-b-0 capitalize transition-all hover:text-[var(--accent)]">
