@@ -665,37 +665,36 @@ export default function TournamentView() {
                   </button>
                 </div>
               </div>
-            </div>
 
-            {/* Tab Navigation */}
-            <div className="flex flex-wrap gap-2 -mx-2 px-2 pb-4 border-b border-slate-800">
-              {tabs.map((tab) => {
-                const Icon =
-                  tab === 'overview'
-                    ? Trophy
-                    : tab === 'matches'
-                    ? Zap
-                    : tab === 'teams'
-                    ? Users
-                    : BarChart2;
-                const label =
-                  tab === 'leaderboard' ? 'Points' : tab.slice(0, 1).toUpperCase() + tab.slice(1);
-                const isActive = activeTab === tab;
-                return (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
-                      isActive
-                        ? 'bg-blue-500/20 border-2 border-blue-500 text-blue-300 shadow-lg shadow-blue-500/25'
-                        : 'bg-slate-800/50 hover:bg-slate-700 border border-slate-700/50 text-slate-300 hover:text-white'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 flex-shrink-0" />
-                    {label}
-                  </button>
-                );
-              })}
+              {/* Tabs Navigation */}
+              <div className="flex flex-wrap gap-2 -mx-2 px-2 pb-4 border-b border-slate-800">
+                {tabs.map((tab) => {
+                  const Icon =
+                    tab === 'overview'
+                      ? Trophy
+                      : tab === 'matches'
+                      ? Zap
+                      : tab === 'teams'
+                      ? Users
+                      : BarChart2;
+                  const label =
+                    tab === 'leaderboard' ? 'Points' : tab.slice(0, 1).toUpperCase() + tab.slice(1);
+                  const isActive = activeTab === tab;
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
+                        isActive
+                          ? 'bg-blue-500/20 border-2 border-blue-500 text-blue-300 shadow-lg shadow-blue-500/25'
+                          : 'bg-slate-800/50 hover:bg-slate-700 border border-slate-700/50 text-slate-300 hover:text-white'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      {label}
+                    </button>
+                  );
+                })}
             </div>
 
             {/* Tab Content */}
@@ -916,17 +915,6 @@ export default function TournamentView() {
             />
           )}
         </div>
-      )}
-    </div>
-  );
-}
-
-      {/* Status Menu Backdrop */}
-      {statusMenu && (
-        <div
-          className="fixed inset-0 z-30"
-          onClick={() => setStatusMenu(null)}
-        />
       )}
     </div>
   );
