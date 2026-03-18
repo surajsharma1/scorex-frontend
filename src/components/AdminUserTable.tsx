@@ -16,8 +16,9 @@ export default function AdminUserTable() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [selectedRole, setSelectedRole] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+
   const [showModal, setShowModal] = useState(false);
   const [banDuration, setBanDuration] = useState('1day');
   const [banReason, setBanReason] = useState('');
@@ -46,10 +47,18 @@ export default function AdminUserTable() {
     try {
       await adminAPI.updateUserRole(userId, newRole);
       setUsers(users.map(u => u._id === userId ? { ...u, role: newRole } : u));
+      showToast('Role updated successfully', 'success');
     } catch (err) {
       console.error('Failed to update role');
+      showToast('Failed to update role', 'error');
     }
   };
+
+  const showToast = (msg: string, type: 'success' | 'error') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
 
   const filteredUsers = users.filter(u => 
     u.username.toLowerCase().includes(search.toLowerCase()) ||
@@ -166,7 +175,8 @@ export default function AdminUserTable() {
               </tr>
             ) : (
               filteredUsers.map((user) => (
-                <tr key={user._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                <tr key={user._id} className="hover:bg-[var(--bg-hover)] dark:hover:bg-gray-800/50 transition-all group">
+
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-sm">
@@ -182,22 +192,24 @@ export default function AdminUserTable() {
                     <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{user.email}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      user.role === 'admin' ? 'bg-red-100 text-red-800' :
-                      user.role === 'organizer' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold" style={{
+                      background: user.role === 'admin' ? 'rgba(239,68,68,0.15)' : user.role === 'organizer' ? 'rgba(59,130,246,0.15)' : 'var(--bg-elevated)',
+                      color: user.role === 'admin' ? '#ef4444' : user.role === 'organizer' ? '#3b82f6' : 'var(--text-secondary)',
+                      border: `1px solid ${user.role === 'admin' ? 'rgba(239,68,68,0.3)' : user.role === 'organizer' ? 'rgba(59,130,246,0.3)' : 'var(--border)' }`
+                    }}>
                       {user.role}
                     </span>
+
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      user.membershipLevel === 2 ? 'bg-purple-100 text-purple-800' :
-                      user.membershipLevel === 1 ? 'bg-emerald-100 text-emerald-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className="px-3 py-1 rounded-full text-xs font-bold" style={{
+                      background: user.membershipLevel === 2 ? 'rgba(168,85,247,0.15)' : user.membershipLevel === 1 ? 'rgba(34,197,94,0.15)' : 'var(--bg-elevated)',
+                      color: user.membershipLevel === 2 ? '#a855f7' : user.membershipLevel === 1 ? '#22c55e' : 'var(--text-secondary)',
+                      border: `1px solid ${user.membershipLevel === 2 ? 'rgba(168,85,247,0.3)' : user.membershipLevel === 1 ? 'rgba(34,197,94,0.3)' : 'var(--border)' }`
+                    }}>
                       {user.membershipLevel === 2 ? 'Enterprise' : user.membershipLevel === 1 ? 'Premium' : 'Free'}
                     </span>
+
                   </td>
                   <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
                     {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
@@ -205,21 +217,23 @@ export default function AdminUserTable() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <select 
-                        value={selectedRole}
                         onChange={(e) => {
-                          setSelectedRole(e.target.value);
-                          if (e.target.value) {
-                            updateRole(user._id, e.target.value);
+                          const newRole = e.target.value;
+                          if (newRole) {
+                            updateRole(user._id, newRole);
+                            (e.target as HTMLSelectElement).value = ''; // Reset select
                           }
                         }}
-                        className="text-xs px-2 py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        style={{ color: 'var(--text-primary)', borderColor: 'var(--border)' }}
+                        className="text-xs px-3 py-1.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 hover:bg-[var(--bg-hover)] transition-all"
+                        style={{ color: 'var(--text-primary)', background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
                       >
                         <option value="">Change Role</option>
                         {roleOptions.map(role => (
                           <option key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1)}</option>
                         ))}
                       </select>
+
+
                       <button 
                         onClick={() => updateRole(user._id, 'viewer')}
                         className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600"
