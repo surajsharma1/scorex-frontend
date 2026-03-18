@@ -104,7 +104,7 @@ const sections = [
       {/* DEBUG Banner */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500/90 backdrop-blur-sm p-3 flex flex-col sm:flex-row gap-2 items-start sm:items-center text-xs font-mono text-yellow-900">
         <span>🔍 DEBUG MODE ACTIVE</span>
-        <span>Role: {JSON.parse(localStorage.getItem('user') || '{}').role || 'NO USER'}</span>
+        <span>Role: {(() => { try { return JSON.parse(localStorage.getItem('user') || '{}').role || 'NO USER'; } catch { return 'PARSE ERROR'; } })()}</span>
         <span>Loading: {loading ? 'YES' : 'NO'}</span>
         <span>Check Console for API logs!</span>
         <button onClick={() => {
