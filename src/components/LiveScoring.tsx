@@ -427,11 +427,34 @@ export default function LiveScoring() {
   const requiredRuns = innings?.requiredRuns;
   const rrr = innings?.requiredRunRate?.toFixed(2);
 
-  // Current over balls from history - DEFENSIVE AGAINST RangeError
-  const ballsInOver = Math.max(0, Math.floor(Number(innings?.balls || 0) % 6));
+  // --- FULL PROOF OVER LOGIC ---
   const safeHistory = Array.isArray(innings?.ballHistory) ? innings.ballHistory : [];
-  const safeSliceLen = Math.max(0, Math.min(ballsInOver, safeHistory.length));
-  const thisOverBalls = safeHistory.slice(-safeSliceLen);
+  
+  // 1. How many VALID balls have happened in this current incomplete over?
+  const currentBallsMod = Number(innings?.balls || 0) % 6;
+  const validBallsInCurrentOver = (currentBallsMod === 0 && safeHistory.length > 0 && innings?.balls > 0) 
+                                ? 6 
+                                : currentBallsMod;
+
+  // 2. Extract ALL balls (valid + extras) that belong to this over
+  let thisOverBalls: any[] = [];
+  let validCount = 0;
+  
+  for (let i = safeHistory.length - 1; i >= 0; i--) {
+    const b = safeHistory[i];
+    thisOverBalls.unshift(b);
+    
+    // Check if delivery was an extra that DOES NOT count as a valid ball
+    const isExtra = b.extras === 'wide' || b.wide || b.extras === 'nb' || b.noBall || b.extras === 'noBall';
+    if (!isExtra) {
+      validCount++;
+    }
+    
+    // Stop once we've collected the exact number of valid balls for this over
+    if (validCount >= validBallsInCurrentOver) {
+      break;
+    }
+  }
 
   // ── Get batting/bowling team IDs for player selection ─────────────────────
   const currentBattingTeamId = innings?.teamId || tossData?.battingTeamId || match?.team1?._id;
@@ -581,16 +604,31 @@ export default function LiveScoring() {
         </div>
 
         {/* Current over balls */}
-        <div className="flex items-center gap-1.5 mb-3">
-          <span className="text-slate-600 text-xs mr-1">Over:</span>
-          {thisOverBalls.map((b: any, i: number) => (
-            <span key={i} className={`w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold
-              ${b.wicket ? 'bg-red-600 text-white' : b.extras ? 'bg-amber-600/80 text-white' : b.runs === 4 ? 'bg-blue-600 text-white' : b.runs === 6 ? 'bg-purple-600 text-white' : 'bg-slate-700 text-slate-300'}`}>
-              {b.wicket ? 'W' : b.extras === 'wide' ? 'Wd' : b.extras === 'nb' ? 'Nb' : (b.runs || '•')}
+        <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-2 scrollbar-hide">
+          <span className="text-slate-600 text-xs mr-2 font-semibold">Over:</span>
+          
+          {/* Render all played balls (Dynamically stretches beyond 6 if extras exist) */}
+          {thisOverBalls.map((b: any, i: number) => {
+            const isWide = b.extras === 'wide' || b.wide;
+            const isNoBall = b.extras === 'nb' || b.noBall || b.extras === 'noBall';
+            
+            return (
+              <span key={i} className={`min-w-[1.75rem] h-7 px-1.5 flex flex-shrink-0 items-center justify-center rounded-full text-xs font-bold
+                ${b.wicket ? 'bg-red-600 text-white shadow-md' : 
+                  (isWide || isNoBall) ? 'bg-amber-500 text-white shadow-md' : 
+                  b.runs === 4 ? 'bg-blue-600 text-white shadow-md' : 
+                  b.runs === 6 ? 'bg-purple-600 text-white shadow-md' : 
+                  'bg-slate-700 text-slate-200'}`}>
+                {b.wicket ? 'W' : isWide ? 'Wd' : isNoBall ? 'Nb' : (b.runs || '•')}
+              </span>
+            );
+          })}
+          
+          {/* Render empty dots ONLY for the remaining valid balls up to 6 */}
+          {Array(Math.max(0, 6 - validBallsInCurrentOver)).fill(0).map((_, i) => (
+            <span key={`empty-${i}`} className="min-w-[1.75rem] h-7 flex flex-shrink-0 items-center justify-center rounded-full text-xs bg-slate-800/50 border border-slate-700/50 text-slate-600">
+              ·
             </span>
-          ))}
-          {Array(6 - thisOverBalls.length).fill(0).map((_, i) => (
-            <span key={`empty-${i}`} className="w-7 h-7 flex items-center justify-center rounded-full text-xs bg-slate-800/50 text-slate-700">·</span>
           ))}
         </div>
 
