@@ -3,6 +3,8 @@ import { Shield, Zap, BarChart3, Download, Settings, Save, RefreshCw, CheckCircl
 import api, { adminAPI } from '../services/api';
 import AdminUserTable from './AdminUserTable';
 import AdminPaymentsTable from './AdminPaymentsTable';
+import AdminTournamentsTable from './AdminTournamentsTable';
+import AdminLogsTable from './AdminLogsTable';
 
 type Duration = '1day' | '1week' | '1month';
 const DURATIONS: Duration[] = ['1day', '1week', '1month'];
@@ -60,10 +62,13 @@ export default function AdminPanel() {
     { label: 'Revenue (₹)', value: stats.revenue, icon: Download, gradient: 'from-amber-500 to-orange-500', glow: 'rgba(245,158,11,0.2)' },
   ];
 
-  const sections = [
+const sections = [
     { key: 'overview', label: 'Overview', icon: BarChart3 },
     { key: 'pricing', label: 'Membership Pricing', icon: Settings },
     { key: 'users', label: 'User Management', icon: Users },
+    { key: 'tournaments', label: 'Tournaments', icon: Zap },
+    { key: 'payments', label: 'Payments', icon: DollarSign },
+    { key: 'logs', label: 'Logs', icon: FileText },
   ] as const;
 
   return (
@@ -243,8 +248,10 @@ export default function AdminPanel() {
       )}
 
       {/* USER MANAGEMENT */}
-{activeSection === 'users' && <AdminUserTable />}
+      {activeSection === 'users' && <AdminUserTable />}
+      {activeSection === 'tournaments' && <AdminTournamentsTable />}
       {activeSection === 'payments' && <AdminPaymentsTable />}
+      {activeSection === 'logs' && <AdminLogsTable />}
     </div>
   );
 }

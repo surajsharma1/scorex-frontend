@@ -18,6 +18,19 @@ export default function AdminPaymentsTable() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
+  const handleExport = () => {
+    adminAPI.exportPayments().then((response) => {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'payments.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    }).catch(() => alert('Export failed'));
+  };
+
   useEffect(() => {
     loadPayments();
   }, []);
@@ -66,10 +79,17 @@ export default function AdminPaymentsTable() {
               style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
             />
           </div>
+          <button 
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg hover:scale-105"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+      <div className="overflow-x-auto rounded-2xl hover:bg-gray-800/20" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200">
@@ -95,8 +115,9 @@ export default function AdminPaymentsTable() {
               </tr>
             ) : (
               filteredPayments.map((payment, index) => (
-                <tr key={index} className="hover:bg-gray-50">
+  <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
                   <td className="px-6 py-4">
+
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
                         {payment.username.charAt(0).toUpperCase()}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Shield, UserX, Download, Search, Edit3 } from 'lucide-react';
+import { Users, Shield, UserX, Download, Search, Edit3, X } from 'lucide-react';
 import { adminAPI } from '../services/api';
 
 interface User {
@@ -17,6 +17,12 @@ export default function AdminUserTable() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [banDuration, setBanDuration] = useState('1day');
+  const [banReason, setBanReason] = useState('');
+  const [memLevel, setMemLevel] = useState<1 | 2>(1);
+  const [memDuration, setMemDuration] = useState('1week');
 
   useEffect(() => {
     loadUsers();
@@ -49,6 +55,52 @@ export default function AdminUserTable() {
 
   const roleOptions = ['viewer', 'organizer', 'admin'];
 
+  const handleExport = () => {
+    adminAPI.exportUsers().then((response) => {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'users.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    }).catch(() => alert('Export failed'));
+  };
+
+  const handleBan = async () => {
+    try {
+      await adminAPI.banUser(selectedUser!._id, { duration: banDuration, reason: banReason });
+      alert('User banned');
+      setShowModal(false);
+      loadUsers();
+    } catch {
+      alert('Ban failed');
+    }
+  };
+
+  const handleUnban = async () => {
+    try {
+      await adminAPI.unbanUser(selectedUser!._id);
+      alert('User unbanned');
+      setShowModal(false);
+      loadUsers();
+    } catch {
+      alert('Unban failed');
+    }
+  };
+
+  const handleAssignMembership = async () => {
+    try {
+      await adminAPI.assignMembership(selectedUser!._id, { level: memLevel, duration: memDuration });
+      alert('Membership assigned');
+      setShowModal(false);
+      loadUsers();
+    } catch {
+      alert('Assignment failed');
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -74,7 +126,7 @@ export default function AdminUserTable() {
             />
           </div>
           <button 
-            onClick={() => window.open('/admin/export/users', '_blank')}
+            onClick={handleExport}
             className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg hover:scale-105"
           >
             <Download className="w-4 h-4" />
@@ -84,7 +136,7 @@ export default function AdminUserTable() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+      <div className="overflow-x-auto rounded-2xl hover:bg-gray-800/20" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-700">
@@ -111,7 +163,7 @@ export default function AdminUserTable() {
               </tr>
             ) : (
               filteredUsers.map((user) => (
-                <tr key={user._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <tr key={user._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-sm">
@@ -172,15 +224,142 @@ export default function AdminUserTable() {
                       >
                         <UserX className="w-4 h-4" />
                       </button>
+                      <button 
+                        onClick={() => { setSelectedUser(user); setShowModal(true); }}
+                        className="p-1.5 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-700 text-blue-500 hover:text-blue-700"
+                        title="Manage User"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
-                  </tr>
+                </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Manage User Modal */}
+      {showModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>Manage {selectedUser.username}</h3>
+              <button onClick={() => setShowModal(false)} className="p-2 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-800">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <h4 className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Description</h4>
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{selectedUser.fullName || 'No full name'} ({selectedUser.email})</p>
+              </div>
+
+              {/* Ban Section */}
+              <div>
+                <h4 className="font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Ban User</h4>
+                <select 
+                  value={banDuration}
+                  onChange={(e) => setBanDuration(e.target.value)}
+                  className="w-full p-3 border rounded-xl mb-3"
+                  style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+                >
+                  <option value="1day">1 Day</option>
+                  <option value="3day">3 Days</option>
+                  <option value="1week">1 Week</option>
+                  <option value="1month">1 Month</option>
+                  <option value="3month">3 Months</option>
+                  <option value="lifetime">Lifetime</option>
+                </select>
+                <textarea 
+                  placeholder="Reason for ban (optional)"
+                  value={banReason}
+                  onChange={(e) => setBanReason(e.target.value)}
+                  className="w-full p-3 border rounded-xl mb-3 resize-vertical"
+                  rows={3}
+                  style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+                />
+                <button 
+                  onClick={async () => {
+                    try {
+                      await adminAPI.banUser(selectedUser._id, { duration: banDuration, reason: banReason });
+                      alert('User banned');
+                      setShowModal(false);
+                      loadUsers();
+                    } catch {
+                      alert('Ban failed');
+                    }
+                  }}
+                  className="w-full py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-all"
+                >
+                  Ban User
+                </button>
+              </div>
+
+              {/* Unban */}
+              <button 
+                onClick={async () => {
+                  try {
+                    await adminAPI.unbanUser(selectedUser._id);
+                    alert('User unbanned');
+                    setShowModal(false);
+                    loadUsers();
+                  } catch {
+                    alert('Unban failed');
+                  }
+                }}
+                className="w-full py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all"
+              >
+                Unban User
+              </button>
+
+              {/* Membership Assign */}
+              <div>
+                <h4 className="font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Assign Membership</h4>
+                <select 
+                  value={memLevel}
+                  onChange={(e) => setMemLevel(Number(e.target.value) as 1 | 2)}
+                  className="w-full p-3 border rounded-xl mb-3"
+                  style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+                >
+                  <option value={1}>Premium (Level 1)</option>
+                  <option value={2}>Enterprise (Level 2)</option>
+                </select>
+                <select 
+                  value={memDuration}
+                  onChange={(e) => setMemDuration(e.target.value)}
+                  className="w-full p-3 border rounded-xl mb-3"
+                  style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+                >
+                  <option value="1day">1 Day</option>
+                  <option value="1week">1 Week</option>
+                  <option value="1month">1 Month</option>
+                  <option value="1year">1 Year</option>
+                  <option value="lifetime">Lifetime</option>
+                </select>
+                <button 
+                  onClick={async () => {
+                    try {
+                      await adminAPI.assignMembership(selectedUser!._id, { level: memLevel, duration: memDuration });
+                      alert('Membership assigned');
+                      setShowModal(false);
+                      loadUsers();
+                    } catch {
+                      alert('Assignment failed');
+                    }
+                  }}
+                  className="w-full py-3 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 transition-all"
+                >
+                  Assign Membership
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
-

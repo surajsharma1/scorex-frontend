@@ -150,21 +150,27 @@ export default api;
 // ─── Membership API ───────────────────────────────────────────────────────────
 export const membershipAPI = {
   getMembership: () => api.get('/payments/membership'),
-  getPrices: () => api.get('/admin/membership-prices'),
-  setPrices: (prices: any) => api.post('/admin/membership-prices', { prices }),
+  getPrices: () => api.get('/api/v1/admin/membership-prices'),
+  setPrices: (prices: any) => api.post('/api/v1/admin/membership-prices', { prices }),
   purchaseMembership: (level: number, duration: string) => api.post('/memberships/purchase', { level, duration }),
   getMyMembership: () => api.get('/memberships/me'),
 };
 
 // ─── Admin API ────────────────────────────────────────────────────────────────
 export const adminAPI = {
-  getStats:      ()       => api.get('/stats/admin'),
-  getUsers:      (page = 1, limit = 50) => api.get('/admin/users', { params: { page, limit } }),
-  updateUserRole: (id: string, role: string) => api.patch(`/admin/users/${id}/role`, { role }),
-  getPayments:   ()       => api.get('/admin/payments'),
-  getPrices:     ()       => api.get('/admin/membership-prices'),
-  setPrices:     (data: any) => api.post('/admin/membership-prices', data),
-  exportUsers:   ()       => api.get('/admin/export/users', { responseType: 'blob' }),
+  getStats: () => api.get('/api/v1/stats/admin'),
+  getUsers: (page = 1, limit = 50) => api.get('/api/v1/admin/users', { params: { page, limit } }),
+  updateUserRole: (id: string, role: string) => api.patch(`/api/v1/admin/users/${id}/role`, { role }),
+  getPayments: () => api.get('/api/v1/admin/payments'),
+  getPrices: () => api.get('/api/v1/admin/membership-prices'),
+  setPrices: (data: any) => api.post('/api/v1/admin/membership-prices', data),
+  exportUsers: () => api.get('/api/v1/admin/export/users', { responseType: 'blob' }),
+  banUser: (id: string, data: any) => api.post(`/api/v1/admin/users/${id}/ban`, data),
+  unbanUser: (id: string) => api.post(`/api/v1/admin/users/${id}/unban`),
+  assignMembership: (id: string, data: any) => api.patch(`/api/v1/admin/users/${id}/membership`, data),
+  getLogs: () => api.get('/api/v1/admin/logs'),
+  exportPayments: () => api.get('/api/v1/admin/export/payments', { responseType: 'blob' }),
+  exportTournaments: () => api.get('/api/v1/admin/export/tournaments', { responseType: 'blob' }),
 };
 
 
