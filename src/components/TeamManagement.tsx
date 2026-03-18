@@ -79,12 +79,11 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
     'wicket-keeper': 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
   };
 
-  const InputField = ({ ...props }: any) => (
-    <input className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none transition-all"
-      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-      onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
-      onBlur={e => (e.target.style.borderColor = 'var(--border)')}
-      {...props} />
+const InputField = ({ ...props }: any) => (
+    <input 
+      className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/30 focus-visible:border-[var(--accent)] transition-all border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+      {...props} 
+    />
   );
 
   return (
