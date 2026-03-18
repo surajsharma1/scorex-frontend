@@ -351,9 +351,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
           <div className="bg-slate-800/50 p-6 rounded-xl shadow-sm border border-slate-700/50 backdrop-blur-xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-slate-200">Live Matches ({matches.length})</h3>
-              <button 
-                onClick={refreshMatches}
-                disabled={matchesLoading}
+              <button
                 className="flex items-center gap-1 px-3 py-2 bg-blue-500/80 hover:bg-blue-600 disabled:bg-blue-400/60 text-slate-100 text-sm font-semibold rounded-lg shadow-sm transition-all hover:shadow-md flex-shrink-0 ml-2 backdrop-blur-sm"
                 title="Refresh after creating new match"
               >
