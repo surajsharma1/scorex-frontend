@@ -1,4 +1,5 @@
 import { io, Socket, ManagerOptions, SocketOptions } from 'socket.io-client';
+import { getApiBaseUrl } from './env';
 import { getSocketUrl } from './env';
 
 // Define typed events
@@ -80,27 +81,11 @@ const socketOptions: Partial<ManagerOptions & SocketOptions> = {
 
 // Create socket instance
 // Connection status hook
-export const useSocketStatus = () => {
-  const [status, setStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
-  
-  useEffect(() => {
-    const onConnect = () => setStatus('connected');
-    const onDisconnect = () => setStatus('disconnected');
-    const onConnectError = () => setStatus('error');
-    
-    socket.on('connect', onConnect);
-    socket.on('disconnect', onDisconnect);
-    (socket.io as any).on('connect_error', onConnectError);
-    
-    return () => {
-      socket.off('connect', onConnect);
-      socket.off('disconnect', onDisconnect);
-      (socket.io as any).off('connect_error', onConnectError);
-    };
-  }, []);
-  
-  return status;
-};
+// Socket status tracker (no React hooks - service module)
+let connectionStatus = 'disconnected';
+socket.on('connect', () => connectionStatus = 'connected');
+socket.on('disconnect', () => connectionStatus = 'disconnected');
+export const getSocketStatus = () => connectionStatus;
 
 // Health check before connect
 const checkServerHealth = async (): Promise<boolean> => {
