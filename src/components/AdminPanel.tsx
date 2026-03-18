@@ -9,8 +9,8 @@ const DURATIONS: Duration[] = ['1day', '1week', '1month'];
 const DURATION_LABELS: Record<Duration, string> = { '1day': '1 Day', '1week': '1 Week', '1month': '1 Month' };
 
 const DEFAULT_PRICES = {
-  1: { '1day': 49, '1week': 249, '1month': 499 },
-  2: { '1day': 149, '1week': 749, '1month': 1499 },
+  1: { '1day': 149, '1week': 499, '1month': 1499 },
+  2: { '1day': 249, '1week': 999, '1month': 2499 },
 };
 
 export default function AdminPanel() {
@@ -23,13 +23,23 @@ export default function AdminPanel() {
 
   useEffect(() => {
     api.get('/stats/admin').then(res => { setStats(res.data); }).catch(() => {}).finally(() => setLoading(false));
-    api.get('/admin/membership-prices').then(res => { if (res.data?.prices) setPrices(res.data.prices); }).catch(() => {});
+    api.get('/admin/membership-prices').then(res => { 
+      if (res.data?.data) {
+        const planMap = {};
+        res.data.data.forEach((plan: any) => {
+          planMap[plan.level] = plan;
+        });
+        setPrices(planMap as any);
+      }
+    }).catch(() => {});
+
   }, []);
 
   const savePrices = async () => {
     setSavingPrices(true);
     try {
-      await api.post('/admin/membership-prices', { prices });
+      await api.post('/admin/membership-prices', { plans: prices });
+
       setPriceToast('Prices saved successfully!');
       setTimeout(() => setPriceToast(''), 3000);
     } catch {

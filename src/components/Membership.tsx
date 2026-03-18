@@ -20,8 +20,8 @@ const DURATION_MS: Record<Duration, number> = {
 
 // Default prices — overridden by admin settings fetched from backend
 const DEFAULT_PRICES: Record<number, Record<Duration, number>> = {
-  1: { '1day': 49,  '1week': 249,  '1month': 499  },
-  2: { '1day': 149, '1week': 749,  '1month': 1499 },
+  1: { '1day': 149,  '1week': 499,  '1month': 1499  },
+  2: { '1day': 249, '1week': 999,  '1month': 2499 },
 };
 
 function formatTimeLeft(expiryISO: string): string {

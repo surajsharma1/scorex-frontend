@@ -27,14 +27,14 @@ export default function Payment({ onClose, onSuccess }: PaymentProps) {
   // Pricing configuration
   const pricing = {
     lv1: {
-      '1-day': 49,
-      '1-week': 199,
-      '1-month': 399
+      '1-day': 149,
+      '1-week': 499,
+      '1-month': 1499
     },
     lv2: {
-      '1-day': 99,
-      '1-week': 399,
-      '1-month': 799
+      '1-day': 249,
+      '1-week': 999,
+      '1-month': 2499
     }
   };
 
