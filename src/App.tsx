@@ -75,17 +75,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 // ─── Admin Route ──────────────────────────────────────────────────────────────
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  useEffect(() => {
-    // Force light theme for admin panel to fix black screen issue
-    document.documentElement.classList.add('light');
-    return () => {
-      // Restore previous theme state on unmount
-      const saved = localStorage.getItem('theme');
-      if (saved !== 'light') {
-        document.documentElement.classList.remove('light');
-      }
-    };
-  }, []);
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;

@@ -24,7 +24,7 @@ export default function AdminPanel() {
   const [activeSection, setActiveSection] = useState<'overview' | 'pricing' | 'users' | 'payments' | 'tournaments' | 'overlays' | 'logs'>('overview');
 
   useEffect(() => {
-    api.get('/stats/admin').then(res => { setStats(res.data); }).catch(() => {}).finally(() => setLoading(false));
+    api.get('/stats/admin').then(res => { setStats(res.data); }).catch((err) => console.error('Admin stats API failed:', err)).finally(() => setLoading(false));
     api.get('/admin/membership-prices').then(res => { 
       if (res.data?.data) {
         const planMap = {};
@@ -33,7 +33,7 @@ export default function AdminPanel() {
         });
         setPrices(planMap as any);
       }
-    }).catch(() => {});
+    }).catch((err) => console.error('Admin prices API failed:', err));
 
   }, []);
 
