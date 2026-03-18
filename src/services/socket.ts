@@ -83,8 +83,6 @@ const socketOptions: Partial<ManagerOptions & SocketOptions> = {
 // Connection status hook
 // Socket status tracker (no React hooks - service module)
 let connectionStatus = 'disconnected';
-socket.on('connect', () => connectionStatus = 'connected');
-socket.on('disconnect', () => connectionStatus = 'disconnected');
 export const getSocketStatus = () => connectionStatus;
 
 // Health check before connect
@@ -116,7 +114,7 @@ const initializeConnection = async () => {
 initializeConnection();
 
 // Export socket
-export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SOCKET_URL, socketOptions);
+export const socket = io(SOCKET_URL, socketOptions) as Socket<ServerToClientEvents, ClientToServerEvents>;
 
 // ==========================================
 // CONNECTION EVENT HANDLERS
