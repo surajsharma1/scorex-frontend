@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { tournamentAPI, teamAPI } from '../services/api';
 import { Team } from './types';
 import { Calendar, Trophy, Users, CheckCircle, Lock } from 'lucide-react';
-import Membership from './Membership';
 
 export default function TournamentForm() {
   const [formData, setFormData] = useState({
@@ -17,58 +16,21 @@ export default function TournamentForm() {
   const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPayment, setShowPayment] = useState(false);
-  const [membershipStatus, setMembershipStatus] = useState<'free' | 'basic' | 'premium'>('free');
   const navigate = useNavigate();
-
-  // Check membership status on component mount
-  useEffect(() => {
-    const checkMembership = () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          const membership = payload.membership || 'free';
-          
-          // Check if membership has expired
-          if (payload.membershipExpiresAt) {
-            const expiryDate = new Date(payload.membershipExpiresAt);
-            if (expiryDate < new Date()) {
-              // Membership has expired
-              setMembershipStatus('free');
-              return;
-            }
-          }
-          
-          setMembershipStatus(membership as 'free' | 'basic' | 'premium');
-        } catch (error) {
-          console.error('Error parsing token:', error);
-          setMembershipStatus('free');
-        }
-      } else {
-        setMembershipStatus('free');
-      }
-    };
-    
-    checkMembership();
-  }, []);
 
   useEffect(() => {
     const fetchTeams = async () => {
       try {
         const res = await teamAPI.getTeams();
-        // Handle both array and object response formats
-        const teams = Array.isArray(res.data) ? res.data : res.data.teams || [];
-        setAvailableTeams(teams);
-      } catch (error) {
-        console.error("Failed to load teams:", error);
-        setAvailableTeams([]);
+        setAvailableTeams(res.data?.data || res.data?.teams || res.data || []);
+      } catch (err) {
+        console.error("Failed to load teams", err);
       }
     };
     fetchTeams();
   }, []);
 
-  const handleTeamToggle = (teamId: string) => {
+  const toggleTeam = (teamId: string) => {
     setFormData(prev => ({
       ...prev,
       selectedTeams: prev.selectedTeams.includes(teamId)
@@ -81,200 +43,124 @@ export default function TournamentForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
     try {
-      // Map frontend fields to backend API expected fields
-      // Backend expects lowercase: locationType ('indoor', 'outdoor', 'both')
-      // type ('round_robin', 'knockout', 'double_elimination', 'league', 'group_stage')
-      const payload = {
-        name: formData.name,
-        description: formData.description,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        organizer: 'Local',
-        location: 'Stadium',
-        // Don't send locationType and type - let backend use defaults
-        teams: formData.selectedTeams
-      };
-      
-      console.log('Creating tournament with payload:', payload);
-      console.log('Full payload details:', JSON.stringify(payload, null, 2));
-      
-      const res = await tournamentAPI.createTournament(payload);
-      console.log('Tournament created successfully:', res.data);
-      
-      // Navigate to tournaments list
+      await tournamentAPI.createTournament(formData);
       navigate('/tournaments');
     } catch (err: any) {
-      console.error('Failed to create tournament:', err);
-      console.error('Error response:', err.response?.data);
-      
-      // Show more detailed error message
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else if (err.response?.data?.errors) {
-        // Handle Zod validation errors array
-        const errorMessages = err.response.data.errors.map((e: any) => `${e.field}: ${e.message}`).join(', ');
-        setError(errorMessages);
-      } else if (err.message) {
-        setError(err.message);
-      } else {
-        setError('Failed to create tournament. Please try again.');
-      }
+      setError(err.response?.data?.message || 'Failed to create tournament');
     } finally {
       setLoading(false);
     }
   };
 
-  // Show error alert
-  useEffect(() => {
-    if (error) {
-      alert(error);
-      setError(null);
-    }
-  }, [error]);
+  const SXInput = ({ className = '', ...props }: any) => (
+    <input className={`w-full px-4 py-3 rounded-xl text-sm focus:outline-none transition-all ${className}`}
+      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+      onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
+      onBlur={e => (e.target.style.borderColor = 'var(--border)')}
+      {...props} />
+  );
 
-  // Show payment modal if user needs to upgrade
-  if (showPayment) {
-    return <Membership />;
-  }
-
-  // Check if user has premium membership - if not, prompt for upgrade
-  const requiresPremium = membershipStatus === 'free';
-
-  const handleUpgradeClick = () => {
-    setShowPayment(true);
-  };
-
-  // Has access - show form
   return (
-    <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="max-w-full sm:max-w-2xl lg:max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+    <div className="p-6 max-w-4xl mx-auto relative min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      {/* Background Orb */}
+      <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.05) 0%, transparent 70%)' }} />
 
-        <div className="bg-gradient-to-r from-green-600 to-emerald-700 p-4 sm:p-6 lg:p-8 text-white">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 sm:gap-0">
-            <div>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2">
-                <Trophy className="w-5 sm:w-6 h-5 sm:h-6" /> Create Tournament
-              </h2>
-
-              <p className="text-green-100 opacity-90">Setup a new league or series</p>
-            </div>
-            {requiresPremium && (
-              <button
-                onClick={handleUpgradeClick}
-                className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors shadow-md"
-              >
-                <Lock className="w-4 h-4" />
-                Upgrade to Premium
-              </button>
-            )}
-            {!requiresPremium && membershipStatus === 'basic' && (
-              <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                Basic Plan
-              </span>
-            )}
-            {!requiresPremium && membershipStatus === 'premium' && (
-              <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                Premium Plan
-              </span>
-            )}
-          </div>
+      <div className="mb-8 relative z-10">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-green-400 to-emerald-600" />
+          <h1 className="text-3xl font-black flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <Trophy className="w-8 h-8 text-green-400" /> Create Tournament
+          </h1>
         </div>
+        <p className="ml-5 text-sm" style={{ color: 'var(--text-muted)' }}>Set up a new cricket tournament</p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 lg:p-8 space-y-6">
-          <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tournament Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              placeholder="Ex: Premier League 2024"
-              required
-            />
+      <div className="rounded-2xl p-6 md:p-8 relative z-10" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+        {error && (
+          <div className="mb-6 p-4 rounded-xl text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
+            {error}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-                <input
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  className="w-full pl-10 p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  required
-                />
+              <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>Tournament Name</label>
+              <SXInput required value={formData.name} onChange={(e: any) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Summer Premier League 2026" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>Description</label>
+              <textarea 
+                value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none resize-vertical min-h-[100px]"
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                placeholder="Tournament details, rules, and prizes..."
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>Start Date</label>
+                <SXInput type="date" required value={formData.startDate} onChange={(e: any) => setFormData({...formData, startDate: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>End Date</label>
+                <SXInput type="date" required value={formData.endDate} onChange={(e: any) => setFormData({...formData, endDate: e.target.value})} />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date (Optional)</label>
-              <input
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Format</label>
-              <select
-                value={formData.format}
-                onChange={(e) => setFormData({ ...formData, format: e.target.value })}
-                className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              >
-                <option value="T20">T20</option>
-                <option value="ODI">ODI</option>
+              <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>Match Format</label>
+              <select 
+                value={formData.format} onChange={e => setFormData({...formData, format: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+                <option value="T20">T20 (20 Overs)</option>
+                <option value="ODI">ODI (50 Overs)</option>
                 <option value="Test">Test Match</option>
+                <option value="T10">T10 (10 Overs)</option>
+                <option value="Custom">Custom Format</option>
               </select>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex justify-between">
-              <span>Select Teams</span>
-              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{formData.selectedTeams.length} Selected</span>
+          <div className="pt-6" style={{ borderTop: '1px solid var(--border)' }}>
+            <label className="flex items-center gap-2 text-sm font-bold mb-4" style={{ color: 'var(--text-secondary)' }}>
+              <Users className="w-5 h-5 text-green-400" /> Select Participating Teams
             </label>
+            
             {availableTeams.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-48 sm:max-h-56 lg:max-h-60 overflow-y-auto border p-3 sm:p-4 rounded-lg dark:border-gray-600">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                 {availableTeams.map(team => (
-                  <div 
-                    key={team._id}
-                    onClick={() => handleTeamToggle(team._id)}
-                    className={`p-2 sm:p-3 rounded-lg cursor-pointer border transition-all flex items-center justify-between ${
-                      formData.selectedTeams.includes(team._id)
-                        ? 'bg-green-50 border-green-500 dark:bg-green-900/30'
-                        : 'bg-gray-50 border-gray-200 dark:bg-gray-700 dark:border-gray-600'
-                    }`}
-                  >
-                    <span className="font-medium dark:text-white text-sm truncate">{team.name}</span>
-                    {formData.selectedTeams.includes(team._id) && <CheckCircle className="w-4 h-4 text-green-600" />}
+                  <div key={team._id} onClick={() => toggleTeam(team._id)}
+                    className="cursor-pointer flex items-center justify-between p-3 rounded-xl border transition-all hover:-translate-y-0.5"
+                    style={formData.selectedTeams.includes(team._id) 
+                      ? { background: 'rgba(34,197,94,0.1)', borderColor: '#22c55e', color: 'var(--text-primary)' }
+                      : { background: 'var(--bg-elevated)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
+                    <span className="font-bold text-sm truncate">{team.name}</span>
+                    {formData.selectedTeams.includes(team._id) && <CheckCircle className="w-4 h-4 text-green-500" />}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="p-4 text-center text-gray-500 dark:text-gray-400 border rounded-lg">
-                No teams available. You can create a tournament without teams.
+              <div className="p-4 text-center rounded-xl text-sm" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                No teams available. You can create a tournament now and add teams later.
               </div>
             )}
           </div>
 
-          <div className="pt-4 border-t dark:border-gray-700 flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4">
-             <button
-               type="button"
-               onClick={() => navigate('/tournaments')}
-               className="px-4 sm:px-6 py-2.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 w-full sm:w-auto"
-             >
+          <div className="pt-6 flex flex-col sm:flex-row justify-end gap-3" style={{ borderTop: '1px solid var(--border)' }}>
+             <button type="button" onClick={() => navigate('/tournaments')}
+               className="px-6 py-3 rounded-xl font-bold text-sm transition-all"
+               style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>
                Cancel
              </button>
-             <button 
-               type="submit" 
-               disabled={loading}
-               className="px-4 sm:px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all shadow-md disabled:opacity-50 w-full sm:w-auto"
-             >
+             <button type="submit" disabled={loading}
+               className="px-8 py-3 rounded-xl font-bold text-sm transition-all shadow-lg hover:scale-105 disabled:opacity-50"
+               style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 20px rgba(34,197,94,0.3)' }}>
                {loading ? 'Creating...' : 'Create Tournament'}
              </button>
           </div>

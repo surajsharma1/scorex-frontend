@@ -60,11 +60,11 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="rounded-2xl p-6 w-full max-w-md relative" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-black text-white">New Tournament</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white">
+          <h2 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>New Tournament</h2>
+          <button onClick={onClose} className="transition-colors hover:text-red-400" style={{ color: 'var(--text-muted)' }}>
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -75,57 +75,44 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
         )}
         <form onSubmit={submit} className="space-y-4">
           <div>
-            <label className="text-slate-400 text-xs font-semibold mb-1 block">Name</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-              placeholder="e.g. IPL Season 1"
-              className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-            />
+            <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Name</label>
+            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="e.g. IPL Season 1"
+              className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+              onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
           </div>
           <div>
-            <label className="text-slate-400 text-xs font-semibold mb-1 block">Venue</label>
-            <input
-              type="text"
-              value={form.venue}
-              onChange={(e) => setForm({ ...form, venue: e.target.value })}
-              required
-              placeholder="e.g. Wankhede Stadium"
-              className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-            />
+            <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Venue</label>
+            <input type="text" value={form.venue} onChange={(e) => setForm({ ...form, venue: e.target.value })} required placeholder="e.g. Wankhede Stadium"
+              className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+              onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
           </div>
           <div>
-            <label className="text-slate-400 text-xs font-semibold mb-1 block">Start Date</label>
-            <input
-              type="date"
-              value={form.startDate}
-              onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-              required
-              className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-            />
+            <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Start Date</label>
+            <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required
+              className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+              onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-slate-400 text-xs font-semibold mb-1 block">Type</label>
-              <select
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value as CreateTournamentForm['type'] })}
-                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-              >
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Type</label>
+              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as CreateTournamentForm['type'] })}
+                className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')}>
                 <option value="round_robin">Round Robin</option>
                 <option value="knockout">Knockout</option>
                 <option value="league">League</option>
               </select>
             </div>
             <div>
-              <label className="text-slate-400 text-xs font-semibold mb-1 block">Format</label>
-              <select
-                value={form.format}
-                onChange={(e) => setForm({ ...form, format: e.target.value })}
-                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-              >
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Format</label>
+              <select value={form.format} onChange={(e) => setForm({ ...form, format: e.target.value })}
+                className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')}>
                 <option value="T10">T10</option>
                 <option value="T20">T20</option>
                 <option value="ODI">ODI</option>
@@ -134,30 +121,22 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
             </div>
           </div>
           <div>
-            <label className="text-slate-400 text-xs font-semibold mb-1 block">Prize Pool (₹)</label>
-            <input
-              type="number"
-              value={form.prizePool}
-              onChange={(e) => setForm({ ...form, prizePool: e.target.value })}
-              placeholder="0"
-              className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-            />
+            <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Prize Pool (₹)</label>
+            <input type="number" value={form.prizePool} onChange={(e) => setForm({ ...form, prizePool: e.target.value })} placeholder="0"
+              className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+              onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
           </div>
           <div>
-            <label className="text-slate-400 text-xs font-semibold mb-1 block">Rules (optional)</label>
-            <textarea
-              value={form.rules}
-              onChange={(e) => setForm({ ...form, rules: e.target.value })}
-              rows={2}
-              placeholder="Tournament rules..."
-              className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 resize-none"
-            />
+            <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Rules (optional)</label>
+            <textarea value={form.rules} onChange={(e) => setForm({ ...form, rules: e.target.value })} rows={2} placeholder="Tournament rules..."
+              className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none resize-none transition-all"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+              onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold rounded-xl transition-all"
-          >
+          <button type="submit" disabled={loading}
+            className="w-full py-3 disabled:opacity-40 font-bold rounded-xl transition-all shadow-lg hover:scale-105 mt-4"
+            style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 16px rgba(34,197,94,0.3)' }}>
             {loading ? 'Creating...' : 'Create Tournament'}
           </button>
         </form>
@@ -167,17 +146,7 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
 }
 
 // ─── CREATE MATCH MODAL ───────────────────────────────────────────────────────
-function CreateMatchModal({
-  tournamentId,
-  teams,
-  onClose,
-  onCreated,
-}: {
-  tournamentId: string;
-  teams: Team[];
-  onClose: () => void;
-  onCreated: () => void;
-}) {
+function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournamentId: string; teams: Team[]; onClose: () => void; onCreated: () => void; }) {
   const [form, setForm] = useState<CreateMatchForm>({
     team1: '', team2: '', date: '', venue: '', format: 'T20', name: ''
   });
@@ -208,11 +177,11 @@ function CreateMatchModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="rounded-2xl p-6 w-full max-w-md relative" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-black text-white">Schedule Match</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-white">
+          <h2 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>Schedule Match</h2>
+          <button onClick={onClose} className="transition-colors hover:text-red-400" style={{ color: 'var(--text-muted)' }}>
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -225,43 +194,33 @@ function CreateMatchModal({
           <div className="grid grid-cols-2 gap-3">
             {(['team1', 'team2'] as const).map((field, i) => (
               <div key={field}>
-                <label className="text-slate-400 text-xs font-semibold mb-1 block">
-                  Team {i + 1}
-                </label>
-                <select
-                  value={form[field]}
-                  onChange={(e) => setForm({ ...form, [field]: e.target.value })}
-                  required
-                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-                >
+                <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Team {i + 1}</label>
+                <select value={form[field]} onChange={(e) => setForm({ ...form, [field]: e.target.value })} required
+                  className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                  onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')}>
                   <option value="">Select Team</option>
                   {teams.map((tm) => (
-                    <option key={tm._id} value={tm._id}>
-                      {tm.name}
-                    </option>
+                    <option key={tm._id} value={tm._id}>{tm.name}</option>
                   ))}
                 </select>
               </div>
             ))}
           </div>
           <div>
-            <label className="text-slate-400 text-xs font-semibold mb-1 block">Date & Time</label>
-            <input
-              type="datetime-local"
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-              required
-              className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-            />
+            <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Date & Time</label>
+            <input type="datetime-local" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required
+              className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+              onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-slate-400 text-xs font-semibold mb-1 block">Format</label>
-              <select
-                value={form.format}
-                onChange={(e) => setForm({ ...form, format: e.target.value })}
-                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-              >
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Format</label>
+              <select value={form.format} onChange={(e) => setForm({ ...form, format: e.target.value })}
+                className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')}>
                 <option value="T10">T10</option>
                 <option value="T20">T20</option>
                 <option value="ODI">ODI</option>
@@ -269,21 +228,16 @@ function CreateMatchModal({
               </select>
             </div>
             <div>
-              <label className="text-slate-400 text-xs font-semibold mb-1 block">Venue</label>
-              <input
-                type="text"
-                value={form.venue}
-                onChange={(e) => setForm({ ...form, venue: e.target.value })}
-                placeholder="e.g. Home Ground"
-                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-              />
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Venue</label>
+              <input type="text" value={form.venue} onChange={(e) => setForm({ ...form, venue: e.target.value })} placeholder="e.g. Home Ground"
+                className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
             </div>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold rounded-xl transition-all"
-          >
+          <button type="submit" disabled={loading}
+            className="w-full py-3 disabled:opacity-40 font-bold rounded-xl transition-all shadow-lg hover:scale-105 mt-4"
+            style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 16px rgba(34,197,94,0.3)' }}>
             {loading ? 'Scheduling...' : 'Schedule Match'}
           </button>
         </form>
@@ -295,17 +249,17 @@ function CreateMatchModal({
 // ─── POINTS TABLE ─────────────────────────────────────────────────────────────
 function PointsTable({ tournamentId }: { tournamentId: string }) {
   interface PointsTableRow {
-  _id: string;
-  name: string;
-  shortName: string;
-  played: number;
-  won: number;
-  lost: number;
-  tied: number;
-  nr: number;
-  nrr: number;
-  points: number;
-}
+    _id: string;
+    name: string;
+    shortName: string;
+    played: number;
+    won: number;
+    lost: number;
+    tied: number;
+    nr: number;
+    nrr: number;
+    points: number;
+  }
 
   const [table, setTable] = useState<PointsTableRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -314,10 +268,7 @@ function PointsTable({ tournamentId }: { tournamentId: string }) {
     const fetchTable = async () => {
       try {
         const r = await tournamentAPI.getPointsTable?.(tournamentId) ?? [];
-        // Safe handling: array direct or AxiosResponse.data.data
-        const tableData = Array.isArray(r) 
-          ? r 
-          : (r?.data?.data && Array.isArray(r.data.data) ? r.data.data : []);
+        const tableData = Array.isArray(r) ? r : (r?.data?.data && Array.isArray(r.data.data) ? r.data.data : []);
         setTable(tableData);
       } catch {
         setTable([]);
@@ -331,68 +282,57 @@ function PointsTable({ tournamentId }: { tournamentId: string }) {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)' }} />
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-700/50 bg-slate-900/50 backdrop-blur-xl">
+    <div className="overflow-x-auto rounded-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-700">
-            <th className="text-left py-4 px-4 font-semibold text-slate-300">#</th>
-            <th className="text-left py-4 px-4 font-semibold text-slate-300">Team</th>
-            <th className="text-center py-4 px-2 font-semibold text-slate-300">P</th>
-            <th className="text-center py-4 px-2 font-semibold text-slate-300">W</th>
-            <th className="text-center py-4 px-2 font-semibold text-slate-300">L</th>
-            <th className="text-center py-4 px-2 font-semibold text-slate-300">T/NR</th>
-            <th className="text-center py-4 px-2 font-semibold text-slate-300">NRR</th>
-            <th className="text-center py-4 px-2 font-bold text-blue-400">Pts</th>
+          <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)' }}>
+            <th className="text-left py-4 px-4 font-semibold" style={{ color: 'var(--text-muted)' }}>#</th>
+            <th className="text-left py-4 px-4 font-semibold" style={{ color: 'var(--text-muted)' }}>Team</th>
+            <th className="text-center py-4 px-2 font-semibold" style={{ color: 'var(--text-muted)' }}>P</th>
+            <th className="text-center py-4 px-2 font-semibold" style={{ color: 'var(--text-muted)' }}>W</th>
+            <th className="text-center py-4 px-2 font-semibold" style={{ color: 'var(--text-muted)' }}>L</th>
+            <th className="text-center py-4 px-2 font-semibold" style={{ color: 'var(--text-muted)' }}>T/NR</th>
+            <th className="text-center py-4 px-2 font-semibold" style={{ color: 'var(--text-muted)' }}>NRR</th>
+            <th className="text-center py-4 px-2 font-black text-green-400">Pts</th>
           </tr>
         </thead>
         <tbody>
           {table.map((row: any, idx: number) => (
-            <tr
-              key={row._id}
-              className={`border-b border-slate-800 hover:bg-slate-800/50 transition-colors ${
-                idx === 0 ? 'bg-yellow-500/10' : ''
-              }`}
-            >
-              <td className="py-4 px-4 text-slate-400 font-semibold">{idx + 1}</td>
+            <tr key={row._id} className="transition-colors hover:bg-white/5" 
+                style={{ borderBottom: '1px solid var(--border)', background: idx === 0 ? 'rgba(34,197,94,0.05)' : 'transparent' }}>
+              <td className="py-4 px-4 font-semibold" style={{ color: 'var(--text-muted)' }}>{idx + 1}</td>
               <td className="py-4 px-4">
                 <div className="flex items-center gap-3">
-                  {idx === 0 && <span className="text-yellow-400">👑</span>}
+                  {idx === 0 && <span className="text-amber-400">👑</span>}
                   <div>
-                    <div className="text-white font-semibold">{row.name}</div>
-                    <div className="text-slate-500 text-xs">{row.shortName}</div>
+                    <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>{row.name}</div>
+                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{row.shortName}</div>
                   </div>
                 </div>
               </td>
-              <td className="py-4 px-2 text-center text-slate-400">{row.played}</td>
-              <td className="py-4 px-2 text-center text-emerald-400 font-semibold">{row.won}</td>
+              <td className="py-4 px-2 text-center" style={{ color: 'var(--text-secondary)' }}>{row.played}</td>
+              <td className="py-4 px-2 text-center text-green-400 font-semibold">{row.won}</td>
               <td className="py-4 px-2 text-center text-red-400">{row.lost}</td>
-              <td className="py-4 px-2 text-center text-slate-400">
+              <td className="py-4 px-2 text-center" style={{ color: 'var(--text-muted)' }}>
                 {(row.tied ?? 0) + (row.nr ?? 0)}
               </td>
-              <td
-                className={`py-4 px-2 text-center font-mono text-xs ${
-                  row.nrr >= 0 ? 'text-emerald-400' : 'text-red-400'
-                }`}
-              >
+              <td className={`py-4 px-2 text-center font-mono text-xs font-bold ${row.nrr >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {((row.nrr ?? 0) >= 0 ? '+' : '') + ((row.nrr ?? 0)?.toFixed(2) ?? '0.00')}
               </td>
-              <td className="py-4 px-2 text-center text-blue-400 font-black text-lg">
+              <td className="py-4 px-2 text-center font-black text-lg text-green-400">
                 {row.points}
               </td>
             </tr>
           ))}
           {table.length === 0 && (
             <tr>
-              <td
-                colSpan={8}
-                className="py-12 text-center text-slate-500"
-              >
+              <td colSpan={8} className="py-12 text-center" style={{ color: 'var(--text-muted)' }}>
                 No matches completed yet
               </td>
             </tr>
@@ -411,18 +351,15 @@ export default function TournamentView() {
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selected, setSelected] = useState<Tournament | null>(null);
-  const [activeTab, setActiveTab] = useState<
-    'overview' | 'matches' | 'teams' | 'overlays' | 'leaderboard'
-  >('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'matches' | 'teams' | 'overlays' | 'leaderboard'>('overview');
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateTournament, setShowCreateTournament] = useState(false);
   const [showCreateMatch, setShowCreateMatch] = useState(false);
 
-const [statusMenu, setStatusMenu] = useState<string | null>(null);
-const [showTournamentSelector, setShowTournamentSelector] = useState(false);
-
+  const [statusMenu, setStatusMenu] = useState<string | null>(null);
+  const [showTournamentSelector, setShowTournamentSelector] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
 
   // Load user's tournaments
@@ -480,9 +417,7 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
   const handleStatusChange = async (matchId: string, status: string) => {
     try {
       await matchAPI.updateStatus(matchId, status);
-      setMatches((prev) =>
-        prev.map((m) => (m._id === matchId ? { ...m, status: status as Match['status'] } : m))
-      );
+      setMatches((prev) => prev.map((m) => (m._id === matchId ? { ...m, status: status as Match['status'] } : m)));
       setStatusMenu(null);
     } catch (e) {
       console.error(e);
@@ -490,12 +425,7 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
   };
 
   const handleDeleteTournament = async (id: string) => {
-    if (
-      !confirm(
-        'Delete this tournament? This cannot be undone and will delete all matches.'
-      )
-    )
-      return;
+    if (!confirm('Delete this tournament? This cannot be undone and will delete all matches.')) return;
     try {
       await tournamentAPI.deleteTournament(id);
       setTournaments((prev) => prev.filter((t) => t._id !== id));
@@ -507,83 +437,64 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
 
   if (loading && tournaments.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+        <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)' }} />
       </div>
     );
   }
 
-  const tabs = [
-    'overview',
-    'matches',
-    'teams',
-    'overlays',
-    'leaderboard',
-  ] as const;
+  const tabs = ['overview', 'matches', 'teams', 'overlays', 'leaderboard'] as const;
 
   return (
-    <div className="min-h-screen text-white" style={{ background: 'hsl(var(--bg-primary, 240 10% 3.9%))' }}>
+    <div className="min-h-screen relative overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
+      {/* Background Orb */}
+      <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none z-0"
+        style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.05) 0%, transparent 70%)' }} />
 
-      {/* Tournament Selector Overlay */}
-      {/* FIX 1: Wrapped two sibling divs in a React Fragment <></> */}
+      {/* Tournament Selector Overlay Slide-Out */}
       {showTournamentSelector && (
         <>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowTournamentSelector(false)} />
-          <div className="fixed inset-y-0 right-0 z-50 w-full md:w-96 bg-slate-900 border-l border-slate-700 shadow-2xl transform transition-all">
-            <div className="p-6 border-b border-slate-800 flex items-center justify-between">
-              <h2 className="text-xl font-bold">Your Tournaments</h2>
+          <div className="fixed inset-y-0 right-0 z-50 w-full md:w-96 shadow-2xl transform transition-all" style={{ background: 'var(--bg-card)', borderLeft: '1px solid var(--border)' }}>
+            <div className="p-6 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Your Tournaments</h2>
               <div className="flex gap-2">
-                <button
-                  onClick={() => setShowCreateTournament(true)}
-                  className="flex items-center gap-2 p-2 rounded-xl bg-gradient-to-r from-emerald-500/20 to-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-500/40 text-emerald-300 transition-all text-sm font-semibold"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create
+                <button onClick={() => setShowCreateTournament(true)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all hover:scale-105"
+                  style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}>
+                  <Plus className="w-4 h-4" /> Create
                 </button>
-                <button
-                  onClick={() => setShowTournamentSelector(false)}
-                  className="p-2 rounded-xl hover:bg-slate-800"
-                >
+                <button onClick={() => setShowTournamentSelector(false)} className="p-2 rounded-xl transition-colors hover:bg-white/5" style={{ color: 'var(--text-muted)' }}>
                   <X className="w-6 h-6" />
                 </button>
               </div>
             </div>
             <div className="p-4 overflow-y-auto max-h-[calc(100vh-140px)] space-y-3">
               {tournaments.map((t) => (
-                <button
-                  key={t._id}
-                  onClick={() => {
-                    setSelected(t);
-                    setShowTournamentSelector(false);
-                  }}
-                  className={`w-full p-4 rounded-xl transition-all flex items-center gap-4 ${
-                    selected?._id === t._id
-                      ? 'bg-blue-500/20 border-2 border-blue-500 shadow-lg shadow-blue-500/25'
-                      : 'hover:bg-slate-800 border border-slate-700'
-                  }`}
-                >
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Trophy className="w-6 h-6 text-white" />
+                <button key={t._id} onClick={() => { setSelected(t); setShowTournamentSelector(false); }}
+                  className="w-full p-4 rounded-xl transition-all flex items-center gap-4 text-left"
+                  style={selected?._id === t._id 
+                    ? { background: 'rgba(34,197,94,0.1)', border: '1px solid #22c55e', boxShadow: '0 0 15px rgba(34,197,94,0.1)' }
+                    : { background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                       style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)' }}>
+                    <Trophy className="w-6 h-6 text-black" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-lg truncate">{t.name}</p>
-                    <p className="text-sm text-slate-400">
-                      {t.format} • {t.type?.replace('_', ' ')}
-                    </p>
+                    <p className="font-bold text-lg truncate" style={{ color: 'var(--text-primary)' }}>{t.name}</p>
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t.format} • {t.type?.replace('_', ' ')}</p>
                   </div>
                   <StatusBadge status={t.status || 'upcoming' as const} className="text-xs" />
                 </button>
               ))}
               {tournaments.length === 0 && (
-                <div className="text-center py-12 text-slate-400">
+                <div className="text-center py-12" style={{ color: 'var(--text-muted)' }}>
                   <Trophy className="w-16 h-16 mx-auto mb-4 opacity-25" />
                   <p className="text-lg mb-4">No tournaments yet</p>
-                  <button
-                    onClick={() => setShowCreateTournament(true)}
-                    className="w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-xl transition-all shadow-xl hover:shadow-2xl"
-                  >
-                    <Plus className="w-5 h-5 inline mr-2" />
-                    Create First Tournament
+                  <button onClick={() => setShowCreateTournament(true)}
+                    className="w-full py-3 font-bold rounded-xl transition-all shadow-xl hover:scale-105"
+                    style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000' }}>
+                    <Plus className="w-5 h-5 inline mr-2" /> Create First Tournament
                   </button>
                 </div>
               )}
@@ -593,191 +504,118 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
       )}
 
       {/* Modals */}
-
-      {showCreateTournament && (
-        <CreateTournamentModal
-          onClose={() => setShowCreateTournament(false)}
-          onCreated={loadTournaments}
-        />
-      )}
+      {showCreateTournament && <CreateTournamentModal onClose={() => setShowCreateTournament(false)} onCreated={loadTournaments} />}
       {showCreateMatch && selected && (
-        <CreateMatchModal
-          tournamentId={selected._id}
-          teams={teams}
-          onClose={() => setShowCreateMatch(false)}
+        <CreateMatchModal tournamentId={selected._id} teams={teams} onClose={() => setShowCreateMatch(false)}
           onCreated={async () => {
-            const res = await matchAPI.getMatches({
-              tournament: selected._id,
-              limit: 100,
-            });
+            const res = await matchAPI.getMatches({ tournament: selected._id, limit: 100 });
             setMatches(res.data?.data || []);
-          }}
-        />
+          }} />
       )}
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-4 md:p-8">
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto p-4 md:p-8 relative z-10">
         {!selected ? (
           <div className="min-h-[60vh] flex flex-col items-center justify-center text-center py-20">
-            <Trophy className="w-20 h-20 text-slate-500 mb-6 opacity-50" />
-            <h1 className="text-3xl md:text-4xl font-black mb-4 bg-gradient-to-r from-slate-300 to-slate-100 bg-clip-text text-transparent">
+            <Trophy className="w-20 h-20 mb-6 opacity-20" style={{ color: 'var(--text-primary)' }} />
+            <h1 className="text-3xl md:text-4xl font-black mb-4" style={{ color: 'var(--text-primary)' }}>
               Select a Tournament
             </h1>
-            <p className="text-xl text-slate-500 mb-8 max-w-md">
+            <p className="text-xl mb-8 max-w-md" style={{ color: 'var(--text-muted)' }}>
               Choose from your tournaments or create a new one
             </p>
             <div className="flex gap-4">
-              <button
-                onClick={() => setShowCreateTournament(true)}
-                className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all text-lg"
-              >
-                <Plus className="w-6 h-6 inline mr-2" />
-                Create New
+              <button onClick={() => setShowCreateTournament(true)}
+                className="px-8 py-4 font-bold rounded-2xl shadow-xl hover:scale-105 transition-all text-lg"
+                style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000' }}>
+                <Plus className="w-6 h-6 inline mr-2" /> Create New
               </button>
-              <button
-                onClick={() => setShowTournamentSelector(true)}
-                className="px-8 py-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold rounded-2xl transition-all text-lg"
-              >
+              <button onClick={() => setShowTournamentSelector(true)}
+                className="px-8 py-4 font-bold rounded-2xl transition-all text-lg"
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
                 My Tournaments
               </button>
             </div>
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Tournament Header - Single Parent Wrapper */}
-            <div className="rounded-3xl p-6 md:p-8" style={{ background: 'var(--bg-card)', backdropFilter: 'blur(12px)', border: '1px solid var(--border)' }}>
-              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
-                  <button
-                    onClick={() => setShowTournamentSelector(true)}
-                    className="group hover:bg-slate-800/70 transition-all rounded-2xl p-4 border border-slate-700 hover:border-blue-500/50"
-                    style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)' }}
-                  >
-                    <div className="flex flex-col items-start gap-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <Trophy className="w-5 h-5 text-white" />
-                        </div>
-                        <div>Select Tournament</div>
-                      </div>
-                      {selected?.name && (
-                        <span className="text-slate-400 font-normal text-sm ml-12">• {selected.name}</span>
-                      )}
-                      {selected?.format && (
-                        <span className="text-sm text-slate-400 ml-12">{selected.format}</span>
-                      )}
+            
+            {/* Header & Solid Green Select Button */}
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+               <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
+                 {/* Solid Green "Select Tournament" Button */}
+                 <button onClick={() => setShowTournamentSelector(true)}
+                    className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-lg w-full sm:w-auto hover:scale-105 shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 16px rgba(34,197,94,0.3)' }}>
+                    Select Tournament <ChevronDown className="w-4 h-4" />
+                 </button>
+                 
+                 <div className="flex-1 min-w-0 md:ml-2">
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-green-400 to-emerald-600 hidden md:block" />
+                      <h1 className="text-3xl md:text-4xl font-black" style={{ color: 'var(--text-primary)' }}>
+                        {selected.name}
+                      </h1>
                     </div>
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-black bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
-                      {selected.name}
-                    </h1>
+                 </div>
+               </div>
+
+               <div className="flex flex-wrap items-center gap-3 text-sm shrink-0">
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+                    <Calendar className="w-4 h-4 opacity-70" /> {selected.startDate ? new Date(selected.startDate).toLocaleDateString('en-IN') : 'TBD'}
                   </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-3 text-sm">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-xl border border-slate-700/50">
-                    <Calendar className="w-4 h-4" />
-                    {selected.startDate
-                      ? new Date(selected.startDate).toLocaleDateString('en-IN')
-                      : 'TBD'}
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+                    <MapPin className="w-4 h-4 opacity-70" /> {selected.venue || 'TBD'}
                   </div>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-xl border border-slate-700/50">
-                    <MapPin className="w-4 h-4" />
-                    {selected.venue || 'TBD'}
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 rounded-xl border border-slate-700/50">
-                    <Shield className="w-4 h-4" />
-                    {selected.format}
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+                    <Shield className="w-4 h-4 opacity-70" /> {selected.format}
                   </div>
                   <StatusBadge status={selected.status || 'upcoming'} />
-                  <button
-                    onClick={() => handleDeleteTournament(selected._id)}
-                    className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-xl transition-all"
-                    title="Delete Tournament"
-                  >
+                  <button onClick={() => handleDeleteTournament(selected._id)}
+                    className="p-2 rounded-xl transition-all hover:bg-red-500/20 text-red-400" title="Delete Tournament">
                     <Trash2 className="w-5 h-5" />
                   </button>
-                </div>
-              </div>
-
-              {/* Tabs Navigation */}
-              <div className="flex flex-wrap gap-2 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
-                {tabs.map((tab) => {
-                  const Icon =
-                    tab === 'overview'
-                      ? Trophy
-                      : tab === 'matches'
-                      ? Zap
-                      : tab === 'teams'
-                      ? Users
-                      : BarChart2;
-                  const label =
-                    tab === 'leaderboard' ? 'Points' : tab.slice(0, 1).toUpperCase() + tab.slice(1);
-                  const isActive = activeTab === tab;
-                  return (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
-                        isActive
-                          ? 'bg-blue-500/20 border-2 border-blue-500 text-blue-300 shadow-lg shadow-blue-500/25'
-                          : 'bg-slate-800/50 hover:bg-slate-700 border border-slate-700/50 text-slate-300 hover:text-white'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4 flex-shrink-0" />
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
+               </div>
             </div>
 
-            {/* Tab Content */}
+            {/* Admin-Style Scrollable Tabs */}
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-1 p-1 rounded-2xl w-full scrollbar-hide md:scrollbar-thin [&::-webkit-scrollbar]:hidden" 
+                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+              {tabs.map((tab) => {
+                const Icon = tab === 'overview' ? Trophy : tab === 'matches' ? Zap : tab === 'teams' ? Users : BarChart2;
+                const label = tab === 'leaderboard' ? 'Points' : tab.slice(0, 1).toUpperCase() + tab.slice(1);
+                const isActive = activeTab === tab;
+                return (
+                  <button key={tab} onClick={() => setActiveTab(tab)}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap snap-center shrink-0 md:flex-none"
+                    style={isActive
+                      ? { background: 'linear-gradient(135deg, var(--accent), #10b981)', color: 'white', boxShadow: '0 0 20px rgba(34,197,94,0.4)' }
+                      : { color: 'var(--text-secondary)' }}>
+                    <Icon className="w-5 h-5 flex-shrink-0" /> {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Tab Content Area */}
             <div className="space-y-8">
               {activeTab === 'overview' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {[
-                    {
-                      label: 'Teams',
-                      value: selected.teams?.length || 0,
-                      icon: Users,
-                      color: 'from-blue-500 to-cyan-500',
-                    },
-                    {
-                      label: 'Matches',
-                      value: matches.length,
-                      icon: Zap,
-                      color: 'from-emerald-500 to-green-500',
-                    },
-                    {
-                      label: 'Live',
-                      value: matches.filter((m) => m.status === 'live').length,
-                      icon: Zap,
-                      color: 'from-orange-500 to-red-500',
-                    },
-                    {
-                      label: 'Completed',
-                      value: matches.filter((m) => m.status === 'completed').length,
-                      icon: CheckCircle2,
-                      color: 'from-purple-500 to-violet-500',
-                    },
-                  ].map(({ label, value, icon: Icon, color }, i) => (
-                    <div
-                      key={label}
-                      className="group relative overflow-hidden rounded-3xl p-6 bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 hover:border-blue-500/50"
-                    >
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-br ${color} opacity-5 blur-xl`}
-                      />
-                      <div
-                        className={`w-14 h-14 bg-gradient-to-br ${color} rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform`}
-                      >
-                        <Icon className="w-7 h-7 text-white" />
+                    { label: 'Teams', value: selected.teams?.length || 0, icon: Users },
+                    { label: 'Matches', value: matches.length, icon: Zap },
+                    { label: 'Live', value: matches.filter((m) => m.status === 'live').length, icon: Zap },
+                    { label: 'Completed', value: matches.filter((m) => m.status === 'completed').length, icon: CheckCircle2 }
+                  ].map(({ label, value, icon: Icon }) => (
+                    <div key={label} className="group relative overflow-hidden rounded-3xl p-6 transition-all duration-300 hover:-translate-y-2"
+                         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                      <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
+                           style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
+                        <Icon className="w-7 h-7 text-green-400" />
                       </div>
-                      <p className="text-slate-400 text-sm font-semibold uppercase tracking-wide mb-1">
-                        {label}
-                      </p>
-                      <p className="text-3xl font-black text-white">{value}</p>
+                      <p className="text-sm font-semibold uppercase tracking-wide mb-1" style={{ color: 'var(--text-muted)' }}>{label}</p>
+                      <p className="text-3xl font-black" style={{ color: 'var(--text-primary)' }}>{value}</p>
                     </div>
                   ))}
                 </div>
@@ -787,120 +625,83 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                     <div>
-                      <h2 className="text-2xl md:text-3xl font-black">Matches ({matches.length})</h2>
-                      <p className="text-slate-400">Manage scheduled matches</p>
+                      <h2 className="text-2xl md:text-3xl font-black" style={{ color: 'var(--text-primary)' }}>Matches ({matches.length})</h2>
+                      <p style={{ color: 'var(--text-muted)' }}>Manage scheduled matches</p>
                     </div>
-                    <button
-                      onClick={() => setShowCreateMatch(true)}
-                      className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all self-start sm:self-auto whitespace-nowrap"
-                    >
-                      <Plus className="w-5 h-5 inline mr-2" />
-                      Schedule Match
+                    <button onClick={() => setShowCreateMatch(true)}
+                      className="px-8 py-3 font-bold rounded-2xl shadow-xl hover:scale-105 transition-all self-start sm:self-auto whitespace-nowrap"
+                      style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000' }}>
+                      <Plus className="w-5 h-5 inline mr-2" /> Schedule Match
                     </button>
                   </div>
                   {matches.length === 0 ? (
-                    <div className="text-center py-20">
-                      <Zap className="w-20 h-20 text-slate-500 mx-auto mb-6 opacity-50" />
-                      <h3 className="text-2xl font-bold mb-4 text-slate-300">No Matches Yet</h3>
-                      <p className="text-slate-500 mb-8 max-w-md mx-auto">
-                        Schedule your first match to get started with live scoring and overlays.
-                      </p>
-                      <button
-                        onClick={() => setShowCreateMatch(true)}
-                        className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all"
-                      >
-                        <Plus className="w-6 h-6 inline mr-2" />
-                        Schedule First Match
+                    <div className="text-center py-20 rounded-3xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                      <Zap className="w-20 h-20 mx-auto mb-6 opacity-20" style={{ color: 'var(--text-primary)' }} />
+                      <h3 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>No Matches Yet</h3>
+                      <p className="mb-8 max-w-md mx-auto" style={{ color: 'var(--text-muted)' }}>Schedule your first match to get started with live scoring and overlays.</p>
+                      <button onClick={() => setShowCreateMatch(true)}
+                        className="px-6 py-3 font-bold rounded-xl shadow-xl hover:scale-105 transition-all"
+                        style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000' }}>
+                        <Plus className="w-6 h-6 inline mr-2" /> Schedule First Match
                       </button>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-6">
                       {matches.map((match) => (
-                        // FIX 2: gradient overlay div moved INSIDE the card wrapper
-                        <div
-                          key={match._id}
-                          className="group relative rounded-2xl p-4 transition-all hover:-translate-y-1 snap-center shadow-lg hover:shadow-xl"
-                          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
-                        >
-                          <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity bg-gradient-to-br from-blue-500/20 to-blue-600/20 blur-xl -z-10 rounded-2xl" />
-                          <StatusBadge
-                            status={match.status}
-                            className="!absolute top-6 right-6 !shadow-2xl !shadow-black/50 z-20"
-                          />
-                          <button
-                            onClick={() => handleDeleteMatch(match._id)}
-                            className="absolute top-6 left-6 flex items-center justify-center w-12 h-12 bg-red-500/20 hover:bg-red-500/40 border-2 border-red-500/40 text-red-400 hover:text-red-300 font-semibold shadow-lg hover:shadow-xl transition-all rounded-2xl opacity-0 group-hover:opacity-100 z-20"
-                          >
+                        <div key={match._id} className="group relative rounded-2xl p-5 transition-all hover:-translate-y-1 hover:shadow-xl"
+                             style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                          <StatusBadge status={match.status} className="!absolute top-6 right-6 z-20" />
+                          
+                          <button onClick={() => handleDeleteMatch(match._id)}
+                            className="absolute top-6 left-6 flex items-center justify-center w-12 h-12 rounded-2xl transition-all opacity-0 group-hover:opacity-100 z-20 hover:scale-105"
+                            style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}>
                             <Trash2 className="w-5 h-5" />
                           </button>
-                          <h3 className="font-black text-xl mb-6 pr-14 line-clamp-2 z-10 relative">
-                            {match.name ||
-                              `${match.team1Name || 'Team 1'} vs ${match.team2Name || 'Team 2'}`}
+                          
+                          <h3 className="font-black text-xl mb-6 pr-14 line-clamp-2 z-10 relative text-center" style={{ color: 'var(--text-primary)' }}>
+                            {match.name || `${match.team1Name || 'Team 1'} vs ${match.team2Name || 'Team 2'}`}
                           </h3>
+                          
                           <div className="space-y-4 mb-6 z-10 relative">
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4 justify-between">
                               <div className="flex-1 text-right">
-                                <p className="text-lg font-black">
-                                  {match.team1Name || match.team1?.name}
-                                </p>
-                                <div className="flex items-center justify-end gap-2 text-sm text-slate-400 mt-1">
-                                  <span>{Number(match.team1Overs || 0).toFixed(1)} ov</span>
-                                </div>
+                                <p className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>{match.team1Name || match.team1?.name}</p>
+                                <div className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{Number(match.team1Overs || 0).toFixed(1)} ov</div>
                               </div>
-                              <div className="text-center">
-                                <div className="w-20 h-1 bg-gradient-to-r from-slate-700 to-slate-800 rounded-full mb-3 group-hover:from-blue-500 group-hover:to-blue-400 transition-colors"></div>
-                                <div className="text-slate-500 font-bold text-base uppercase tracking-wider mb-3">
-                                  VS
-                                </div>
-                                <div className="w-20 h-1 bg-gradient-to-r from-slate-700 to-slate-800 rounded-full group-hover:from-blue-500 group-hover:to-blue-400 transition-colors"></div>
+                              <div className="text-center px-4">
+                                <div className="text-green-400 font-black text-lg uppercase tracking-widest">VS</div>
                               </div>
-                              <div className="flex-1">
-                                <p className="text-lg font-black text-left">
-                                  {match.team2Name || match.team2?.name}
-                                </p>
-                                <div className="flex items-center gap-2 text-sm text-slate-400 mt-1">
-                                  <span>{Number(match.team2Overs || 0).toFixed(1)} ov</span>
-                                </div>
+                              <div className="flex-1 text-left">
+                                <p className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>{match.team2Name || match.team2?.name}</p>
+                                <div className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{Number(match.team2Overs || 0).toFixed(1)} ov</div>
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3 pt-4 border-t border-slate-800 z-10 relative">
+                          
+                          <div className="flex items-center gap-3 pt-4 z-10 relative" style={{ borderTop: '1px solid var(--border)' }}>
                             <div className="flex-1 relative">
-                              <button
-                                onClick={() =>
-                                  setStatusMenu(
-                                    statusMenu === match._id ? null : match._id
-                                  )
-                                }
-                                className="w-full flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-800/50 hover:bg-slate-700 border border-slate-700 text-slate-300 text-sm font-semibold transition-all shadow-sm hover:shadow-md"
-                              >
-                                <Clock className="w-4 h-4" />
-                                {match.status.toUpperCase()}
-                                <ChevronRight className="w-4 h-4 ml-auto transition-transform" />
+                              <button onClick={() => setStatusMenu(statusMenu === match._id ? null : match._id)}
+                                className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-white/5"
+                                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+                                <Clock className="w-4 h-4" /> {match.status.toUpperCase()} <ChevronRight className="w-4 h-4 ml-auto" />
                               </button>
                               {statusMenu === match._id && (
-                                <div className="absolute top-full mt-2 left-0 right-0 bg-slate-900 backdrop-blur-md border border-slate-700 rounded-2xl shadow-2xl py-1 z-30">
-                                  {(['upcoming', 'live', 'completed', 'abandoned'] as const).map(
-                                    (s) => (
-                                      <button
-                                        key={s}
-                                        onClick={() => handleStatusChange(match._id, s)}
-                                        className={`w-full text-left px-4 py-2 hover:bg-slate-800 rounded-xl transition-colors text-sm ${s === match.status ? 'bg-blue-500/20 text-blue-300 font-semibold' : 'text-slate-300'}`}
-                                      >
-                                        {s.replace('_', ' ').toUpperCase()}
-                                      </button>
-                                    )
-                                  )}
+                                <div className="absolute top-full mt-2 left-0 right-0 rounded-2xl shadow-2xl py-1 z-30"
+                                     style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                                  {(['upcoming', 'live', 'completed', 'abandoned'] as const).map((s) => (
+                                    <button key={s} onClick={() => handleStatusChange(match._id, s)}
+                                      className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors text-sm"
+                                      style={{ color: s === match.status ? '#4ade80' : 'var(--text-primary)', fontWeight: s === match.status ? 'bold' : 'normal' }}>
+                                      {s.replace('_', ' ').toUpperCase()}
+                                    </button>
+                                  ))}
                                 </div>
                               )}
                             </div>
-                            <button
-                              onClick={() => setSelectedMatch(match._id)}
-                              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 whitespace-nowrap ml-auto"
-                              title="View Match Details"
-                            >
-                              View Details
-                              <ChevronRight className="w-4 h-4" />
+                            <button onClick={() => setSelectedMatch(match._id)}
+                              className="px-8 py-3 font-bold rounded-xl transition-all hover:scale-105 flex items-center gap-2 whitespace-nowrap ml-auto"
+                              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} title="View Match Details">
+                              View Details <ChevronRight className="w-4 h-4 text-green-400" />
                             </button>
                           </div>
                         </div>
@@ -910,39 +711,21 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
                 </div>
               )}
 
-              {activeTab === 'teams' && (
-                <TeamManagement tournamentId={selected._id} onTeamsChange={() => {}} />
-              )}
-              {activeTab === 'overlays' && selected && (
-                <OverlayManager tournamentId={selected._id} />
-              )}
-
+              {activeTab === 'teams' && <TeamManagement tournamentId={selected._id} onTeamsChange={() => {}} />}
+              {activeTab === 'overlays' && selected && <OverlayManager tournamentId={selected._id} />}
               {activeTab === 'leaderboard' && (
                 <div>
-                  <div className="flex items-center gap-3 mb-8">
-                    <Trophy className="w-8 h-8" />
-                    <p className="text-slate-400">
-                      {selected.name} • {selected.format}
-                    </p>
+                  <div className="flex items-center gap-3 mb-6">
+                    <Trophy className="w-6 h-6 text-green-400" />
+                    <p className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Points Table</p>
                   </div>
                   <PointsTable tournamentId={selected._id} />
                 </div>
               )}
             </div>
               
-            {statusMenu && (
-              <div
-                className="fixed inset-0 z-30 bg-black/10"
-                onClick={() => setStatusMenu(null)}
-              />
-            )}
-            {selectedMatch && (
-              <MatchDetail 
-                matchId={selectedMatch} 
-                onBack={() => setSelectedMatch(null)} 
-                openScoreboard={() => {}}
-              />
-            )}
+            {statusMenu && <div className="fixed inset-0 z-30" onClick={() => setStatusMenu(null)} />}
+            {selectedMatch && <MatchDetail matchId={selectedMatch} onBack={() => setSelectedMatch(null)} openScoreboard={() => {}} />}
           </div>
         )}
       </div>
