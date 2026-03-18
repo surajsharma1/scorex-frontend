@@ -294,15 +294,38 @@ function CreateMatchModal({
 
 // ─── POINTS TABLE ─────────────────────────────────────────────────────────────
 function PointsTable({ tournamentId }: { tournamentId: string }) {
-  const [table, setTable] = useState<any[]>([]);
+  interface PointsTableRow {
+  _id: string;
+  name: string;
+  shortName: string;
+  played: number;
+  won: number;
+  lost: number;
+  tied: number;
+  nr: number;
+  nrr: number;
+  points: number;
+}
+
+  const [table, setTable] = useState<PointsTableRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    tournamentAPI
-      .getPointsTable(tournamentId)
-      .then((r) => setTable(r.data.data || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    const fetchTable = async () => {
+      try {
+        const r = await tournamentAPI.getPointsTable?.(tournamentId) ?? [];
+        // Safe handling: array direct or AxiosResponse.data.data
+        const tableData = Array.isArray(r) 
+          ? r 
+          : (r?.data?.data && Array.isArray(r.data.data) ? r.data.data : []);
+        setTable(tableData);
+      } catch {
+        setTable([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTable();
   }, [tournamentId]);
 
   if (loading) {
@@ -350,14 +373,14 @@ function PointsTable({ tournamentId }: { tournamentId: string }) {
               <td className="py-4 px-2 text-center text-emerald-400 font-semibold">{row.won}</td>
               <td className="py-4 px-2 text-center text-red-400">{row.lost}</td>
               <td className="py-4 px-2 text-center text-slate-400">
-                {row.tied + row.nr}
+                {(row.tied ?? 0) + (row.nr ?? 0)}
               </td>
               <td
                 className={`py-4 px-2 text-center font-mono text-xs ${
                   row.nrr >= 0 ? 'text-emerald-400' : 'text-red-400'
                 }`}
               >
-                {row.nrr >= 0 ? '+' : ''}{row.nrr?.toFixed(2)}
+                {((row.nrr ?? 0) >= 0 ? '+' : '') + ((row.nrr ?? 0)?.toFixed(2) ?? '0.00')}
               </td>
               <td className="py-4 px-2 text-center text-blue-400 font-black text-lg">
                 {row.points}
@@ -405,13 +428,9 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
   // Load user's tournaments
   const loadTournaments = useCallback(async () => {
     try {
-      let res;
-      if (tournamentAPI.getMyTournaments) {
-        res = await tournamentAPI.getMyTournaments();
-      } else {
-        res = await tournamentAPI.getTournaments();
-      }
-      const list = res.data.data || res.data.tournaments || [];
+      const res = await (tournamentAPI.getMyTournaments?.() ?? tournamentAPI.getTournaments());
+      const list = res.data?.data ?? res.data?.tournaments ?? [];
+
       setTournaments(list);
       if (paramId) {
         const found = list.find((t: Tournament) => t._id === paramId);
@@ -503,10 +522,11 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
   ] as const;
 
   return (
-    <div className="min-h-screen text-white" style={{ background: 'var(--bg-primary)' }}>
+    <div className="min-h-screen text-white" style={{ background: 'hsl(var(--bg-primary, 240 10% 3.9%))' }}>
 
       {/* Tournament Selector Overlay */}
-{showTournamentSelector && (
+      {/* FIX 1: Wrapped two sibling divs in a React Fragment <></> */}
+      {showTournamentSelector && (
         <>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={() => setShowTournamentSelector(false)} />
           <div className="fixed inset-y-0 right-0 z-50 w-full md:w-96 bg-slate-900 border-l border-slate-700 shadow-2xl transform transition-all">
@@ -573,6 +593,7 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
       )}
 
       {/* Modals */}
+
       {showCreateTournament && (
         <CreateTournamentModal
           onClose={() => setShowCreateTournament(false)}
@@ -584,13 +605,13 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
           tournamentId={selected._id}
           teams={teams}
           onClose={() => setShowCreateMatch(false)}
-            onCreated={async () => {
-              const res = await matchAPI.getMatches({
-                tournament: selected._id,
-                limit: 100,
-              });
-              setMatches(res.data?.data || []);
-            }}
+          onCreated={async () => {
+            const res = await matchAPI.getMatches({
+              tournament: selected._id,
+              limit: 100,
+            });
+            setMatches(res.data?.data || []);
+          }}
         />
       )}
 
@@ -623,35 +644,28 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Tournament Header */}
-            <div className="rounded-3xl p-6 md:p-8" style={{ background: 'var(--bg-card)', backdropFilter: 'blur(12px)', border: '1px solid var(--border)' }}> 
-
+            {/* Tournament Header - Single Parent Wrapper */}
+            <div className="rounded-3xl p-6 md:p-8" style={{ background: 'var(--bg-card)', backdropFilter: 'blur(12px)', border: '1px solid var(--border)' }}>
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
                   <button
                     onClick={() => setShowTournamentSelector(true)}
                     className="group hover:bg-slate-800/70 transition-all rounded-2xl p-4 border border-slate-700 hover:border-blue-500/50"
                     style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)' }}
-
                   >
+                    <div className="flex flex-col items-start gap-2">
                       <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Trophy className="w-5 h-5 text-white" />
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Trophy className="w-5 h-5 text-white" />
+                        </div>
+                        <div>Select Tournament</div>
                       </div>
-
-                          Select Tournament
-                          {selected?.name && (
-                            <>
-                              <span className="text-slate-400 font-normal text-sm">• {selected.name}</span>
-                            </>
-                          )}
-                        </p>
-                        {selected?.format && (
-                          <p className="text-sm text-slate-400">
-                            {selected.format}
-                          </p>
-                        )}
-                      </div>
+                      {selected?.name && (
+                        <span className="text-slate-400 font-normal text-sm ml-12">• {selected.name}</span>
+                      )}
+                      {selected?.format && (
+                        <span className="text-sm text-slate-400 ml-12">{selected.format}</span>
+                      )}
                     </div>
                   </button>
                   <div className="flex-1 min-w-0">
@@ -687,8 +701,7 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
               </div>
 
               {/* Tabs Navigation */}
-              <div className="flex flex-wrap gap-2 -mx-2 px-2 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
-
+              <div className="flex flex-wrap gap-2 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
                 {tabs.map((tab) => {
                   const Icon =
                     tab === 'overview'
@@ -716,6 +729,7 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
                     </button>
                   );
                 })}
+              </div>
             </div>
 
             {/* Tab Content */}
@@ -756,7 +770,7 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
                         className={`absolute inset-0 bg-gradient-to-br ${color} opacity-5 blur-xl`}
                       />
                       <div
-                        className={`w-14 h-14 ${color} rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform`}
+                        className={`w-14 h-14 bg-gradient-to-br ${color} rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform`}
                       >
                         <Icon className="w-7 h-7 text-white" />
                       </div>
@@ -793,7 +807,7 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
                       </p>
                       <button
                         onClick={() => setShowCreateMatch(true)}
-                        className="px-10 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all text-lg"
+                        className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all"
                       >
                         <Plus className="w-6 h-6 inline mr-2" />
                         Schedule First Match
@@ -801,35 +815,28 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
                     </div>
                   ) : (
                     <div className="flex flex-col gap-6">
-
                       {matches.map((match) => (
+                        // FIX 2: gradient overlay div moved INSIDE the card wrapper
                         <div
                           key={match._id}
-                          className="group rounded-2xl p-4 transition-all hover:-translate-y-1 snap-center shadow-lg hover:shadow-xl"
+                          className="group relative rounded-2xl p-4 transition-all hover:-translate-y-1 snap-center shadow-lg hover:shadow-xl"
                           style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
-
                         >
-                          {/* Status Badge */}
-                  <StatusBadge
+                          <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity bg-gradient-to-br from-blue-500/20 to-blue-600/20 blur-xl -z-10 rounded-2xl" />
+                          <StatusBadge
                             status={match.status}
                             className="!absolute top-6 right-6 !shadow-2xl !shadow-black/50 z-20"
                           />
-                          
-                          {/* Delete Button */}
                           <button
                             onClick={() => handleDeleteMatch(match._id)}
                             className="absolute top-6 left-6 flex items-center justify-center w-12 h-12 bg-red-500/20 hover:bg-red-500/40 border-2 border-red-500/40 text-red-400 hover:text-red-300 font-semibold shadow-lg hover:shadow-xl transition-all rounded-2xl opacity-0 group-hover:opacity-100 z-20"
                           >
                             <Trash2 className="w-5 h-5" />
                           </button>
-
-                          {/* Match Info */}
                           <h3 className="font-black text-xl mb-6 pr-14 line-clamp-2 z-10 relative">
                             {match.name ||
                               `${match.team1Name || 'Team 1'} vs ${match.team2Name || 'Team 2'}`}
                           </h3>
-
-                          {/* Teams */}
                           <div className="space-y-4 mb-6 z-10 relative">
                             <div className="flex items-center gap-4">
                               <div className="flex-1 text-right">
@@ -857,8 +864,6 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
                               </div>
                             </div>
                           </div>
-
-                          {/* Action Buttons */}
                           <div className="flex items-center gap-3 pt-4 border-t border-slate-800 z-10 relative">
                             <div className="flex-1 relative">
                               <button
@@ -880,7 +885,7 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
                                       <button
                                         key={s}
                                         onClick={() => handleStatusChange(match._id, s)}
-                                        className="w-full text-left px-4 py-3 text-sm font-medium hover:bg-blue-500/20 border-b border-slate-800 last:border-b-0 capitalize transition-all hover:text-blue-300"
+                                        className={`w-full text-left px-4 py-2 hover:bg-slate-800 rounded-xl transition-colors text-sm ${s === match.status ? 'bg-blue-500/20 text-blue-300 font-semibold' : 'text-slate-300'}`}
                                       >
                                         {s.replace('_', ' ').toUpperCase()}
                                       </button>
@@ -889,22 +894,15 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
                                 </div>
                               )}
                             </div>
-<button
-                              onClick={() => setSelectedMatch(match._id)}
-                              className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all text-sm"
-                            >
-                              Details
-                            </button>
                             <button
-                              onClick={() => navigate(`/matches/${match._id}/score`)}
-                              className="px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
+                              onClick={() => setSelectedMatch(match._id)}
+                              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 whitespace-nowrap ml-auto"
+                              title="View Match Details"
                             >
-                              Live Score
+                              View Details
+                              <ChevronRight className="w-4 h-4" />
                             </button>
                           </div>
-
-                          {/* Background Effects */}
-                          <div className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity bg-gradient-to-br from-blue-500/20 to-blue-600/20 blur-xl -z-10" />
                         </div>
                       ))}
                     </div>
@@ -915,7 +913,6 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
               {activeTab === 'teams' && (
                 <TeamManagement tournamentId={selected._id} onTeamsChange={() => {}} />
               )}
-
               {activeTab === 'overlays' && selected && (
                 <OverlayManager tournamentId={selected._id} />
               )}
@@ -923,43 +920,32 @@ const [showTournamentSelector, setShowTournamentSelector] = useState(false);
               {activeTab === 'leaderboard' && (
                 <div>
                   <div className="flex items-center gap-3 mb-8">
-                    <Trophy className="w-8 h-8 text-yellow-400 drop-shadow-lg" />
-                    <div>
-                      <h2 className="text-3xl font-black">Points Table</h2>
-                      <p className="text-slate-400">
-                        {selected.name} • {selected.format}
-                      </p>
-                    </div>
+                    <Trophy className="w-8 h-8" />
+                    <p className="text-slate-400">
+                      {selected.name} • {selected.format}
+                    </p>
                   </div>
                   <PointsTable tournamentId={selected._id} />
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Status Menu Backdrop */}
+              
             {statusMenu && (
-            <div
-              className="fixed inset-0 z-30"
-              onClick={() => setStatusMenu(null)}
-            />
-          )}
-          {selectedMatch && (
-            <MatchDetail 
-              matchId={selectedMatch} 
-              onBack={() => setSelectedMatch(null)} 
-              openScoreboard={() => {
-                navigate(`/matches/${selectedMatch}/score`);
-                setSelectedMatch(null);
-              }} 
-            />
-          )}
-        </div>
-      )}
+              <div
+                className="fixed inset-0 z-30 bg-black/10"
+                onClick={() => setStatusMenu(null)}
+              />
+            )}
+            {selectedMatch && (
+              <MatchDetail 
+                matchId={selectedMatch} 
+                onBack={() => setSelectedMatch(null)} 
+                openScoreboard={() => {}}
+              />
+            )}
+          </div>
+        )}
+      </div>
     </div>
-  </div>
   );
 }
-
-
-
