@@ -413,9 +413,12 @@ export default function LiveScoring() {
 
   // ── Computed values ────────────────────────────────────────────────────────
   const innings = match?.innings?.[match?.currentInnings - 1] || {};
-  const striker = innings?.batsmen?.find((b: any) => b.isStriker && !b.isOut);
-  const nonStriker = innings?.batsmen?.find((b: any) => !b.isStriker && !b.isOut);
-  const bowler = innings?.bowlers?.find((b: any) => b.name === match?.currentBowlerName);
+  // Safe batsman/bowler lookups - prevent array errors
+  const safeBatsmen = Array.isArray(innings?.batsmen) ? innings.batsmen : [];
+  const safeBowlers = Array.isArray(innings?.bowlers) ? innings.bowlers : [];
+  const striker = safeBatsmen.find((b: any) => b?.isStriker && !b?.isOut) || null;
+  const nonStriker = safeBatsmen.find((b: any) => !b?.isStriker && !b?.isOut) || null;
+  const bowler = safeBowlers.find((b: any) => b?.name === match?.currentBowlerName) || null;
   const score = innings?.score || 0;
   const wickets = innings?.wickets || 0;
   const oversDisplay = `${innings?.overs || 0}.${innings?.balls ? innings.balls % 6 : 0}`;
@@ -424,10 +427,11 @@ export default function LiveScoring() {
   const requiredRuns = innings?.requiredRuns;
   const rrr = innings?.requiredRunRate?.toFixed(2);
 
-  // Current over balls from history
-  const ballsInOver = innings?.balls ? innings.balls % 6 : 0;
-  const history: any[] = innings?.ballHistory || [];
-  const thisOverBalls = history.slice(-ballsInOver);
+  // Current over balls from history - DEFENSIVE AGAINST RangeError
+  const ballsInOver = Math.max(0, Math.floor(Number(innings?.balls || 0) % 6));
+  const safeHistory = Array.isArray(innings?.ballHistory) ? innings.ballHistory : [];
+  const safeSliceLen = Math.max(0, Math.min(ballsInOver, safeHistory.length));
+  const thisOverBalls = safeHistory.slice(-safeSliceLen);
 
   // ── Get batting/bowling team IDs for player selection ─────────────────────
   const currentBattingTeamId = innings?.teamId || tossData?.battingTeamId || match?.team1?._id;

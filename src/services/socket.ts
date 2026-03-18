@@ -63,6 +63,22 @@ clearStaleSession();
 // Custom socket.io parser to handle session errors
 const socketOptions: Partial<ManagerOptions & SocketOptions> = {
   withCredentials: true,
+  autoConnect: false, // Manual control
+  transports: ['websocket', 'polling'],
+  auth: {
+    token: localStorage.getItem('token')
+  },
+  // Infinite reconnection (never give up)
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  randomizationFactor: 0.5,
+  timeout: 10000,
+  forceNew: true,
+};
+const socketOptions: Partial<ManagerOptions & SocketOptions> = {
+  withCredentials: true,
   autoConnect: true,
   transports: ['websocket', 'polling'],
   auth: {
@@ -80,6 +96,58 @@ const socketOptions: Partial<ManagerOptions & SocketOptions> = {
 };
 
 // Create socket instance
+// Connection status hook
+export const useSocketStatus = () => {
+  const [status, setStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  
+  useEffect(() => {
+    const onConnect = () => setStatus('connected');
+    const onDisconnect = () => setStatus('disconnected');
+    const onConnectError = () => setStatus('error');
+    
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    (socket.io as any).on('connect_error', onConnectError);
+    
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      (socket.io as any).off('connect_error', onConnectError);
+    };
+  }, []);
+  
+  return status;
+};
+
+// Health check before connect
+const checkServerHealth = async (): Promise<boolean> => {
+  try {
+    const res = await fetch(`${getApiBaseUrl().replace('/api/v1', '')}/api/health`, { 
+      method: 'GET', 
+      cache: 'no-cache' 
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+};
+
+// Auto-connect with health check
+const initializeConnection = async () => {
+  if (socket.connected) return;
+  
+  const healthy = await checkServerHealth();
+  if (!healthy) {
+    console.warn('🚨 Backend health check failed - will retry connection...');
+  }
+  
+  console.log('🔌 Initializing socket connection...');
+  socket.connect();
+};
+
+initializeConnection();
+
+// Export socket
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SOCKET_URL, socketOptions);
 
 // ==========================================
@@ -147,9 +215,9 @@ socket.on('disconnect', (reason) => {
   }
 });
 
-// Handle reconnection failure
+// Handle reconnection failure - now infinite, so log but continue
 (socket.io as any).on('reconnect_failed', () => {
-  console.error('❌ Reconnection failed after all attempts');
+  console.warn('🔄 Reconnection temporarily failed - will retry indefinitely (infinite mode)');
 });
 
 // Handle connection errors (use type assertion for manager events)
@@ -165,6 +233,9 @@ socket.on('disconnect', (reason) => {
       console.warn('Could not clear session:', e);
     }
   }
+  
+  // Auto-retry health check after 5s
+  setTimeout(initializeConnection, 5000);
 });
 
 // General socket errors - use proper typing (handled above via socket.io.on)
