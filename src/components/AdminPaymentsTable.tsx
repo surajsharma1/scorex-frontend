@@ -143,8 +143,8 @@ export default function AdminPaymentsTable() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
-                    <div>{new Date(payment.date).toLocaleDateString()}</div>
-                    <div className="text-xs">{new Date(payment.date).toLocaleTimeString()}</div>
+                    <div>{payment.date ? new Date(payment.date).toLocaleDateString() : 'N/A'}</div>
+                    <div className="text-xs">{payment.date ? new Date(payment.date).toLocaleTimeString() : ''}</div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${

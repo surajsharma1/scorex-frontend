@@ -103,7 +103,7 @@ export default function AdminLogsTable() {
                     {(log.size / 1024).toFixed(1)} KB
                   </td>
                   <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
-                    {new Date(log.mtime).toLocaleString()}
+                    {log.mtime ? new Date(log.mtime).toLocaleString() : 'N/A'}
                   </td>
                   <td className="px-6 py-4">
                     <button 

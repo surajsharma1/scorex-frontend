@@ -132,7 +132,7 @@ export default function AdminTournamentsTable() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
-                    {new Date(tournament.startDate).toLocaleDateString()}
+                    {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'N/A'}
                   </td>
                   <td className="px-6 py-4 font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
                     ₹{tournament.registrationFee || 0}

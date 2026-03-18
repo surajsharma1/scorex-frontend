@@ -200,7 +200,7 @@ export default function AdminUserTable() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
-                    {new Date(user.createdAt).toLocaleDateString()}
+                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">

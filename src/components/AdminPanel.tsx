@@ -164,7 +164,7 @@ const sections = [
                   <card.icon className="w-6 h-6 text-white drop-shadow-lg" />
                 </div>
                 <p className="text-3xl lg:text-2xl font-black mb-1" style={{ color: 'var(--text-primary)' }}>
-                  {loading ? '–' : card.value.toLocaleString()}
+                  {loading ? '–' : (card.value ?? 0).toLocaleString()}
                 </p>
                 <p className="text-sm font-semibold tracking-tight" style={{ color: 'var(--text-muted)' }}>{card.label}</p>
               </div>
