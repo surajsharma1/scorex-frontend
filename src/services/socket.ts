@@ -77,23 +77,6 @@ const socketOptions: Partial<ManagerOptions & SocketOptions> = {
   timeout: 10000,
   forceNew: true,
 };
-const socketOptions: Partial<ManagerOptions & SocketOptions> = {
-  withCredentials: true,
-  autoConnect: true,
-  transports: ['websocket', 'polling'],
-  auth: {
-    token: localStorage.getItem('token')
-  },
-  // Reconnection settings
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  // Timeout settings
-  timeout: 10000,
-  // Force new connection to avoid stale session issues
-  forceNew: true,
-};
 
 // Create socket instance
 // Connection status hook
