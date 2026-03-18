@@ -24,17 +24,35 @@ export default function AdminPanel() {
   const [activeSection, setActiveSection] = useState<'overview' | 'pricing' | 'users' | 'payments' | 'tournaments' | 'overlays' | 'logs'>('overview');
 
   useEffect(() => {
-    api.get('/stats/admin').then(res => { setStats(res.data); }).catch((err) => console.error('Admin stats API failed:', err)).finally(() => setLoading(false));
-    api.get('/admin/membership-prices').then(res => { 
+    console.log('🔍 DEBUG AdminPanel: Loading stats/prices...');
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    console.log('🔍 DEBUG: Token exists?', !!token);
+    console.log('🔍 DEBUG: User data:', userStr ? JSON.parse(userStr) : null);
+    
+    const loadStats = api.get('/stats/admin').then(res => {
+      console.log('✅ Stats loaded:', res.data);
+      setStats(res.data);
+    }).catch(err => {
+      console.error('❌ Stats API failed:', err.response?.status, err.response?.data || err.message);
+    }).finally(() => {
+      console.log('🔍 DEBUG: Stats loading complete');
+    });
+
+    const loadPrices = api.get('/admin/membership-prices').then(res => {
+      console.log('✅ Prices loaded:', res.data);
       if (res.data?.data) {
-        const planMap = {};
+        const planMap: any = {};
         res.data.data.forEach((plan: any) => {
           planMap[plan.level] = plan;
         });
-        setPrices(planMap as any);
+        setPrices(planMap);
       }
-    }).catch((err) => console.error('Admin prices API failed:', err));
+    }).catch(err => {
+      console.error('❌ Prices API failed:', err.response?.status, err.response?.data || err.message);
+    });
 
+    Promise.all([loadStats, loadPrices]).finally(() => setLoading(false));
   }, []);
 
   const savePrices = async () => {
@@ -71,14 +89,35 @@ const sections = [
     { key: 'logs', label: 'Logs', icon: FileText },
   ] as const;
 
+  // DEBUG Timeout check
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (loading) {
+        console.error('⏰ DEBUG: AdminPanel loading timeout >10s!');
+      }
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [loading]);
+
   return (
     <div className="p-6 max-w-5xl relative min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      {/* DEBUG Banner */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500/90 backdrop-blur-sm p-3 flex flex-col sm:flex-row gap-2 items-start sm:items-center text-xs font-mono text-yellow-900">
+        <span>🔍 DEBUG MODE ACTIVE</span>
+        <span>Role: {JSON.parse(localStorage.getItem('user') || '{}').role || 'NO USER'}</span>
+        <span>Loading: {loading ? 'YES' : 'NO'}</span>
+        <span>Check Console for API logs!</span>
+        <button onClick={() => {
+          api.get('/auth/me').then(res => console.log('🔍 Current user:', res.data)).catch(e => console.error('Auth/me failed:', e));
+        }} className="px-2 py-0.5 bg-yellow-400 rounded text-yellow-900 font-bold">Check User</button>
+      </div>
+
       <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(239,68,68,0.05) 0%, transparent 70%)' }} />
 
       {/* Toast */}
       {priceToast && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium shadow-xl"
+        <div className="fixed top-20 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium shadow-xl"
           style={{ background: priceToast.includes('Failed') ? 'rgba(239,68,68,0.9)' : 'rgba(34,197,94,0.9)', color: '#fff', backdropFilter: 'blur(8px)' }}>
           {priceToast.includes('Failed') ? <AlertCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
           {priceToast}
@@ -97,7 +136,7 @@ const sections = [
             </span>
           </h1>
         </div>
-        <p className="ml-5 text-sm" style={{ color: 'var(--text-muted)' }}>Platform overview & management</p>
+        <p className="ml-5 text-sm" style={{ color: 'var(--text-muted)' }}>Platform overview & management | DEBUG: Loading={loading.toString()}</p>
       </div>
 
       {/* Section Nav */}

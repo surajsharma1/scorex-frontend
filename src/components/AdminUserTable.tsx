@@ -29,13 +29,16 @@ export default function AdminUserTable() {
   }, []);
 
   const loadUsers = async () => {
+    console.log('🔍 DEBUG AdminUserTable: Loading users...');
     try {
       const res = await adminAPI.getUsers();
+      console.log('✅ Users loaded:', res.data.data?.length || 0, 'users');
       setUsers(res.data.data);
     } catch (err) {
-      console.error('Failed to load users');
+      console.error('❌ Users API failed:', err.response?.status, err.response?.data || err.message);
     } finally {
       setLoading(false);
+      console.log('🔍 DEBUG: Users loading complete');
     }
   };
 
