@@ -1,22 +1,33 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, lazy, Suspense } from 'react';
 import api from './services/api';
 import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Register from './components/Register';
 import OAuthCallback from './components/OAuthCallback';
-import TournamentView from './components/TournamentView';
-import LiveScoring from './components/LiveScoring';
-import LiveMatches from './components/LiveMatches';
-import Profile from './components/Profile';
-import Membership from './components/Membership';
-import ClubManagement from './components/ClubManagement';
-import FriendList from './components/FriendList';
-import Leaderboard from './components/Leaderboard';
 import ForgotPassword from './components/ForgotPassword';
 import Frontpage from './components/Frontpage';
-import AdminPanel from './components/AdminPanel';
+
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const TournamentView = lazy(() => import('./components/TournamentView'));
+const LiveScoring = lazy(() => import('./components/LiveScoring'));
+const LiveMatches = lazy(() => import('./components/LiveMatches'));
+const Profile = lazy(() => import('./components/Profile'));
+const Membership = lazy(() => import('./components/Membership'));
+const ClubManagement = lazy(() => import('./components/ClubManagement'));
+const FriendList = lazy(() => import('./components/FriendList'));
+const Leaderboard = lazy(() => import('./components/Leaderboard'));
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
+
+// Loading fallback matching app style
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin shadow-lg shadow-green-500/20" />
+      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading ScoreX...</p>
+    </div>
+  </div>
+);
 
 // ─── Auth Context ─────────────────────────────────────────────────────────────
 interface AuthUser {
@@ -214,7 +225,9 @@ export default function App() {
         isMobileMenuOpen={isMobileMenuOpen} 
         toggleMobileMenu={toggleMobileMenu}
       >
-        {children}
+        <Suspense fallback={<LoadingSpinner />}>
+          {children}
+        </Suspense>
       </DashboardLayout>
     </ProtectedRoute>
   );
@@ -225,7 +238,9 @@ export default function App() {
         isMobileMenuOpen={isMobileMenuOpen} 
         toggleMobileMenu={toggleMobileMenu}
       >
-        {children}
+        <Suspense fallback={<LoadingSpinner />}>
+          {children}
+        </Suspense>
       </DashboardLayout>
     </AdminRoute>
   );
@@ -256,7 +271,13 @@ export default function App() {
           <Route path="/admin" element={<AdminDashboardRoute><AdminPanel /></AdminDashboardRoute>} />
 
           {/* Live scoring (full screen, no sidebar) */}
-          <Route path="/matches/:id/score" element={<ProtectedRoute><LiveScoring /></ProtectedRoute>} />
+          <Route path="/matches/:id/score" element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingSpinner />}>
+                <LiveScoring />
+              </Suspense>
+            </ProtectedRoute>
+          } />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
