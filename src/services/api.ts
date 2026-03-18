@@ -159,8 +159,13 @@ export const membershipAPI = {
 // ─── Admin API ────────────────────────────────────────────────────────────────
 export const adminAPI = {
   getStats:      ()       => api.get('/stats/admin'),
+  getUsers:      (page = 1, limit = 50) => api.get('/admin/users', { params: { page, limit } }),
+  updateUserRole: (id: string, role: string) => api.patch(`/admin/users/${id}/role`, { role }),
+  getPayments:   ()       => api.get('/admin/payments'),
   getPrices:     ()       => api.get('/admin/membership-prices'),
   setPrices:     (data: any) => api.post('/admin/membership-prices', data),
+  exportUsers:   ()       => api.get('/admin/export/users', { responseType: 'blob' }),
 };
+
 
 

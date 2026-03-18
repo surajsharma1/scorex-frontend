@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Users, Shield, Zap, BarChart3, Download, Settings, Save, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
-import api from '../services/api';
+import { Shield, Zap, BarChart3, Download, Settings, Save, RefreshCw, CheckCircle, AlertCircle, Users, Eye, DollarSign, FileText, Activity } from 'lucide-react';
+import api, { adminAPI } from '../services/api';
+import AdminUserTable from './AdminUserTable';
+import AdminPaymentsTable from './AdminPaymentsTable';
 
 type Duration = '1day' | '1week' | '1month';
 const DURATIONS: Duration[] = ['1day', '1week', '1month'];
@@ -17,7 +19,7 @@ export default function AdminPanel() {
   const [prices, setPrices] = useState(DEFAULT_PRICES);
   const [savingPrices, setSavingPrices] = useState(false);
   const [priceToast, setPriceToast] = useState('');
-  const [activeSection, setActiveSection] = useState<'overview' | 'pricing' | 'users'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'pricing' | 'users' | 'payments' | 'tournaments' | 'overlays' | 'logs'>('overview');
 
   useEffect(() => {
     api.get('/stats/admin').then(res => { setStats(res.data); }).catch(() => {}).finally(() => setLoading(false));
@@ -117,18 +119,25 @@ export default function AdminPanel() {
 
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { title: 'User Management', desc: 'View, ban, and manage user accounts' },
-              { title: 'Tournament Audit', desc: 'Review and moderate tournaments' },
-              { title: 'Payment Reports', desc: 'View subscription and payment history' },
-              { title: 'Overlay Stats', desc: 'Track overlay usage and performance' },
-              { title: 'System Logs', desc: 'View system and error logs' },
-              { title: 'Export Data', desc: 'Export platform data as CSV/JSON', action: () => window.open('/api/stats/export/all', '_blank') },
-            ].map(c => (
+    {[
+              { title: 'Users', desc: 'Manage accounts & roles', icon: Users },
+              { title: 'Payments', desc: 'Reports & history', icon: DollarSign, action: () => setActiveSection('payments') },
+              { title: 'Tournaments', desc: 'Audit & moderation', icon: Eye, action: () => setActiveSection('tournaments') },
+              { title: 'Overlays', desc: 'Usage analytics', icon: Activity, action: () => setActiveSection('overlays') },
+              { title: 'Logs', desc: 'System activity', icon: FileText, action: () => setActiveSection('logs') },
+              { title: 'Export', desc: 'Download CSV data', icon: Download, action: () => window.location.href = '/admin/export/users' },
+            ].map((c: any) => (
               <div key={c.title} onClick={c.action}
-                className={`p-5 rounded-2xl transition-all hover:-translate-y-0.5 ${c.action ? 'cursor-pointer' : 'cursor-default'}`}
+                className="p-5 rounded-2xl transition-all hover:-translate-y-0.5 cursor-pointer group"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>{c.title}</h3>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all">
+                    <c.icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>{c.title}</h3>
+                  </div>
+                </div>
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{c.desc}</p>
               </div>
             ))}
@@ -224,18 +233,8 @@ export default function AdminPanel() {
       )}
 
       {/* USER MANAGEMENT */}
-      {activeSection === 'users' && (
-        <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <Users className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
-          <h3 className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>User Management</h3>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Full user management UI coming soon. Use the export function to view user data.</p>
-          <button onClick={() => window.open('/api/stats/export/users', '_blank')}
-            className="mt-4 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:scale-105 inline-flex items-center gap-2"
-            style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000' }}>
-            <Download className="w-4 h-4" /> Export Users
-          </button>
-        </div>
-      )}
+{activeSection === 'users' && <AdminUserTable />}
+      {activeSection === 'payments' && <AdminPaymentsTable />}
     </div>
   );
 }
