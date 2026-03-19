@@ -47,9 +47,9 @@ export default function AdminPaymentsTable() {
   };
 
   const filteredPayments = payments.filter(p => 
-    p.username.toLowerCase().includes(search.toLowerCase()) ||
-    p.email.toLowerCase().includes(search.toLowerCase()) ||
-    p.level.toLowerCase().includes(search.toLowerCase())
+    (p?.username || '').toLowerCase().includes(search.toLowerCase()) ||
+    (p?.email || '').toLowerCase().includes(search.toLowerCase()) ||
+    (p?.level || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const totalRevenue = filteredPayments.reduce((sum, p) => sum + p.amount, 0);

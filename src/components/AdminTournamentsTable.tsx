@@ -42,7 +42,7 @@ export default function AdminTournamentsTable() {
   };
 
   const filteredTournaments = tournaments.filter(t =>
-    t.name.toLowerCase().includes(search.toLowerCase())
+    (t?.name || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const downloadCSV = () => {

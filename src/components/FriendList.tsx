@@ -20,9 +20,9 @@ export default function FriendList() {
       const [fRes, rRes] = await Promise.allSettled([friendAPI.getFriends(), friendAPI.getPendingRequests()]);
       if (fRes.status === 'fulfilled') setFriends(fRes.value.data.data || fRes.value.data || []);
       if (rRes.status === 'fulfilled') {
-        const all = rRes.value.data.data || rRes.value.data || [];
-        setRequests(all.filter((r: any) => r.status === 'pending' && !r.isSentByMe));
-        setSent(all.filter((r: any) => r.isSentByMe));
+        const requestsData = rRes.value.data.data || rRes.value.data || { incoming: [], outgoing: [] };
+        setRequests(requestsData.incoming || []);
+        setSent(requestsData.outgoing || []);
       }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }

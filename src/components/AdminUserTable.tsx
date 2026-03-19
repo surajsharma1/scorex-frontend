@@ -62,8 +62,8 @@ export default function AdminUserTable() {
 
 
   const filteredUsers = users.filter(u => 
-    u.username.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase())
+    (u?.username || '').toLowerCase().includes(search.toLowerCase()) ||
+    (u?.email || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const roleOptions = ['viewer', 'organizer', 'admin'];
