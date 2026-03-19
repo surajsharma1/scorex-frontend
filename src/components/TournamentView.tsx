@@ -60,9 +60,7 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
     }
   };
 
-  function handleFormatChange(event: ChangeEvent<HTMLSelectElement>): void {
-    throw new Error('Function not implemented.');
-  }
+
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
@@ -113,8 +111,8 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Format</label>
-              <select value={form.format} onChange={handleFormatChange}
+            <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Format</label>
+              <select value={form.format} onChange={(e) => setForm({ ...form, format: e.target.value })}
                 className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
                 style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
                 onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')}>
