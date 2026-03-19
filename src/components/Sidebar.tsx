@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTheme } from './ThemeProvider';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Trophy, Zap, Users, CreditCard,
@@ -36,11 +37,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
-  const [dark, setDark] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved) return saved === 'dark';
-    return !window.matchMedia('(prefers-color-scheme: light)').matches;
-  });
+  const { isDark, toggleTheme } = useTheme();
 
   // Auto-collapse on mobile when menu closes
   useEffect(() => {
@@ -49,14 +46,7 @@ export default function Sidebar({
     }
   }, [isMobileMenuOpen]);
 
-  useEffect(() => {
-    if (dark) {
-      document.documentElement.classList.remove('light');
-    } else {
-      document.documentElement.classList.add('light');
-    }
-    localStorage.setItem('theme', dark ? 'dark' : 'light');
-  }, [dark]);
+
 
   const handleLogout = () => { logout(); navigate('/login'); };
   const isAdmin = user?.role === 'admin';
@@ -182,16 +172,16 @@ export default function Sidebar({
       {/* Bottom: theme + logout */}
       <div className="p-2 space-y-1" style={{ borderTop: '1px solid var(--border)' }}>
         <button
-          onClick={() => setDark(!dark)}
-          title={dark ? 'Switch to Light' : 'Switch to Dark'}
+          onClick={toggleTheme}
+          title={isDark ? 'Switch to Light' : 'Switch to Dark'}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all hover:bg-green-500/10"
           style={{ color: 'var(--text-secondary)' }}
         >
-          {dark
+          {isDark
             ? <Sun className="w-5 h-5 flex-shrink-0 text-amber-400" />
             : <Moon className="w-5 h-5 flex-shrink-0 text-blue-400" />
           }
-          {!collapsed && <span className="text-sm font-medium">{dark ? 'Light Mode' : 'Dark Mode'}</span>}
+          {!collapsed && <span className="text-sm font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
         </button>
         <button
           onClick={handleLogout}

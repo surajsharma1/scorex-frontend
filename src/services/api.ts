@@ -169,6 +169,7 @@ export const adminAPI = {
   unbanUser: (id: string) => api.post(`/admin/users/${id}/unban`),
   assignMembership: (id: string, data: any) => api.patch(`/admin/users/${id}/membership`, data),
   getLogs: () => api.get('/admin/logs'),
+  downloadLog: (filename: string) => api.get(`/admin/logs/${filename}`, { responseType: 'blob' }),
   exportPayments: () => api.get('/admin/export/payments', { responseType: 'blob' }),
   exportTournaments: () => api.get('/admin/export/tournaments', { responseType: 'blob' }),
 };

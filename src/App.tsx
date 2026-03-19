@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import ThemeProvider from './components/ThemeProvider';
 import { useState, useEffect, createContext, useContext, lazy, Suspense } from 'react';
 import api from './services/api';
 import Sidebar from './components/Sidebar';
@@ -246,43 +247,45 @@ export default function App() {
   );
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
-      <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Frontpage />} />
-          <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
-          <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/oauth/callback" element={<OAuthCallback />} />
+    <ThemeProvider>
+      <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <Router>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Frontpage />} />
+            <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
+            <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/oauth/callback" element={<OAuthCallback />} />
 
-          {/* Protected dashboard routes */}
-          <Route path="/dashboard" element={<ProtectedDashboardRoute><Dashboard /></ProtectedDashboardRoute>} />
-          <Route path="/tournaments" element={<ProtectedDashboardRoute><TournamentView /></ProtectedDashboardRoute>} />
-          <Route path="/tournaments/:id" element={<ProtectedDashboardRoute><TournamentView /></ProtectedDashboardRoute>} />
-          <Route path="/live" element={<ProtectedDashboardRoute><LiveMatches /></ProtectedDashboardRoute>} />
-          <Route path="/profile" element={<ProtectedDashboardRoute><Profile /></ProtectedDashboardRoute>} />
-          <Route path="/membership" element={<ProtectedDashboardRoute><Membership /></ProtectedDashboardRoute>} />
-          <Route path="/clubs" element={<ProtectedDashboardRoute><ClubManagement /></ProtectedDashboardRoute>} />
-          <Route path="/friends" element={<ProtectedDashboardRoute><FriendList /></ProtectedDashboardRoute>} />
-          <Route path="/leaderboard" element={<ProtectedDashboardRoute><Leaderboard /></ProtectedDashboardRoute>} />
-          
-          {/* Admin */}
-          <Route path="/admin" element={<AdminDashboardRoute><AdminPanel /></AdminDashboardRoute>} />
+            {/* Protected dashboard routes */}
+            <Route path="/dashboard" element={<ProtectedDashboardRoute><Dashboard /></ProtectedDashboardRoute>} />
+            <Route path="/tournaments" element={<ProtectedDashboardRoute><TournamentView /></ProtectedDashboardRoute>} />
+            <Route path="/tournaments/:id" element={<ProtectedDashboardRoute><TournamentView /></ProtectedDashboardRoute>} />
+            <Route path="/live" element={<ProtectedDashboardRoute><LiveMatches /></ProtectedDashboardRoute>} />
+            <Route path="/profile" element={<ProtectedDashboardRoute><Profile /></ProtectedDashboardRoute>} />
+            <Route path="/membership" element={<ProtectedDashboardRoute><Membership /></ProtectedDashboardRoute>} />
+            <Route path="/clubs" element={<ProtectedDashboardRoute><ClubManagement /></ProtectedDashboardRoute>} />
+            <Route path="/friends" element={<ProtectedDashboardRoute><FriendList /></ProtectedDashboardRoute>} />
+            <Route path="/leaderboard" element={<ProtectedDashboardRoute><Leaderboard /></ProtectedDashboardRoute>} />
+            
+            {/* Admin */}
+            <Route path="/admin" element={<AdminDashboardRoute><AdminPanel /></AdminDashboardRoute>} />
 
-          {/* Live scoring (full screen, no sidebar) */}
-          <Route path="/matches/:id/score" element={
-            <ProtectedRoute>
-              <Suspense fallback={<LoadingSpinner />}>
-                <LiveScoring />
-              </Suspense>
-            </ProtectedRoute>
-          } />
+            {/* Live scoring (full screen, no sidebar) */}
+            <Route path="/matches/:id/score" element={
+              <ProtectedRoute>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <LiveScoring />
+                </Suspense>
+              </ProtectedRoute>
+            } />
 
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Router>
-    </AuthContext.Provider>
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Router>
+      </AuthContext.Provider>
+    </ThemeProvider>
   );
 }
 

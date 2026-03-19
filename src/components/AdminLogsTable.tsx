@@ -24,19 +24,11 @@ export default function AdminLogsTable() {
     try {
       setError(null);
       const res = await adminAPI.getLogs();
-      let logData = res.data.data || [];
-      // Mock data if empty for demo
-      if (logData.length === 0) {
-        logData = [
-          { name: 'application-2024-10-01.log', size: 2048, mtime: '2024-10-01T12:00:00Z' },
-          { name: 'error-2024-10-01.log', size: 512, mtime: '2024-10-01T11:30:00Z' },
-          { name: 'combined-2024-09-30.log', size: 8192, mtime: '2024-09-30T23:59:00Z' },
-        ];
-      }
+      const logData = res.data.data || [];
       setLogs(logData);
     } catch (err: any) {
       console.error('Failed to load logs:', err);
-      setError('Failed to fetch logs. Check backend server and console.');
+      setError('Failed to fetch logs. Check backend server.');
       setLogs([]);
     } finally {
       setLoading(false);
@@ -48,9 +40,21 @@ export default function AdminLogsTable() {
     l.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const downloadLog = (filename: string) => {
-    // Backend can add /admin/logs/:filename for download
-    window.open(`/api/v1/admin/logs/${filename}`, '_blank');
+  const downloadLog = async (filename: string) => {
+    try {
+      const res = await adminAPI.downloadLog(filename);
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `scorex-${filename}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download failed:', err);
+      setError('Download failed. Check console.');
+    }
   };
 
   return (

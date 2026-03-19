@@ -24,23 +24,13 @@ export default function AdminPanel() {
   const [activeSection, setActiveSection] = useState<'overview' | 'pricing' | 'users' | 'payments' | 'tournaments' | 'overlays' | 'logs'>('overview');
 
   useEffect(() => {
-    console.log('🔍 DEBUG AdminPanel: Loading stats/prices...');
-    const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
-    console.log('🔍 DEBUG: Token exists?', !!token);
-    console.log('🔍 DEBUG: User data:', userStr ? JSON.parse(userStr) : null);
-    
     const loadStats = api.get('/stats/admin').then(res => {
-      console.log('✅ Stats loaded:', res.data);
       setStats(res.data);
     }).catch(err => {
-      console.error('❌ Stats API failed:', err.response?.status, err.response?.data || err.message);
-    }).finally(() => {
-      console.log('🔍 DEBUG: Stats loading complete');
+      console.error('Stats API failed:', err.response?.status, err.response?.data || err.message);
     });
 
     const loadPrices = api.get('/admin/membership-prices').then(res => {
-      console.log('✅ Prices loaded:', res.data);
       if (res.data?.data) {
         const planMap: any = {};
         res.data.data.forEach((plan: any) => {
@@ -49,7 +39,7 @@ export default function AdminPanel() {
         setPrices(planMap);
       }
     }).catch(err => {
-      console.error('❌ Prices API failed:', err.response?.status, err.response?.data || err.message);
+      console.error('Prices API failed:', err.response?.status, err.response?.data || err.message);
     });
 
     Promise.all([loadStats, loadPrices]).finally(() => setLoading(false));
@@ -101,16 +91,7 @@ const sections = [
 
   return (
     <div className="p-6 max-w-5xl relative min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-      {/* DEBUG Banner */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-500/90 backdrop-blur-sm p-3 flex flex-col sm:flex-row gap-2 items-start sm:items-center text-xs font-mono text-yellow-900">
-        <span>🔍 DEBUG MODE ACTIVE</span>
-        <span>Role: {(() => { try { return JSON.parse(localStorage.getItem('user') || '{}').role || 'NO USER'; } catch { return 'PARSE ERROR'; } })()}</span>
-        <span>Loading: {loading ? 'YES' : 'NO'}</span>
-        <span>Check Console for API logs!</span>
-        <button onClick={() => {
-          api.get('/auth/me').then(res => console.log('🔍 Current user:', res.data)).catch(e => console.error('Auth/me failed:', e));
-        }} className="px-2 py-0.5 bg-yellow-400 rounded text-yellow-900 font-bold">Check User</button>
-      </div>
+
 
       <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(239,68,68,0.05) 0%, transparent 70%)' }} />
@@ -136,7 +117,7 @@ const sections = [
             </span>
           </h1>
         </div>
-        <p className="ml-5 text-sm" style={{ color: 'var(--text-muted)' }}>Platform overview & management | DEBUG: Loading={loading.toString()}</p>
+        <p className="ml-5 text-sm" style={{ color: 'var(--text-muted)' }}>Platform overview & management</p>
       </div>
 
       {/* Section Nav */}
