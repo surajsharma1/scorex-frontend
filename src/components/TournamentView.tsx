@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, ChangeEvent } from 'react';
 import OverlayManager from './OverlayManager';
 import MatchDetail from './MatchDetail';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -29,6 +29,7 @@ interface CreateMatchForm {
   venue: string;
   format: string;
   name: string;
+  maxOvers?: number;
 }
 
 // ─── CREATE TOURNAMENT MODAL ──────────────────────────────────────────────────
@@ -58,6 +59,10 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
       setLoading(false); 
     }
   };
+
+  function handleFormatChange(event: ChangeEvent<HTMLSelectElement>): void {
+    throw new Error('Function not implemented.');
+  }
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
@@ -109,7 +114,7 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
             </div>
             <div>
               <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Format</label>
-              <select value={form.format} onChange={(e) => setForm({ ...form, format: e.target.value })}
+              <select value={form.format} onChange={handleFormatChange}
                 className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
                 style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
                 onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')}>
@@ -147,9 +152,20 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
 
 // ─── CREATE MATCH MODAL ───────────────────────────────────────────────────────
 function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournamentId: string; teams: Team[]; onClose: () => void; onCreated: () => void; }) {
+  const oversMap: Record<string, number> = { T10: 10, T20: 20, ODI: 50, Test: 90 };
+
   const [form, setForm] = useState<CreateMatchForm>({
-    team1: '', team2: '', date: '', venue: '', format: 'T20', name: ''
+    team1: '', team2: '', date: '', venue: '', format: 'T20', name: '', maxOvers: 20
   });
+
+  const handleFormatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newFormat = e.target.value;
+    setForm(prev => ({
+      ...prev,
+      format: newFormat,
+      maxOvers: oversMap[newFormat as keyof typeof oversMap] || 20
+    }));
+  };
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -217,7 +233,11 @@ function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournam
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Format</label>
-              <select value={form.format} onChange={(e) => setForm({ ...form, format: e.target.value })}
+              <select value={form.format} onChange={(e) => {
+                  const newFormat = e.target.value;
+                  const oversMap = { T10: 10, T20: 20, ODI: 50, Test: 90 };
+                  setForm({ ...form, format: newFormat, maxOvers: Number(form.maxOvers) || oversMap[newFormat as keyof typeof oversMap] || 20 });
+                }}
                 className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
                 style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
                 onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')}>
