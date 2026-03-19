@@ -31,13 +31,15 @@ export default function AdminPanel() {
     });
 
     const loadPrices = api.get('/admin/membership-prices').then(res => {
-      if (res.data?.data) {
-        const planMap: any = {};
-        res.data.data.forEach((plan: any) => {
-          planMap[plan.level] = plan;
-        });
-        setPrices(planMap);
+      let loaded = res.data.prices || DEFAULT_PRICES;
+      // Convert {basic/premium} to {1:{},2:{}}
+      if (loaded.basic && loaded.premium) {
+        loaded = {
+          1: { '1day': loaded.basic.price, '1week': loaded.basic.price * 3, '1month': loaded.basic.price * 10 },
+          2: { '1day': loaded.premium.price, '1week': loaded.premium.price * 3, '1month': loaded.premium.price * 10 }
+        };
       }
+      setPrices(loaded);
     }).catch(err => {
       console.error('Prices API failed:', err.response?.status, err.response?.data || err.message);
     });
