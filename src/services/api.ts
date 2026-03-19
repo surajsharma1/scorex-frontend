@@ -131,8 +131,8 @@ export const friendAPI = {
   getFriends: () => api.get('/friends'),
   getPendingRequests: () => api.get('/friends/requests'),
   sendRequest: (userId: string) => api.post(`/friends/${userId}/request`),
-  acceptRequest: (requestId: string) => api.post(`/friends/requests/${requestId}/accept`),
-  rejectRequest: (requestId: string) => api.post(`/friends/requests/${requestId}/reject`),
+  acceptRequest: (requestId: string) => api.put(`/friends/request/${requestId}/accept`),
+  rejectRequest: (requestId: string) => api.delete(`/friends/request/${requestId}/reject`),
   removeFriend: (friendId: string) => api.delete(`/friends/${friendId}`),
 };
 
