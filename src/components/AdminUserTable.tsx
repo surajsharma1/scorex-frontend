@@ -280,8 +280,8 @@ export default function AdminUserTable() {
                 <select 
                   value={banDuration}
                   onChange={(e) => setBanDuration(e.target.value)}
-                  className="w-full p-3 border rounded-xl mb-3"
-                  style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+                  className="w-full p-3 border rounded-xl mb-3 dark:text-white"
+                  style={{ borderColor: 'var(--border)', color: 'var(--text-primary)', backgroundColor: 'var(--bg-elevated)' }}
                 >
                   <option value="1day">1 Day</option>
                   <option value="3day">3 Days</option>
