@@ -70,7 +70,7 @@ export default function AdminPanel() {
     { label: 'Revenue (₹)', value: stats.revenue, icon: Download, gradient: 'from-amber-500 to-orange-500', glow: 'rgba(245,158,11,0.2)' },
   ];
 
-const sections = [
+  const sections = [
     { key: 'overview', label: 'Overview', icon: BarChart3 },
     { key: 'pricing', label: 'Membership Pricing', icon: Settings },
     { key: 'users', label: 'User Management', icon: Users },
@@ -79,11 +79,10 @@ const sections = [
     { key: 'logs', label: 'Logs', icon: FileText },
   ] as const;
 
-  // DEBUG Timeout check
   useEffect(() => {
     const timer = setTimeout(() => {
       if (loading) {
-        console.error('⏰ DEBUG: AdminPanel loading timeout >10s!');
+        console.error('AdminPanel loading timeout >10s!');
       }
     }, 10000);
     return () => clearTimeout(timer);
@@ -91,8 +90,6 @@ const sections = [
 
   return (
     <div className="p-6 max-w-5xl relative min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-
-
       <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(239,68,68,0.05) 0%, transparent 70%)' }} />
 
@@ -133,7 +130,6 @@ const sections = [
         ))}
       </div>
 
-
       {/* OVERVIEW */}
       {activeSection === 'overview' && (
         <>
@@ -152,9 +148,8 @@ const sections = [
             ))}
           </div>
 
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {[
+            {[
               { title: 'Users', desc: 'Manage accounts & roles', icon: Users },
               { title: 'Payments', desc: 'Reports & history', icon: DollarSign, action: () => setActiveSection('payments') },
               { title: 'Tournaments', desc: 'Audit & moderation', icon: Eye, action: () => setActiveSection('tournaments') },
