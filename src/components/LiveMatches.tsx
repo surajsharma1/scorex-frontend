@@ -20,8 +20,8 @@ export default function LiveMatches() {
   useEffect(() => {
     loadLive();
     const iv = setInterval(loadLive, 15000);
-    socket.on('scoreUpdate', () => loadLive());
-    return () => { clearInterval(iv); socket.off('scoreUpdate'); };
+    socket.get().on('scoreUpdate', () => loadLive());
+    return () => { clearInterval(iv); socket.get().off('scoreUpdate'); };
   }, []);
 
   return (

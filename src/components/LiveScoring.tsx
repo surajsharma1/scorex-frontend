@@ -287,20 +287,20 @@ export default function LiveScoring() {
 
   useEffect(() => {
     if (!id) return;
-    socket.emit('joinMatch', id);
-    socket.on('scoreUpdate', (data: any) => {
+socket.get().emit('joinMatch', id);
+    socket.get().on('scoreUpdate', (data: any) => {
       if (data.match) setMatch(data.match);
     });
-    socket.on('inningsEnded', () => fetchMatch());
-    socket.on('matchEnded', (data: any) => {
+    socket.get().on('inningsEnded', () => fetchMatch());
+    socket.get().on('matchEnded', (data: any) => {
       setMatch(data);
       setStep('done');
     });
     return () => {
-      socket.emit('leaveMatch', id);
-      socket.off('scoreUpdate');
-      socket.off('inningsEnded');
-      socket.off('matchEnded');
+      socket.get().emit('leaveMatch', id);
+      socket.get().off('scoreUpdate');
+      socket.get().off('inningsEnded');
+      socket.get().off('matchEnded');
     };
   }, [id, fetchMatch]);
 
