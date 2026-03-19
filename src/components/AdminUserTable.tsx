@@ -48,9 +48,10 @@ export default function AdminUserTable() {
       await adminAPI.updateUserRole(userId, newRole);
       setUsers(users.map(u => u._id === userId ? { ...u, role: newRole } : u));
       showToast('Role updated successfully', 'success');
-    } catch (err) {
-      console.error('Failed to update role');
-      showToast('Failed to update role', 'error');
+      loadUsers(); // Reload to confirm
+    } catch (err: any) {
+      console.error('Failed to update role:', err.response?.data || err);
+      showToast(err.response?.data?.message || 'Failed to update role', 'error');
     }
   };
 
@@ -77,39 +78,46 @@ export default function AdminUserTable() {
       link.click();
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
-    }).catch(() => alert('Export failed'));
+      showToast('Users exported', 'success');
+    }).catch((err) => {
+      console.error('Export failed:', err);
+      showToast('Export failed', 'error');
+    });
   };
 
   const handleBan = async () => {
     try {
       await adminAPI.banUser(selectedUser!._id, { duration: banDuration, reason: banReason });
-      alert('User banned');
+      showToast('User banned successfully', 'success');
       setShowModal(false);
       loadUsers();
-    } catch {
-      alert('Ban failed');
+    } catch (err: any) {
+      console.error('Ban failed:', err.response?.data || err);
+      showToast(err.response?.data?.message || 'Ban failed', 'error');
     }
   };
 
   const handleUnban = async () => {
     try {
       await adminAPI.unbanUser(selectedUser!._id);
-      alert('User unbanned');
+      showToast('User unbanned successfully', 'success');
       setShowModal(false);
       loadUsers();
-    } catch {
-      alert('Unban failed');
+    } catch (err: any) {
+      console.error('Unban failed:', err.response?.data || err);
+      showToast(err.response?.data?.message || 'Unban failed', 'error');
     }
   };
 
   const handleAssignMembership = async () => {
     try {
       await adminAPI.assignMembership(selectedUser!._id, { level: memLevel, duration: memDuration });
-      alert('Membership assigned');
+      showToast('Membership assigned successfully', 'success');
       setShowModal(false);
       loadUsers();
-    } catch {
-      alert('Assignment failed');
+    } catch (err: any) {
+      console.error('Membership assignment failed:', err.response?.data || err);
+      showToast(err.response?.data?.message || 'Assignment failed', 'error');
     }
   };
 
