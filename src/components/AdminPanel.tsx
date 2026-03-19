@@ -50,7 +50,7 @@ export default function AdminPanel() {
   const savePrices = async () => {
     setSavingPrices(true);
     try {
-      await api.post('/admin/membership-prices', { plans: prices });
+await api.post('/admin/membership-prices', { prices });
 
       setPriceToast('Prices saved successfully!');
       setTimeout(() => setPriceToast(''), 3000);
