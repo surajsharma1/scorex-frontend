@@ -1,10 +1,18 @@
-# ClubList Null Map Error Fix - TODO ✅ COMPLETE
+# Club Functionality Fixes
 
 ## Steps:
-- [x] 1. Edit ClubList.tsx: Add null-safety to fetchClubs() for setClubs/setMyClubs
-- [x] 2. Edit ClubList.tsx: Add render guards (clubs || []).map() and (myClubs || []).map()
-- [x] 3. Edit ClubList.tsx: Add optional chaining to club.members?.some()
-- [x] 4. Restart Vite dev server: cd scorex-frontend/scorex-frontend && npm run dev
-- [x] 5. Test /clubs page (public/my tabs, search, pagination)
-- [x] 6. Mark complete and attempt_completion
+- [ ] 1. Create TODO.md ✅
+- [x] 2. Fix CreateClubForm.tsx - Fix state declarations, add success navigation to /clubs, toast confirmation
+- [x] 3. Add delete functionality to ClubList.tsx - Delete button in My Clubs cards (owner only)
+- [x] 4. Add delete button to ClubManagement.tsx - In Settings tab "Danger Zone" section (owner only)
+- [ ] 5. Test: Create club → verify in My Clubs → Delete → verify gone
+- [ ] 6. Mark complete &amp; attempt_completion
 
+**Current Status:** Starting implementation...
+
+**Files to Edit:**
+- src/components/CreateClubForm.tsx
+- src/components/ClubList.tsx  
+- src/components/ClubManagement.tsx
+
+**No backend changes needed**

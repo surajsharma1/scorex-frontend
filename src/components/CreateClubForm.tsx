@@ -19,6 +19,8 @@ const CreateClubForm: React.FC = () => {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,10 +48,9 @@ const CreateClubForm: React.FC = () => {
       addToast({
         type: 'success',
         title: 'Club Created!',
-        message: `Your club "${formData.name}" has been created successfully`
+        message: 'Your club has been created successfully!'
       });
-      
-      navigate(`/clubs/${clubId}`);
+      navigate('/clubs?tab=my');
     } catch (error: any) {
       addToast({
         type: 'error',
@@ -84,9 +85,6 @@ const CreateClubForm: React.FC = () => {
       reader.readAsDataURL(file);
     }
   };
-
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8" style={{ background: 'var(--bg-primary)' }}>

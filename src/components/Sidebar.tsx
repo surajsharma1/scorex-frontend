@@ -20,10 +20,10 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard',    path: '/dashboard' },
   { icon: Trophy,          label: 'Tournament',   path: '/tournaments' },
   { icon: Zap,             label: 'Live Match',   path: '/live' },
-  { icon: Users,           label: 'Team Manager', path: '/tournaments' },
+
   { icon: CreditCard,      label: 'Membership',   path: '/membership' },
 { icon: Building2,       label: 'Clubs',        path: '/clubs' },
-  { icon: Building2,       label: 'Club Management', path: '/clubs/manage', admin: true },
+
   { icon: UserPlus,        label: 'Friends',      path: '/friends' },
   { icon: User,            label: 'Profile',      path: '/profile' },
 ];

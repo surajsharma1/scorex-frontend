@@ -14,6 +14,7 @@ interface Club {
   isPublic: boolean;
   memberCount: number;
   owner: {
+    _id: string;
     username: string;
     fullName: string;
     profilePicture: string;
@@ -97,6 +98,26 @@ const ClubList: React.FC = () => {
     }
   };
 
+  const handleDeleteClub = async (clubId: string) => {
+    if (!confirm('Are you sure you want to delete this club? This cannot be undone.')) return;
+    
+    try {
+      await clubAPI.deleteClub(clubId);
+      addToast({
+        type: 'success',
+        title: 'Club Deleted',
+        message: 'Club has been deleted successfully.'
+      });
+      fetchClubs(tab, true);
+    } catch (error: any) {
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: error.response?.data?.message || 'Failed to delete club'
+      });
+    }
+  };
+
   const ClubCard = ({ club }: { club: Club }) => (
     <div className="group bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6 hover:shadow-xl hover:shadow-green-500/10 transition-all duration-300 hover:-translate-y-1 overflow-hidden">
       <div className="flex gap-4 mb-4">
@@ -136,6 +157,14 @@ const ClubList: React.FC = () => {
             className="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-500/25 transform hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
           >
             Join
+          </button>
+        )}
+        {tab === 'my' && user && club.owner._id === user.id && (
+          <button
+            onClick={() => handleDeleteClub(club._id)}
+            className="px-6 py-3 bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-red-500/25 transform hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
+          >
+            Delete
           </button>
         )}
       </div>
