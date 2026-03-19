@@ -50,7 +50,9 @@ const CreateClubForm: React.FC = () => {
         title: 'Club Created!',
         message: 'Your club has been created successfully!'
       });
-      navigate('/clubs?tab=my');
+      navigate(`/clubs?tab=my&refresh=${Date.now()}`);
+
+
     } catch (error: any) {
       addToast({
         type: 'error',

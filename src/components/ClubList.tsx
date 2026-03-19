@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { clubAPI } from '../services/api';
 import { useAuth } from '../App';
 import { useToast } from '../hooks/useToast';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+
 
 interface Club {
   _id: string;
@@ -35,6 +36,17 @@ const ClubList: React.FC = () => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Sync tab with URL
+  useEffect(() => {
+    const urlTab = searchParams.get('tab') as 'public' | 'my' | null;
+    if (urlTab && urlTab !== tab) {
+      setTab(urlTab);
+    }
+  }, [searchParams]);
+
+
 
   const fetchClubs = useCallback(async (tabType: 'public' | 'my' = tab, resetPage = true) => {
     try {
@@ -74,11 +86,22 @@ const ClubList: React.FC = () => {
 
   useEffect(() => {
     fetchClubs(tab, true);
-  }, [fetchClubs, tab]);
+  }, [fetchClubs, tab, searchParams]);
+
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
+    const value = e.target.value;
+    setSearch(value);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('page', '1');
+    if (value) {
+      newParams.set('search', value);
+    } else {
+      newParams.delete('search');
+    }
+    setSearchParams(newParams);
   };
+
 
   const handleJoinClub = async (clubId: string) => {
     try {
@@ -194,7 +217,13 @@ const ClubList: React.FC = () => {
           
           <div className="flex gap-3 flex-wrap">
             <button
-              onClick={() => setTab('public')}
+              onClick={() => {
+                setTab('public');
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set('tab', 'public');
+                newParams.set('page', '1');
+                setSearchParams(newParams);
+              }}
               className={`px-6 py-2.5 rounded-xl font-semibold transition-all ${
                 tab === 'public' 
                   ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-lg shadow-green-500/25' 
@@ -205,7 +234,13 @@ const ClubList: React.FC = () => {
             </button>
             {user && (
               <button
-                onClick={() => setTab('my')}
+                onClick={() => {
+                  setTab('my');
+                  const newParams = new URLSearchParams(searchParams);
+                  newParams.set('tab', 'my');
+                  newParams.set('page', '1');
+                  setSearchParams(newParams);
+                }}
                 className={`px-6 py-2.5 rounded-xl font-semibold transition-all ${
                   tab === 'my'
                     ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-lg shadow-green-500/25' 
@@ -215,8 +250,25 @@ const ClubList: React.FC = () => {
                 My Clubs
               </button>
             )}
+            <button
+              onClick={() => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set('refresh', Date.now().toString());
+                newParams.set('page', '1');
+                setSearchParams(newParams);
+              }}
+              className="px-4 py-2.5 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] border border-[var(--border)] rounded-xl font-semibold transition-all flex items-center gap-1"
+              title="Refresh list"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
+            </button>
           </div>
         </div>
+
 
         {/* Search */}
         <div className="relative max-w-md mb-8">
