@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ThemeProvider from './components/ThemeProvider';
 import { useState, useEffect, createContext, useContext, lazy, Suspense } from 'react';
+import { ToastProvider } from './hooks/useToast';
 import api from './services/api';
 import Sidebar from './components/Sidebar';
 import Login from './components/Login';
@@ -15,7 +16,12 @@ const LiveScoring = lazy(() => import('./components/LiveScoring'));
 const LiveMatches = lazy(() => import('./components/LiveMatches'));
 const Profile = lazy(() => import('./components/Profile'));
 const Membership = lazy(() => import('./components/Membership'));
+// Club imports
+const ClubList = lazy(() => import('./components/ClubList'));
+const ClubDetail = lazy(() => import('./components/ClubDetail'));
+const CreateClubForm = lazy(() => import('./components/CreateClubForm'));
 const ClubManagement = lazy(() => import('./components/ClubManagement'));
+
 const FriendList = lazy(() => import('./components/FriendList'));
 const Leaderboard = lazy(() => import('./components/Leaderboard'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
@@ -147,6 +153,12 @@ function DashboardLayout({
 }
 
 // ─── App ──────────────────────────────────────────────────────────────────────
+const ToastWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <ToastProvider>
+    {children}
+  </ToastProvider>
+);
+
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -248,9 +260,11 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <AuthContext.Provider value={{ user, login, logout, loading }}>
-        <Router>
-          <Routes>
+      <ToastWrapper>
+        <AuthContext.Provider value={{ user, login, logout, loading }}>
+          <Router>
+            <Routes>
+
             {/* Public routes */}
             <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Frontpage />} />
             <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
@@ -265,7 +279,10 @@ export default function App() {
             <Route path="/live" element={<ProtectedDashboardRoute><LiveMatches /></ProtectedDashboardRoute>} />
             <Route path="/profile" element={<ProtectedDashboardRoute><Profile /></ProtectedDashboardRoute>} />
             <Route path="/membership" element={<ProtectedDashboardRoute><Membership /></ProtectedDashboardRoute>} />
-            <Route path="/clubs" element={<ProtectedDashboardRoute><ClubManagement /></ProtectedDashboardRoute>} />
+            <Route path="/clubs" element={<ProtectedDashboardRoute><ClubList /></ProtectedDashboardRoute>} />
+            <Route path="/clubs/:id" element={<ProtectedDashboardRoute><ClubDetail /></ProtectedDashboardRoute>} />
+            <Route path="/clubs/create" element={<ProtectedDashboardRoute><CreateClubForm /></ProtectedDashboardRoute>} />
+
             <Route path="/friends" element={<ProtectedDashboardRoute><FriendList /></ProtectedDashboardRoute>} />
             <Route path="/leaderboard" element={<ProtectedDashboardRoute><Leaderboard /></ProtectedDashboardRoute>} />
             
@@ -282,9 +299,10 @@ export default function App() {
             } />
 
             <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </Router>
-      </AuthContext.Provider>
+            </Routes>
+          </Router>
+        </AuthContext.Provider>
+      </ToastWrapper>
     </ThemeProvider>
   );
 }

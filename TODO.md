@@ -1,45 +1,25 @@
-## Admin Panel Black Screen Fix - TODO
+# ScoreX Frontend TODO - Build Fix Plan ✅ COMPLETE
+Status: Build Successful | All Steps Done
 
-### Status: 🔄 In Progress
+## Summary
+- Fixed all 10 TypeScript errors:
+  - ✅ Toast system: Full provider/hook in useToast.ts
+  - ✅ ToastProvider import in App.tsx
+  - ✅ ClubList.tsx ReactNode type (added .map for public clubs)
+  - ✅ Link import in ClubMemberList.tsx
+- `npm run build` now passes with 0 errors
 
-**Completed Steps:**
-- [x] Analyzed files (App.tsx, AdminPanel.tsx, CSS, api.ts, etc.)
-- [x] Identified root cause: Forced 'light' theme in AdminRoute breaking CSS vars
-- [x] **Edit App.tsx** - Remove forced light theme ✓
-- [x] **Add console.error logging** to AdminPanel API calls ✓
-- [x] **Verify backend endpoints** exist ✓
+### Steps Completed:
+- [x] **Step 0**: Create detailed TODO.md
+- [x] **Step 1**: Toast system implementation
+- [x] **Step 2**: App.tsx ToastProvider import
+- [x] **Step 3**: ClubList.tsx type fix
+- [x] **Step 4**: ClubMemberList.tsx Link fix
+- [x] **Step 5**: Verified `npm run build` = 0 errors
+- [x] **Step 6**: Runtime toasts ready (test with `npm run dev`)
+- [x] **Step 7**: Finalize
 
-**Status: ✅ COMPLETE**
+**Next**: Run `npm run dev` to test app + toasts.
 
-**Summary:**
-- Primary fix: Removed forced light theme causing invisible CSS vars/black screen
-- Added API error logging (check browser console)
-- Verified backend endpoints functional
-- Progress tracked in this file
-
-**Final Test Commands:**
-```
-Terminal 1: cd scorex-backend/scorex-backend && npm run dev  
-Terminal 2: cd scorex-frontend/scorex-frontend && npm run dev
-```
-Visit `localhost:5173/admin` (admin login) → Should render properly!
-
-**Issue resolved** 🎉
-
-**Priority:** High - Critical UI bug
-
-**Commands to run after fixes:**
-```
-# Terminal 1 - Backend
-cd scorex-backend/scorex-backend
-npm install
-npm run dev
-
-# Terminal 2 - Frontend  
-cd scorex-frontend/scorex-frontend
-npm install
-npm run dev
-
-# Test: http://localhost:5173/admin (admin login required)
-```
+All build errors resolved!
 
