@@ -338,7 +338,7 @@ export default function AdminUserTable() {
                 <select 
                   value={memLevel}
                   onChange={(e) => setMemLevel(Number(e.target.value) as 1 | 2)}
-                  className="w-full p-3 border rounded-xl mb-3"
+className="w-full p-3 border rounded-xl mb-3 dark:text-white dark:bg-gray-800"
                   style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
                 >
                   <option value={1}>Premium (Level 1)</option>
