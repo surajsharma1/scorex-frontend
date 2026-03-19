@@ -54,7 +54,7 @@ const ClubDetail: React.FC = () => {
 
   const handleJoinClub = async () => {
     if (!club || !user) return;
-  if ((club.members || []).some((m: any) => m._id === user.id)) {
+    if ((club.members || []).some((m: any) => m._id === user.id)) {
       addToast({
         type: 'error',
         title: 'Already Member',
