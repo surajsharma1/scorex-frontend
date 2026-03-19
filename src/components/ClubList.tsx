@@ -50,8 +50,12 @@ const ClubList: React.FC = () => {
         : await clubAPI.getMyClubs(params);
       
       if (res.data.success) {
-        setClubs(tabType === 'public' ? res.data.data : myClubs);
-        setMyClubs(tabType === 'my' ? res.data.data : myClubs);
+        const data = Array.isArray(res.data.data) ? res.data.data : [];
+        if (tabType === 'public') {
+          setClubs(data);
+        } else {
+          setMyClubs(data);
+        }
         setTotalPages(res.data.pagination?.pages || 1);
         setPage(res.data.pagination?.page || 1);
       }
@@ -65,7 +69,7 @@ const ClubList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [tab, search, page, myClubs, addToast]);
+  }, [tab, search, page, addToast]);
 
   useEffect(() => {
     fetchClubs(tab, true);
@@ -126,7 +130,7 @@ const ClubList: React.FC = () => {
         >
           View Club
         </Link>
-        {user && !club.members.some((m: any) => m._id === user.id) && (
+        {user && !(club.members || []).some((m: any) => m._id === user.id) && (
           <button
             onClick={() => handleJoinClub(club._id)}
             className="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-500/25 transform hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
@@ -202,9 +206,9 @@ const ClubList: React.FC = () => {
 
         {/* Clubs Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {tab === 'public' ? clubs.map(club => (
+          {tab === 'public' ? (clubs || []).map(club => (
             <ClubCard key={club._id} club={club} />
-          )) : myClubs.map(club => (
+          )) : (myClubs || []).map(club => (
             <ClubCard key={club._id} club={club} />
           ))}
         </div>
