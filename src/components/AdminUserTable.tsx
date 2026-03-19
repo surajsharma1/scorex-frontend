@@ -294,10 +294,11 @@ export default function AdminUserTable() {
                   placeholder="Reason for ban (optional)"
                   value={banReason}
                   onChange={(e) => setBanReason(e.target.value)}
-                  className="w-full p-3 border rounded-xl mb-3 resize-vertical"
+className="w-full p-3 border rounded-xl mb-3 resize-vertical dark:text-white dark:bg-gray-800"
                   rows={3}
                   style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
                 />
+
                 <button 
                   onClick={async () => {
                     try {
