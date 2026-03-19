@@ -55,8 +55,7 @@ const ClubDetail: React.FC = () => {
   const handleJoinClub = async () => {
     if (!club || !user) return;
     if ((club.members || []).some((m: any) => m._id === user.id)) {
-      addToast({
-        type: 'info',
+
         title: 'Already Member',
         message: 'You are already a member of this club'
       });
@@ -245,92 +244,6 @@ const ClubDetail: React.FC = () => {
             )}
           </div>
         </div>
-      </div>
-    </div>
-  );
-};
-
-export default ClubDetail;
-            className={`flex-1 py-4 px-6 font-semibold transition-all ${
-              showMembers 
-                ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white' 
-                : 'hover:bg-[var(--bg-hover)]'
-            }`}
-            style={{ color: showMembers ? 'white' : 'var(--text-primary)' }}
-          >
-            Members ({club.memberCount})
-          </button>
-          {isAdmin && (
-            <button
-              onClick={() => setShowRequests(true)}
-              className={`flex-1 py-4 px-6 font-semibold transition-all ${
-                showRequests 
-                  ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white' 
-                  : 'hover:bg-[var(--bg-hover)]'
-              }`}
-              style={{ color: showRequests ? 'white' : 'var(--text-primary)' }}
-            >
-              Join Requests ({club.joinRequests.length})
-            </button>
-          )}
-        </div>
-
-        {/* Content */}
-        {showMembers ? (
-          <ClubMemberList 
-            members={club.members} 
-            viceLeaders={club.viceLeaders}
-            isAdmin={isAdmin}
-            clubId={club._id}
-            onUpdate={() => {}} // Refresh parent on changes
-          />
-        ) : showRequests && isAdmin ? (
-          <div className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] p-8">
-            <h3 className="text-2xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
-              Join Requests ({club.joinRequests.length})
-            </h3>
-            {club.joinRequests.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto mb-4 bg-green-500/10 rounded-2xl flex items-center justify-center">
-                  <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                </div>
-                <p className="text-lg" style={{ color: 'var(--text-muted)' }}>
-                  No pending join requests
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {club.joinRequests.map((req) => (
-                  <div key={req._id} className="flex items-center gap-4 p-6 bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] hover:bg-[var(--bg-hover)] transition-all">
-                    <img 
-                      src={req.profilePicture || '/default-avatar.png'}
-                      alt={req.username}
-                      className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
-                        {req.username}
-                      </p>
-                      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                        {req.fullName}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors text-sm">
-                        Approve
-                      </button>
-                      <button className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl transition-colors text-sm">
-                        Reject
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : null}
       </div>
     </div>
   );
