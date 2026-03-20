@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, ChangeEvent } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import OverlayManager from './OverlayManager';
 import MatchDetail from './MatchDetail';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -60,8 +60,6 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
     }
   };
 
-
-
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="rounded-2xl p-6 w-full max-w-md relative" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
@@ -111,7 +109,7 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
               </select>
             </div>
             <div>
-            <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Format</label>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Format</label>
               <select value={form.format} onChange={(e) => setForm({ ...form, format: e.target.value })}
                 className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
                 style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
@@ -150,20 +148,9 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
 
 // ─── CREATE MATCH MODAL ───────────────────────────────────────────────────────
 function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournamentId: string; teams: Team[]; onClose: () => void; onCreated: () => void; }) {
-  const oversMap: Record<string, number> = { T10: 10, T20: 20, ODI: 50, Test: 90 };
-
   const [form, setForm] = useState<CreateMatchForm>({
     team1: '', team2: '', date: '', venue: '', format: 'T20', name: '', maxOvers: 20
   });
-
-  const handleFormatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newFormat = e.target.value;
-    setForm(prev => ({
-      ...prev,
-      format: newFormat,
-      maxOvers: oversMap[newFormat as keyof typeof oversMap] || 20
-    }));
-  };
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -179,7 +166,8 @@ function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournam
       await matchAPI.createMatch({
         ...form,
         tournamentId,
-        date: new Date(form.date).toISOString()
+        date: new Date(form.date).toISOString(),
+        maxOvers: form.format === 'Custom' ? form.maxOvers : undefined
       });
       onCreated();
       onClose();
@@ -231,19 +219,25 @@ function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournam
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Format</label>
-              <select value={form.format} onChange={(e) => {
-                  const newFormat = e.target.value;
-                  const oversMap = { T10: 10, T20: 20, ODI: 50, Test: 90 };
-                  setForm({ ...form, format: newFormat, maxOvers: Number(form.maxOvers) || oversMap[newFormat as keyof typeof oversMap] || 20 });
-                }}
-                className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+              <select value={form.format} onChange={(e) => setForm({ ...form, format: e.target.value })}
+                className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all mb-3"
                 style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
                 onFocus={e => (e.target.style.borderColor = 'var(--accent)')} onBlur={e => (e.target.style.borderColor = 'var(--border)')}>
                 <option value="T10">T10</option>
                 <option value="T20">T20</option>
                 <option value="ODI">ODI</option>
                 <option value="Test">Test</option>
+                <option value="Custom">Custom Overs</option>
               </select>
+
+              {form.format === 'Custom' && (
+                <div>
+                  <label className="text-xs font-semibold mb-1 block text-green-400">Number of Overs</label>
+                  <input type="number" min="1" max="999" value={form.maxOvers} onChange={(e) => setForm({ ...form, maxOvers: Number(e.target.value) })}
+                    className="w-full rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all"
+                    style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
+                </div>
+              )}
             </div>
             <div>
               <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-secondary)' }}>Venue</label>
