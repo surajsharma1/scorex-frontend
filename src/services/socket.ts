@@ -1,4 +1,4 @@
-import { io, Socket, ManagerOptions, SocketOptions } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import { getSocketUrl } from './env';
 
 // Define typed events
@@ -28,14 +28,28 @@ export interface ClientToServerEvents {
   joinUserRoom: (userId: string) => void;
 }
 
-// Singleton factory - fixes TDZ, safe lazy init
+// Type for the full socket API
+type SocketAPI = {
+  get: () => Socket<ServerToClientEvents, ClientToServerEvents>;
+  connect: () => void;
+  disconnect: () => void;
+  joinMatch: (matchId: string) => void;
+  leaveMatch: (matchId: string) => void;
+  joinTournament: (tournamentId: string) => void;
+  leaveTournament: (tournamentId: string) => void;
+  joinUserRoom: (userId: string) => void;
+  isConnected: () => boolean;
+  on: (event: string, listener: (...args: any[]) => void) => void;
+  off: (event: string, listener?: (...args: any[]) => void) => void;
+  emit: (event: string, ...args: any[]) => void;
+  removeAllListeners: (event?: string) => void;
+};
+
+// Singleton factory
 class SocketFactory {
   private static instance: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
-  private static isInitialized = false;
 
-  private constructor() {
-    // Private constructor
-  }
+  private constructor() {}
 
   static getInstance(): Socket<ServerToClientEvents, ClientToServerEvents> {
     if (!SocketFactory.instance) {
@@ -53,7 +67,6 @@ class SocketFactory {
       }) as Socket<ServerToClientEvents, ClientToServerEvents>;
 
       SocketFactory.setupEventHandlers(SocketFactory.instance);
-      SocketFactory.initializeConnection();
     }
     return SocketFactory.instance;
   }
@@ -67,18 +80,10 @@ class SocketFactory {
       console.warn('❌ Socket disconnected:', reason);
     });
 
-    // Manager events (safe inside factory)
     (socket.io as any).on('reconnect', () => console.log('✅ Reconnected'));
     (socket.io as any).on('connect_error', (error: Error) => {
       console.error('❌ Connect error:', error.message);
     });
-  }
-
-  private static initializeConnection() {
-    const socket = SocketFactory.getInstance();
-    if (!socket.connected) {
-      socket.connect();
-    }
   }
 
   static connect() {
@@ -102,10 +107,32 @@ class SocketFactory {
   static isConnected(): boolean {
     return SocketFactory.instance?.connected || false;
   }
+
+  // NEW: Dynamic event methods
+  static on(event: string, listener: (...args: any[]) => void) {
+    SocketFactory.getInstance().on(event as any, listener);
+  }
+
+  static off(event: string, listener?: (...args: any[]) => void) {
+    const socket = SocketFactory.getInstance();
+    if (listener) {
+      socket.off(event as any, listener);
+    } else {
+      socket.removeAllListeners(event as any);
+    }
+  }
+
+  static emit(event: string, ...args: any[]) {
+    SocketFactory.getInstance().emit(event as any, ...args);
+  }
+
+  static removeAllListeners(event?: string) {
+    SocketFactory.getInstance().removeAllListeners(event as any);
+  }
 }
 
-// Public API
-export const socket = {
+// Public API as SocketAPI
+export const socket: SocketAPI = {
   get: () => SocketFactory.getInstance(),
   connect: () => SocketFactory.connect(),
   disconnect: () => SocketFactory.disconnect(),
@@ -115,6 +142,10 @@ export const socket = {
   leaveTournament: (tournamentId: string) => SocketFactory.getInstance().emit('leaveTournament', tournamentId),
   joinUserRoom: (userId: string) => SocketFactory.getInstance().emit('joinUserRoom', userId),
   isConnected: () => SocketFactory.isConnected(),
+  on: (event: string, listener: (...args: any[]) => void) => SocketFactory.on(event, listener),
+  off: (event: string, listener?: (...args: any[]) => void) => SocketFactory.off(event, listener),
+  emit: (event: string, ...args: any[]) => SocketFactory.emit(event, ...args),
+  removeAllListeners: (event?: string) => SocketFactory.removeAllListeners(event),
 };
 
 // Legacy service compatibility
