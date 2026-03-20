@@ -68,8 +68,8 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
   const [bowler, setBowler] = useState(defaultBowler);
 
   useEffect(() => {
-    setStriker(defaultStriker); 
-    setNonStriker(defaultNonStriker); 
+    setStriker(defaultStriker);
+    setNonStriker(defaultNonStriker);
     setBowler(defaultBowler);
   }, [defaultStriker, defaultNonStriker, defaultBowler]);
 
@@ -105,7 +105,7 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
           </div>
           <div>
             <label className="text-slate-400 text-sm font-semibold mb-1.5 flex justify-between">
-              <span>🎳 Bowler</span> 
+              <span>🎳 Bowler</span>
             </label>
             <select value={bowler} onChange={e => setBowler(e.target.value)} className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm">
               <option value="">-- Select Bowler --</option>
@@ -120,7 +120,7 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
 }
 
 function InningsBreak({ match, onContinue }: { match: any; onContinue: () => void }) {
-  const innings1 = match.innings?.[0]; 
+  const innings1 = match.innings?.[0];
   const target = (innings1?.score || 0) + 1;
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
@@ -146,7 +146,7 @@ export default function LiveScoring() {
   const [lastBall, setLastBall] = useState<string>('');
   const [error, setError] = useState('');
   const [tossData, setTossData] = useState<any>(null);
-  
+
   const [wicketModal, setWicketModal] = useState<{ open: boolean; baseData: BallData }>({ open: false, baseData: {} });
   const [outBatsman, setOutBatsman] = useState<'striker' | 'nonStriker'>('striker');
 
@@ -168,7 +168,7 @@ export default function LiveScoring() {
   }, [id]);
 
   useEffect(() => { fetchMatch(); }, [fetchMatch]);
-  
+
   useEffect(() => {
     if (!id) return;
     socket.joinMatch(id);
@@ -190,24 +190,24 @@ export default function LiveScoring() {
   const handleTossDone = (data: any) => { setTossData(data); setStep('players'); };
 
   const handlePlayersDone = async (players: { striker?: string; nonStriker?: string; bowler?: string }) => {
-    if (!id || !match) return; 
+    if (!id || !match) return;
     setSubmitting(true);
     try {
       if (match.status !== 'live') await matchAPI.startMatch(id, { ...tossData, striker: players.striker, nonStriker: players.nonStriker, bowler: players.bowler });
       else await matchAPI.selectPlayers(id, players);
-      await fetchMatch(); 
-      setStep('scoring'); 
+      await fetchMatch();
+      setStep('scoring');
       setPanel('main');
     } catch (e: any) { setError(e.response?.data?.message || 'Failed to update players'); } finally { setSubmitting(false); }
   };
 
   const submitBall = async (data: BallData) => {
-    if (!id || submitting) return; 
-    setSubmitting(true); 
+    if (!id || submitting) return;
+    setSubmitting(true);
     setError('');
     try {
       const res = await matchAPI.addBall(id, data);
-      await fetchMatch(); 
+      await fetchMatch();
       setLastBall(res.data.data?.ballDescription || 'Ball Recorded');
       setPanel('main');
       if (res.data.data?.matchEnded) setStep('done');
@@ -217,46 +217,46 @@ export default function LiveScoring() {
   };
 
   const handleRetirement = (type: 'striker' | 'nonStriker') => {
-    setPanel('main'); 
+    setPanel('main');
     setStep('playerSelect');
     submitBall({ retired: true, outBatsmanName: type === 'striker' ? match?.strikerName : match?.nonStrikerName });
   };
 
   const handleUndo = async () => {
-    if (!id || submitting || !confirm('Undo last ball?')) return; 
+    if (!id || submitting || !confirm('Undo last ball?')) return;
     setSubmitting(true);
     try { await matchAPI.undoBall(id); await fetchMatch(); setLastBall('↩ Undone'); setPanel('main'); } catch (e: any) { setError('Cannot undo'); } finally { setSubmitting(false); }
   };
 
   const handleEndInnings = async () => {
-    if (!confirm('End current innings?')) return; 
+    if (!confirm('End current innings?')) return;
     setSubmitting(true);
-    try { await matchAPI.endInnings(id!); await fetchMatch(); setStep('inningsBreak'); } catch (e: any) {} finally { setSubmitting(false); }
+    try { await matchAPI.endInnings(id!); await fetchMatch(); setStep('inningsBreak'); } catch (e: any) { } finally { setSubmitting(false); }
   };
 
   const handleEndMatch = async () => {
-    if (!confirm('End the match?')) return; 
+    if (!confirm('End the match?')) return;
     setSubmitting(true);
-    try { await matchAPI.endMatch(id!, {}); await fetchMatch(); setStep('done'); } catch (e: any) {} finally { setSubmitting(false); }
+    try { await matchAPI.endMatch(id!, {}); await fetchMatch(); setStep('done'); } catch (e: any) { } finally { setSubmitting(false); }
   };
 
   const innings = match?.innings?.[match?.currentInnings - 1] || {};
   const safeBatsmen = Array.isArray(innings?.batsmen) ? innings.batsmen : [];
   const safeBowlers = Array.isArray(innings?.bowlers) ? innings.bowlers : [];
-  
-  const score = innings?.score || 0; 
+
+  const score = innings?.score || 0;
   const wickets = innings?.wickets || 0;
   const oversDisplay = `${innings?.overs || 0}.${innings?.balls ? innings.balls % 6 : 0}`;
   const runRate = innings?.runRate?.toFixed(2) || '0.00';
-  const target = innings?.targetScore; 
-  const requiredRuns = innings?.requiredRuns; 
+  const target = innings?.targetScore;
+  const requiredRuns = innings?.requiredRuns;
   const rrr = innings?.requiredRunRate?.toFixed(2);
 
   const safeHistory = Array.isArray(innings?.ballHistory) ? innings.ballHistory : [];
   const currentBallsMod = Number(innings?.balls || 0) % 6;
   const validBallsInCurrentOver = (currentBallsMod === 0 && safeHistory.length > 0 && innings?.balls > 0) ? 6 : currentBallsMod;
-  
-  let thisOverBalls: any[] = []; 
+
+  let thisOverBalls: any[] = [];
   let validCount = 0;
   for (let i = safeHistory.length - 1; i >= 0; i--) {
     const b = safeHistory[i]; thisOverBalls.unshift(b);
@@ -299,7 +299,7 @@ export default function LiveScoring() {
       {(step === 'players' || step === 'playerSelect') && (
         <PlayerSelectModal match={match} battingTeamId={currentBattingTeamId} bowlingTeamId={currentBowlingTeamId} inningsNum={match.currentInnings || 1}
           title={step === 'players' ? 'Select Opening Players' : 'Player Selection'}
-          defaultStriker={defStriker} defaultNonStriker={defNonStriker} defaultBowler={defBowler} 
+          defaultStriker={defStriker} defaultNonStriker={defNonStriker} defaultBowler={defBowler}
           onDone={handlePlayersDone} onClose={step === 'playerSelect' ? () => setStep('scoring') : undefined} />
       )}
 
@@ -338,7 +338,7 @@ export default function LiveScoring() {
             <div className="pt-3 border-t border-slate-700">
               <p className="text-slate-500 text-xs mb-2">Runs completed before wicket</p>
               <div className="grid grid-cols-4 gap-1.5">
-                {[0,1,2,3].map(r => (
+                {[0, 1, 2, 3].map(r => (
                   <button key={r} onClick={() => {
                     setWicketModal({ open: false, baseData: {} });
                     submitBall({ ...wicketModal.baseData, runs: r, wicket: true, outType: 'run_out', outBatsmanName: outBatsman === 'striker' ? activeStriker?.name : activeNonStriker?.name });
@@ -366,8 +366,8 @@ export default function LiveScoring() {
       <div className="bg-gradient-to-b from-slate-900 to-slate-950 px-4 py-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-             <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">{innings?.teamName || match.team1Name} · Inn {match.currentInnings}</p>
-             <div className="flex items-end gap-2 mt-0.5"><span className="text-5xl font-black text-white">{score}/{wickets}</span><span className="text-slate-400 text-lg mb-1">({oversDisplay} ov)</span></div>
+            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">{innings?.teamName || match.team1Name} · Inn {match.currentInnings}</p>
+            <div className="flex items-end gap-2 mt-0.5"><span className="text-5xl font-black text-white">{score}/{wickets}</span><span className="text-slate-400 text-lg mb-1">({oversDisplay} ov)</span></div>
           </div>
           <div className="text-right">
             <div className="text-slate-500 text-xs mb-1">Run Rate</div><div className="text-2xl font-black text-green-400">{runRate}</div>
@@ -399,7 +399,7 @@ export default function LiveScoring() {
           <div className="bg-slate-800/60 rounded-xl p-2.5">
             <div className="text-slate-500 mb-0.5">🎳 Bowler</div>
             <div className="text-white font-semibold truncate">{match.currentBowlerName || '–'}</div>
-            {match.currentBowlerName && <div className="text-slate-400 mt-0.5">{safeBowlers.find((b:any)=>b.name===match.currentBowlerName)?.overs}.{safeBowlers.find((b:any)=>b.name===match.currentBowlerName)?.balls % 6}ov {safeBowlers.find((b:any)=>b.name===match.currentBowlerName)?.runs}R</div>}
+            {match.currentBowlerName && <div className="text-slate-400 mt-0.5">{safeBowlers.find((b: any) => b.name === match.currentBowlerName)?.overs}.{safeBowlers.find((b: any) => b.name === match.currentBowlerName)?.balls % 6}ov {safeBowlers.find((b: any) => b.name === match.currentBowlerName)?.runs}R</div>}
           </div>
         </div>
 
@@ -466,13 +466,13 @@ export default function LiveScoring() {
 
         {panel === 'others' && (
           <div className="space-y-3">
-             <div className="flex items-center gap-2 mb-4"><button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Other Actions</h3></div>
+            <div className="flex items-center gap-2 mb-4"><button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Other Actions</h3></div>
             <button onClick={() => handleRetirement('striker')} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🚶 Retired Hurt (Striker)</button>
             <button onClick={() => handleRetirement('nonStriker')} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🚶 Retired Hurt (Non-Striker)</button>
             <button onClick={() => { setPanel('main'); setStep('playerSelect'); }} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🔄 Change Bowler Mid-Over</button>
             <div className="pt-3 border-t border-slate-800 mt-2">
               <p className="text-slate-500 text-xs mb-2">Penalty Runs</p>
-              <div className="grid grid-cols-5 gap-2">{[1,2,3,4,5].map(p => <button key={p} onClick={() => { setPanel('main'); submitBall({ penalty: p }); }} className="py-2 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300">+{p}</button>)}</div>
+              <div className="grid grid-cols-5 gap-2">{[1, 2, 3, 4, 5].map(p => <button key={p} onClick={() => { setPanel('main'); submitBall({ penalty: p }); }} className="py-2 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300">+{p}</button>)}</div>
             </div>
             <div className="border-t border-slate-800 pt-3 mt-4">
               <button onClick={handleEndInnings} disabled={submitting} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-orange-900/30 hover:bg-orange-700/40 border border-orange-700/40 text-orange-300 mb-2">🔚 End Innings Manually</button>
