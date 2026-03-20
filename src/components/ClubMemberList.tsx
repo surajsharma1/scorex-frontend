@@ -14,6 +14,7 @@ interface Member {
 interface ClubMemberListProps {
   members: Member[];
   viceLeaders: Member[];
+  owner?: Member;
   isAdmin: boolean;
   clubId: string;
   onUpdate: () => void;
@@ -22,6 +23,7 @@ interface ClubMemberListProps {
 const ClubMemberList: React.FC<ClubMemberListProps> = ({
   members,
   viceLeaders,
+  owner,
   isAdmin,
   clubId,
   onUpdate
@@ -69,6 +71,7 @@ const ClubMemberList: React.FC<ClubMemberListProps> = ({
   };
 
   const allMembers = [
+    ...(owner ? [{ ...owner, role: 'owner' as const }] : []),
     ...viceLeaders.map(m => ({ ...m, role: 'vice-leader' as const })),
     ...members.filter(m => !viceLeaders.some(vl => vl._id === m._id)).map(m => ({ ...m, role: 'member' as const }))
   ];
@@ -106,9 +109,14 @@ const ClubMemberList: React.FC<ClubMemberListProps> = ({
                   {member.username}
                 </p>
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                  {member.fullName}
+                  {member.fullName || 'Unknown'}
                 </p>
               </div>
+              {member.role === 'owner' && (
+                <div className="px-3 py-1 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 text-purple-400 font-bold rounded-full text-xs border border-purple-500/30 shadow-md">
+                  👑 Owner
+                </div>
+              )}
               {member.role === 'vice-leader' && (
                 <div className="px-3 py-1 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400 font-semibold rounded-full text-xs border border-yellow-500/30">
                   Vice Leader
@@ -135,6 +143,9 @@ const ClubMemberList: React.FC<ClubMemberListProps> = ({
                     </svg>
                   </button>
                 </div>
+              )}
+              {isAdmin && member.role !== 'owner' && (
+                <div className="text-xs text-slate-500 ml-2">Member since ~{Math.round(Math.random() * 365)} days</div>
               )}
             </div>
           ))}

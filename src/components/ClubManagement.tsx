@@ -149,13 +149,12 @@ const ClubManagement: React.FC<ClubManagementProps> = () => {
             <ClubMemberList
               members={club.members}
               viceLeaders={club.viceLeaders || []}
+              owner={club.owner}
               isAdmin={true}
               clubId={club._id}
-              onUpdate={() => {
-                // Refresh
-                clubAPI.getClub(club._id).then(res => {
-                  if (res.data.success) setClub(res.data.data);
-                });
+              onUpdate={async () => {
+                const res = await clubAPI.getClub(club._id);
+                if (res.data.success) setClub(res.data.data);
               }}
             />
           )}
