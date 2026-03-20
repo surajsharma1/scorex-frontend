@@ -9,8 +9,8 @@ import {
   Radio, Loader, ArrowLeft, Video, Eye, Clock, MapPin, Trophy, 
   Activity, Share2, Youtube 
 } from 'lucide-react';
+import { socket } from '../services/socket';
 import OverlayManager from './OverlayManager';
-import io, { Socket } from 'socket.io-client';
 
 const LiveTournament: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,45 +20,40 @@ const LiveTournament: React.FC = () => {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
-  const socketRef = useRef<Socket | null>(null);
   const [lastEvent, setLastEvent] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMatchData();
+    socket.connect();
 
-    // Robust Socket Connection
-    const apiBase = getApiBaseUrl();
-    const socketUrl = apiBase.replace(/\/api\/v1\/?$/, ''); // env.ts already imported via socket.ts but safe
-    
-    socketRef.current = io(socketUrl, {
-        transports: ['websocket', 'polling'],
-        reconnectionAttempts: 5
-    });
-
-    const socket = socketRef.current;
-
-    socket.on('connect', () => {
+    const handleConnect = () => {
         console.log('Connected to live match socket');
-        if (id) socket.emit('joinMatch', id);
-    });
+        if (id) socket.joinMatch(id!);
+    };
 
-    // Handle Score Updates
-    socket.on('scoreUpdate', (data: { matchId: string; match: Match }) => {
+    const handleScoreUpdate = (data: { matchId: string; match: Match }) => {
         if (data.matchId === id) {
             setMatch(data.match);
             setLastEvent(null); // Clear previous event toast
         }
-    });
+    };
 
-    // Handle Specific Events (Wickets, Boundaries)
-    socket.on('matchEvent', (data: { type: string; message: string }) => {
+    const handleMatchEvent = (data: { type: string; message: string }) => {
         setLastEvent(data.message);
         // Auto-clear event message after 3 seconds
         setTimeout(() => setLastEvent(null), 3000);
-    });
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('scoreUpdate', handleScoreUpdate);
+    socket.on('matchEvent', handleMatchEvent);
 
     return () => {
-        if (socket) socket.disconnect();
+        socket.off('connect', handleConnect);
+        socket.off('scoreUpdate', handleScoreUpdate);
+        socket.off('matchEvent', handleMatchEvent);
+        if (id) socket.leaveMatch(id);
+        socket.disconnect();
     };
   }, [id]);
 
