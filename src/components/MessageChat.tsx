@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { User, Message } from './types';
 import { messageAPI } from '../services/api';
 import { Send, X, Loader, MessageCircle } from 'lucide-react';
-import { socketService } from '../services/socket'; // Use singleton
+import { socket } from '../services/socket';
 
 interface MessageChatProps {
   friend: User;
@@ -31,14 +31,10 @@ const MessageChat: React.FC<MessageChatProps> = ({ friend, onClose }) => {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentUserId = getCurrentUserId();
-  const socket = socketService.getSocket();
 
   useEffect(() => {
     loadMessages();
     
-    // Join a room for this conversation (optional, depending on backend)
-    // socket.emit('joinChat', { userId: currentUserId, friendId: friend._id });
-
     const handleNewMessage = (msg: Message) => {
         // Only append if it belongs to this conversation
         if (msg.from === friend._id || (msg.from === currentUserId && msg.to === friend._id)) {
