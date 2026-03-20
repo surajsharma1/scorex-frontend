@@ -736,8 +736,24 @@ export default function TournamentView() {
               )}
             </div>
               
-            {statusMenu && <div className="fixed inset-0 z-30" onClick={() => setStatusMenu(null)} />}
-            {selectedMatch && <MatchDetail matchId={selectedMatch} onBack={() => setSelectedMatch(null)} openScoreboard={() => {}} />}
+{statusMenu && <div className="fixed inset-0 z-30" onClick={() => setStatusMenu(null)} />}
+            
+            {/* Match Details Overlay Modal */}
+            {selectedMatch && (
+              <>
+                <div 
+                  className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in zoom-in duration-200"
+                  onClick={() => setSelectedMatch(null)}
+                />
+                <div className="relative w-full max-w-6xl max-h-[90vh] z-[51] animate-in slide-in-from-bottom-4 duration-200 fade-in">
+                  <MatchDetail 
+                    matchId={selectedMatch} 
+                    onBack={() => setSelectedMatch(null)} 
+                    openScoreboard={() => {}}
+                  />
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
