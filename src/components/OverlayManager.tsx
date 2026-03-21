@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Eye, Plus, Save, Trash2, Edit, Copy, RefreshCw, ExternalLink, X } from 'lucide-react';
+import { Eye, Plus, Save, Trash2, Edit, Copy, RefreshCw, ExternalLink, X, AlertCircle } from 'lucide-react';
 import { overlayAPI, matchAPI, tournamentAPI } from '../services/api';
 import { CreatedOverlay, Match, Tournament } from './types';
 import { getBackendBaseUrl } from '../services/env'; 
@@ -44,6 +44,10 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewOverlay, setPreviewOverlay] = useState<CreatedOverlay | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<string>('');
+  const [previewSrc, setPreviewSrc] = useState<string>('');
+  const [iframeLoading, setIframeLoading] = useState(true);
+  const [iframeError, setIframeError] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editOverlay, setEditOverlay] = useState<CreatedOverlay | null>(null);
   const [editFormData, setEditFormData] = useState({ name: '' });
@@ -237,8 +241,39 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
 
   const handlePreviewOverlay = (overlay: CreatedOverlay) => {
     setPreviewOverlay(overlay);
+    setPreviewTemplate(overlay.template);
+    const backendBase = 'http://localhost:5000'; // Fixed for dev; prod uses getBackendBaseUrl()
+    const newSrc = \`\${backendBase}/api/v1/overlays/public/\${overlay.publicId}?template=\${overlay.template}\`;
+    setPreviewSrc(newSrc);
+    setIframeLoading(true);
+    setIframeError(false);
     setShowPreviewModal(true);
   };
+
+  // Update preview src when template changes
+  useEffect(() => {
+    if (previewOverlay && previewTemplate) {
+      const backendBase = 'http://localhost:5000';
+      const newSrc = \`\${backendBase}/api/v1/overlays/public/\${previewOverlay.publicId}?template=\${previewTemplate}\`;
+      setPreviewSrc(newSrc);
+      setIframeLoading(true);
+      setIframeError(false);
+    }
+  }, [previewTemplate, previewOverlay]);
+
+  // Reload iframe content on src change
+  useEffect(() => {
+    if (previewIframeRef.current && previewSrc) {
+      const timer = setTimeout(() => {
+        try {
+          previewIframeRef.current?.contentWindow?.postMessage({ type: 'scorex:refresh' }, '*');
+        } catch (e) {
+          console.log('[Overlay] Refresh postMessage safe fail:', e);
+        }
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [previewSrc]);
 
   const handleEditOverlay = (overlay: CreatedOverlay) => {
     setEditOverlay(overlay);
@@ -566,14 +601,41 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
       {showPreviewModal && previewOverlay && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col border border-slate-700">
-            <div className="flex justify-between items-center p-6 border-b border-slate-700 bg-slate-800/50 backdrop-blur-sm rounded-t-2xl">
-              <div>
-                <h3 className="text-2xl font-bold text-slate-200">{previewOverlay.name}</h3>
-                <p className="text-slate-400">{previewOverlay.template} • {previewOverlay.isUrlExpired ? 'Expired' : 'Active'}</p>
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center p-6 border-b border-slate-700 bg-slate-800/50 backdrop-blur-sm rounded-t-2xl gap-4">
+              <div className="flex flex-col gap-2">
+                <h3 className="text-2xl font-bold text-slate-200">{previewOverlay?.name}</h3>
+                <div className="flex items-center gap-2 text-slate-400">
+                  <span>Template:</span>
+                  <select 
+                    value={previewTemplate} 
+                    onChange={(e) => setPreviewTemplate(e.target.value)}
+                    className="px-3 py-1 bg-slate-700/50 border border-slate-600 text-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                  >
+                    {templates.map((t) => (
+                      <option key={t.id} value={t.file}>{t.name}</option>
+                    ))}
+                  </select>
+                  <span>• {previewOverlay?.isUrlExpired ? 'Expired' : 'Active'}</span>
+                </div>
               </div>
               <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    if (previewOverlay && previewTemplate !== previewOverlay.template) {
+                      if (confirm('Update overlay template permanently?')) {
+                        // TODO: PATCH api.overlays/{id} {template: previewTemplate}
+                        console.log('Would update template to:', previewTemplate);
+                      }
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-slate-100 rounded-xl font-medium transition-all shadow-lg"
+                  disabled={!previewOverlay || previewTemplate === previewOverlay.template}
+                >
+                  <Save className="w-4 h-4" />
+                  Apply Template
+                </button>
                 <a
-                  href={previewOverlay.publicUrl}
+                  href={previewOverlay?.publicUrl || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-slate-100 rounded-xl font-medium transition-all shadow-lg"
@@ -589,13 +651,60 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                 </button>
               </div>
             </div>
-            <div className="flex-1 p-4 bg-black rounded-b-2xl overflow-hidden">
+            <div className="flex-1 p-4 bg-black rounded-b-2xl overflow-hidden relative">
               <iframe
                 ref={previewIframeRef}
-                src={previewOverlay.publicUrl}
+                src={previewSrc}
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                allow="fullscreen; autoplay; clipboard-write; encrypted-media"
                 className="w-full h-full rounded-lg border-0"
                 title="Overlay Preview"
+                onLoad={() => {
+                  setIframeLoading(false);
+                  setIframeError(false);
+                }}
+                onError={() => {
+                  setIframeLoading(false);
+                  setIframeError(true);
+                }}
               />
+              {iframeLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                  <div className="text-center">
+                    <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-400" />
+                    <p className="text-slate-400">Loading overlay preview...</p>
+                  </div>
+                </div>
+              )}
+              {iframeError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-red-900/90 backdrop-blur-sm">
+                  <div className="text-center p-6 rounded-xl border-2 border-red-500/50 max-w-md">
+                    <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-bold text-white mb-2">Preview Failed</h3>
+                    <p className="text-slate-300 mb-4">
+                      Ensure backend is running at <code className="bg-slate-800 px-2 py-1 rounded text-sm font-mono">localhost:5000</code>
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <button 
+                        onClick={() => window.open(previewSrc, '_blank')}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
+                      >
+                        Open Direct
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setIframeLoading(true);
+                          setIframeError(false);
+                          setTimeout(() => previewIframeRef.current?.contentWindow?.postMessage({type: 'scorex:refresh'}, '*'), 500);
+                        }}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
