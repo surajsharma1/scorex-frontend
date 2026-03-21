@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { teamAPI } from '../services/api';
 import { Plus, Trash2, Users, X, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -12,28 +12,11 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
   const [loading, setLoading] = useState(true);
   const [showCreateTeam, setShowCreateTeam] = useState(false);
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
-  const [teamForm, setTeamForm] = useState({ name: '', shortName: '' });
-  const [playerForm, setPlayerForm] = useState({ name: '', role: 'batsman' });
   const [addingPlayerTo, setAddingPlayerTo] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  // Stable input handlers to prevent re-render flicker during typing
-  const handleTeamNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setTeamForm((prev) => ({ ...prev, name: e.target.value }));
-  }, []);
-
-  const handleTeamShortNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setTeamForm((prev) => ({ ...prev, shortName: e.target.value }));
-  }, []);
-
-  const handlePlayerNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setPlayerForm((prev) => ({ ...prev, name: e.target.value }));
-  }, []);
-
-  const handlePlayerRoleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPlayerForm((prev) => ({ ...prev, role: e.target.value }));
-  }, []);
+  const loadTeamsRef = useRef(loadTeams);
 
   const loadTeams = useCallback(async () => {
     try {
@@ -48,21 +31,36 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
   }, [tournamentId]);
 
   useEffect(() => { 
-    loadTeams(); 
-  }, [loadTeams]);
+    const timeoutId = setTimeout(() => loadTeams(), 500);
+    return () => clearTimeout(timeoutId);
+  }, [tournamentId]);
 
-  const createTeam = async () => {
-    if (!teamForm.name || !teamForm.shortName) return;
+  const createTeam = async (formData: { name: string; shortName: string }) => {
+    if (!formData.name || !formData.shortName) return;
     setSaving(true); 
     setError('');
     try {
-      await teamAPI.createTeam({ ...teamForm, tournamentId });
-      setTeamForm({ name: '', shortName: '' });
+      await teamAPI.createTeam({ ...formData, tournamentId });
       setShowCreateTeam(false);
       loadTeams();
       if (onTeamsChange) onTeamsChange();
     } catch (e: any) { 
       setError(e.response?.data?.message || 'Failed to create team'); 
+    }
+    finally { 
+      setSaving(false); 
+    }
+  };
+
+  const addPlayer = async (formData: { name: string; role: string }) => {
+    if (!addingPlayerTo || !formData.name) return;
+    setSaving(true);
+    try {
+      await teamAPI.addPlayer(addingPlayerTo, formData);
+      setAddingPlayerTo(null);
+      loadTeams();
+    } catch (e) { 
+      console.error(e); 
     }
     finally { 
       setSaving(false); 
@@ -77,23 +75,6 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
       if (onTeamsChange) onTeamsChange();
     } catch (e) { 
       console.error(e); 
-    }
-  };
-
-  const addPlayer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!addingPlayerTo || !playerForm.name) return;
-    setSaving(true);
-    try {
-      await teamAPI.addPlayer(addingPlayerTo, playerForm);
-      setPlayerForm({ name: '', role: 'batsman' });
-      setAddingPlayerTo(null);
-      loadTeams();
-    } catch (e) { 
-      console.error(e); 
-    }
-    finally { 
-      setSaving(false); 
     }
   };
 
@@ -114,16 +95,15 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
     'wicket-keeper': 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
   };
 
-  const InputField = React.memo(({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
-    <input 
-      inputMode="text"
-      autoComplete="name"
-      className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/30 focus-visible:border-[var(--accent)] transition-all border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-      {...props} 
-    />
-  ));
+  const cancelTeamCreate = () => {
+    setShowCreateTeam(false);
+    setError('');
+  };
 
-  InputField.displayName = 'InputField';
+  const cancelPlayerAdd = () => {
+    setAddingPlayerTo(null);
+    setError('');
+  };
 
   return (
     <div className="space-y-6">
@@ -132,6 +112,7 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
           <Users className="w-6 h-6 text-green-400" /> Teams & Squads
         </h2>
         <button 
+          type="button"
           onClick={() => setShowCreateTeam(!showCreateTeam)}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105"
           style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 16px rgba(34,197,94,0.3)' }}>
@@ -140,43 +121,13 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
       </div>
 
       {showCreateTeam && (
-        <div className="p-6 rounded-2xl mb-6" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <h3 className="font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Create New Team</h3>
-          {error && <div className="mb-4 text-sm text-red-400 bg-red-900/20 p-3 rounded-xl border border-red-500/30">{error}</div>}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <InputField 
-              placeholder="Team Name (e.g. Mumbai Indians)" 
-              value={teamForm.name} 
-              onChange={handleTeamNameChange} 
-              required 
-            />
-            <InputField 
-              placeholder="Short Name (e.g. MI)" 
-              value={teamForm.shortName} 
-              onChange={handleTeamShortNameChange} 
-              maxLength={4} 
-              required 
-            />
-          </div>
-          <div className="flex gap-3">
-            <button 
-              onClick={createTeam}
-              disabled={saving} 
-              className="px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex-1"
-              style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000' }}
-            >
-              {saving ? 'Saving...' : 'Save Team'}
-            </button>
-            <button 
-              type="button" 
-              onClick={() => setShowCreateTeam(false)} 
-              className="px-6 py-2.5 rounded-xl font-bold text-sm transition-all"
-              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+        <SimpleInputForm
+          isTeam={true}
+          saving={saving}
+          error={error}
+          onSubmit={createTeam}
+          onCancel={cancelTeamCreate}
+        />
       )}
 
       {loading ? (
@@ -193,7 +144,6 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
         <div className="space-y-4">
           {teams.map((team) => (
             <div key={team._id} className="rounded-2xl overflow-hidden transition-all" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-              {/* Team Header */}
               <div 
                 className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors" 
                 onClick={() => setExpandedTeam(expandedTeam === team._id ? null : team._id)}
@@ -209,6 +159,7 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
                 </div>
                 <div className="flex items-center gap-3">
                   <button 
+                    type="button"
                     onClick={(e) => { 
                       e.stopPropagation(); 
                       deleteTeam(team._id); 
@@ -225,44 +176,20 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
                 </div>
               </div>
 
-              {/* Expanded Squad View */}
               {expandedTeam === team._id && (
                 <div className="p-4 pt-0 border-t" style={{ borderColor: 'var(--border)' }}>
-                  {/* Add Player Form */}
                   {addingPlayerTo === team._id ? (
-                    <form onSubmit={addPlayer} className="flex gap-2 mb-4 p-3 rounded-xl mt-4" style={{ background: 'var(--bg-elevated)' }}>
-                      <InputField 
-                        placeholder="Player Name" 
-                        value={playerForm.name} 
-                        onChange={handlePlayerNameChange} 
-                        required 
-                      />
-                      <select 
-                        value={playerForm.role} 
-                        onChange={handlePlayerRoleChange}
-                        className="px-4 py-2.5 rounded-xl text-sm focus:outline-none" 
-                        style={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-                      >
-                        <option value="batsman">Batsman</option>
-                        <option value="bowler">Bowler</option>
-                        <option value="all-rounder">All Rounder</option>
-                        <option value="wicket-keeper">Wicket Keeper</option>
-                      </select>
-                      <button type="submit" disabled={saving} className="px-4 py-2.5 rounded-xl font-bold text-sm bg-green-500 hover:bg-green-600 text-black transition-all">
-                        Add
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => setAddingPlayerTo(null)} 
-                        className="p-2.5 rounded-xl hover:bg-white/10" 
-                        style={{ color: 'var(--text-secondary)' }}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </form>
+                    <SimpleInputForm
+                      isTeam={false}
+                      saving={saving}
+                      error={error}
+                      onSubmit={(formData) => addPlayer(formData as any)}
+                      onCancel={cancelPlayerAdd}
+                    />
                   ) : (
                     <div className="mt-4 mb-3">
                       <button 
+                        type="button"
                         onClick={() => setAddingPlayerTo(team._id)} 
                         className="flex items-center gap-1.5 text-sm font-bold text-green-400 hover:text-green-300 transition-colors"
                       >
@@ -271,7 +198,6 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
                     </div>
                   )}
 
-                  {/* Player List */}
                   {team.players?.length === 0 ? (
                     <p className="text-sm italic p-4 text-center" style={{ color: 'var(--text-muted)' }}>
                       No players added to this squad yet.
@@ -296,6 +222,7 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
                             </span>
                           </div>
                           <button 
+                            type="button"
                             onClick={() => removePlayer(team._id, player._id)} 
                             className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 rounded-lg text-red-400 transition-all"
                           >
