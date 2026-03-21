@@ -141,7 +141,9 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
       </div>
 
       {showCreateTeam && (
-        <form onSubmit={createTeam} className="p-6 rounded-2xl mb-6" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+
+        <div className="p-6 rounded-2xl mb-6" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+
           <h3 className="font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Create New Team</h3>
           {error && <div className="mb-4 text-sm text-red-400 bg-red-900/20 p-3 rounded-xl border border-red-500/30">{error}</div>}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
