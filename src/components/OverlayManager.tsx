@@ -243,7 +243,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
     setPreviewOverlay(overlay);
     setPreviewTemplate(overlay.template);
     const backendBase = 'http://localhost:5000'; // Fixed for dev; prod uses getBackendBaseUrl()
-    const newSrc = \`\${backendBase}/api/v1/overlays/public/\${overlay.publicId}?template=\${overlay.template}\`;
+    const newSrc = backendBase + '/api/v1/overlays/public/' + overlay.publicId + '?template=' + overlay.template;
     setPreviewSrc(newSrc);
     setIframeLoading(true);
     setIframeError(false);
@@ -254,7 +254,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   useEffect(() => {
     if (previewOverlay && previewTemplate) {
       const backendBase = 'http://localhost:5000';
-      const newSrc = \`\${backendBase}/api/v1/overlays/public/\${previewOverlay.publicId}?template=\${previewTemplate}\`;
+      const newSrc = backendBase + '/api/v1/overlays/public/' + previewOverlay.publicId + '?template=' + previewTemplate;
       setPreviewSrc(newSrc);
       setIframeLoading(true);
       setIframeError(false);
