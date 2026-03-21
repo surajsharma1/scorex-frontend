@@ -17,9 +17,8 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const loadTeamsRef = useRef(loadTeams);
-
   const loadTeams = useCallback(async () => {
+
     try {
       const res = await teamAPI.getTeams(tournamentId || undefined);
       setTeams(res.data.data || []);
