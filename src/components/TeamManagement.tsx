@@ -171,7 +171,7 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
               Cancel
             </button>
           </div>
-        </form>
+        </div>
       )}
 
       {loading ? (
