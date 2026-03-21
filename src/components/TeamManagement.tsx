@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { teamAPI } from '../services/api';
 import { Plus, Trash2, Users, X, ChevronDown, ChevronUp } from 'lucide-react';
+import SimpleInputForm from './SimpleInputForm';
 
 interface Props {
   tournamentId?: string; 
