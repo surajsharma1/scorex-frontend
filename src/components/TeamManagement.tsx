@@ -51,8 +51,7 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
     loadTeams(); 
   }, [loadTeams]);
 
-  const createTeam = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const createTeam = async () => {
     if (!teamForm.name || !teamForm.shortName) return;
     setSaving(true); 
     setError('');
@@ -115,7 +114,7 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
     'wicket-keeper': 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
   };
 
-  const InputFieldComponent = React.memo(({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
+  const InputField = React.memo(({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
     <input 
       inputMode="text"
       autoComplete="name"
@@ -124,7 +123,7 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
     />
   ));
 
-  InputFieldComponent.displayName = 'InputField';
+  InputField.displayName = 'InputField';
 
   return (
     <div className="space-y-6">
@@ -141,19 +140,17 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
       </div>
 
       {showCreateTeam && (
-
         <div className="p-6 rounded-2xl mb-6" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-
           <h3 className="font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Create New Team</h3>
           {error && <div className="mb-4 text-sm text-red-400 bg-red-900/20 p-3 rounded-xl border border-red-500/30">{error}</div>}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <InputFieldComponent 
+            <InputField 
               placeholder="Team Name (e.g. Mumbai Indians)" 
               value={teamForm.name} 
               onChange={handleTeamNameChange} 
               required 
             />
-            <InputFieldComponent 
+            <InputField 
               placeholder="Short Name (e.g. MI)" 
               value={teamForm.shortName} 
               onChange={handleTeamShortNameChange} 
@@ -162,12 +159,20 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
             />
           </div>
           <div className="flex gap-3">
-            <button type="submit" disabled={saving} className="px-6 py-2.5 rounded-xl font-bold text-sm transition-all"
-              style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000' }}>
+            <button 
+              onClick={createTeam}
+              disabled={saving} 
+              className="px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex-1"
+              style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000' }}
+            >
               {saving ? 'Saving...' : 'Save Team'}
             </button>
-            <button type="button" onClick={() => setShowCreateTeam(false)} className="px-6 py-2.5 rounded-xl font-bold text-sm transition-all"
-              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+            <button 
+              type="button" 
+              onClick={() => setShowCreateTeam(false)} 
+              className="px-6 py-2.5 rounded-xl font-bold text-sm transition-all"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
+            >
               Cancel
             </button>
           </div>
@@ -226,7 +231,7 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
                   {/* Add Player Form */}
                   {addingPlayerTo === team._id ? (
                     <form onSubmit={addPlayer} className="flex gap-2 mb-4 p-3 rounded-xl mt-4" style={{ background: 'var(--bg-elevated)' }}>
-                      <InputFieldComponent 
+                      <InputField 
                         placeholder="Player Name" 
                         value={playerForm.name} 
                         onChange={handlePlayerNameChange} 
