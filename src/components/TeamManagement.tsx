@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { teamAPI } from '../services/api';
-import { Plus, Trash2, Users, X, ChevronDown, ChevronUp, User } from 'lucide-react';
+import { Plus, Trash2, Users, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Props {
   tournamentId?: string; 
@@ -18,28 +18,56 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // Stable input handlers to prevent re-render flicker during typing
+  const handleTeamNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setTeamForm((prev) => ({ ...prev, name: e.target.value }));
+  }, []);
+
+  const handleTeamShortNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setTeamForm((prev) => ({ ...prev, shortName: e.target.value }));
+  }, []);
+
+  const handlePlayerNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setPlayerForm((prev) => ({ ...prev, name: e.target.value }));
+  }, []);
+
+  const handlePlayerRoleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPlayerForm((prev) => ({ ...prev, role: e.target.value }));
+  }, []);
+
   const loadTeams = useCallback(async () => {
     try {
       const res = await teamAPI.getTeams(tournamentId || undefined);
       setTeams(res.data.data || []);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+    } catch (e) { 
+      console.error(e); 
+    }
+    finally { 
+      setLoading(false); 
+    }
   }, [tournamentId]);
 
-  useEffect(() => { loadTeams(); }, [loadTeams]);
+  useEffect(() => { 
+    loadTeams(); 
+  }, [loadTeams]);
 
   const createTeam = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!teamForm.name || !teamForm.shortName) return;
-    setSaving(true); setError('');
+    setSaving(true); 
+    setError('');
     try {
       await teamAPI.createTeam({ ...teamForm, tournamentId });
       setTeamForm({ name: '', shortName: '' });
       setShowCreateTeam(false);
       loadTeams();
       if (onTeamsChange) onTeamsChange();
-    } catch (e: any) { setError(e.response?.data?.message || 'Failed to create team'); }
-    finally { setSaving(false); }
+    } catch (e: any) { 
+      setError(e.response?.data?.message || 'Failed to create team'); 
+    }
+    finally { 
+      setSaving(false); 
+    }
   };
 
   const deleteTeam = async (id: string) => {
@@ -48,7 +76,9 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
       await teamAPI.deleteTeam(id);
       loadTeams();
       if (onTeamsChange) onTeamsChange();
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e); 
+    }
   };
 
   const addPlayer = async (e: React.FormEvent) => {
@@ -60,8 +90,12 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
       setPlayerForm({ name: '', role: 'batsman' });
       setAddingPlayerTo(null);
       loadTeams();
-    } catch (e) { console.error(e); }
-    finally { setSaving(false); }
+    } catch (e) { 
+      console.error(e); 
+    }
+    finally { 
+      setSaving(false); 
+    }
   };
 
   const removePlayer = async (teamId: string, playerId: string) => {
@@ -69,7 +103,9 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
     try {
       await teamAPI.removePlayer(teamId, playerId);
       loadTeams();
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error(e); 
+    }
   };
 
   const roleColors: Record<string, string> = {
@@ -79,12 +115,16 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
     'wicket-keeper': 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
   };
 
-const InputField = ({ ...props }: any) => (
+  const InputFieldComponent = React.memo(({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
     <input 
+      inputMode="text"
+      autoComplete="name"
       className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/30 focus-visible:border-[var(--accent)] transition-all border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
       {...props} 
     />
-  );
+  ));
+
+  InputFieldComponent.displayName = 'InputField';
 
   return (
     <div className="space-y-6">
@@ -92,7 +132,8 @@ const InputField = ({ ...props }: any) => (
         <h2 className="text-xl font-black flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
           <Users className="w-6 h-6 text-green-400" /> Teams & Squads
         </h2>
-        <button onClick={() => setShowCreateTeam(!showCreateTeam)}
+        <button 
+          onClick={() => setShowCreateTeam(!showCreateTeam)}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105"
           style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 16px rgba(34,197,94,0.3)' }}>
           <Plus className="w-4 h-4" /> Add Team
@@ -104,8 +145,19 @@ const InputField = ({ ...props }: any) => (
           <h3 className="font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Create New Team</h3>
           {error && <div className="mb-4 text-sm text-red-400 bg-red-900/20 p-3 rounded-xl border border-red-500/30">{error}</div>}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <InputField placeholder="Team Name (e.g. Mumbai Indians)" value={teamForm.name} onChange={(e: any) => setTeamForm({ ...teamForm, name: e.target.value })} required />
-            <InputField placeholder="Short Name (e.g. MI)" value={teamForm.shortName} onChange={(e: any) => setTeamForm({ ...teamForm, shortName: e.target.value })} maxLength={4} required />
+            <InputFieldComponent 
+              placeholder="Team Name (e.g. Mumbai Indians)" 
+              value={teamForm.name} 
+              onChange={handleTeamNameChange} 
+              required 
+            />
+            <InputFieldComponent 
+              placeholder="Short Name (e.g. MI)" 
+              value={teamForm.shortName} 
+              onChange={handleTeamShortNameChange} 
+              maxLength={4} 
+              required 
+            />
           </div>
           <div className="flex gap-3">
             <button type="submit" disabled={saving} className="px-6 py-2.5 rounded-xl font-bold text-sm transition-all"
@@ -121,7 +173,9 @@ const InputField = ({ ...props }: any) => (
       )}
 
       {loading ? (
-        <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} /></div>
+        <div className="flex justify-center py-12">
+          <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
+        </div>
       ) : teams.length === 0 ? (
         <div className="text-center py-16 rounded-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <Users className="w-12 h-12 mx-auto mb-3 opacity-20" style={{ color: 'var(--text-primary)' }} />
@@ -130,10 +184,13 @@ const InputField = ({ ...props }: any) => (
         </div>
       ) : (
         <div className="space-y-4">
-          {teams.map(team => (
+          {teams.map((team) => (
             <div key={team._id} className="rounded-2xl overflow-hidden transition-all" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
               {/* Team Header */}
-              <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setExpandedTeam(expandedTeam === team._id ? null : team._id)}>
+              <div 
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 transition-colors" 
+                onClick={() => setExpandedTeam(expandedTeam === team._id ? null : team._id)}
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center font-black text-green-400 border border-green-500/30">
                     {team.shortName}
@@ -144,10 +201,20 @@ const InputField = ({ ...props }: any) => (
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <button onClick={(e) => { e.stopPropagation(); deleteTeam(team._id); }} className="p-2 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors">
+                  <button 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      deleteTeam(team._id); 
+                    }} 
+                    className="p-2 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
-                  {expandedTeam === team._id ? <ChevronUp className="w-5 h-5" style={{ color: 'var(--text-muted)' }} /> : <ChevronDown className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />}
+                  {expandedTeam === team._id ? (
+                    <ChevronUp className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+                  ) : (
+                    <ChevronDown className="w-5 h-5" style={{ color: 'var(--text-muted)' }} />
+                  )}
                 </div>
               </div>
 
@@ -157,20 +224,41 @@ const InputField = ({ ...props }: any) => (
                   {/* Add Player Form */}
                   {addingPlayerTo === team._id ? (
                     <form onSubmit={addPlayer} className="flex gap-2 mb-4 p-3 rounded-xl mt-4" style={{ background: 'var(--bg-elevated)' }}>
-                      <InputField placeholder="Player Name" value={playerForm.name} onChange={(e: any) => setPlayerForm({ ...playerForm, name: e.target.value })} required />
-                      <select value={playerForm.role} onChange={(e) => setPlayerForm({ ...playerForm, role: e.target.value })}
-                        className="px-4 py-2.5 rounded-xl text-sm focus:outline-none" style={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+                      <InputFieldComponent 
+                        placeholder="Player Name" 
+                        value={playerForm.name} 
+                        onChange={handlePlayerNameChange} 
+                        required 
+                      />
+                      <select 
+                        value={playerForm.role} 
+                        onChange={handlePlayerRoleChange}
+                        className="px-4 py-2.5 rounded-xl text-sm focus:outline-none" 
+                        style={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                      >
                         <option value="batsman">Batsman</option>
                         <option value="bowler">Bowler</option>
                         <option value="all-rounder">All Rounder</option>
                         <option value="wicket-keeper">Wicket Keeper</option>
                       </select>
-                      <button type="submit" disabled={saving} className="px-4 py-2.5 rounded-xl font-bold text-sm bg-green-500 hover:bg-green-600 text-black transition-all">Add</button>
-                      <button type="button" onClick={() => setAddingPlayerTo(null)} className="p-2.5 rounded-xl hover:bg-white/10" style={{ color: 'var(--text-secondary)' }}><X className="w-4 h-4" /></button>
+                      <button type="submit" disabled={saving} className="px-4 py-2.5 rounded-xl font-bold text-sm bg-green-500 hover:bg-green-600 text-black transition-all">
+                        Add
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setAddingPlayerTo(null)} 
+                        className="p-2.5 rounded-xl hover:bg-white/10" 
+                        style={{ color: 'var(--text-secondary)' }}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </form>
                   ) : (
                     <div className="mt-4 mb-3">
-                      <button onClick={() => setAddingPlayerTo(team._id)} className="flex items-center gap-1.5 text-sm font-bold text-green-400 hover:text-green-300 transition-colors">
+                      <button 
+                        onClick={() => setAddingPlayerTo(team._id)} 
+                        className="flex items-center gap-1.5 text-sm font-bold text-green-400 hover:text-green-300 transition-colors"
+                      >
                         <Plus className="w-4 h-4" /> Add Player to Squad
                       </button>
                     </div>
@@ -178,21 +266,32 @@ const InputField = ({ ...props }: any) => (
 
                   {/* Player List */}
                   {team.players?.length === 0 ? (
-                    <p className="text-sm italic p-4 text-center" style={{ color: 'var(--text-muted)' }}>No players added to this squad yet.</p>
+                    <p className="text-sm italic p-4 text-center" style={{ color: 'var(--text-muted)' }}>
+                      No players added to this squad yet.
+                    </p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                       {team.players.map((player: any, i: number) => (
-                        <div key={player._id || i} className="flex items-center gap-3 p-3 rounded-xl group transition-colors hover:bg-white/5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                        <div 
+                          key={player._id || i} 
+                          className="flex items-center gap-3 p-3 rounded-xl group transition-colors hover:bg-white/5" 
+                          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+                        >
                           <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>
                             {i + 1}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{player.name}</p>
+                            <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>
+                              {player.name}
+                            </p>
                             <span className={`text-[10px] px-2 py-0.5 rounded-full capitalize font-semibold ${roleColors[player.role] || 'bg-gray-500/10 text-gray-400'}`}>
                               {player.role?.replace('-', ' ')}
                             </span>
                           </div>
-                          <button onClick={() => removePlayer(team._id, player._id)} className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 rounded-lg text-red-400 transition-all">
+                          <button 
+                            onClick={() => removePlayer(team._id, player._id)} 
+                            className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 rounded-lg text-red-400 transition-all"
+                          >
                             <X className="w-4 h-4" />
                           </button>
                         </div>
@@ -208,3 +307,4 @@ const InputField = ({ ...props }: any) => (
     </div>
   );
 }
+
