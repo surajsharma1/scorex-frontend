@@ -16,10 +16,11 @@ export default function Carousel() {
     const fetchData = async () => {
       try {
         const res = await tournamentAPI.getTournaments(); // Calls backend
-        // Handle both response formats: { tournaments: [...] } or direct array
-        const tournaments = res.data.tournaments || res.data || [];
+        // Handle both response formats safely: { tournaments: [...] } or direct array
+        const tournamentsData = res.data.tournaments || res.data;
+        const tournaments = Array.isArray(tournamentsData) ? tournamentsData : [];
         // Filter for relevant items
-        const active = (tournaments).map((t: any) => ({
+        const active = tournaments.map((t: any) => ({
           _id: t._id,
           name: t.name,
           status: t.status,
@@ -37,6 +38,7 @@ export default function Carousel() {
         }
       } catch (error) {
         console.error("Ticker error", error);
+        setItems([{ _id: 'error', name: 'Error loading tournaments', status: 'upcoming' }]);
       }
     };
 

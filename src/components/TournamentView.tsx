@@ -378,7 +378,9 @@ export default function TournamentView() {
   const loadTournaments = useCallback(async () => {
     try {
       const res = await (tournamentAPI.getMyTournaments?.() ?? tournamentAPI.getTournaments());
-      const list = res.data?.data ?? res.data?.tournaments ?? [];
+      const tournamentsData = res.data?.data ?? res.data?.tournaments ?? res.data ?? [];
+      const list = Array.isArray(tournamentsData) ? tournamentsData : [];
+
 
       setTournaments(list);
       if (paramId) {
