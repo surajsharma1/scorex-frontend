@@ -29,7 +29,7 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
 
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl border-4 border-white/20">
+        <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl rounded-3xl p-4 sm:p-8 max-w-6xl w-full max-h-[95vh] overflow-y-auto shadow-2xl border-4 border-white/20">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-200/50 dark:border-gray-700/50">
           <div className="flex items-center gap-3">
@@ -51,9 +51,9 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
           </button>
         </div>
 
-        <div className="flex gap-8 items-start h-[500px]">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start lg:h-[500px] h-auto">
           {/* Left: Dropdown Selector */}
-          <div className="w-80 flex-shrink-0 space-y-4">
+          <div className="w-full lg:w-80 flex-shrink-0 space-y-4">
             <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50/50 to-indigo-50/50 border border-blue-200/50">
               <p className="text-sm font-semibold uppercase tracking-wide text-blue-600 mb-3 flex items-center gap-2">
                 <Eye className="w-4 h-4" />
@@ -81,7 +81,7 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
           {/* Right: Large Preview */}
           <div className="flex-1 min-h-0 overflow-auto">
             {selectedOverlay ? (
-              <div className="w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-200/50 hover:border-blue-400/70 bg-gradient-to-br from-blue-50/30 to-indigo-50/30">
+            <div className="w-full h-[60vh] max-h-[600px] rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-200/50 hover:border-blue-400/70 bg-gradient-to-br from-blue-50/30 to-indigo-50/30 md:h-[500px]">
                 <MembershipPreview
                   overlayFile={selectedOverlay}
                   planName={level === 1 ? 'Premium' : 'Enterprise'}
