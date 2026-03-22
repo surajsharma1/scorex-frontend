@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { clubAPI } from '../services/api';
 import { useAuth } from '../App';
 import { useToast } from '../hooks/useToast';
@@ -36,6 +36,17 @@ const ClubList: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchParams, setSearchParams] = useSearchParams();
+  const debouncedSearchRef = useRef('');
+  const ignoreParamsRef = useRef(false);
+  const timeoutRef = useRef<number | null>(null);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      debouncedSearchRef.current = search;
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   // Sync tab with URL
   useEffect(() => {
@@ -46,44 +57,53 @@ const ClubList: React.FC = () => {
   }, [searchParams]);
 
   const fetchClubs = useCallback(async (tabType: 'public' | 'my' = tab, resetPage = true) => {
-    try {
-      setLoading(true);
-      const params = { 
-        search, 
-        page: resetPage ? 1 : page, 
-        limit: 12,
-        ...(tabType === 'public' && { type: 'public' })
-      };
-      
-      const res = tabType === 'public' 
-        ? await clubAPI.getClubs(params)
-        : await clubAPI.getMyClubs(params);
-      
-      if (res.data.success) {
-        const data = Array.isArray(res.data.data) ? res.data.data : [];
-        if (tabType === 'public') {
-          setClubs(data);
-        } else {
-          setMyClubs(data);
-        }
-        setTotalPages(res.data.pagination?.pages || 1);
-        setPage(res.data.pagination?.page || 1);
-      }
-    } catch (error: any) {
-      console.error('Failed to fetch clubs:', error);
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: error.response?.data?.message || 'Failed to load clubs'
-      });
-    } finally {
-      setLoading(false);
+    // Throttle rapid calls
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
-  }, [tab, search, page, addToast]);
+    timeoutRef.current = setTimeout(async () => {
+      try {
+        setLoading(true);
+        const useSearch = debouncedSearchRef.current;
+        const params = { 
+          search: useSearch, 
+          page: resetPage ? 1 : page, 
+          limit: 12,
+          ...(tabType === 'public' && { type: 'public' })
+        };
+        
+        const res = tabType === 'public' 
+          ? await clubAPI.getClubs(params)
+          : await clubAPI.getMyClubs(params);
+        
+        if (res.data.success) {
+          const data = Array.isArray(res.data.data) ? res.data.data : [];
+          if (tabType === 'public') {
+            setClubs(data);
+          } else {
+            setMyClubs(data);
+          }
+          setTotalPages(res.data.pagination?.pages || 1);
+          setPage(res.data.pagination?.page || 1);
+        }
+      } catch (error: any) {
+        console.error('Failed to fetch clubs:', error);
+        addToast({
+          type: 'error',
+          title: 'Error',
+          message: error.response?.data?.message || 'Failed to load clubs'
+        });
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
 
+  }, [page, addToast]);
+
+  // Initial load and tab change only - ignore searchParams spam
   useEffect(() => {
     fetchClubs(tab, true);
-  }, [fetchClubs, tab, searchParams]);
+  }, [fetchClubs, tab]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -247,16 +267,13 @@ const ClubList: React.FC = () => {
             )}
             <button
               onClick={() => {
-                const newParams = new URLSearchParams(searchParams);
-                newParams.set('refresh', Date.now().toString());
-                newParams.set('page', '1');
-                setSearchParams(newParams);
+                fetchClubs(tab, true);
               }}
               className="px-4 py-2.5 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] border border-[var(--border)] rounded-xl font-semibold transition-all flex items-center gap-1"
               title="Refresh list"
               style={{ color: 'var(--text-primary)' }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               Refresh
