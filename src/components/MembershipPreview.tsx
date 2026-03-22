@@ -8,7 +8,7 @@ interface MembershipPreviewProps {
 }
 
 const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, planName, baseUrl }) => {
-  const previewUrl = `${baseUrl}/${overlayFile}`;
+  const previewUrl = `${baseUrl}/api/v1/overlays/public/demo?template=${overlayFile}`;
   const title = `${planName} Overlay Preview`;
 
   return (
