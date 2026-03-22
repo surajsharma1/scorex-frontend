@@ -36,6 +36,47 @@ const LoadingSpinner = () => (
   </div>
 );
 
+// Error Boundary to catch render errors
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: string }> {
+  state = { hasError: false, error: '' };
+
+
+  static getDerivedStateFromError(error: Error): { hasError: true } {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('ErrorBoundary caught error:', error, errorInfo);
+    this.setState({ error: error.toString(), hasError: true });
+
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+          <h1 className="text-3xl font-black mb-4">Something went wrong</h1>
+          <p className="text-lg mb-8 max-w-md">The app encountered an unexpected error.</p>
+          {this.state.error && (
+            <pre className="bg-black/50 p-4 rounded-lg text-sm mb-8 whitespace-pre-wrap max-w-2xl mx-auto" style={{ color: '#ef4444' }}>
+              {this.state.error}
+            </pre>
+          )}
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-6 py-3 bg-green-600 hover:bg-green-500 text-black font-bold rounded-xl transition-all shadow-lg"
+          >
+            Reload App
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+
 // ─── Auth Context ─────────────────────────────────────────────────────────────
 interface AuthUser {
   id: string;
@@ -348,8 +389,9 @@ const [user, setUser] = useState<AuthUser | null>(null);
     <ThemeProvider>
       <ToastWrapper>
       <AuthContext.Provider value={{ user, login, logout, loading, keepBackendAliveEnabled, toggleKeepBackendAlive }}>
-        <Router>
-          <Routes>
+<ErrorBoundary>
+          <Router>
+            <Routes>
 
             {/* Public routes */}
             <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Frontpage />} />
@@ -387,6 +429,7 @@ const [user, setUser] = useState<AuthUser | null>(null);
             <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </Router>
+        </ErrorBoundary>
         </AuthContext.Provider>
       </ToastWrapper>
     </ThemeProvider>
