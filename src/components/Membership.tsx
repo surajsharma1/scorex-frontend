@@ -283,9 +283,19 @@ export default function Membership() {
                   ))}
                 </ul>
 
-                {/* Fullscreen Overlay Preview Button */}
+                {/* Preview Button - Dropdown + Preview Modal */}
                 {plan.level > 0 && (
-                  <OverlayPreview level={plan.level} templates={templates} />
+                  <button
+                    onClick={() => {
+                      setFloatingPreviewLevel(plan.level);
+                      setSelectedFloatingOverlay(plan.level === 1 ? 'lvl1-modern-bar.html' : 'lvl2-broadcast-pro.html');
+                      setShowFloatingPreview(true);
+                    }}
+                    className="w-full p-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold shadow-lg hover:shadow-xl transition-all mb-4 flex items-center justify-center gap-3 group"
+                  >
+                    <Eye className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                    <span>Preview {plan.name} Overlays ({overlayCount})</span>
+                  </button>
                 )}
 
 
