@@ -188,26 +188,16 @@ export default function Sidebar({
           {!collapsed && <span className="fluid-sm font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
         </button>
         {/* Keep Backend Alive toggle - using AuthContext */}
-        <AuthContext.Consumer>
-          {({ toggleKeepBackendAlive, keepBackendAliveEnabled }) => (
-            <button
-              onClick={toggleKeepBackendAlive}
-              title="Toggle Backend Keepalive (Idle Only)"
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all"
-              style={{
-                color: keepBackendAliveEnabled ? '#10b981' : 'var(--text-secondary)',
-                backgroundColor: keepBackendAliveEnabled ? 'rgba(16,185,129,0.1)' : 'transparent'
-              }}
-            >
-              <Zap className="icon-fluid-base flex-shrink-0" style={{ color: keepBackendAliveEnabled ? '#10b981' : 'var(--text-secondary)' }} />
-              {!collapsed && (
-                <span className="fluid-sm font-medium">
-                  Keep Backend Alive {keepBackendAliveEnabled ? '(ON)' : '(OFF)'}
-                </span>
-              )}
-            </button>
-          )}
-        </AuthContext.Consumer>
+        {/* Backend Keepalive toggle button */}
+        <button
+          onClick={toggleKeepBackendAlive || (() => {})}
+          title="Toggle Backend Keepalive (Idle Only)"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all hover:bg-green-500/10"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          <Zap className="icon-fluid-base flex-shrink-0" />
+          {!collapsed && <span className="fluid-sm font-medium">Keep Backend Alive</span>}
+        </button>
         <button
           onClick={handleLogout}
           title="Logout"
