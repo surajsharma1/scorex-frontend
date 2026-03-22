@@ -9,10 +9,6 @@ import api from '../services/api';
 import type { OverlayTemplate } from '../types/overlay';
 import { Check, Zap, Crown, Star, Clock, Calendar, AlertCircle, Eye } from 'lucide-react';
 
-
-
-
-
 type Duration = '1day' | '1week' | '1month';
 
 const DURATION_LABELS: Record<Duration, string> = {
@@ -62,20 +58,19 @@ export default function Membership() {
   const [floatingPreviewLevel, setFloatingPreviewLevel] = useState(1);
   const [selectedFloatingOverlay, setSelectedFloatingOverlay] = useState('lvl1-modern-bar.html');
 
-// Fetch overlay templates (unchanged)
+  // Fetch overlay templates
   useEffect(() => {
     overlayAPI.getOverlayTemplates().then(res => {
       setTemplates(res.data);
     }).catch(console.error);
   }, []);
 
-// Fetch admin-configured prices
+  // Fetch admin-configured prices
   useEffect(() => {
     api.get('/admin/membership-prices').then(res => {
       if (res.data?.prices) setPrices(res.data.prices);
     }).catch(() => {/* use defaults */});
   }, []);
-
 
   // Fetch fresh user data for accurate current membership status
   useEffect(() => {
@@ -167,46 +162,46 @@ export default function Membership() {
   };
 
   return (
-    <div className="p-6 max-w-5xl relative min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+    <div className="p-responsive max-w-5xl relative min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* BG orb */}
-      <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none"
+      <div className="absolute top-0 right-0 w-[30vw] h-[30vw] max-w-64 max-h-64 rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.05) 0%, transparent 70%)' }} />
 
       {/* Header */}
-      <div className="text-center mb-10 relative">
+      <div className="text-center mb-responsive relative">
         <div className="flex items-center justify-center gap-3 mb-2">
           <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-green-400 to-emerald-600" />
-          <h1 className="text-3xl font-black" style={{ color: 'var(--text-primary)' }}>Membership Plans</h1>
+          <h1 className="fluid-3xl font-black" style={{ color: 'var(--text-primary)' }}>Membership Plans</h1>
           <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-green-400 to-emerald-600" />
         </div>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Upgrade to unlock premium features and overlays</p>
+        <p className="fluid-base" style={{ color: 'var(--text-muted)' }}>Upgrade to unlock premium features and overlays</p>
 
         {/* Current membership status */}
         {membership && !isExpired && (
           <div className="inline-flex flex-col items-center gap-1 mt-4 px-5 py-3 rounded-2xl"
             style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)' }}>
             <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-green-400" />
-              <span className="text-sm font-bold text-green-400">
+              <Star className="icon-fluid-sm text-green-400" />
+              <span className="fluid-sm font-bold text-green-400">
                 Active: {PLANS.find(p => p.level === membership.level)?.name} Plan
               </span>
             </div>
-            <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
-              <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Purchased {formatDate(membership.purchasedAt)}</span>
+            <div className="flex flex-col xs:flex-row items-center gap-3 text-fluid-xs" style={{ color: 'var(--text-secondary)' }}>
+              <span className="flex items-center gap-1"><Calendar className="icon-fluid-xs" /> Purchased {formatDate(membership.purchasedAt)}</span>
               <span>·</span>
-              <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {DURATION_LABELS[membership.duration as Duration] || membership.duration}</span>
+              <span className="flex items-center gap-1"><Clock className="icon-fluid-xs" /> {DURATION_LABELS[membership.duration as Duration] || membership.duration}</span>
               <span>·</span>
               <span className="font-bold text-green-400">{timeLeft}</span>
             </div>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Expires {formatDate(membership.expiry)}</p>
+            <p className="fluid-xs" style={{ color: 'var(--text-muted)' }}>Expires {formatDate(membership.expiry)}</p>
           </div>
         )}
 
         {membership && isExpired && (
           <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-xl"
             style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
-            <AlertCircle className="w-4 h-4 text-red-400" />
-            <span className="text-sm text-red-400 font-medium">Your membership has expired. Renew below.</span>
+            <AlertCircle className="icon-fluid-sm text-red-400" />
+            <span className="fluid-sm text-red-400 font-medium">Your membership has expired. Renew below.</span>
           </div>
         )}
       </div>
@@ -216,7 +211,7 @@ export default function Membership() {
         <div className="flex rounded-xl p-1" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           {(Object.keys(DURATION_LABELS) as Duration[]).map(d => (
             <button key={d} onClick={() => setSelectedDuration(d)}
-              className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+              className="px-4 py-2 rounded-lg fluid-xs font-semibold transition-all"
               style={selectedDuration === d
                 ? { background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 12px rgba(34,197,94,0.3)' }
                 : { color: 'var(--text-secondary)' }}>
@@ -227,7 +222,7 @@ export default function Membership() {
       </div>
 
       {/* Plan cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-responsive">
         {PLANS.map(plan => {
           const overlayCount = templates.filter((t: any) => t.level === plan.level).length;
           const isCurrent = plan.level === currentLevel;
@@ -235,8 +230,7 @@ export default function Membership() {
           const price = plan.level > 0 ? prices[plan.level]?.[selectedDuration] : 0;
 
           return (
-            <div key={plan.name}
-
+            <div key={plan.name} className="relative" 
               style={{
                 background: 'var(--bg-card)',
                 border: `1px solid ${isCurrent ? plan.borderColor : 'var(--border)'}`,
@@ -244,25 +238,25 @@ export default function Membership() {
               }}>
 
               {plan.popular && (
-                <div className="absolute top-0 left-0 right-0 py-1 text-center text-xs font-black text-black"
+                <div className="absolute top-0 left-0 right-0 py-1 text-center text-fluid-xs font-black text-black"
                   style={{ background: 'linear-gradient(90deg, #22c55e, #10b981)' }}>
                   MOST POPULAR
                 </div>
               )}
 
               {/* Header */}
-              <div className={`px-6 pt-${plan.popular ? '8' : '6'} pb-5`}
+              <div className={`px-responsive pt-${plan.popular ? '12' : '8'} pb-responsive`}
                 style={{ background: plan.accentColor, borderBottom: '1px solid var(--border)' }}>
                 <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-3 shadow-lg`}>
-                  <plan.icon className="w-6 h-6 text-white" />
+                  <plan.icon className="icon-fluid-base text-white" />
                 </div>
-                <h3 className="font-black text-xl" style={{ color: 'var(--text-primary)' }}>{plan.name}</h3>
-                <div className="mt-2 flex items-end gap-1">
-                  <span className="text-4xl font-black" style={{ color: 'var(--text-primary)' }}>
+                <h3 className="font-black fluid-xl" style={{ color: 'var(--text-primary)' }}>{plan.name}</h3>
+                <div className="mt-2 flex flex-col xs:flex-row items-end gap-1">
+                  <span className="font-black fluid-3xl" style={{ color: 'var(--text-primary)' }}>
                     {plan.level === 0 ? 'Free' : `₹${price}`}
                   </span>
                   {plan.level > 0 && (
-                    <span className="text-sm mb-1" style={{ color: 'var(--text-muted)' }}>
+                    <span className="fluid-xs mb-1" style={{ color: 'var(--text-muted)' }}>
                       / {DURATION_LABELS[selectedDuration]}
                     </span>
                   )}
@@ -270,20 +264,20 @@ export default function Membership() {
               </div>
 
               {/* Features */}
-              <div className="px-6 py-5">
+              <div className="px-responsive py-responsive">
                 <ul className="space-y-3 mb-6">
                   {plan.features.map(f => (
-                    <li key={f} className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    <li key={f} className="flex items-center gap-2 fluid-sm" style={{ color: 'var(--text-secondary)' }}>
                       <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{ background: plan.accentColor }}>
-                        <Check className="w-3 h-3" style={{ color: plan.iconColor }} />
+                        <Check className="icon-fluid-xs" style={{ color: plan.iconColor }} />
                       </div>
                       {f}
                     </li>
                   ))}
                 </ul>
 
-                {/* Preview Button - Dropdown + Preview Modal */}
+                {/* Preview Button */}
                 {plan.level > 0 && (
                   <button
                     onClick={() => {
@@ -291,19 +285,16 @@ export default function Membership() {
                       setSelectedFloatingOverlay(plan.level === 1 ? 'lvl1-modern-bar.html' : 'lvl2-broadcast-pro.html');
                       setShowFloatingPreview(true);
                     }}
-                    className="w-full p-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold shadow-lg hover:shadow-xl transition-all mb-4 flex items-center justify-center gap-3 group"
-                  >
-                    <Eye className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                    className="w-full p-responsive rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold shadow-lg hover:shadow-xl transition-all mb-4 flex items-center justify-center gap-3 group">
+                    <Eye className="icon-fluid-base group-hover:rotate-12 transition-transform" />
                     <span>Preview {plan.name} Overlays ({overlayCount})</span>
                   </button>
                 )}
 
-
-
                 <button
                   onClick={() => handleUpgrade(plan)}
                   disabled={isCurrent || isLower || loading === plan.name}
-                  className="w-full py-3 rounded-xl font-bold text-sm transition-all disabled:cursor-not-allowed hover:scale-[1.02] hover:shadow-lg"
+                  className="w-full py-responsive rounded-xl font-bold fluid-sm transition-all disabled:cursor-not-allowed hover:scale-[1.02] hover:shadow-lg"
                   style={isCurrent
                     ? { background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e' }
                     : isLower
@@ -335,3 +326,4 @@ export default function Membership() {
     </div>
   );
 }
+

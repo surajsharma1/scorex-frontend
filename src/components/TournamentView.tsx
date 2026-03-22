@@ -62,9 +62,9 @@ function CreateTournamentModal({ onClose, onCreated }: { onClose: () => void; on
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="rounded-2xl p-6 w-full max-w-md relative" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>New Tournament</h2>
+        <div className="rounded-2xl p-responsive w-full max-w-xs xs:max-w-sm sm:max-w-md relative" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-fluid-lg font-black" style={{ color: 'var(--text-primary)' }}>New Tournament</h2>
           <button onClick={onClose} className="transition-colors hover:text-red-400" style={{ color: 'var(--text-muted)' }}>
             <X className="w-5 h-5" />
           </button>

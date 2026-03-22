@@ -4,7 +4,6 @@ import { useAuth } from '../App';
 import { useToast } from '../hooks/useToast';
 import { Link, useSearchParams } from 'react-router-dom';
 
-
 interface Club {
   _id: string;
   name: string;
@@ -46,8 +45,6 @@ const ClubList: React.FC = () => {
     }
   }, [searchParams]);
 
-
-
   const fetchClubs = useCallback(async (tabType: 'public' | 'my' = tab, resetPage = true) => {
     try {
       setLoading(true);
@@ -88,7 +85,6 @@ const ClubList: React.FC = () => {
     fetchClubs(tab, true);
   }, [fetchClubs, tab, searchParams]);
 
-
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearch(value);
@@ -101,7 +97,6 @@ const ClubList: React.FC = () => {
     }
     setSearchParams(newParams);
   };
-
 
   const handleJoinClub = async (clubId: string) => {
     try {
@@ -142,7 +137,7 @@ const ClubList: React.FC = () => {
   };
 
   const ClubCard = ({ club }: { club: Club }) => (
-    <div className="group bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6 hover:shadow-xl hover:shadow-green-500/10 transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+    <div className="group bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-responsive hover:shadow-xl hover:shadow-green-500/10 transition-all duration-300 hover:-translate-y-1 overflow-hidden">
       <div className="flex gap-4 mb-4">
         <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-green-500/20 to-blue-500/20 flex items-center justify-center flex-shrink-0">
           {club.logo ? (
@@ -177,7 +172,7 @@ const ClubList: React.FC = () => {
         {user && !(club.members || []).some((m: any) => m._id === user.id) && (
           <button
             onClick={() => handleJoinClub(club._id)}
-            className="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-500/25 transform hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
+            className="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-500/25 transform hover:scale-[1.02] transition-all duration-200 active:scale-[0.98] "
           >
             Join
           </button>
@@ -185,7 +180,7 @@ const ClubList: React.FC = () => {
         {tab === 'my' && user && club.owner._id === user.id && (
           <button
             onClick={() => handleDeleteClub(club._id)}
-            className="px-6 py-3 bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-red-500/25 transform hover:scale-[1.02] transition-all duration-200 active:scale-[0.98]"
+            className="px-6 py-3 bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-red-500/25 transform hover:scale-[1.02] transition-all duration-200 active:scale-[0.98] "
           >
             Delete
           </button>
@@ -268,7 +263,6 @@ const ClubList: React.FC = () => {
             </button>
           </div>
         </div>
-
 
         {/* Search */}
         <div className="relative max-w-md mb-8">
