@@ -25,6 +25,14 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        {(!previewUrl.startsWith('http') && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-r from-gray-900/80 to-black/80">
+            <p className="text-white text-sm font-medium text-center px-4">
+              Backend not running? <br />
+              <span className="text-blue-400 underline">Start server to see live preview</span>
+            </p>
+          </div>
+        ))}
       </div>
       <p className="text-xs text-center mt-2 text-gray-500 dark:text-gray-400 font-medium">
         Sample {planName} overlay design

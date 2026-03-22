@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../App';
 import MembershipPreview from './MembershipPreview';
+import OverlayPreviewModal from './OverlayPreviewModal';
+import { getBackendBaseUrl } from '../services/env';
+import { overlayAPI, paymentAPI } from '../services/api';
+import api from '../services/api';
 import { Check, Zap, Crown, Star, Clock, Calendar, AlertCircle, Eye } from 'lucide-react';
 
 
-import { paymentAPI } from '../services/api';
-import api from '../services/api';
+
 
 type Duration = '1day' | '1week' | '1month';
 
@@ -48,18 +51,20 @@ export default function Membership() {
   const [selectedDuration, setSelectedDuration] = useState<Duration>('1month');
   const [prices, setPrices] = useState(DEFAULT_PRICES);
   const [membership, setMembership] = useState<any>(null);
+  const [backendUser, setBackendUser] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState('');
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [selectedPreviewLevel, setSelectedPreviewLevel] = useState(0);
 
-  // Overlay preview mapping for each membership level
-  const OVERLAY_PREVIEWS: Record<number, string> = {
-    1: 'lvl1-modern-blue.html',  // Premium sample
-    2: 'lvl2-neon-pulse.html'    // Enterprise sample
-  };
+// Fetch overlay templates
+  useEffect(() => {
+    overlayAPI.getOverlayTemplates().then(res => {
+      setTemplates(res.data);
+    }).catch(console.error);
+  }, []);
 
-  // Backend overlays base URL (update for prod)
-  const OVERLAY_BASE_URL = 'http://localhost:5000/overlays';
-
-  // Fetch admin-configured prices
+// Fetch admin-configured prices
   useEffect(() => {
     api.get('/admin/membership-prices').then(res => {
       if (res.data?.prices) setPrices(res.data.prices);
@@ -67,16 +72,26 @@ export default function Membership() {
   }, []);
 
 
-  // Fetch current membership details
+  // Fetch admin-configured prices
+  useEffect(() => {
+    api.get('/admin/membership-prices').then(res => {
+      if (res.data?.prices) setPrices(res.data.prices);
+    }).catch(() => {/* use defaults */});
+  }, []); 
+
+
+  // Fetch fresh user data for accurate current membership status
   useEffect(() => {
     api.get('/auth/me').then(res => {
-      const u = res.data.data;
-      if (u.membershipLevel > 0 && u.membershipExpiry) {
+      const freshUser = res.data.data;
+      localStorage.setItem('user', JSON.stringify(freshUser));
+      setBackendUser(freshUser);
+      if (freshUser.membershipLevel > 0 && freshUser.membershipExpiresAt) {
         setMembership({
-          level: u.membershipLevel,
-          expiry: u.membershipExpiry,
-          purchasedAt: u.membershipPurchasedAt,
-          duration: u.membershipDuration,
+          level: freshUser.membershipLevel,
+          expiry: freshUser.membershipExpiresAt,
+          purchasedAt: freshUser.membershipStartedAt || freshUser.membershipPurchasedAt,
+          duration: '1month', // Compute from expiry diff if needed
         });
       }
     }).catch(() => {});
@@ -91,8 +106,11 @@ export default function Membership() {
     return () => clearInterval(iv);
   }, [membership]);
 
-  const isExpired = membership ? new Date(membership.expiry).getTime() <= Date.now() : true;
-  const currentLevel = isExpired ? 0 : ((user as any)?.membershipLevel || 0);
+  const backendLevel = backendUser?.membershipLevel || 0;
+  const backendExpires = backendUser?.membershipExpiresAt;
+  const backendIsActive = backendLevel > 0 && backendExpires && new Date(backendExpires) > new Date();
+  const currentLevel = backendIsActive ? backendLevel : 0;
+  const isExpired = backendIsActive ? false : (membership !== null);
 
   const PLANS = [
     {
@@ -267,28 +285,20 @@ export default function Membership() {
                   ))}
                 </ul>
 
-                {/* Overlay Preview for Premium/Enterprise */}
+                {/* Overlay Preview Button */}
                 {plan.level > 0 && (
-                  <div className="mb-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
-                    <p className="text-xs font-semibold uppercase mb-3 tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                      <Eye className="w-3 h-3" />Live Preview
-                    </p>
-                    <div className="relative w-full aspect-video max-h-48 rounded-xl overflow-hidden shadow-lg border-2 border-gray-200/50 dark:border-gray-700 hover:shadow-2xl hover:border-blue-400/60 transition-all duration-300 group">
-                      <iframe
-                        src={`${OVERLAY_BASE_URL}/${OVERLAY_PREVIEWS[plan.level]}`}
-                        className="w-full h-full border-0 bg-transparent group-hover:scale-[1.02] transition-transform duration-300"
-                        title={`${plan.name} Overlay Preview`}
-                        sandbox="allow-scripts allow-same-origin"
-                        loading="lazy"
-                      />
-
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-                    <p className="text-xs text-center mt-2 text-gray-500 dark:text-gray-400 font-medium">
-                      Sample {plan.name} overlay design
-                    </p>
-                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedPreviewLevel(plan.level);
+                      setShowPreviewModal(true);
+                    }}
+                    className="w-full p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold shadow-lg hover:shadow-xl transition-all mb-4 flex items-center justify-center gap-3 group"
+                  >
+                    <Eye className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                    <span>Preview {plan.name} Overlays ({templates.filter(t => t.level === plan.level).length})</span>
+                  </button>
                 )}
+
 
                 <button
                   onClick={() => handleUpgrade(plan)}
