@@ -53,8 +53,8 @@ export default function Sidebar({
   const isAdmin = user?.role === 'admin';
 
   return (
-    <aside
-      className={`flex flex-col h-screen transition-all duration-300 flex-shrink-0 ${collapsed ? 'w-16' : 'w-60'}`}
+<aside
+      className={`flex flex-col h-screen transition-all duration-300 flex-shrink-0 ${collapsed ? 'w-14 xs:w-16' : 'w-[clamp(14rem,22vw,16rem)]'}`}
       style={{ background: 'var(--bg-secondary)', borderRight: '1px solid var(--border)' }}
     >
       {/* Logo + Collapse / Mobile Close */}
@@ -66,7 +66,7 @@ export default function Sidebar({
             className="p-1 -ml-1 rounded-lg hover:bg-slate-800/50 md:hidden transition-colors"
             style={{ color: 'var(--text-muted)' }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="icon-fluid-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -74,9 +74,9 @@ export default function Sidebar({
         
         {/* Logo */}
         {!collapsed && (
-          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate('/dashboard')}>
+<div className="flex items-center gap-1.5 xs:gap-2 group cursor-pointer" onClick={() => navigate('/dashboard')}>
             <div className="relative">
-              <div className="w-8 h-8 bg-gradient-to-tr from-green-600 to-emerald-400 rounded-lg flex items-center justify-center font-black text-black text-sm shadow-lg shadow-green-500/20">
+              <div className="w-[clamp(1.75rem,6vw,2.25rem)] h-[clamp(1.75rem,6vw,2.25rem)] bg-gradient-to-tr from-green-600 to-emerald-400 rounded-lg flex items-center justify-center font-black text-black text-[clamp(0.625rem,2vw,0.875rem)] shadow-lg shadow-green-500/20">
                 S
               </div>
               <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -95,14 +95,14 @@ export default function Sidebar({
         {/* Desktop collapse button */}
         {!collapsed && !isMobileMenuOpen && (
           <button onClick={() => setCollapsed(true)} className="p-1 rounded-lg transition-all hover:bg-green-500/10" style={{ color: 'var(--text-muted)' }}>
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="icon-fluid-xs" />
           </button>
         )}
       </div>
 
       {collapsed && (
         <button onClick={() => setCollapsed(false)} className="flex justify-center py-2 transition-all hover:bg-green-500/10" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="icon-fluid-xs" />
         </button>
       )}
 
@@ -114,8 +114,8 @@ export default function Sidebar({
               {user.username?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>{user.username}</p>
-              <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{user.email}</p>
+              <p className="fluid-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>{user.username}</p>
+              <p className="fluid-xs truncate" style={{ color: 'var(--text-muted)' }}>{user.email}</p>
             </div>
           </div>
         </div>
@@ -138,8 +138,8 @@ export default function Sidebar({
           >
             {({ isActive }) => (
               <>
-                <item.icon className="w-5 h-5 flex-shrink-0" style={isActive ? { color: '#22c55e' } : {}} />
-                {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
+                <item.icon className="icon-fluid-base flex-shrink-0" style={isActive ? { color: '#22c55e' } : {}} />
+                {!collapsed && <span className="fluid-sm font-medium">{item.label}</span>}
                 {!collapsed && isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-green-400" />}
               </>
             )}
@@ -161,8 +161,8 @@ export default function Sidebar({
           >
             {({ isActive }) => (
               <>
-                <Shield className="w-5 h-5 flex-shrink-0" style={isActive ? { color: '#f87171' } : { color: '#f87171' }} />
-                {!collapsed && <span className="text-sm font-medium" style={{ color: '#f87171' }}>Admin Panel</span>}
+          <Shield className="icon-fluid-base flex-shrink-0" style={isActive ? { color: '#f87171' } : { color: '#f87171' }} />
+                {!collapsed && <span className="fluid-sm font-medium" style={{ color: '#f87171' }}>Admin Panel</span>}
                 {!collapsed && <span className="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">ADMIN</span>}
               </>
             )}
@@ -179,10 +179,10 @@ export default function Sidebar({
           style={{ color: 'var(--text-secondary)' }}
         >
           {isDark
-            ? <Sun className="w-5 h-5 flex-shrink-0 text-amber-400" />
-            : <Moon className="w-5 h-5 flex-shrink-0 text-blue-400" />
+            ? <Sun className="icon-fluid-base flex-shrink-0 text-amber-400" />
+            : <Moon className="icon-fluid-base flex-shrink-0 text-blue-400" />
           }
-          {!collapsed && <span className="text-sm font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
+          {!collapsed && <span className="fluid-sm font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
         </button>
         <button
           onClick={handleLogout}
@@ -190,7 +190,7 @@ export default function Sidebar({
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all hover:bg-red-500/10"
           style={{ color: 'var(--text-secondary)' }}
         >
-          <LogOut className="w-5 h-5 flex-shrink-0 text-red-400" />
+          <LogOut className="icon-fluid-base flex-shrink-0 text-red-400" />
           {!collapsed && <span className="text-sm font-medium hover:text-red-400 transition-colors">Logout</span>}
         </button>
       </div>

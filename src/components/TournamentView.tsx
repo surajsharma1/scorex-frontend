@@ -460,7 +460,7 @@ export default function TournamentView() {
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
       {/* Background Orb */}
-      <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none z-0"
+      <div className="absolute top-0 right-0 w-[30vw] h-[30vw] xs:w-72 xs:h-72 max-w-72 max-h-72 rounded-full pointer-events-none z-0"
         style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.05) 0%, transparent 70%)' }} />
 
       {/* Tournament Selector Overlay Slide-Out */}
@@ -526,14 +526,14 @@ export default function TournamentView() {
       )}
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto p-4 md:p-8 relative z-10">
+      <div className="max-w-6xl xs:max-w-5xl mx-auto p-responsive relative z-10">
         {!selected ? (
           <div className="min-h-[60vh] flex flex-col items-center justify-center text-center py-20">
             <Trophy className="w-20 h-20 mb-6 opacity-20" style={{ color: 'var(--text-primary)' }} />
-            <h1 className="text-3xl md:text-4xl font-black mb-4" style={{ color: 'var(--text-primary)' }}>
+          <h1 className="fluid-3xl font-black mb-4 text-center" style={{ color: 'var(--text-primary)' }}>
               Select a Tournament
             </h1>
-            <p className="text-xl mb-8 max-w-md" style={{ color: 'var(--text-muted)' }}>
+            <p className="fluid-xl mb-8 max-w-md mx-auto" style={{ color: 'var(--text-muted)' }}>
               Choose from your tournaments or create a new one
             </p>
             <div className="flex gap-4">
@@ -743,7 +743,7 @@ export default function TournamentView() {
   <>
     {/* Match Details Backdrop */}
     <div 
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[59]" 
+      className="fixed inset-0bg-black/70 backdrop-blur-sm z-[59]" 
       onClick={() => setSelectedMatch(null)}
     />
     
