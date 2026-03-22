@@ -30,8 +30,7 @@ export default function Carousel() {
         // If no live data, show placeholders so the UI doesn't look broken
         if (active.length === 0) {
             setItems([
-                { _id: 'demo1', name: 'ScoreX Premier League', status: 'upcoming' },
-                { _id: 'demo2', name: 'Global Championship', status: 'upcoming' }
+                { _id: 'no-active', name: 'No Active Tournaments', status: 'upcoming' }
             ]);
         } else {
             setItems(active);
@@ -42,7 +41,7 @@ export default function Carousel() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 60000); // Update every minute
+    const interval = setInterval(fetchData, 180000); // Update every 3 minutes to keep backend awake
     return () => clearInterval(interval);
   }, []);
 

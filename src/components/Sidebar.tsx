@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../App';
 import { useTheme } from './ThemeProvider';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
@@ -10,6 +11,8 @@ import {
 interface SidebarProps {
   user: any;
   logout: () => void;
+  toggleKeepBackendAlive?: () => void;
+  keepBackendAliveEnabled?: boolean;
   isOpen?: boolean;
   onToggle?: () => void;
   isMobileMenuOpen?: boolean;
@@ -49,7 +52,7 @@ export default function Sidebar({
 
 
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = () => { logout(); navigate('/'); };
   const isAdmin = user?.role === 'admin';
 
   return (
@@ -170,7 +173,7 @@ export default function Sidebar({
         )}
       </nav>
 
-      {/* Bottom: theme + logout */}
+{/* Bottom: theme + keepalive + logout */}
       <div className="p-2 space-y-1" style={{ borderTop: '1px solid var(--border)' }}>
         <button
           onClick={toggleTheme}
@@ -184,6 +187,27 @@ export default function Sidebar({
           }
           {!collapsed && <span className="fluid-sm font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
         </button>
+        {/* Keep Backend Alive toggle - using AuthContext */}
+        <AuthContext.Consumer>
+          {({ toggleKeepBackendAlive, keepBackendAliveEnabled }) => (
+            <button
+              onClick={toggleKeepBackendAlive}
+              title="Toggle Backend Keepalive (Idle Only)"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all"
+              style={{
+                color: keepBackendAliveEnabled ? '#10b981' : 'var(--text-secondary)',
+                backgroundColor: keepBackendAliveEnabled ? 'rgba(16,185,129,0.1)' : 'transparent'
+              }}
+            >
+              <Zap className="icon-fluid-base flex-shrink-0" style={{ color: keepBackendAliveEnabled ? '#10b981' : 'var(--text-secondary)' }} />
+              {!collapsed && (
+                <span className="fluid-sm font-medium">
+                  Keep Backend Alive {keepBackendAliveEnabled ? '(ON)' : '(OFF)'}
+                </span>
+              )}
+            </button>
+          )}
+        </AuthContext.Consumer>
         <button
           onClick={handleLogout}
           title="Logout"
