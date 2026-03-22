@@ -79,13 +79,14 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
           </div>
 
           {/* Right: Large Preview */}
-          <div className="flex-1 min-h-0 overflow-auto">
+          <div className="flex-1 min-h-0">
             {selectedOverlay ? (
-            <div className="w-full h-[60vh] max-h-[600px] rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-200/50 hover:border-blue-400/70 bg-gradient-to-br from-blue-50/30 to-indigo-50/30 md:h-[500px]">
-                <MembershipPreview
-                  overlayFile={selectedOverlay}
-                  planName={level === 1 ? 'Premium' : 'Enterprise'}
-                  baseUrl={baseUrl}
+            <div className="w-full h-screen rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-200/50 hover:border-blue-400/70 bg-gradient-to-br from-blue-50/30 to-indigo-50/30">
+                <iframe
+                  src={`${baseUrl}/overlays/${selectedOverlay}?demo=true`}
+                  className="w-full h-full border-0 bg-transparent"
+                  title="Overlay Preview"
+                  sandbox="allow-scripts allow-same-origin"
                 />
               </div>
             ) : (
