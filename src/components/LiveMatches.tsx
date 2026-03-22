@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import { socket } from '../services/socket';
@@ -8,12 +8,12 @@ import { Zap, Activity, RefreshCw, MapPin, Shield } from 'lucide-react';
 export default function LiveMatches() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [matches, setMatches] = useState([]);
+  const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const intervalRef = useRef(null);
-  const socketHandlerRef = useRef(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const scoreUpdateHandlerRef = useRef<() => void | null>(null);
 
-  const loadLive = useCallback(async () => {
+  const loadLive = async () => {
     if (!user) {
       setMatches([]);
       setLoading(false);
@@ -22,19 +22,16 @@ export default function LiveMatches() {
     try {
       const res = await matchAPI.getLiveMatches();
       setMatches(res.data.data || []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
+    } catch (e) { 
+      console.error(e); 
     }
-  }, [user]);
+    finally { 
+      setLoading(false); 
+    }
+  };
 
   useEffect(() => {
     if (!user) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
       setLoading(false);
       setMatches([]);
       return;
@@ -42,22 +39,25 @@ export default function LiveMatches() {
 
     loadLive();
 
-    intervalRef.current = setInterval(loadLive, 30000);
+    // Setup polling interval only if user is authenticated
+    intervalRef.current = setInterval(loadLive, 30000); // Increased to 30s
 
-    socketHandlerRef.current = () => loadLive();
-    socket.get().on('scoreUpdate', socketHandlerRef.current);
+    // Socket listener with ref for cleanup
+    const handleScoreUpdate = () => loadLive();
+    scoreUpdateHandlerRef.current = handleScoreUpdate;
+    socket.get().on('scoreUpdate', handleScoreUpdate);
 
     return () => {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+        clearInterval(intervalRef.current as NodeJS.Timeout);
         intervalRef.current = null;
       }
-      if (socketHandlerRef.current) {
-        socket.get().off('scoreUpdate', socketHandlerRef.current);
-        socketHandlerRef.current = null;
+      if (scoreUpdateHandlerRef.current) {
+        socket.get().off('scoreUpdate', scoreUpdateHandlerRef.current);
+        scoreUpdateHandlerRef.current = null;
       }
     };
-  }, [loadLive]);
+  }, [user]); // Depend on user
 
   return (
     <div className="p-responsive max-w-4xl relative min-h-screen" style={{ background: 'var(--bg-primary)' }}>
@@ -92,6 +92,7 @@ export default function LiveMatches() {
         <div className="space-y-4">
           {matches.map(m => {
             const inn = m.innings?.[m.currentInnings - 1] || {};
+            const battingTeam = inn.teamName || m.team1Name;
             return (
               <div key={m._id} className="bg-slate-900 border border-red-500/20 rounded-2xl overflow-hidden hover:border-red-500/40 transition-all">
                 <div className="px-responsive py-4">
@@ -120,6 +121,7 @@ export default function LiveMatches() {
                     </div>
                   </div>
 
+                  {/* Live details */}
                   {m.strikerName && (
                     <div className="bg-slate-800/60 rounded-xl p-3 text-fluid-xs grid grid-cols-2 xs:grid-cols-3 gap-2 mb-3">
                       <div><span className="text-slate-500">🏏 </span><span className="text-white">{m.strikerName}*</span></div>
