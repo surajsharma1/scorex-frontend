@@ -2,13 +2,11 @@ import React from 'react';
 import { X, Eye, Maximize2 } from 'lucide-react';
 import MembershipPreview from './MembershipPreview';
 import { getBackendBaseUrl } from '../services/env';
+import type { OverlayTemplate } from '../types/overlay';
 
-interface OverlayTemplate {
-  id: string;
-  name: string;
-  url: string;
-  level: number;
-}
+
+// types imported
+
 
 interface OverlayPreviewModalProps {
   isOpen: boolean;

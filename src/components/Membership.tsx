@@ -5,7 +5,9 @@ import OverlayPreviewModal from './OverlayPreviewModal';
 import { getBackendBaseUrl } from '../services/env';
 import { overlayAPI, paymentAPI } from '../services/api';
 import api from '../services/api';
+import type { OverlayTemplate } from '../types/overlay';
 import { Check, Zap, Crown, Star, Clock, Calendar, AlertCircle, Eye } from 'lucide-react';
+
 
 
 
@@ -53,7 +55,8 @@ export default function Membership() {
   const [membership, setMembership] = useState<any>(null);
   const [backendUser, setBackendUser] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState('');
-  const [templates, setTemplates] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<OverlayTemplate[]>([]);
+
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedPreviewLevel, setSelectedPreviewLevel] = useState(0);
 
@@ -70,14 +73,6 @@ export default function Membership() {
       if (res.data?.prices) setPrices(res.data.prices);
     }).catch(() => {/* use defaults */});
   }, []);
-
-
-  // Fetch admin-configured prices
-  useEffect(() => {
-    api.get('/admin/membership-prices').then(res => {
-      if (res.data?.prices) setPrices(res.data.prices);
-    }).catch(() => {/* use defaults */});
-  }, []); 
 
 
   // Fetch fresh user data for accurate current membership status
@@ -232,13 +227,14 @@ export default function Membership() {
       {/* Plan cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {PLANS.map(plan => {
+          const overlayCount = templates.filter((t: any) => t.level === plan.level).length;
           const isCurrent = plan.level === currentLevel;
           const isLower = plan.level < currentLevel;
           const price = plan.level > 0 ? prices[plan.level]?.[selectedDuration] : 0;
 
           return (
             <div key={plan.name}
-              className={`relative rounded-3xl overflow-hidden transition-all ${plan.popular ? 'scale-[1.03] shadow-2xl' : ''}`}
+
               style={{
                 background: 'var(--bg-card)',
                 border: `1px solid ${isCurrent ? plan.borderColor : 'var(--border)'}`,
@@ -295,9 +291,10 @@ export default function Membership() {
                     className="w-full p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold shadow-lg hover:shadow-xl transition-all mb-4 flex items-center justify-center gap-3 group"
                   >
                     <Eye className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                    <span>Preview {plan.name} Overlays ({templates.filter(t => t.level === plan.level).length})</span>
+                    <span>Preview {plan.name} Overlays ({overlayCount})</span>
                   </button>
                 )}
+
 
 
                 <button
@@ -324,6 +321,13 @@ export default function Membership() {
           );
         })}
       </div>
+
+      <OverlayPreviewModal 
+        isOpen={showPreviewModal}
+        onClose={() => setShowPreviewModal(false)}
+        level={selectedPreviewLevel}
+        overlays={templates}
+      />
     </div>
   );
 }
