@@ -49,7 +49,7 @@ export default function LiveMatches() {
 
     return () => {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+        clearInterval(intervalRef.current);        
         intervalRef.current = null;
       }
       if (socketHandlerRef.current) {
