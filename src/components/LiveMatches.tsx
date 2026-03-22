@@ -1,63 +1,28 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import { socket } from '../services/socket';
-import { useAuth } from '../App';
 import { Zap, Activity, RefreshCw, MapPin, Shield } from 'lucide-react';
 
 export default function LiveMatches() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const scoreUpdateHandlerRef = useRef<() => void | null>(null);
 
   const loadLive = async () => {
-    if (!user) {
-      setMatches([]);
-      setLoading(false);
-      return;
-    }
     try {
       const res = await matchAPI.getLiveMatches();
       setMatches(res.data.data || []);
-    } catch (e) { 
-      console.error(e); 
-    }
-    finally { 
-      setLoading(false); 
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      setMatches([]);
-      return;
-    }
-
     loadLive();
-
-    // Setup polling interval only if user is authenticated
-    intervalRef.current = setInterval(loadLive, 30000); // Increased to 30s
-
-    // Socket listener with ref for cleanup
-    const handleScoreUpdate = () => loadLive();
-    scoreUpdateHandlerRef.current = handleScoreUpdate;
-    socket.get().on('scoreUpdate', handleScoreUpdate);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current as NodeJS.Timeout);
-        intervalRef.current = null;
-      }
-      if (scoreUpdateHandlerRef.current) {
-        socket.get().off('scoreUpdate', scoreUpdateHandlerRef.current);
-        scoreUpdateHandlerRef.current = null;
-      }
-    };
-  }, [user]); // Depend on user
+    const iv = setInterval(loadLive, 15000);
+    socket.get().on('scoreUpdate', () => loadLive());
+    return () => { clearInterval(iv); socket.get().off('scoreUpdate'); };
+  }, []);
 
   return (
     <div className="p-responsive max-w-4xl relative min-h-screen" style={{ background: 'var(--bg-primary)' }}>
@@ -66,9 +31,9 @@ export default function LiveMatches() {
           <h1 className="fluid-3xl font-black text-white flex items-center gap-2">
             <Zap className="icon-fluid-base text-red-400" /> Live Matches
           </h1>
-          <p className="fluid-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>Real-time scores • Updates every 30s</p>
+          <p className="fluid-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>Real-time scores • Updates every 15s</p>
         </div>
-        <button onClick={loadLive} disabled={!user || loading} className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 text-sm rounded-xl transition-all disabled:opacity-50">
+        <button onClick={loadLive} className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 text-sm rounded-xl transition-all">
           <RefreshCw className="icon-fluid-sm" /> Refresh
         </button>
       </div>
@@ -76,11 +41,6 @@ export default function LiveMatches() {
       {loading ? (
         <div className="flex justify-center py-responsive">
           <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : !user ? (
-        <div className="text-center py-responsive bg-slate-900 border border-slate-800 rounded-2xl p-responsive">
-          <Activity className="icon-fluid-xl text-slate-700 mx-auto mb-4" />
-          <p className="fluid-lg font-semibold" style={{ color: 'var(--text-muted)' }}>Login to view live matches</p>
         </div>
       ) : matches.length === 0 ? (
         <div className="text-center py-responsive bg-slate-900 border border-slate-800 rounded-2xl p-responsive">
@@ -150,3 +110,4 @@ export default function LiveMatches() {
     </div>
   );
 }
+

@@ -1,60 +1,29 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { tournamentAPI } from '../services/api';
-import { useAuth } from '../App';
 import { Trophy, BarChart2, ChevronDown } from 'lucide-react';
 
 export default function Leaderboard() {
-  const { user } = useAuth();
   const [tournaments, setTournaments] = useState<any[]>([]);
   const [selectedTournament, setSelectedTournament] = useState('');
   const [pointsTable, setPointsTable] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const loadTournaments = useCallback(async () => {
-    if (!user) {
-      setTournaments([]);
-      return;
-    }
-    try {
-      const r = await tournamentAPI.getMyTournaments();
+  useEffect(() => {
+    tournamentAPI.getMyTournaments().then(r => {
       const list = r.data.data || [];
       setTournaments(list);
       if (list.length > 0) setSelectedTournament(list[0]._id);
-    } catch (e) {
-      console.error(e);
-      setTournaments([]);
-    }
-  }, [user]);
-
-  const loadPointsTable = useCallback(async (tournamentId: string) => {
-    if (!user || !tournamentId) {
-      setPointsTable([]);
-      setLoading(false);
-      return;
-    }
-    try {
-      setLoading(true);
-      const r = await tournamentAPI.getPointsTable(tournamentId);
-      setPointsTable(r.data.data || []);
-    } catch (e) {
-      console.error(e);
-      setPointsTable([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
-    loadTournaments();
-  }, [loadTournaments]);
-
-  useEffect(() => {
-    if (!selectedTournament) {
-      setPointsTable([]);
-      return;
-    }
-    loadPointsTable(selectedTournament);
-  }, [selectedTournament, loadPointsTable]);
+    if (!selectedTournament) return;
+    setLoading(true);
+    tournamentAPI.getPointsTable(selectedTournament)
+      .then(r => setPointsTable(r.data.data || []))
+      .catch(() => setPointsTable([]))
+      .finally(() => setLoading(false));
+  }, [selectedTournament]);
 
   return (
     <div className="p-6 max-w-5xl relative min-h-screen" style={{ background: 'var(--bg-primary)' }}>
@@ -74,7 +43,7 @@ export default function Leaderboard() {
         </div>
         
         {/* GREEN SELECT TOURNAMENT BUTTON TRICK */}
-        {user && tournaments.length > 0 && (
+        {tournaments.length > 0 && (
           <div className="relative group cursor-pointer">
             <div className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg"
                  style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 16px rgba(34,197,94,0.3)' }}>
@@ -92,11 +61,6 @@ export default function Leaderboard() {
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
-        </div>
-      ) : !user ? (
-        <div className="text-center py-20 rounded-3xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <Trophy className="w-16 h-16 opacity-20 mx-auto mb-4" style={{ color: 'var(--text-primary)' }} />
-          <p className="font-semibold text-lg" style={{ color: 'var(--text-muted)' }}>Login to view leaderboards</p>
         </div>
       ) : !selectedTournament ? (
         <div className="text-center py-20 rounded-3xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -158,4 +122,3 @@ export default function Leaderboard() {
     </div>
   );
 }
-
