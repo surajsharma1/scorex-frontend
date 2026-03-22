@@ -36,8 +36,7 @@ export default function Frontpage() {
                     </div>
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                 </div>
-                <div className="flex flex-col">
-
+                <div className="hidden sm:flex flex-col">
                     <span className="font-orbitron font-black text-xl tracking-tight leading-none">
                         SCOREX
                     </span>
@@ -64,8 +63,7 @@ export default function Frontpage() {
 
             {/* Auth Buttons */}
             <div className="flex items-center gap-3 shrink-0">
-<Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition sm:block">
-
+<Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition block">
                     Sign In
                 </Link>
                 <Link to="/register" className="px-4 py-2 bg-white text-black text-sm font-bold rounded-full hover:bg-gray-100 transition shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] transform hover:scale-105">
