@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import api from './services/api';
+import { useToast, ToastProvider } from './hooks/useToast';
 import ThemeProvider from './components/ThemeProvider';
 import { useState, useEffect, createContext, useContext, lazy, Suspense, useRef, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
@@ -198,10 +199,14 @@ function DashboardLayout({
 }
 
 // ─── App ──────────────────────────────────────────────────────────────────────
-
+const ToastWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <ToastProvider>
+    {children}
+  </ToastProvider>
+);
 
 export default function App() {
-  const [user, setUser] = useState<AuthUser | null>(null);
+const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -214,7 +219,7 @@ export default function App() {
   const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   const PING_INTERVAL = 3 * 60 * 1000; // 3 minutes
 
-
+  const { addToast } = useToast();
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
   
@@ -284,7 +289,7 @@ export default function App() {
       if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
       if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
     };
-  }, [keepBackendAliveEnabled, lastActivity]);
+  }, [keepBackendAliveEnabled, lastActivity, addToast]);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -375,6 +380,7 @@ export default function App() {
 
   return (
     <ThemeProvider>
+      <ToastWrapper>
       <AuthContext.Provider value={{ user, login, logout, loading, keepBackendAliveEnabled, toggleKeepBackendAlive }}>
 <ErrorBoundary>
           <Router>
@@ -418,6 +424,7 @@ export default function App() {
           </Router>
         </ErrorBoundary>
         </AuthContext.Provider>
+      </ToastWrapper>
     </ThemeProvider>
   );
 }
