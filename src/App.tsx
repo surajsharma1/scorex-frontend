@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import api from './services/api';
-import { useToast, ToastProvider } from './hooks/useToast';
 import ThemeProvider from './components/ThemeProvider';
-import { useState, useEffect, createContext, useContext, lazy, Suspense, useRef, useCallback } from 'react';
+import { useState, useEffect, createContext, useContext, lazy, Suspense } from 'react';
+import { ToastProvider } from './hooks/useToast';
+import api from './services/api';
 import Sidebar from './components/Sidebar';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -54,17 +54,13 @@ interface AuthContextType {
   login: (userData: any) => void;
   logout: () => void;
   loading: boolean;
-  keepBackendAliveEnabled: boolean;
-  toggleKeepBackendAlive: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   login: () => {},
   logout: () => {},
-  loading: true,
-  keepBackendAliveEnabled: false,
-  toggleKeepBackendAlive: () => {}
+  loading: true
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -164,20 +160,9 @@ const ToastWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 );
 
 export default function App() {
-const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Keepalive states
-  const [keepBackendAliveEnabled, setKeepBackendAliveEnabled] = useState(false);
-  const [lastActivity, setLastActivity] = useState(Date.now());
-  const pingIntervalRef = useRef<number | null>(null);
-  const idleTimeoutRef = useRef<number | null>(null);
-
-  const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
-  const PING_INTERVAL = 3 * 60 * 1000; // 3 minutes
-
-  const { addToast } = useToast();
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
   
@@ -193,64 +178,6 @@ const [user, setUser] = useState<AuthUser | null>(null);
       document.documentElement.classList.add('light');
     }
   }, []);
-
-  // Load keepalive preference
-  useEffect(() => {
-    const saved = localStorage.getItem('keepBackendAliveEnabled');
-    if (saved !== null) {
-      setKeepBackendAliveEnabled(JSON.parse(saved));
-    }
-  }, []);
-
-  // Activity tracking
-  useEffect(() => {
-    const updateActivity = () => {
-      setLastActivity(Date.now());
-    };
-
-    const events = ['mousemove', 'keydown', 'scroll', 'click'];
-    events.forEach(event => document.addEventListener(event, updateActivity, true));
-
-    return () => {
-      events.forEach(event => document.removeEventListener(event, updateActivity, true));
-    };
-  }, []);
-
-  // Idle detection & ping logic
-  useEffect(() => {
-    const isIdle = Date.now() - lastActivity > IDLE_TIMEOUT;
-
-    // Clear existing intervals
-    if (pingIntervalRef.current) {
-      clearInterval(pingIntervalRef.current);
-      pingIntervalRef.current = null;
-    }
-    if (idleTimeoutRef.current) {
-      clearTimeout(idleTimeoutRef.current);
-      idleTimeoutRef.current = null;
-    }
-
-    if (keepBackendAliveEnabled && isIdle) {
-      // Start ping interval immediately when idle + enabled
-      pingIntervalRef.current = setInterval(() => {
-        api.get('/api/health')
-          .then(() => console.log('Backend keepalive ping OK'))
-          .catch(err => {
-            console.warn('Backend ping failed:', err);
-            addToast({
-              type: 'error' as const,
-              title: 'Backend Connection',
-              message: 'Backend may be sleeping. Pinging to wake up...'
-            });
-          });
-      }, PING_INTERVAL) as unknown as number;
-    }
-
-    return () => {
-      if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
-      if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
-    };
-  }, [keepBackendAliveEnabled, lastActivity, addToast]);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -280,19 +207,6 @@ const [user, setUser] = useState<AuthUser | null>(null);
     initAuth();
   }, []);
 
-  const toggleKeepBackendAlive = useCallback(() => {
-    const newEnabled = !keepBackendAliveEnabled;
-    setKeepBackendAliveEnabled(newEnabled);
-    localStorage.setItem('keepBackendAliveEnabled', JSON.stringify(newEnabled));
-    addToast({
-      type: newEnabled ? 'success' : 'error',
-      title: 'Backend Keepalive',
-      message: newEnabled 
-        ? 'Enabled: Will ping backend every 3min when idle >5min' 
-        : 'Disabled'
-    });
-  }, [keepBackendAliveEnabled, addToast]);
-
   const login = (userData: any) => {
     const u = userData.user || userData;
     localStorage.setItem('token', userData.token || userData.data?.token);
@@ -307,7 +221,7 @@ const [user, setUser] = useState<AuthUser | null>(null);
       membershipDuration: u.membershipDuration,
       fullName: u.fullName
     });
-    setIsMobileMenuOpen(false);
+    setIsMobileMenuOpen(false); // Close menu after login
   };
 
   const logout = () => {
@@ -347,9 +261,9 @@ const [user, setUser] = useState<AuthUser | null>(null);
   return (
     <ThemeProvider>
       <ToastWrapper>
-      <AuthContext.Provider value={{ user, login, logout, loading, keepBackendAliveEnabled, toggleKeepBackendAlive }}>
-        <Router>
-          <Routes>
+        <AuthContext.Provider value={{ user, login, logout, loading }}>
+          <Router>
+            <Routes>
 
             {/* Public routes */}
             <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Frontpage />} />
