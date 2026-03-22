@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../App';
 import MembershipPreview from './MembershipPreview';
-import OverlayPreviewModal from './OverlayPreviewModal';
 import { getBackendBaseUrl } from '../services/env';
 import { overlayAPI, paymentAPI } from '../services/api';
 import api from '../services/api';
@@ -57,10 +56,10 @@ export default function Membership() {
   const [timeLeft, setTimeLeft] = useState('');
   const [templates, setTemplates] = useState<OverlayTemplate[]>([]);
 
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [selectedPreviewLevel, setSelectedPreviewLevel] = useState(0);
+const [selectedOverlayLevel1, setSelectedOverlayLevel1] = useState<string | null>('lvl1-modern-bar.html');
+  const [selectedOverlayLevel2, setSelectedOverlayLevel2] = useState<string | null>('lvl2-broadcast-pro.html');
 
-// Fetch overlay templates
+// Fetch overlay templates (unchanged)
   useEffect(() => {
     overlayAPI.getOverlayTemplates().then(res => {
       setTemplates(res.data);
@@ -281,18 +280,42 @@ export default function Membership() {
                   ))}
                 </ul>
 
-                {/* Overlay Preview Button */}
+                {/* Simplified Inline Overlay Preview */}
                 {plan.level > 0 && (
-                  <button
-                    onClick={() => {
-                      setSelectedPreviewLevel(plan.level);
-                      setShowPreviewModal(true);
-                    }}
-                    className="w-full p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold shadow-lg hover:shadow-xl transition-all mb-4 flex items-center justify-center gap-3 group"
-                  >
-                    <Eye className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                    <span>Preview {plan.name} Overlays ({overlayCount})</span>
-                  </button>
+                  <div className="preview-section space-y-4 mb-6">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-400/30">
+                      <Eye className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <select 
+                          value={plan.level === 1 ? selectedOverlayLevel1 || '' : selectedOverlayLevel2 || ''}
+                          onChange={(e) => {
+                            if (plan.level === 1) setSelectedOverlayLevel1(e.target.value || null);
+                            else setSelectedOverlayLevel2(e.target.value || null);
+                          }}
+                          className="flex-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-blue-300/50 rounded-lg px-4 py-2 text-sm font-semibold focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all"
+                        >
+                          <option value="">Select {plan.name} design ({overlayCount})</option>
+                          {templates
+                            .filter((t: OverlayTemplate) => t.level === plan.level)
+                            .map((t: OverlayTemplate) => (
+                              <option key={t.id} value={t.url.split('/').pop()!}>
+                                {t.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    </div>
+                    
+                    {(plan.level === 1 ? selectedOverlayLevel1 : selectedOverlayLevel2) && (
+                      <div className="relative w-full aspect-video max-h-64 rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-200/50 hover:border-blue-400/70 group transition-all bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
+                        <MembershipPreview
+                          overlayFile={(plan.level === 1 ? selectedOverlayLevel1 : selectedOverlayLevel2)!}
+                          planName={plan.name}
+                          baseUrl={getBackendBaseUrl()}
+                        />
+                      </div>
+                    )}
+                  </div>
                 )}
 
 
@@ -322,12 +345,7 @@ export default function Membership() {
         })}
       </div>
 
-      <OverlayPreviewModal 
-        isOpen={showPreviewModal}
-        onClose={() => setShowPreviewModal(false)}
-        level={selectedPreviewLevel}
-        overlays={templates}
-      />
+
     </div>
   );
 }
