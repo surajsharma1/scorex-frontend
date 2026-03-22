@@ -16,7 +16,7 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
       <p className="text-xs font-semibold uppercase mb-3 tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1">
         <Eye className="w-3 h-3" />Live Preview
       </p>
-      <div className="relative w-full aspect-video max-h-48 rounded-xl overflow-hidden shadow-lg border-2 border-gray-200/50 dark:border-gray-700 hover:shadow-2xl hover:border-blue-400/60 transition-all duration-300 group">
+      <div className="relative w-[177.78vh] h-[100vh] max-w-[90vw] max-h-[56.25vw] mx-auto aspect-[16/9] rounded-xl overflow-hidden shadow-lg border-2 border-gray-200/50 dark:border-gray-700 hover:shadow-2xl hover:border-blue-400/60 transition-all duration-300 group">
         <iframe
           src={previewUrl}
           className="w-full h-full border-0 bg-transparent group-hover:scale-[1.02] transition-transform duration-300"
