@@ -279,13 +279,10 @@ const [user, setUser] = useState<AuthUser | null>(null);
           .then(() => console.log('Backend keepalive ping OK'))
           .catch(err => {
             console.warn('Backend ping failed:', err);
-            addToast({
-              type: 'error' as const,
-              title: 'Backend Connection',
-              message: 'Backend may be sleeping. Pinging to wake up...'
-            });
+            console.warn('Backend ping failed - wake up ping sent');
           });
       }, PING_INTERVAL) as unknown as number;
+
     }
 
     return () => {
@@ -326,14 +323,9 @@ const [user, setUser] = useState<AuthUser | null>(null);
     const newEnabled = !keepBackendAliveEnabled;
     setKeepBackendAliveEnabled(newEnabled);
     localStorage.setItem('keepBackendAliveEnabled', JSON.stringify(newEnabled));
-    addToast({
-      type: newEnabled ? 'success' : 'error',
-      title: 'Backend Keepalive',
-      message: newEnabled 
-        ? 'Enabled: Will ping backend every 3min when idle >5min' 
-        : 'Disabled'
-    });
-  }, [keepBackendAliveEnabled, addToast]);
+    console.log(newEnabled ? 'Keepalive enabled' : 'Keepalive disabled');
+  }, [keepBackendAliveEnabled]);
+
 
   const login = (userData: any) => {
     const u = userData.user || userData;
