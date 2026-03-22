@@ -9,7 +9,6 @@ import Register from './components/Register';
 import OAuthCallback from './components/OAuthCallback';
 import ForgotPassword from './components/ForgotPassword';
 import Frontpage from './components/Frontpage';
-import React from 'react';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const TournamentView = lazy(() => import('./components/TournamentView'));
