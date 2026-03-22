@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../App';
 import MembershipPreview from './MembershipPreview';
+import OverlayPreview from './OverlayPreview';
 import FloatingOverlayPreview from './FloatingOverlayPreview';
 import { getBackendBaseUrl } from '../services/env';
 import { overlayAPI, paymentAPI } from '../services/api';
@@ -282,19 +283,9 @@ export default function Membership() {
                   ))}
                 </ul>
 
-                {/* Floating Preview Button */}
+                {/* Fullscreen Overlay Preview Button */}
                 {plan.level > 0 && (
-                  <button
-                    onClick={() => {
-                      setFloatingPreviewLevel(plan.level);
-                      setSelectedFloatingOverlay(plan.level === 1 ? 'lvl1-modern-bar.html' : 'lvl2-broadcast-pro.html');
-                      setShowFloatingPreview(true);
-                    }}
-                    className="w-full p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold shadow-lg hover:shadow-xl transition-all mb-4 flex items-center justify-center gap-3 group"
-                  >
-                    <Eye className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                    <span>Preview {plan.name} Overlays ({overlayCount})</span>
-                  </button>
+                  <OverlayPreview level={plan.level} templates={templates} />
                 )}
 
 
