@@ -242,7 +242,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const handlePreviewOverlay = (overlay: CreatedOverlay) => {
     setPreviewOverlay(overlay);
     setPreviewTemplate(overlay.template);
-    const backendBase = 'http://localhost:5000'; // Fixed for dev; prod uses getBackendBaseUrl()
+    const backendBase = baseUrlLocal;
     const newSrc = backendBase + '/api/v1/overlays/public/' + overlay.publicId + '?template=' + overlay.template;
     setPreviewSrc(newSrc);
     setIframeLoading(true);
@@ -253,7 +253,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   // Update preview src when template changes
   useEffect(() => {
     if (previewOverlay && previewTemplate) {
-      const backendBase = 'http://localhost:5000';
+      const backendBase = baseUrlLocal;
       const newSrc = backendBase + '/api/v1/overlays/public/' + previewOverlay.publicId + '?template=' + previewTemplate;
       setPreviewSrc(newSrc);
       setIframeLoading(true);
@@ -682,7 +682,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                     <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
                     <h3 className="text-lg font-bold text-white mb-2">Preview Failed</h3>
                     <p className="text-slate-300 mb-4">
-                      Ensure backend is running at <code className="bg-slate-800 px-2 py-1 rounded text-sm font-mono">localhost:5000</code>
+                      Backend unreachable: <code className="bg-slate-800 px-2 py-1 rounded text-sm font-mono">{previewSrc}</code>
                     </p>
                     <div className="flex gap-2 justify-center">
                       <button 
