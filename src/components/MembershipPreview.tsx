@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Eye, RefreshCw, AlertCircle } from 'lucide-react';
-import { usePreviewScale } from '../hooks/usePreviewScale';
 import ManagerPreviewZoom from './ManagerPreviewZoom';
+import { usePreviewScale } from '../hooks/usePreviewScale';
 
 interface MembershipPreviewProps {
   overlayFile: string;
@@ -84,34 +84,15 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
               onChange={changeProgress}
               className="flex-1 h-3 bg-slate-700 rounded-lg cursor-pointer appearance-none accent-emerald-500 hover:accent-emerald-600 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:rounded-full shadow-lg hover:shadow-md transition-all"
             />
-        <span className="font-mono text-sm font-bold text-emerald-400 w-12 text-right">{progress}%</span>
+<span className="font-mono text-sm font-bold text-emerald-400 w-12 text-right">{progress}%</span>
+          </div>
+          <div className="flex gap-1">
+            <ManagerPreviewZoom containerRef={previewContainerRef} />
           </div>
         </div>
       </div>
-      {/* Fixed Vertical Zoom Slider on Right */}
-      <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-slate-700 p-2 flex flex-col items-center gap-1 z-30 shadow-2xl min-h-[180px]">
-        <label className="text-xs font-semibold text-slate-300">Zoom</label>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          step="1"
-          value={Math.round((userZoom - 0.25) / 1.75 * 100)}
-          onChange={(e) => {
-            const newZoom = 0.25 + (parseFloat(e.target.value) / 100) * 1.75;
-            if (previewContainerRef.current) {
-              previewContainerRef.current.style.setProperty('--user-zoom', newZoom.toString());
-            }
-          }}
-          className="w-10 h-32 bg-slate-700 rounded-lg cursor-pointer accent-blue-500 hover:accent-blue-400 [&::-webkit-slider-runnable-track]:w-full [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-blue-500 shadow-md hover:shadow-lg transition-all appearance-none"
-          style={{ writingMode: 'vertical-lr' }}
-        />
-        <span className="text-xs font-bold text-blue-400">{Math.round(userZoom * 100)}%</span>
-      </div>
-      <div 
-        ref={previewContainerRef}
-        className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 h-[500px] lg:h-[600px] relative"
-      >
+      
+      <div ref={previewContainerRef} className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 flex-1 relative h-[500px] lg:h-[600px]">
         <div className="preview-scale-fallback preview-scale w-full h-full">
           <iframe
             ref={previewIframeRef}
@@ -137,8 +118,8 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         {iframeLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/90 backdrop-blur-sm z-20">
             <div className="text-center p-8">
-              <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-emerald-400" />
-              <p className="text-slate-300 text-lg font-medium">Loading {planName.toLowerCase()} overlay preview...</p>
+              <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-400" />
+              <p className="text-slate-300 text-lg font-medium">Loading overlay preview...</p>
             </div>
           </div>
         )}
@@ -149,13 +130,19 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
             <div className="text-center p-8 rounded-2xl border-2 border-red-500/50 max-w-md bg-slate-900/50">
               <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-6" />
               <h3 className="text-xl font-bold text-slate-200 mb-4">Preview Failed</h3>
-              <p className="text-slate-400 mb-6 text-sm">
-                Server unreachable? Start backend to view live preview.
+              <p className="text-slate-400 mb-6">
+                Backend unreachable: <code className="bg-slate-800 px-3 py-1 rounded-lg text-sm font-mono inline-block break-all max-w-full">{previewUrl}</code>
               </p>
-              <div className="flex gap-3 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button 
+                  onClick={() => window.open(previewUrl, '_blank')}
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-lg transition-all"
+                >
+                  Open Direct
+                </button>
                 <button 
                   onClick={retryLoad}
-                  className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-lg transition-all"
+                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-lg transition-all"
                 >
                   Retry
                 </button>
@@ -174,9 +161,6 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
           </div>
         )}
       </div>
-      <p className="text-xs text-center mt-4 text-slate-400 font-medium">
-        Sample {planName} membership overlay design • Adaptive 1920×1080 preview
-      </p>
     </div>
   );
 };
