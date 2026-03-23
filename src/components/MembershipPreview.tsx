@@ -1,5 +1,6 @@
 import React from 'react';
 import { Eye } from 'lucide-react';
+import { usePreviewScale } from '../hooks/usePreviewScale';
 
 interface MembershipPreviewProps {
   overlayFile: string;
@@ -8,33 +9,34 @@ interface MembershipPreviewProps {
 }
 
 const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, planName, baseUrl }) => {
-  const [zoom, setZoom] = React.useState(0.25);
   const [progress, setProgress] = React.useState(50);
+  const previewContainerRef = React.useRef<HTMLDivElement>(null);
 
   const previewUrl = `${baseUrl}/overlays/${overlayFile}?demo=true&progress=${progress}%`;
   const title = `${planName} Overlay Preview`;
 
-  const changeZoom = (delta: number) => setZoom(Math.max(0.15, Math.min(1.0, zoom + delta * 0.05)));
+  const {
+    userZoom,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    idealScale
+  } = usePreviewScale({ 
+    containerRef: previewContainerRef,
+    initialZoom: 1 
+  });
 
   const changeProgress = (e: React.ChangeEvent<HTMLInputElement>) => setProgress(Number(e.target.value));
-
-  React.useEffect(() => {
-    document.documentElement.style.setProperty('--zoom', zoom.toString());
-  }, [zoom]);
 
   return (
     <div className="mb-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
       <div className="flex justify-between items-center mb-3">
         <div className="flex justify-between items-center gap-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1">
-            <Eye className="w-3 h-3" />Live Preview
+            <Eye className="w-3 h-3" />Live Preview ({Math.round(idealScale * 100)}% fit • {Math.round(userZoom * 100)}% zoom)
           </p>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1 text-xs">
-              <span className="text-gray-500 dark:text-gray-400">Zoom:</span>
-              <span className="font-mono text-sm font-bold text-blue-600">{Math.round(zoom*100)}%</span>
-            </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-xs">
               <label className="text-xs font-semibold text-gray-600 dark:text-gray-300">Progress:</label>
               <input
                 type="range"
@@ -48,19 +50,22 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
               <span className="font-mono text-sm font-bold text-green-600 w-12 text-right">{progress}%</span>
             </div>
             <div className="flex gap-1">
-              <button onClick={() => changeZoom(-0.1)} className="p-1 text-xs rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors" title="Zoom Out">-</button>
-              <button onClick={() => changeZoom(0.1)} className="p-1 text-xs rounded bg-blue-500 hover:bg-blue-600 text-white transition-colors" title="Zoom In">+</button>
-              <button onClick={() => setZoom(1)} className="p-1 text-xs rounded bg-green-500 hover:bg-green-600 text-white transition-colors ml-1" title="Reset Zoom">1x</button>
+              <button onClick={zoomOut} className="p-1 text-xs rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors" title="Zoom Out">-</button>
+              <button onClick={zoomIn} className="p-1 text-xs rounded bg-blue-500 hover:bg-blue-600 text-white transition-colors" title="Zoom In">+</button>
+              <button onClick={resetZoom} className="p-1 text-xs rounded bg-green-500 hover:bg-green-600 text-white transition-colors ml-1" title="Fit to container">Fit</button>
             </div>
           </div>
         </div>
       </div>
-      <div className="preview-container rounded-xl overflow-hidden shadow-lg border-2 border-gray-200/50 dark:border-gray-700 hover:shadow-2xl hover:border-blue-400/60 group transition-all duration-300">
+      <div 
+        ref={previewContainerRef}
+        className="preview-container rounded-xl overflow-hidden shadow-lg border-2 border-gray-200/50 dark:border-gray-700 hover:shadow-2xl hover:border-blue-400/60 group transition-all duration-300"
+      >
         <div className="preview-scale-fallback preview-scale overflow-visible">
           <iframe
             src={previewUrl}
             className="iframe-container bg-transparent" 
-            style={{ transform: 'none', width: '1920px', height: '1080px' }}
+            style={{ width: '1920px', height: '1080px' }}
             title={title}
             sandbox="allow-scripts allow-same-origin"
             loading="eager"
@@ -77,7 +82,7 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         ))}
       </div>
       <p className="text-xs text-center mt-2 text-gray-500 dark:text-gray-400 font-medium">
-        Sample {planName} overlay design
+        Sample {planName} overlay design • Adaptive 1920×1080 preview
       </p>
     </div>
   );
