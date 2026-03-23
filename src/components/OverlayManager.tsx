@@ -45,8 +45,14 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewOverlay, setPreviewOverlay] = useState<CreatedOverlay | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<string>('');
+
   const [previewZoom, setPreviewZoom] = useState(1);
   const changePreviewZoom = (delta: number) => setPreviewZoom(Math.max(0.25, Math.min(4, previewZoom + delta)));
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--zoom', previewZoom.toString());
+  }, [previewZoom]);
+
   const [previewSrc, setPreviewSrc] = useState<string>('');
   const [iframeLoading, setIframeLoading] = useState(true);
   const [iframeError, setIframeError] = useState(false);
@@ -660,9 +666,11 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                     <Eye className="w-4 h-4" />Live Preview ({Math.round(previewZoom * 100)}%)
                   </p>
                   <div className="flex gap-1">
-                    <button onClick={() => changePreviewZoom(-0.25)} className="p-2 text-slate-400 hover:bg-slate-700 hover:text-slate-200 rounded-xl transition-all" title="Zoom Out">-</button>
-                    <button onClick={() => changePreviewZoom(0.25)} className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-md" title="Zoom In">+</button>
-                    <button onClick={() => setPreviewZoom(1)} className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all ml-1 shadow-md" title="Reset">1x</button>
+
+                    <button onClick={() => changePreviewZoom(-0.25)} className="p-1 text-slate-400 hover:bg-slate-700 hover:text-slate-200 rounded-lg transition-all" title="Zoom Out">-</button>
+                    <button onClick={() => changePreviewZoom(0.25)} className="p-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm" title="Zoom In">+</button>
+                    <button onClick={() => setPreviewZoom(1)} className="p-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all shadow-sm ml-1" title="Reset">1x</button>
+
                   </div>
                 </div>
               </div>
@@ -673,7 +681,9 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                     src={previewSrc}
                     sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                     allow="fullscreen; autoplay; clipboard-write; encrypted-media"
-                    className="iframe-container bg-transparent w-full h-[1080px]"
+
+                    className="iframe-container bg-transparent w-full h-full"
+
                     title="Overlay Preview"
                     onLoad={() => {
                       setIframeLoading(false);

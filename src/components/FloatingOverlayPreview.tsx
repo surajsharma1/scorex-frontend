@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+
 import { X, Eye } from 'lucide-react';
 import MembershipPreview from './MembershipPreview';
 import type { OverlayTemplate } from '../types/overlay';
@@ -21,8 +23,17 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
   selectedOverlay, 
   onOverlaySelect 
 }) => {
+
+
   const [zoom, setZoom] = useState(1);
   const changeZoom = (delta: number) => setZoom(Math.max(0.25, Math.min(4, zoom + delta)));
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--zoom', zoom.toString());
+    return () => document.documentElement.style.removeProperty('--zoom');
+  }, [zoom]);
+
+
   
   if (!isOpen) return null;
 

@@ -10,8 +10,14 @@ interface MembershipPreviewProps {
 const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, planName, baseUrl }) => {
   const previewUrl = `${baseUrl}/overlays/${overlayFile}?demo=true`;
   const title = `${planName} Overlay Preview`;
+
   const [zoom, setZoom] = React.useState(1);
   const changeZoom = (delta: number) => setZoom(Math.max(0.25, Math.min(4, zoom + delta)));
+
+  React.useEffect(() => {
+    document.documentElement.style.setProperty('--zoom', zoom.toString());
+  }, [zoom]);
+
 
   return (
     <div className="mb-6 p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
