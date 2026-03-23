@@ -700,9 +700,8 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                         </button>
                         <button 
                           onClick={() => {
-                            setIframeLoading(true);
-                            setIframeError(false);
-                            setTimeout(() => previewIframeRef.current?.contentWindow?.postMessage({type: 'scorex:refresh'}, '*'), 500);
+                            setPreviewLoading(true);
+                            setPreviewError(false);
                           }}
                           className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-lg transition-all"
                         >
