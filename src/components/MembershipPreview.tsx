@@ -84,13 +84,13 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
               onChange={changeProgress}
               className="flex-1 h-3 bg-slate-700 rounded-lg cursor-pointer appearance-none accent-emerald-500 hover:accent-emerald-600 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:rounded-full shadow-lg hover:shadow-md transition-all"
             />
-            <span className="font-mono text-sm font-bold text-emerald-400 w-12 text-right">{progress}%</span>
+        <span className="font-mono text-sm font-bold text-emerald-400 w-12 text-right">{progress}%</span>
           </div>
         </div>
       </div>
-      {/* Vertical Zoom Slider on Right */}
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-48 bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-600 p-3 flex flex-col items-center gap-2 z-30 shadow-2xl">
-        <span className="text-xs font-bold text-slate-200 rotate-90 origin-center whitespace-nowrap">Zoom</span>
+      {/* Fixed Vertical Zoom Slider on Right */}
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-slate-700 p-2 flex flex-col items-center gap-1 z-30 shadow-2xl min-h-[180px]">
+        <label className="text-xs font-semibold text-slate-300">Zoom</label>
         <input
           type="range"
           min="0"
@@ -98,22 +98,13 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
           step="1"
           value={Math.round((userZoom - 0.25) / 1.75 * 100)}
           onChange={(e) => {
-            const val = 0.25 + (Number(e.target.value) / 100) * 1.75;
-            resetZoom(); // Reset first
-            setTimeout(() => {
-              const tempInput = document.createElement('input');
-              tempInput.type = 'range';
-              tempInput.value = val.toString();
-              // Simulate wheel event or direct set
-              // Use usePreviewScale's setZoomMultiplier if exposed, else dispatch synthetic
-              // For simplicity, update CSS var directly
-              if (previewContainerRef.current) {
-                previewContainerRef.current.style.setProperty('--user-zoom', val.toString());
-              }
-            }, 10);
+            const newZoom = 0.25 + (parseFloat(e.target.value) / 100) * 1.75;
+            if (previewContainerRef.current) {
+              previewContainerRef.current.style.setProperty('--user-zoom', newZoom.toString());
+            }
           }}
-          className="w-full h-32 bg-slate-700 rounded-lg cursor-pointer appearance-none accent-blue-500 hover:accent-blue-600 [writing-mode:tb] [&::-webkit-slider-runnable-track]:h-full [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:rounded-full shadow-lg hover:shadow-md transition-all rotate-90 origin-center"
-          orient="vertical"
+          className="w-10 h-32 bg-slate-700 rounded-lg cursor-pointer accent-blue-500 hover:accent-blue-400 [&::-webkit-slider-runnable-track]:w-full [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-blue-500 shadow-md hover:shadow-lg transition-all appearance-none"
+          style={{ writingMode: 'vertical-lr' }}
         />
         <span className="text-xs font-bold text-blue-400">{Math.round(userZoom * 100)}%</span>
       </div>
