@@ -14,7 +14,7 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
   const previewUrl = `${baseUrl}/overlays/${overlayFile}?demo=true&progress=${progress}%`;
   const title = `${planName} Overlay Preview`;
 
-  const changeZoom = (delta: number) => setZoom(Math.max(0.15, Math.min(0.5, zoom + delta * 0.01)));
+  const changeZoom = (delta: number) => setZoom(Math.max(0.15, Math.min(1.0, zoom + delta * 0.05)));
 
   const changeProgress = (e: React.ChangeEvent<HTMLInputElement>) => setProgress(Number(e.target.value));
 
@@ -43,9 +43,9 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
                 step="4"
                 value={progress}
                 onChange={changeProgress}
-                className="w-20 h-2 bg-gray-200 rounded-lg cursor-pointer dark:bg-gray-700 appearance-none accent-blue-500 hover:accent-blue-600 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md"
+                className="flex-1 h-3 bg-gray-200 rounded-lg cursor-pointer dark:bg-gray-700 appearance-none accent-blue-500 hover:accent-blue-600 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:rounded-full shadow-lg hover:shadow-md transition-all"
               />
-              <span className="font-mono text-sm font-bold text-green-600 w-8 text-center">{progress}%</span>
+              <span className="font-mono text-sm font-bold text-green-600 w-12 text-right">{progress}%</span>
             </div>
             <div className="flex gap-1">
               <button onClick={() => changeZoom(-0.1)} className="p-1 text-xs rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors" title="Zoom Out">-</button>

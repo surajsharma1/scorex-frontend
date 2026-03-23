@@ -27,7 +27,7 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
 
   const [zoom, setZoom] = useState(1);
 
-  const changeZoom = (delta: number) => setZoom(Math.max(0.15, Math.min(0.5, zoom + delta * 0.01)));
+  const changeZoom = (delta: number) => setZoom(Math.max(0.15, Math.min(1.0, zoom + delta * 0.05)));
 
 
 
