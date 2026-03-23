@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
-
 import { X, Eye } from 'lucide-react';
-import MembershipPreview from './MembershipPreview';
 import type { OverlayTemplate } from '../types/overlay';
 import { getBackendBaseUrl } from '../services/env';
+import { usePreviewScale } from '../hooks/usePreviewScale';
 
 interface FloatingOverlayPreviewProps {
   isOpen: boolean;
@@ -23,23 +21,6 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
   selectedOverlay, 
   onOverlaySelect 
 }) => {
-
-
-  const [zoom, setZoom] = useState(1);
-
-  const changeZoom = (delta: number) => setZoom(Math.max(0.15, Math.min(1.0, zoom + delta * 0.05)));
-
-
-
-  useEffect(() => {
-    document.documentElement.style.setProperty('--zoom', zoom.toString());
-    return () => {
-      document.documentElement.style.removeProperty('--zoom');
-    };
-  }, [zoom]);
-
-
-
   
   if (!isOpen) return null;
 
@@ -47,9 +28,21 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
   const levelTemplates = templates.filter(t => t.level === level);
   const count = levelTemplates.length;
 
+  const previewContainerRef = React.useRef<HTMLDivElement>(null);
+  const {
+    userZoom,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    idealScale
+  } = usePreviewScale({ 
+    containerRef: previewContainerRef,
+    initialZoom: 1 
+  });
+
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl rounded-3xl p-4 sm:p-8 max-w-6xl w-full max-h-[95vh] overflow-y-auto shadow-2xl border-4 border-white/20">
+      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl rounded-3xl p-4 sm:p-8 max-w-6xl w-full max-h-[95vh] overflow-y-auto shadow-2xl border-4 border-white/20">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-200/50 dark:border-gray-700/50">
           <div className="flex items-center gap-3">
@@ -80,13 +73,13 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
                   <Eye className="w-4 h-4" />
                   Design Selector
                 </p>
-                <div className="flex gap-1 text-xs">
-                  <p className="text-sm font-semibold uppercase tracking-wider text-blue-600 flex items-center gap-2">
-                    <Eye className="w-4 h-4" />Live Preview ({Math.round(zoom * 100)}%)
-                  </p>
-                  <button onClick={() => changeZoom(-0.25)} className="p-1 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors" title="Zoom Out">-</button>
-                  <button onClick={() => changeZoom(0.25)} className="p-1 rounded bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors" title="Zoom In">+</button>
-                  <button onClick={() => setZoom(1)} className="p-1 rounded bg-green-500 hover:bg-green-600 text-white transition-colors" title="Reset">1x</button>
+                <div className="flex gap-1">
+                  <span className="text-xs text-blue-600 font-semibold">
+                    {Math.round(idealScale * 100)}% fit • {Math.round(userZoom * 100)}% zoom
+                  </span>
+                  <button onClick={zoomOut} className="p-1 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all" title="Zoom Out">-</button>
+                  <button onClick={zoomIn} className="p-1 rounded bg-blue-500 hover:bg-blue-600 text-white transition-all" title="Zoom In">+</button>
+                  <button onClick={resetZoom} className="p-1 rounded bg-green-500 hover:bg-green-600 text-white transition-all" title="Reset">1x</button>
                 </div>
               </div>
               <select 
@@ -111,11 +104,15 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
           {/* Right: Large Preview */}
           <div className="flex-1 min-h-0">
             {selectedOverlay ? (
-            <div className="preview-container rounded-xl overflow-hidden shadow-2xl border-4 border-blue-200/50 h-full">
-                <div className="preview-scale-fallback preview-scale" style={{ transform: `scale(${zoom})` }}>
+              <div 
+                ref={previewContainerRef}
+                className="preview-container rounded-xl overflow-hidden shadow-2xl border-4 border-blue-200/50 h-full"
+              >
+                <div className="preview-scale-fallback preview-scale">
                   <iframe
                     src={`${baseUrl}/overlays/${selectedOverlay}?demo=true`}
                     className="iframe-container bg-transparent"
+                    style={{ width: '1920px', height: '1080px' }}
                     title="Overlay Preview"
                     sandbox="allow-scripts allow-same-origin"
                     loading="eager"
@@ -139,3 +136,4 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
 };
 
 export default FloatingOverlayPreview;
+
