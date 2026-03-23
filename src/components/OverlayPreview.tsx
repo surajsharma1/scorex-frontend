@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Maximize2, Eye, X } from 'lucide-react';
 import MembershipPreview from './MembershipPreview';
+import OverlayPreviewRenderer from './OverlayPreviewRenderer';
 import type { OverlayTemplate } from '../types/overlay';
 import { getBackendBaseUrl } from '../services/env';
 
@@ -60,13 +61,13 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates }) => 
                   onClick={() => setSelectedOverlay(t.url.split('/').pop()!)}
                   className="group p-4 rounded-xl hover:shadow-xl hover:scale-105 transition-all border hover:border-blue-400 bg-gradient-to-b from-white/70 to-gray-50/70 hover:from-blue-50"
                 >
-                  <div className="preview-container aspect-square rounded-lg overflow-hidden mb-2 group-hover:scale-[1.05] transition-transform max-h-48">
+<div className="preview-container aspect-square rounded-lg overflow-hidden mb-2 group-hover:scale-[1.05] transition-transform max-h-48">
                     <div className="preview-scale-fallback preview-scale w-[512px] h-[288px]">
-                      <iframe
-                        src={`${baseUrl}/overlays/${t.url.split('/').pop()}?demo=true`}
-                        className="iframe-container"
-                        sandbox="allow-scripts"
-                        loading="eager"
+                      <OverlayPreviewRenderer 
+                        template={t.url.split('/').pop()!} 
+                        progress={69}
+                        heightClass="h-[288px]"
+                        baseUrl={baseUrl}
                       />
                     </div>
                   </div>

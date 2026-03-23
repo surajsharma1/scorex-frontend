@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import OverlayPreviewRenderer from './OverlayPreviewRenderer';
 import { Eye, Plus, Save, Trash2, Edit, Copy, RefreshCw, ExternalLink, X, AlertCircle } from 'lucide-react';
 import ManagerPreviewZoom from './ManagerPreviewZoom';
 import { overlayAPI, matchAPI, tournamentAPI } from '../services/api';
 import { CreatedOverlay, Match, Tournament } from './types';
-import { getBackendBaseUrl } from '../services/env'; 
+import { getBackendBaseUrl } from '../services/env';
 
 interface OverlayTemplate {
   id: string;
@@ -51,8 +52,8 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const [previewProgress, setPreviewProgress] = useState(50);
 
   const [previewSrc, setPreviewSrc] = useState<string>('');
-  const [iframeLoading, setIframeLoading] = useState(true);
-  const [iframeError, setIframeError] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(true);
+  const [previewError, setPreviewError] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editOverlay, setEditOverlay] = useState<CreatedOverlay | null>(null);
   const [editFormData, setEditFormData] = useState({ name: '' });
@@ -60,7 +61,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const previewIframeRef = useRef<HTMLIFrameElement>(null);
+  // const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
   const baseUrlLocal = getBackendBaseUrl();
@@ -249,37 +250,16 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
     setPreviewOverlay(overlay);
     setPreviewTemplate(overlay.template);
     const backendBase = baseUrlLocal;
-    const newSrc = backendBase + '/api/v1/overlays/public/' + overlay.publicId + '?template=' + overlay.template;
-    setPreviewSrc(newSrc);
-    setIframeLoading(true);
-    setIframeError(false);
+    setPreviewTemplate(overlay.template);
+    setPreviewLoading(true);
+    setPreviewError(false);
     setShowPreviewModal(true);
   };
 
-  // Update preview src when template changes
-  useEffect(() => {
-    if (previewOverlay && previewTemplate) {
-      const backendBase = baseUrlLocal;
-      const newSrc = backendBase + '/api/v1/overlays/public/' + previewOverlay.publicId + '?template=' + previewTemplate + '&progress=' + previewProgress + '%';
-      setPreviewSrc(newSrc);
-      setIframeLoading(true);
-      setIframeError(false);
-    }
-  }, [previewTemplate, previewOverlay, previewProgress]);
+  // Preview renderer handles template/progress internally
+  useEffect(() => {}, [previewTemplate, previewProgress]);
 
-  // Reload iframe content on src change
-  useEffect(() => {
-    if (previewIframeRef.current && previewSrc) {
-      const timer = setTimeout(() => {
-        try {
-          previewIframeRef.current?.contentWindow?.postMessage({ type: 'scorex:refresh' }, '*');
-        } catch (e) {
-          console.log('[Overlay] Refresh postMessage safe fail:', e);
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [previewSrc]);
+  // Renderer auto-refreshes
 
   const handleEditOverlay = (overlay: CreatedOverlay) => {
     setEditOverlay(overlay);
@@ -687,24 +667,15 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
               </div>
               <div ref={previewContainerRef} className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 flex-1 relative">
                 <div className="preview-scale-fallback preview-scale">
-                  <iframe
-                    ref={previewIframeRef}
-                    src={previewSrc}
-                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                    allow="fullscreen; autoplay; clipboard-write; encrypted-media"
-                    className="iframe-container bg-transparent w-full h-full"
-                    title="Overlay Preview"
-                    onLoad={() => {
-                      setIframeLoading(false);
-                      setIframeError(false);
-                    }}
-                    onError={() => {
-                      setIframeLoading(false);
-                      setIframeError(true);
-                    }}
+                  <OverlayPreviewRenderer
+                    template={previewTemplate}
+                    progress={previewProgress}
+                    baseUrl={baseUrlLocal}
+                    onLoad={() => setPreviewLoading(false)}
+                    onError={(err) => setPreviewError(true)}
                   />
                 </div>
-                {iframeLoading && (
+                {previewLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/90 backdrop-blur-sm">
                     <div className="text-center">
                       <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-400" />
@@ -712,13 +683,13 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                     </div>
                   </div>
                 )}
-                {iframeError && (
+                {previewError && (
                   <div className="absolute inset-0 flex items-center justify-center bg-red-900/95 backdrop-blur-sm">
                     <div className="text-center p-8 rounded-2xl border-2 border-red-500/50 max-w-md bg-slate-900/50">
                       <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-6" />
                       <h3 className="text-xl font-bold text-white mb-4">Preview Failed</h3>
                       <p className="text-slate-300 mb-6">
-                        Backend unreachable: <code className="bg-slate-800 px-3 py-1 rounded-lg text-sm font-mono inline-block break-all max-w-full">{previewSrc}</code>
+                        Backend unreachable (template: {previewTemplate})
                       </p>
                       <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <button 

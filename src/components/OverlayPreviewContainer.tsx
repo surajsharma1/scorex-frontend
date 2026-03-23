@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import OverlayPreviewRenderer from './OverlayPreviewRenderer';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 import { usePreviewScale } from '../hooks/usePreviewScale';
+import { getBackendBaseUrl } from '../services/env';
+import type { OverlayTemplate } from '../types/overlay';
 
 interface OverlayPreviewContainerProps {
   src: string;
@@ -40,23 +43,12 @@ const OverlayPreviewContainer: React.FC<OverlayPreviewContainerProps> = ({
   return (
     <div ref={previewContainerRef} className={`preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 ${heightClass} relative ${className}`}>
       <div className="preview-scale-fallback preview-scale w-full h-full">
-        <iframe
-          ref={previewIframeRef}
-          src={src}
-          className="iframe-container bg-transparent w-full h-full"
-          style={{ width: '1920px', height: '1080px' }}
-          title={title}
-          sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-          allow="fullscreen; autoplay; clipboard-write; encrypted-media"
-          loading="eager"
-          onLoad={() => {
-            setIframeLoading(false);
-            setIframeError(false);
-          }}
-          onError={() => {
-            setIframeLoading(false);
-            setIframeError(true);
-          }}
+        <OverlayPreviewRenderer 
+          template={src.includes('overlays/') ? src.split('overlays/')[1].split('?')[0] : 'lvl1-modern-bar.html'}
+          progress={progress}
+          baseUrl={baseUrl}
+          onLoad={() => setIframeLoading(false)}
+          onError={() => setIframeError(true)}
         />
       </div>
 

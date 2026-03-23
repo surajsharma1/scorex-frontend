@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Eye } from 'lucide-react';
+import OverlayPreviewRenderer from './OverlayPreviewRenderer';
 import type { OverlayTemplate } from '../types/overlay';
 import { getBackendBaseUrl } from '../services/env';
 import { usePreviewScale } from '../hooks/usePreviewScale';
@@ -109,14 +110,10 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
                 className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 h-full relative"
               >
                 <div className="preview-scale-fallback preview-scale">
-                  <iframe
-                    src={`${baseUrl}/overlays/${selectedOverlay}?demo=true`}
-                    className="iframe-container bg-transparent w-full h-full" 
-                    style={{ width: '1920px', height: '1080px' }}
-                    title="Overlay Preview"
-                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                    allow="fullscreen; autoplay; clipboard-write; encrypted-media"
-                    loading="eager"
+                  <OverlayPreviewRenderer 
+                    template={selectedOverlay} 
+                    progress={69}
+                    baseUrl={baseUrl}
                   />
                 </div>
                 {/* Right-side Vertical Zoom Slider */}
