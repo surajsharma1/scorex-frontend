@@ -56,10 +56,11 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         </div>
       </div>
       <div className="preview-container rounded-xl overflow-hidden shadow-lg border-2 border-gray-200/50 dark:border-gray-700 hover:shadow-2xl hover:border-blue-400/60 group transition-all duration-300">
-        <div className="preview-scale-fallback preview-scale">
+        <div className="preview-scale-fallback preview-scale overflow-visible">
           <iframe
             src={previewUrl}
-            className="iframe-container bg-transparent group-hover:scale-[1.02] transition-transform duration-300"
+            className="iframe-container bg-transparent" 
+            style={{ transform: 'none', width: '1920px', height: '1080px' }}
             title={title}
             sandbox="allow-scripts allow-same-origin"
             loading="eager"

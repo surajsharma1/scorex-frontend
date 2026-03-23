@@ -677,8 +677,9 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                       <button onClick={() => setPreviewZoom(1)} className="p-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all shadow-sm ml-1" title="Reset">1x</button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 pl-8">
-                    <span className="text-xs text-slate-400 w-16">Zoom: <span className="font-bold text-blue-400">{Math.round(previewZoom * 100)}%</span></span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400">Zoom:</span>
+                    <span className="font-bold text-blue-400">{Math.round(previewZoom * 100)}%</span>
                     <label className="text-xs font-semibold text-slate-300">Progress:</label>
                     <input
                       type="range"
@@ -687,9 +688,9 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                       step="4"
                       value={previewProgress}
                       onChange={(e) => setPreviewProgress(Number(e.target.value))}
-                      className="flex-1 h-2 bg-slate-700 rounded-lg cursor-pointer appearance-none accent-emerald-500 hover:accent-emerald-600 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:rounded-full shadow-md"
+                      className="flex-1 h-3 bg-slate-700 rounded-lg cursor-pointer appearance-none accent-emerald-500 hover:accent-emerald-600 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:rounded-full shadow-lg hover:shadow-md transition-all"
                     />
-                    <span className="font-mono text-sm font-bold text-emerald-400 w-10 text-right">{previewProgress}%</span>
+                    <span className="font-mono text-sm font-bold text-emerald-400 w-12 text-right">{previewProgress}%</span>
                   </div>
                 </div>
               </div>
