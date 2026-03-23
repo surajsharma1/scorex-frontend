@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Eye, Plus, Save, Trash2, Edit, Copy, RefreshCw, ExternalLink, X, AlertCircle } from 'lucide-react';
+import ManagerPreviewZoom from './ManagerPreviewZoom';
 import { overlayAPI, matchAPI, tournamentAPI } from '../services/api';
 import { CreatedOverlay, Match, Tournament } from './types';
 import { getBackendBaseUrl } from '../services/env'; 
@@ -60,6 +61,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
 
   const baseUrlLocal = getBackendBaseUrl();
 
