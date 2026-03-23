@@ -47,16 +47,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const [previewTemplate, setPreviewTemplate] = useState<string>('');
 
 
-  const [previewZoom, setPreviewZoom] = useState(0.25);
   const [previewProgress, setPreviewProgress] = useState(50);
-
-
-  const changePreviewZoom = (delta: number) => setPreviewZoom(Math.max(0.15, Math.min(1.0, previewZoom + delta * 0.05)));
-
-
-  useEffect(() => {
-    document.documentElement.style.setProperty('--zoom', previewZoom.toString());
-  }, [previewZoom]);
 
   const [previewSrc, setPreviewSrc] = useState<string>('');
   const [iframeLoading, setIframeLoading] = useState(true);
@@ -672,14 +663,12 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                       <Eye className="w-4 h-4" />Live Preview
                     </p>
                     <div className="flex gap-1">
-                      <button onClick={() => changePreviewZoom(-0.25)} className="p-1 text-slate-400 hover:bg-slate-700 hover:text-slate-200 rounded-lg transition-all" title="Zoom Out">-</button>
-                      <button onClick={() => changePreviewZoom(0.25)} className="p-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm" title="Zoom In">+</button>
-                      <button onClick={() => setPreviewZoom(1)} className="p-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all shadow-sm ml-1" title="Reset">1x</button>
+                      <ManagerPreviewZoom containerRef={previewContainerRef} />
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-slate-400">Zoom:</span>
-                    <span className="font-bold text-blue-400">{Math.round(previewZoom * 100)}%</span>
+                    <span id="manager-zoom-display" className="font-bold text-blue-400">--%</span>
                     <label className="text-xs font-semibold text-slate-300">Progress:</label>
                     <input
                       type="range"
@@ -694,16 +683,14 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                   </div>
                 </div>
               </div>
-              <div className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 flex-1 relative">
-                <div className="preview-scale-fallback preview-scale" style={{ transform: `scale(${previewZoom})` }}>
+              <div ref={previewContainerRef} className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 flex-1 relative">
+                <div className="preview-scale-fallback preview-scale">
                   <iframe
                     ref={previewIframeRef}
                     src={previewSrc}
                     sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                     allow="fullscreen; autoplay; clipboard-write; encrypted-media"
-
                     className="iframe-container bg-transparent w-full h-full"
-
                     title="Overlay Preview"
                     onLoad={() => {
                       setIframeLoading(false);
