@@ -97,4 +97,53 @@ body {
   .icon-fluid-xs { width: clamp(0.75rem, 2vw, 0.875rem); height: clamp(0.75rem, 2vw, 0.875rem); }
   .icon-fluid-sm { width: clamp(0.875rem, 2.5vw, 1rem); height: clamp(0.875rem, 2.5vw, 1rem); }
   .icon-fluid-base { width: clamp(1rem, 3vw, 1.125rem); height: clamp(1rem, 3vw, 1.125rem); }
+
+  /* Preview Scaling Framework */
+  .preview-container {
+    container-type: inline-size;
+    width: 100%;
+    max-width: 90vw;
+    max-height: 90vh;
+    aspect-ratio: 16 / 9;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: inherit;
+  }
+
+  .preview-scale {
+    transform-origin: 0 0;
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    width: 1920px;
+    height: 1080px;
+    transform: scale(var(--zoom, 1));
+  }
+
+  @container (max-width: 1920px) {
+    .preview-scale {
+      transform: scale(calc(100% / 1920 * 100cqi));
+    }
+  }
+
+  @container (max-height: 1080px) {
+    .preview-scale {
+      transform: scale(calc(100% / 1080 * 100cqh));
+    }
+  }
+
+  .iframe-container {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  /* Fallback for older browsers */
+  @media (max-width: 1920px) {
+    .preview-scale-fallback {
+      transform: scale(calc(90vw / 1920));
+    }
+  }
 }

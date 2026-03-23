@@ -55,10 +55,17 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
           {/* Left: Dropdown Selector */}
           <div className="w-full lg:w-80 flex-shrink-0 space-y-4">
             <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50/50 to-indigo-50/50 border border-blue-200/50">
-              <p className="text-sm font-semibold uppercase tracking-wide text-blue-600 mb-3 flex items-center gap-2">
-                <Eye className="w-4 h-4" />
-                Design Selector
-              </p>
+              <div className="flex justify-between items-center mb-3">
+                <p className="text-sm font-semibold uppercase tracking-wide text-blue-600 flex items-center gap-2">
+                  <Eye className="w-4 h-4" />
+                  Design Selector
+                </p>
+                <div className="flex gap-1 text-xs">
+                  <button onClick={() => document.documentElement.style.setProperty('--zoom', '0.75')} className="p-1 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors" title="Zoom Out">-</button>
+                  <button onClick={() => document.documentElement.style.setProperty('--zoom', '1.25')} className="p-1 rounded bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors" title="Zoom In">+</button>
+                  <button onClick={() => document.documentElement.style.setProperty('--zoom', '1')} className="p-1 rounded bg-green-500 hover:bg-green-600 text-white transition-colors" title="Reset">1x</button>
+                </div>
+              </div>
               <select 
                 value={selectedOverlay}
                 onChange={(e) => onOverlaySelect(e.target.value)}
@@ -81,13 +88,16 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
           {/* Right: Large Preview */}
           <div className="flex-1 min-h-0">
             {selectedOverlay ? (
-            <div className="w-full h-screen rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-200/50 hover:border-blue-400/70 bg-gradient-to-br from-blue-50/30 to-indigo-50/30">
-                <iframe
-                  src={`${baseUrl}/overlays/${selectedOverlay}?demo=true`}
-                  className="w-full h-full border-0 bg-transparent"
-                  title="Overlay Preview"
-                  sandbox="allow-scripts allow-same-origin"
-                />
+            <div className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-200/50 hover:border-blue-400/70 bg-gradient-to-br from-blue-50/30 to-indigo-50/30">
+                <div className="preview-scale-fallback preview-scale">
+                  <iframe
+                    src={`${baseUrl}/overlays/${selectedOverlay}?demo=true`}
+                    className="iframe-container bg-transparent"
+                    title="Overlay Preview"
+                    sandbox="allow-scripts allow-same-origin"
+                    loading="eager"
+                  />
+                </div>
               </div>
             ) : (
               <div className="w-full h-[500px] rounded-2xl bg-gradient-to-br from-gray-100/50 to-gray-200/50 dark:from-gray-800/50 dark:to-gray-900/50 border-4 border-gray-300/50 flex items-center justify-center">

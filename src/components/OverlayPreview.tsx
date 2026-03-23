@@ -26,9 +26,16 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates }) => 
         {!isFullscreen && (
           <>
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200/50">
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-                Overlay Preview ({count} designs)
-              </h3>
+              <div className="flex justify-between items-center">
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
+                  Overlay Preview ({count} designs)
+                </h3>
+                <div className="flex gap-1 text-sm">
+                  <button onClick={() => document.documentElement.style.setProperty('--zoom', '0.75')} className="p-1 rounded bg-gray-200 hover:bg-gray-300 transition-colors" title="-">-</button>
+                  <button onClick={() => document.documentElement.style.setProperty('--zoom', '1.25')} className="p-1 rounded bg-blue-500 hover:bg-blue-600 text-white transition-colors" title="+">+</button>
+                  <button onClick={() => document.documentElement.style.setProperty('--zoom', '1')} className="p-1 rounded bg-green-500 hover:bg-green-600 text-white transition-colors" title="1x">1x</button>
+                </div>
+              </div>
               <div className="flex gap-2">
                 <button 
                   onClick={toggleFullscreen}
@@ -53,12 +60,15 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates }) => 
                   onClick={() => setSelectedOverlay(t.url.split('/').pop()!)}
                   className="group p-4 rounded-xl hover:shadow-xl hover:scale-105 transition-all border hover:border-blue-400 bg-gradient-to-b from-white/70 to-gray-50/70 hover:from-blue-50"
                 >
-                  <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden mb-2 group-hover:scale-[1.05] transition-transform">
-                    <iframe
-                      src={`${baseUrl}/overlays/${t.url.split('/').pop()}?demo=true`}
-                      className="w-full h-full border-0"
-                      sandbox="allow-scripts"
-                    />
+                  <div className="preview-container aspect-square rounded-lg overflow-hidden mb-2 group-hover:scale-[1.05] transition-transform max-h-48">
+                    <div className="preview-scale-fallback preview-scale w-[512px] h-[288px]">
+                      <iframe
+                        src={`${baseUrl}/overlays/${t.url.split('/').pop()}?demo=true`}
+                        className="iframe-container"
+                        sandbox="allow-scripts"
+                        loading="eager"
+                      />
+                    </div>
                   </div>
                   <p className="font-semibold text-sm line-clamp-1">{t.name}</p>
                 </button>
@@ -79,7 +89,7 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates }) => 
         )}
 
         {selectedOverlay && (
-          <div className={`w-full ${isFullscreen ? 'h-full' : 'h-96 md:h-[500px]'} rounded-xl overflow-hidden shadow-2xl border-4 border-blue-200/50`}>
+          <div className="preview-container rounded-xl overflow-hidden shadow-2xl border-4 border-blue-200/50 h-full">
             <MembershipPreview
               overlayFile={selectedOverlay}
               planName={level === 1 ? 'Premium' : 'Enterprise'}
