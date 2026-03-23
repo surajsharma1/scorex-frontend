@@ -47,7 +47,9 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const [previewTemplate, setPreviewTemplate] = useState<string>('');
 
   const [previewZoom, setPreviewZoom] = useState(1);
-  const changePreviewZoom = (delta: number) => setPreviewZoom(Math.max(0.25, Math.min(4, previewZoom + delta)));
+
+  const changePreviewZoom = (delta: number) => setPreviewZoom(Math.max(0.15, Math.min(0.5, previewZoom + delta * 0.01)));
+
 
   useEffect(() => {
     document.documentElement.style.setProperty('--zoom', previewZoom.toString());
