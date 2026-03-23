@@ -94,7 +94,7 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
           {/* Right: Large Preview */}
           <div className="flex-1 min-h-0">
             {selectedOverlay ? (
-            <div className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-200/50 hover:border-blue-400/70 bg-gradient-to-br from-blue-50/30 to-indigo-50/30">
+            <div className="preview-container rounded-xl overflow-hidden shadow-2xl border-4 border-blue-200/50 h-full">
                 <div className="preview-scale-fallback preview-scale" style={{ transform: `scale(${zoom})` }}>
                   <iframe
                     src={`${baseUrl}/overlays/${selectedOverlay}?demo=true`}
