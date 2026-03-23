@@ -48,6 +48,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
 
 
   const [previewZoom, setPreviewZoom] = useState(0.25);
+  const [previewProgress, setPreviewProgress] = useState(50);
 
 
   const changePreviewZoom = (delta: number) => setPreviewZoom(Math.max(0.15, Math.min(0.5, previewZoom + delta * 0.01)));
@@ -266,12 +267,12 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   useEffect(() => {
     if (previewOverlay && previewTemplate) {
       const backendBase = baseUrlLocal;
-      const newSrc = backendBase + '/api/v1/overlays/public/' + previewOverlay.publicId + '?template=' + previewTemplate;
+      const newSrc = backendBase + '/api/v1/overlays/public/' + previewOverlay.publicId + '?template=' + previewTemplate + '&progress=' + previewProgress + '%';
       setPreviewSrc(newSrc);
       setIframeLoading(true);
       setIframeError(false);
     }
-  }, [previewTemplate, previewOverlay]);
+  }, [previewTemplate, previewOverlay, previewProgress]);
 
   // Reload iframe content on src change
   useEffect(() => {
@@ -665,16 +666,30 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
             </div>
             <div className="flex-1 p-4 bg-black rounded-b-2xl overflow-hidden relative flex flex-col">
               <div className="mb-4 p-4 bg-gradient-to-br from-slate-900/80 to-slate-800/50 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
-                <div className="flex justify-between items-center mb-3">
-                  <p className="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                    <Eye className="w-4 h-4" />Live Preview ({Math.round(previewZoom * 100)}%)
-                  </p>
-                  <div className="flex gap-1">
-
-                    <button onClick={() => changePreviewZoom(-0.25)} className="p-1 text-slate-400 hover:bg-slate-700 hover:text-slate-200 rounded-lg transition-all" title="Zoom Out">-</button>
-                    <button onClick={() => changePreviewZoom(0.25)} className="p-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm" title="Zoom In">+</button>
-                    <button onClick={() => setPreviewZoom(1)} className="p-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all shadow-sm ml-1" title="Reset">1x</button>
-
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                      <Eye className="w-4 h-4" />Live Preview
+                    </p>
+                    <div className="flex gap-1">
+                      <button onClick={() => changePreviewZoom(-0.25)} className="p-1 text-slate-400 hover:bg-slate-700 hover:text-slate-200 rounded-lg transition-all" title="Zoom Out">-</button>
+                      <button onClick={() => changePreviewZoom(0.25)} className="p-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm" title="Zoom In">+</button>
+                      <button onClick={() => setPreviewZoom(1)} className="p-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all shadow-sm ml-1" title="Reset">1x</button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 pl-8">
+                    <span className="text-xs text-slate-400 w-16">Zoom: <span className="font-bold text-blue-400">{Math.round(previewZoom * 100)}%</span></span>
+                    <label className="text-xs font-semibold text-slate-300">Progress:</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="4"
+                      value={previewProgress}
+                      onChange={(e) => setPreviewProgress(Number(e.target.value))}
+                      className="flex-1 h-2 bg-slate-700 rounded-lg cursor-pointer appearance-none accent-emerald-500 hover:accent-emerald-600 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:rounded-full shadow-md"
+                    />
+                    <span className="font-mono text-sm font-bold text-emerald-400 w-10 text-right">{previewProgress}%</span>
                   </div>
                 </div>
               </div>
