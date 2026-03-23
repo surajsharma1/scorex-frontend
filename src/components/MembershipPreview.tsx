@@ -26,15 +26,14 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
     zoomOut,
     resetZoom
   } = usePreviewScale({ 
-    containerRef: previewContainerRef,
-    initialZoom: 1 
+    containerRef: previewContainerRef
   });
 
   const changeProgress = (e: React.ChangeEvent<HTMLInputElement>) => setProgress(Number(e.target.value));
 
-  // Update zoom display like ManagerPreviewZoom
+  // Update zoom display like OverlayManager
   useEffect(() => {
-    const element = document.getElementById('membership-zoom-display');
+    const element = document.getElementById('manager-zoom-display');
     if (element) {
       element.textContent = `${Math.round(idealScale * userZoom * 100)}%`;
     }
@@ -65,16 +64,16 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
   };
 
   return (
-    <div className="mb-6 p-6 bg-slate-800/70 rounded-xl shadow-lg border border-slate-700/70 backdrop-blur-xl">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4 p-4 bg-gradient-to-br from-slate-900/80 to-slate-800/50 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <Eye className="w-4 h-4" />Live Preview
-          </p>
-          <span id="membership-zoom-display" className="text-xs font-bold text-blue-400">--%</span>
-        </div>
-        <div className="flex items-center gap-4 w-full lg:w-auto">
-          <div className="flex items-center gap-2 text-xs">
+    <div className="p-6 rounded-xl shadow-lg border border-slate-700/70 backdrop-blur-xl">
+      <div className="mb-4 p-4 bg-gradient-to-br from-slate-900/80 to-slate-800/50 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <p className="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+              <Eye className="w-4 h-4" />Live Preview
+            </p>
+            <span id="manager-zoom-display" className="text-xs font-bold text-blue-400">--%</span>
+          </div>
+          <div className="flex items-center gap-2">
             <label className="text-xs font-semibold text-slate-300">Progress:</label>
             <input
               type="range"
@@ -83,16 +82,44 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
               step="4"
               value={progress}
               onChange={changeProgress}
-              className="flex-1 h-3 bg-slate-700 rounded-lg cursor-pointer dark:bg-slate-700 appearance-none accent-emerald-500 hover:accent-emerald-600 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:rounded-full shadow-lg hover:shadow-md transition-all"
+              className="flex-1 h-3 bg-slate-700 rounded-lg cursor-pointer appearance-none accent-emerald-500 hover:accent-emerald-600 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:rounded-full shadow-lg hover:shadow-md transition-all"
             />
             <span className="font-mono text-sm font-bold text-emerald-400 w-12 text-right">{progress}%</span>
           </div>
-          <ManagerPreviewZoom containerRef={previewContainerRef} />
         </div>
+      </div>
+      {/* Vertical Zoom Slider on Right */}
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-48 bg-slate-800/90 backdrop-blur-sm rounded-2xl border border-slate-600 p-3 flex flex-col items-center gap-2 z-30 shadow-2xl">
+        <span className="text-xs font-bold text-slate-200 rotate-90 origin-center whitespace-nowrap">Zoom</span>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          value={Math.round((userZoom - 0.25) / 1.75 * 100)}
+          onChange={(e) => {
+            const val = 0.25 + (Number(e.target.value) / 100) * 1.75;
+            resetZoom(); // Reset first
+            setTimeout(() => {
+              const tempInput = document.createElement('input');
+              tempInput.type = 'range';
+              tempInput.value = val.toString();
+              // Simulate wheel event or direct set
+              // Use usePreviewScale's setZoomMultiplier if exposed, else dispatch synthetic
+              // For simplicity, update CSS var directly
+              if (previewContainerRef.current) {
+                previewContainerRef.current.style.setProperty('--user-zoom', val.toString());
+              }
+            }, 10);
+          }}
+          className="w-full h-32 bg-slate-700 rounded-lg cursor-pointer appearance-none accent-blue-500 hover:accent-blue-600 [writing-mode:tb] [&::-webkit-slider-runnable-track]:h-full [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:rounded-full shadow-lg hover:shadow-md transition-all rotate-90 origin-center"
+          orient="vertical"
+        />
+        <span className="text-xs font-bold text-blue-400">{Math.round(userZoom * 100)}%</span>
       </div>
       <div 
         ref={previewContainerRef}
-        className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 h-[500px] lg:h-[600px] relative flex items-center justify-center"
+        className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 h-[500px] lg:h-[600px] relative"
       >
         <div className="preview-scale-fallback preview-scale w-full h-full">
           <iframe
