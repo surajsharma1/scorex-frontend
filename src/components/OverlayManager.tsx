@@ -45,6 +45,8 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewOverlay, setPreviewOverlay] = useState<CreatedOverlay | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<string>('');
+  const [previewZoom, setPreviewZoom] = useState(1);
+  const changePreviewZoom = (delta: number) => setPreviewZoom(Math.max(0.25, Math.min(4, previewZoom + delta)));
   const [previewSrc, setPreviewSrc] = useState<string>('');
   const [iframeLoading, setIframeLoading] = useState(true);
   const [iframeError, setIframeError] = useState(false);
@@ -651,60 +653,76 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                 </button>
               </div>
             </div>
-            <div className="flex-1 p-4 bg-black rounded-b-2xl overflow-hidden relative">
-              <iframe
-                ref={previewIframeRef}
-                src={previewSrc}
-                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                allow="fullscreen; autoplay; clipboard-write; encrypted-media"
-                className="w-full h-full rounded-lg border-0"
-                title="Overlay Preview"
-                onLoad={() => {
-                  setIframeLoading(false);
-                  setIframeError(false);
-                }}
-                onError={() => {
-                  setIframeLoading(false);
-                  setIframeError(true);
-                }}
-              />
-              {iframeLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-                  <div className="text-center">
-                    <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-400" />
-                    <p className="text-slate-400">Loading overlay preview...</p>
+            <div className="flex-1 p-4 bg-black rounded-b-2xl overflow-hidden relative flex flex-col">
+              <div className="mb-4 p-4 bg-gradient-to-br from-slate-900/80 to-slate-800/50 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+                <div className="flex justify-between items-center mb-3">
+                  <p className="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                    <Eye className="w-4 h-4" />Live Preview ({Math.round(previewZoom * 100)}%)
+                  </p>
+                  <div className="flex gap-1">
+                    <button onClick={() => changePreviewZoom(-0.25)} className="p-2 text-slate-400 hover:bg-slate-700 hover:text-slate-200 rounded-xl transition-all" title="Zoom Out">-</button>
+                    <button onClick={() => changePreviewZoom(0.25)} className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-md" title="Zoom In">+</button>
+                    <button onClick={() => setPreviewZoom(1)} className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all ml-1 shadow-md" title="Reset">1x</button>
                   </div>
                 </div>
-              )}
-              {iframeError && (
-                <div className="absolute inset-0 flex items-center justify-center bg-red-900/90 backdrop-blur-sm">
-                  <div className="text-center p-6 rounded-xl border-2 border-red-500/50 max-w-md">
-                    <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-white mb-2">Preview Failed</h3>
-                    <p className="text-slate-300 mb-4">
-                      Backend unreachable: <code className="bg-slate-800 px-2 py-1 rounded text-sm font-mono">{previewSrc}</code>
-                    </p>
-                    <div className="flex gap-2 justify-center">
-                      <button 
-                        onClick={() => window.open(previewSrc, '_blank')}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
-                      >
-                        Open Direct
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setIframeLoading(true);
-                          setIframeError(false);
-                          setTimeout(() => previewIframeRef.current?.contentWindow?.postMessage({type: 'scorex:refresh'}, '*'), 500);
-                        }}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium"
-                      >
-                        Retry
-                      </button>
+              </div>
+              <div className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 flex-1 relative">
+                <div className="preview-scale-fallback preview-scale" style={{ transform: `scale(${previewZoom})` }}>
+                  <iframe
+                    ref={previewIframeRef}
+                    src={previewSrc}
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                    allow="fullscreen; autoplay; clipboard-write; encrypted-media"
+                    className="iframe-container bg-transparent w-full h-[1080px]"
+                    title="Overlay Preview"
+                    onLoad={() => {
+                      setIframeLoading(false);
+                      setIframeError(false);
+                    }}
+                    onError={() => {
+                      setIframeLoading(false);
+                      setIframeError(true);
+                    }}
+                  />
+                </div>
+                {iframeLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/90 backdrop-blur-sm">
+                    <div className="text-center">
+                      <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-400" />
+                      <p className="text-slate-300 text-lg">Loading overlay preview...</p>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+                {iframeError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-red-900/95 backdrop-blur-sm">
+                    <div className="text-center p-8 rounded-2xl border-2 border-red-500/50 max-w-md bg-slate-900/50">
+                      <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-6" />
+                      <h3 className="text-xl font-bold text-white mb-4">Preview Failed</h3>
+                      <p className="text-slate-300 mb-6">
+                        Backend unreachable: <code className="bg-slate-800 px-3 py-1 rounded-lg text-sm font-mono inline-block break-all max-w-full">{previewSrc}</code>
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <button 
+                          onClick={() => window.open(previewSrc, '_blank')}
+                          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-lg transition-all"
+                        >
+                          Open Direct
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setIframeLoading(true);
+                            setIframeError(false);
+                            setTimeout(() => previewIframeRef.current?.contentWindow?.postMessage({type: 'scorex:refresh'}, '*'), 500);
+                          }}
+                          className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-lg transition-all"
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

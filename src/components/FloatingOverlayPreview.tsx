@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Eye } from 'lucide-react';
 import MembershipPreview from './MembershipPreview';
 import type { OverlayTemplate } from '../types/overlay';
@@ -21,6 +21,9 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
   selectedOverlay, 
   onOverlaySelect 
 }) => {
+  const [zoom, setZoom] = useState(1);
+  const changeZoom = (delta: number) => setZoom(Math.max(0.25, Math.min(4, zoom + delta)));
+  
   if (!isOpen) return null;
 
   const baseUrl = getBackendBaseUrl();
@@ -61,9 +64,12 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
                   Design Selector
                 </p>
                 <div className="flex gap-1 text-xs">
-                  <button onClick={() => document.documentElement.style.setProperty('--zoom', '0.75')} className="p-1 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors" title="Zoom Out">-</button>
-                  <button onClick={() => document.documentElement.style.setProperty('--zoom', '1.25')} className="p-1 rounded bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors" title="Zoom In">+</button>
-                  <button onClick={() => document.documentElement.style.setProperty('--zoom', '1')} className="p-1 rounded bg-green-500 hover:bg-green-600 text-white transition-colors" title="Reset">1x</button>
+                  <p className="text-sm font-semibold uppercase tracking-wider text-blue-600 flex items-center gap-2">
+                    <Eye className="w-4 h-4" />Live Preview ({Math.round(zoom * 100)}%)
+                  </p>
+                  <button onClick={() => changeZoom(-0.25)} className="p-1 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors" title="Zoom Out">-</button>
+                  <button onClick={() => changeZoom(0.25)} className="p-1 rounded bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors" title="Zoom In">+</button>
+                  <button onClick={() => setZoom(1)} className="p-1 rounded bg-green-500 hover:bg-green-600 text-white transition-colors" title="Reset">1x</button>
                 </div>
               </div>
               <select 
@@ -89,7 +95,7 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
           <div className="flex-1 min-h-0">
             {selectedOverlay ? (
             <div className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-200/50 hover:border-blue-400/70 bg-gradient-to-br from-blue-50/30 to-indigo-50/30">
-                <div className="preview-scale-fallback preview-scale">
+                <div className="preview-scale-fallback preview-scale" style={{ transform: `scale(${zoom})` }}>
                   <iframe
                     src={`${baseUrl}/overlays/${selectedOverlay}?demo=true`}
                     className="iframe-container bg-transparent"
