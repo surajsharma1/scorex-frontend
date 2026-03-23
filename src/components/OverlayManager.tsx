@@ -666,15 +666,13 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                 </div>
               </div>
               <div ref={previewContainerRef} className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 flex-1 relative">
-                <div className="preview-scale-fallback preview-scale">
-                  <OverlayPreviewRenderer
+                <OverlayPreviewRenderer
                     template={previewTemplate}
                     progress={previewProgress}
                     baseUrl={baseUrlLocal}
                     onLoad={() => setPreviewLoading(false)}
                     onError={(err) => setPreviewError(true)}
                   />
-                </div>
                 {previewLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/90 backdrop-blur-sm">
                     <div className="text-center">
