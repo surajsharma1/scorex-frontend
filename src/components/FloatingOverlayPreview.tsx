@@ -106,17 +106,38 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
             {selectedOverlay ? (
               <div 
                 ref={previewContainerRef}
-                className="preview-container rounded-xl overflow-hidden shadow-2xl border-4 border-blue-200/50 h-full"
+                className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 h-full relative"
               >
                 <div className="preview-scale-fallback preview-scale">
                   <iframe
                     src={`${baseUrl}/overlays/${selectedOverlay}?demo=true`}
-                    className="iframe-container bg-transparent"
+                    className="iframe-container bg-transparent w-full h-full" 
                     style={{ width: '1920px', height: '1080px' }}
                     title="Overlay Preview"
-                    sandbox="allow-scripts allow-same-origin"
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                    allow="fullscreen; autoplay; clipboard-write; encrypted-media"
                     loading="eager"
                   />
+                </div>
+                {/* Right-side Vertical Zoom Slider */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-slate-700 p-2 flex flex-col items-center gap-1 z-30 shadow-2xl min-h-[180px]">
+                  <label className="text-xs font-semibold text-slate-300">Zoom</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={Math.round((userZoom - 0.25) / 1.75 * 100)}
+                    onChange={(e) => {
+                      const newZoom = 0.25 + (parseFloat(e.target.value) / 100) * 1.75;
+                      if (previewContainerRef.current) {
+                        previewContainerRef.current.style.setProperty('--user-zoom', newZoom.toString());
+                      }
+                    }}
+                    className="w-10 h-32 bg-slate-700 rounded-lg cursor-pointer accent-blue-500 hover:accent-blue-400 [&::-webkit-slider-runnable-track]:w-full [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-blue-500 shadow-md hover:shadow-lg transition-all appearance-none"
+                    style={{ writingMode: 'vertical-lr' }}
+                  />
+                  <span className="text-xs font-bold text-blue-400">{Math.round(userZoom * 100)}%</span>
                 </div>
               </div>
             ) : (
