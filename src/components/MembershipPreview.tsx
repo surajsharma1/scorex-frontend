@@ -11,7 +11,9 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
   const previewUrl = `${baseUrl}/overlays/${overlayFile}?demo=true`;
   const title = `${planName} Overlay Preview`;
 
-  const [zoom, setZoom] = React.useState(1);
+
+  const [zoom, setZoom] = React.useState(0.25);
+
 
   const changeZoom = (delta: number) => setZoom(Math.max(0.15, Math.min(0.5, zoom + delta * 0.01)));
 
