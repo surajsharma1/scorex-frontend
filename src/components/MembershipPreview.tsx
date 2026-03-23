@@ -26,9 +26,11 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
           <Eye className="w-3 h-3" />Live Preview ({Math.round(zoom*100)}%)
         </p>
         <div className="flex gap-1">
+
           <button onClick={() => changeZoom(-0.25)} className="p-1 text-xs rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors" title="Zoom Out">-</button>
-          <button onClick={() => changeZoom(0.25)} className="p-1 text-xs rounded bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors" title="Zoom In">+</button>
+          <button onClick={() => changeZoom(0.25)} className="p-1 text-xs rounded bg-blue-500 hover:bg-blue-600 text-white transition-colors" title="Zoom In">+</button>
           <button onClick={() => setZoom(1)} className="p-1 text-xs rounded bg-green-500 hover:bg-green-600 text-white transition-colors ml-1" title="Reset Zoom">1x</button>
+
         </div>
       </div>
       <div className="preview-container rounded-xl overflow-hidden shadow-lg border-2 border-gray-200/50 dark:border-gray-700 hover:shadow-2xl hover:border-blue-400/60 group transition-all duration-300">
