@@ -94,15 +94,10 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     >
       <div 
         ref={containerRef}
-        className="preview-scale-fallback preview-scale bg-transparent"
-        style={{ 
-          position: 'fixed',
-          width: '1920px', 
-          height: '1080px',
-          top: 0,
-          left: 0
-        }}
+        className="preview-scale-fallback preview-scale bg-transparent absolute inset-0"
+        style={{ width: '1920px', height: '1080px' }}
       />
+
 
 
 
