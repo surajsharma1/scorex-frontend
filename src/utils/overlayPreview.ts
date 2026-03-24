@@ -124,7 +124,8 @@ export function updatePreviewData(container: HTMLElement | null, data: PreviewDa
 }
 
 // Fetch overlay HTML for preview (proxy via backend to avoid CORS)
-async function fetchOverlayHTML(baseUrl: string, template: string): Promise<string> {
+export async function fetchOverlayHTML(baseUrl: string, template: string): Promise<string> {
+
   try {
     const response = await fetch(`${baseUrl}/overlays/${template}`, {
       headers: { 'Accept': 'text/html' }
