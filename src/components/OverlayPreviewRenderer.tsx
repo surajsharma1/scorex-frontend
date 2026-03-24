@@ -91,9 +91,20 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     <div className={`preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 relative ${heightClass} ${className}`}>
       <div 
         ref={containerRef}
-        className="preview-scale-fallback preview-scale relative bg-transparent w-full h-full pt-[10%] pb-[10%] px-4"
-        style={{ width: '1920px', height: '1080px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        className="preview-scale-fallback preview-scale relative bg-transparent w-full h-full"
+        style={{ 
+          width: '1920px', 
+          height: '1080px', 
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
       />
+
 
 
 
