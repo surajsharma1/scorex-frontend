@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+  import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { RefreshCw, Eye } from 'lucide-react';
 import { getBackendBaseUrl } from '../services/env';
 import { getDemoData, normalizeScoreData, updatePreviewData, PreviewData, fetchOverlayHTML } from '../utils/overlayPreview';
@@ -94,9 +94,10 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     >
       <div 
         ref={containerRef}
-        className="preview-scale-fallback preview-scale bg-transparent absolute inset-0"
+        className="preview-scale-fallback preview-scale bg-transparent"
         style={{ width: '1920px', height: '1080px' }}
       />
+
 
 
 
