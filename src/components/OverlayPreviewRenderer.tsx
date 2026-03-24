@@ -92,18 +92,9 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
       <div 
         ref={containerRef}
         className="preview-scale-fallback preview-scale relative bg-transparent w-full h-full"
-        style={{ 
-          width: '1920px', 
-          height: '1080px', 
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
+        style={{ width: '1920px', height: '1080px' }}
       />
+
 
 
 
