@@ -114,10 +114,9 @@ function DashboardLayout({
       {/* Sidebar - Full screen overlay on mobile, fixed on desktop */}
       <div className={`
         fixed md:relative inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
-        w-full h-full md:w-64 md:h-auto md:flex-shrink-0 bg-slate-900 md:bg-[var(--bg-secondary)]
-        border-r border-slate-800 md:border-r-[var(--border)]
+        w-full h-full md:w-auto md:h-auto md:flex-shrink-0
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `} style={{ background: 'var(--bg-secondary)' }}>
+      `} style={{ background: 'var(--bg-secondary)', borderRight: '1px solid var(--border)' }}>
         <Sidebar 
           user={user} 
           logout={logout} 
@@ -129,18 +128,27 @@ function DashboardLayout({
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden w-full md:ml-0">
         {/* Mobile header with hamburger */}
-        <div className="md:hidden bg-slate-900/95 border-b border-slate-800 backdrop-blur-md sticky top-0 z-30 px-4 py-3 flex items-center justify-between">
+        <div
+          className="md:hidden sticky top-0 z-30 px-4 py-3 flex items-center justify-between backdrop-blur-md"
+          style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}
+        >
           <div className="flex items-center gap-2">
             <button
               onClick={toggleMobileMenu}
-              className="p-2 rounded-lg hover:bg-slate-800/50 transition-colors md:hidden"
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: 'var(--text-secondary)' }}
               aria-label="Toggle menu"
             >
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <h1 className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>ScoreX</h1>
+            <div className="flex items-center gap-1.5">
+              <div className="w-6 h-6 bg-gradient-to-tr from-green-600 to-emerald-400 rounded-md flex items-center justify-center font-black text-black text-xs shadow-lg">
+                S
+              </div>
+              <h1 className="text-base font-black" style={{ color: 'var(--text-primary)' }}>ScoreX</h1>
+            </div>
           </div>
         </div>
         

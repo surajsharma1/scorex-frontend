@@ -585,130 +585,125 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
       )}
 
       {showPreviewModal && previewOverlay && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col border border-slate-700">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center p-6 border-b border-slate-700 bg-slate-800/50 backdrop-blur-sm rounded-t-2xl gap-4">
-              <div className="flex flex-col gap-2">
-                <h3 className="text-2xl font-bold text-slate-200">{previewOverlay?.name}</h3>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <span>Template:</span>
-                  <select 
-                    value={previewTemplate} 
-                    onChange={(e) => setPreviewTemplate(e.target.value)}
-                    className="px-3 py-1 bg-slate-700/50 border border-slate-600 text-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6"
+          style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setShowPreviewModal(false); }}
+        >
+          <div
+            className="rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', maxHeight: '90vh' }}
+          >
+            {/* Header */}
+            <div
+              className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-5 py-4 gap-3 flex-shrink-0"
+              style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}
+            >
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-1.5 h-6 rounded-full" style={{ background: 'var(--accent)' }} />
+                  <h3 className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>
+                    {previewOverlay?.name}
+                  </h3>
+                </div>
+                <div className="flex items-center gap-2 ml-3.5">
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Template:</span>
+                  <select
+                    value={previewTemplate}
+                    onChange={e => setPreviewTemplate(e.target.value)}
+                    className="px-2 py-1 rounded-lg text-xs font-semibold transition-all outline-none"
+                    style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
                   >
-                    {templates.map((t) => (
+                    {templates.map(t => (
                       <option key={t.id} value={t.file}>{t.name}</option>
                     ))}
                   </select>
-                  <span>• {previewOverlay?.isUrlExpired ? 'Expired' : 'Active'}</span>
+                  <span
+                    className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                    style={previewOverlay?.isUrlExpired
+                      ? { background: 'rgba(239,68,68,0.1)', color: '#f87171' }
+                      : { background: 'rgba(34,197,94,0.1)', color: 'var(--accent)' }
+                    }
+                  >
+                    {previewOverlay?.isUrlExpired ? 'Expired' : 'Active'}
+                  </span>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-shrink-0">
                 <button
                   onClick={() => {
                     if (previewOverlay && previewTemplate !== previewOverlay.template) {
                       if (confirm('Update overlay template permanently?')) {
-                        // TODO: PATCH api.overlays/{id} {template: previewTemplate}
                         console.log('Would update template to:', previewTemplate);
                       }
                     }
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-slate-100 rounded-xl font-medium transition-all shadow-lg"
                   disabled={!previewOverlay || previewTemplate === previewOverlay.template}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40"
+                  style={{ background: 'rgba(34,197,94,0.15)', color: 'var(--accent)', border: '1px solid rgba(34,197,94,0.3)' }}
                 >
-                  <Save className="w-4 h-4" />
-                  Apply Template
+                  <Save className="w-3.5 h-3.5" /> Apply
                 </button>
                 <a
                   href={previewOverlay?.publicUrl || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-slate-100 rounded-xl font-medium transition-all shadow-lg"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                  style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}
                 >
-                  <ExternalLink className="w-4 h-4" />
-                  Open Fullscreen
+                  <ExternalLink className="w-3.5 h-3.5" /> Fullscreen
                 </a>
-                <button 
+                <button
                   onClick={() => setShowPreviewModal(false)}
-                  className="p-2 hover:bg-slate-700 rounded-xl transition-colors"
+                  className="p-2 rounded-xl transition-all"
+                  style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}
                 >
-                  <X className="w-6 h-6 text-slate-400 hover:text-slate-200" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
-            <div className="flex-1 p-4 bg-black rounded-b-2xl overflow-hidden relative flex flex-col">
-              <div className="mb-4 p-4 bg-gradient-to-br from-slate-900/80 to-slate-800/50 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                      <Eye className="w-4 h-4" />Live Preview
-                    </p>
-                    <div className="flex gap-1">
-                      <ManagerPreviewZoom containerRef={previewContainerRef} />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400">Zoom:</span>
-                    <span id="manager-zoom-display" className="font-bold text-blue-400">--%</span>
-                    <label className="text-xs font-semibold text-slate-300">Progress:</label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="4"
-                      value={previewProgress}
-                      onChange={(e) => setPreviewProgress(Number(e.target.value))}
-                      className="flex-1 h-3 bg-slate-700 rounded-lg cursor-pointer appearance-none accent-emerald-500 hover:accent-emerald-600 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:rounded-full shadow-lg hover:shadow-md transition-all"
-                    />
-                    <span className="font-mono text-sm font-bold text-emerald-400 w-12 text-right">{previewProgress}%</span>
-                  </div>
-                </div>
+
+            {/* Controls bar */}
+            <div
+              className="flex flex-wrap items-center gap-3 px-5 py-3 flex-shrink-0"
+              style={{ borderBottom: '1px solid var(--border)' }}
+            >
+              <div className="flex items-center gap-2">
+                <Eye className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />
+                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
+                  Live Preview
+                </span>
               </div>
-              <div ref={previewContainerRef} className="preview-container rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700/50 hover:border-blue-500/50 bg-gradient-to-br from-slate-900/50 to-slate-800/30 flex-1 relative">
+              <div className="flex items-center gap-2 flex-1 min-w-[160px]">
+                <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Progress:</label>
+                <input
+                  type="range" min="0" max="100" step="4"
+                  value={previewProgress}
+                  onChange={e => setPreviewProgress(Number(e.target.value))}
+                  className="flex-1 h-2 rounded cursor-pointer"
+                  style={{ accentColor: 'var(--accent)' }}
+                />
+                <span className="text-xs font-bold tabular-nums w-8" style={{ color: 'var(--accent)' }}>
+                  {previewProgress}%
+                </span>
+              </div>
+              <ManagerPreviewZoom containerRef={previewContainerRef} />
+            </div>
+
+            {/* Preview area */}
+            <div className="flex-1 overflow-hidden p-4" style={{ background: '#000', minHeight: 0 }}>
+              <div
+                ref={previewContainerRef}
+                className="w-full h-full rounded-xl overflow-hidden relative"
+                style={{ aspectRatio: '16/9', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
                 <OverlayPreviewRenderer
-                    template={previewTemplate}
-                    progress={previewProgress}
-                    baseUrl={baseUrlLocal}
-                    onLoad={() => setPreviewLoading(false)}
-                    onError={(err) => setPreviewError(true)}
-                  />
-                {previewLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/90 backdrop-blur-sm">
-                    <div className="text-center">
-                      <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-400" />
-                      <p className="text-slate-300 text-lg">Loading overlay preview...</p>
-                    </div>
-                  </div>
-                )}
-                {previewError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-red-900/95 backdrop-blur-sm">
-                    <div className="text-center p-8 rounded-2xl border-2 border-red-500/50 max-w-md bg-slate-900/50">
-                      <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-6" />
-                      <h3 className="text-xl font-bold text-white mb-4">Preview Failed</h3>
-                      <p className="text-slate-300 mb-6">
-                        Backend unreachable (template: {previewTemplate})
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                        <button 
-                          onClick={() => window.open(previewSrc, '_blank')}
-                          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold shadow-lg transition-all"
-                        >
-                          Open Direct
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setPreviewLoading(true);
-                            setPreviewError(false);
-                          }}
-                          className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-lg transition-all"
-                        >
-                          Retry
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  template={previewTemplate}
+                  progress={previewProgress}
+                  baseUrl={baseUrlLocal}
+                  onLoad={() => setPreviewLoading(false)}
+                  onError={() => setPreviewError(true)}
+                />
               </div>
             </div>
           </div>
