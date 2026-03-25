@@ -68,10 +68,10 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const baseUrlLocal = getBackendBaseUrl();
 
   useEffect(() => {
-    // Load templates
-    fetch('/templates.json')
-      .then(res => res.json())
-      .then((data: OverlayTemplate[]) => {
+    // Load templates from API
+    overlayAPI.getOverlayTemplates()
+      .then(res => {
+        const data: OverlayTemplate[] = res.data;
         setTemplates(data);
         if (data.length > 0) {
           setSelectedTemplate(data[0]);
@@ -90,6 +90,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
       })
       .finally(() => setTemplatesLoading(false));
   }, []);
+
 
   const loadCreatedOverlays = async () => {
     try {
