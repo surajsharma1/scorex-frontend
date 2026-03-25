@@ -76,14 +76,13 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
   const allBPlayers: any[] = battingTeam?.players || [];
   const bowlPlayers: any[] = bowlingTeam?.players || [];
 
-  // Build set of out players from current innings data so they're excluded
+  // Robust check for dismissed players
   const outPlayerNames = new Set<string>(
     (currentInningsData?.batsmen || [])
-      .filter((b: any) => b.isOut)
+      .filter((b: any) => b.isOut || b.dismissal || (b.outType && b.outType !== ''))
       .map((b: any) => b.name)
   );
 
-  // Available batting players = team roster minus dismissed players
   const availableBatsmen = allBPlayers.filter((p: any) => !outPlayerNames.has(p.name));
 
   const isValid = () => striker && nonStriker && bowler && striker !== nonStriker;
@@ -156,6 +155,7 @@ export default function LiveScoring() {
   const [tossData, setTossData] = useState<any>(null);
   
   const [wicketModal, setWicketModal] = useState<{ open: boolean; baseData: BallData }>({ open: false, baseData: {} });
+  const [selectedWicketType, setSelectedWicketType] = useState<string>('');
   const [outBatsman, setOutBatsman] = useState<'striker' | 'nonStriker'>('striker');
 
   const fetchMatch = useCallback(async () => {
@@ -291,7 +291,6 @@ export default function LiveScoring() {
   const currentBattingTeamId = innings?.teamId || tossData?.battingTeamId || match?.team1?._id || match?.team1;
   const currentBowlingTeamId = currentBattingTeamId === (match?.team1?._id || match?.team1) ? (match?.team2?._id || match?.team2) : (match?.team1?._id || match?.team1);
 
-  // --- BUG FIX: PIN ACTIVE PLAYERS STRICTLY TO OVERLAY DATA ---
   const activeStriker = safeBatsmen.find((b: any) => b.name === match?.strikerName) || safeBatsmen.find((b: any) => b?.isStriker && !b?.isOut);
   const activeNonStriker = safeBatsmen.find((b: any) => b.name === match?.nonStrikerName) || safeBatsmen.find((b: any) => !b?.isStriker && !b?.isOut && b?.enteredAt !== undefined);
 
@@ -301,7 +300,11 @@ export default function LiveScoring() {
 
   if (step === 'players') { defStriker = ''; defNonStriker = ''; defBowler = ''; }
 
-  const openWicketModal = (baseData: BallData = {}) => { setWicketModal({ open: true, baseData }); setOutBatsman('striker'); };
+  const openWicketModal = (baseData: BallData = {}) => { 
+    setSelectedWicketType(''); 
+    setWicketModal({ open: true, baseData }); 
+    setOutBatsman('striker'); 
+  };
 
   if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" /></div>;
   if (!match) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><p className="text-red-400 text-xl">Match not found</p></div>;
@@ -338,41 +341,52 @@ export default function LiveScoring() {
               <h3 className="text-lg font-bold text-white">Wicket Details</h3>
               <button onClick={() => setWicketModal({ open: false, baseData: {} })} className="text-slate-500 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
-            <div className="mb-4">
-              <label className="text-slate-400 text-sm font-semibold mb-2 block">Who is out?</label>
-              <div className="flex gap-2">
-                <button onClick={() => setOutBatsman('striker')} className={`flex-1 py-2 rounded-xl text-sm font-bold border ${outBatsman === 'striker' ? 'bg-red-600/20 border-red-500 text-red-400' : 'border-slate-700 text-slate-400'}`}>
-                  Striker ({activeStriker?.name || 'Unknown'})
-                </button>
-                <button onClick={() => setOutBatsman('nonStriker')} className={`flex-1 py-2 rounded-xl text-sm font-bold border ${outBatsman === 'nonStriker' ? 'bg-red-600/20 border-red-500 text-red-400' : 'border-slate-700 text-slate-400'}`}>
-                  Non-Striker ({activeNonStriker?.name || 'Unknown'})
-                </button>
-              </div>
-            </div>
+            
             <label className="text-slate-400 text-sm font-semibold mb-2 block">How did they get out?</label>
             <div className="grid grid-cols-2 gap-2 mb-4">
               {WICKET_TYPES.map(wt => (
-                <button key={wt.id} onClick={() => {
-                  setWicketModal({ open: false, baseData: {} });
-                  submitBall({ ...wicketModal.baseData, wicket: true, outType: wt.id, outBatsmanName: outBatsman === 'striker' ? activeStriker?.name : activeNonStriker?.name });
-                }} className="py-2.5 px-3 rounded-xl text-sm font-semibold bg-red-900/40 hover:bg-red-700/60 border border-red-700/40 text-red-200">
+                <button key={wt.id} onClick={() => setSelectedWicketType(wt.id)} className={`py-2.5 px-3 rounded-xl text-sm font-semibold border transition-colors ${selectedWicketType === wt.id ? 'bg-red-600 border-red-500 text-white' : 'bg-red-900/40 hover:bg-red-700/60 border-red-700/40 text-red-200'}`}>
                   {wt.label}
                 </button>
               ))}
             </div>
-            <div className="pt-3 border-t border-slate-700">
-              <p className="text-slate-500 text-xs mb-2">Runs completed before wicket</p>
-              <div className="grid grid-cols-4 gap-1.5">
-                {[0,1,2,3].map(r => (
-                  <button key={r} onClick={() => {
-                    setWicketModal({ open: false, baseData: {} });
-                    submitBall({ ...wicketModal.baseData, runs: r, wicket: true, outType: 'run_out', outBatsmanName: outBatsman === 'striker' ? activeStriker?.name : activeNonStriker?.name });
-                  }} className="py-2 rounded-lg text-sm font-bold bg-slate-700 hover:bg-slate-600 text-white">
-                    {r}
+
+            {selectedWicketType && (
+              <div className="pt-3 border-t border-slate-700 animate-in fade-in">
+                <label className="text-slate-400 text-sm font-semibold mb-2 block">Who is out?</label>
+                <div className="flex gap-2 mb-4">
+                  <button onClick={() => setOutBatsman('striker')} className={`flex-1 py-2 rounded-xl text-sm font-bold border ${outBatsman === 'striker' ? 'bg-red-600/20 border-red-500 text-red-400' : 'border-slate-700 text-slate-400'}`}>
+                    Striker ({activeStriker?.name || 'Unknown'})
                   </button>
-                ))}
+                  <button onClick={() => setOutBatsman('nonStriker')} className={`flex-1 py-2 rounded-xl text-sm font-bold border ${outBatsman === 'nonStriker' ? 'bg-red-600/20 border-red-500 text-red-400' : 'border-slate-700 text-slate-400'}`}>
+                    Non-Striker ({activeNonStriker?.name || 'Unknown'})
+                  </button>
+                </div>
+
+                {selectedWicketType === 'run_out' ? (
+                  <>
+                    <label className="text-slate-400 text-sm font-semibold mb-2 block">Runs completed before run out?</label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[0,1,2,3].map(r => (
+                        <button key={r} onClick={() => {
+                          setWicketModal({ open: false, baseData: {} });
+                          submitBall({ ...wicketModal.baseData, runs: r, wicket: true, outType: 'run_out', outBatsmanName: outBatsman === 'striker' ? activeStriker?.name : activeNonStriker?.name });
+                        }} className="py-2 rounded-lg text-sm font-bold bg-slate-700 hover:bg-slate-600 text-white">
+                          {r}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <button onClick={() => {
+                    setWicketModal({ open: false, baseData: {} });
+                    submitBall({ ...wicketModal.baseData, wicket: true, outType: selectedWicketType, outBatsmanName: outBatsman === 'striker' ? activeStriker?.name : activeNonStriker?.name });
+                  }} className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl">
+                    Confirm Wicket
+                  </button>
+                )}
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -437,7 +451,7 @@ export default function LiveScoring() {
         {panel === 'main' && (
           <div className="space-y-4">
             <div><p className="text-slate-600 text-xs font-semibold uppercase tracking-wider mb-2">Runs</p>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 gap-3">
                 {[0, 1, 2, 3, 4, 6].map(r => (
                   <button key={r} disabled={submitting} onClick={() => submitBall({ runs: r })} className={`py-5 rounded-2xl font-black text-2xl transition-all active:scale-95 disabled:opacity-40 shadow-lg ${r === 4 ? 'bg-blue-600 shadow-blue-600/30' : r === 6 ? 'bg-purple-600 shadow-purple-600/30' : r === 0 ? 'bg-slate-800 text-slate-300' : 'bg-slate-700'}`}>{r === 0 ? '•' : r}</button>
                 ))}
@@ -492,6 +506,7 @@ export default function LiveScoring() {
         {panel === 'others' && (
           <div className="space-y-3">
              <div className="flex items-center gap-2 mb-4"><button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Other Actions</h3></div>
+            <button onClick={() => { setPanel('main'); setLastBall('⚖ Decision Pending...'); }} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-amber-900/30 hover:bg-amber-700/40 text-left border border-amber-700/40 text-amber-300">⚖ Decision Pending</button>
             <button onClick={() => { setPanel('main'); handleStrikeChange(); }} disabled={submitting} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-blue-900/30 hover:bg-blue-700/40 text-left border border-blue-700/40 text-blue-300 disabled:opacity-40">⇄ Change Strike (Swap Batsmen)</button>
             <button onClick={() => handleRetirement('striker')} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🚶 Retired Hurt (Striker)</button>
             <button onClick={() => handleRetirement('nonStriker')} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🚶 Retired Hurt (Non-Striker)</button>
