@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { AlertTriangle } from 'lucide-react';
+import { socket } from '../services/socket';
 import { useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import {
@@ -302,7 +304,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
                 )}
 
                 {/* Fall of wickets */}
-                {inn.fallOfWickets?.length > 0 && (
+{inn.fallOfWickets?.length > 0 && (
                   <div className="px-6 py-4 border-t" style={{ borderColor: 'var(--border)', background: 'var(--bg-elevated)' }}>
                     <p className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>Fall of Wickets</p>
                     <p style={{ color: 'var(--text-secondary)' }}>
@@ -312,6 +314,34 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
                 )}
               </div>
             ))}
+
+            {match.decisionPending && (
+              <div className="p-6 rounded-2xl mt-6" style={{ 
+                background: 'rgba(251, 191, 36, 0.1)', 
+                border: '1px solid rgba(251, 191, 36, 0.5)',
+                boxShadow: '0 4px 12px rgba(251, 191, 36, 0.15)'
+              }}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className="w-6 h-6 text-yellow-500 flex-shrink-0" />
+                    <div>
+                      <h3 className="font-bold text-xl" style={{ color: 'rgb(251, 191, 36)' }}>Decision Pending</h3>
+                      <p className="text-sm" style={{ color: 'rgba(251, 191, 36, 0.8)' }}>Awaiting official decision (umpire/admin required).</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      socket.emit('resolveDecisionPending', { matchId });
+                      // Refetch to update
+                      matchAPI.getMatch(matchId).then(r => setMatch(r.data.data));
+                    }}
+                    className="px-6 py-3 bg-yellow-600 hover:bg-yellow-500 text-black font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+                  >
+                    Resolve Decision
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
