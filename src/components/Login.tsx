@@ -3,12 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../App';
 import { authAPI } from '../services/api';
 import { getApiBaseUrl } from '../services/env';
-import { Mail, Lock, Zap, AlertTriangle } from 'lucide-react';
+import { Mail, Lock, Zap, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
@@ -70,9 +71,24 @@ export default function Login() {
               <label className="text-slate-400 text-sm font-semibold mb-1.5 block">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  value={form.password} 
+                  onChange={e => setForm({ ...form, password: e.target.value })}
                   placeholder="••••••••" required
-                  className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 text-white rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors" />
+                  className="w-full pl-10 pr-12 py-3 bg-slate-800 border border-slate-700 text-white rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-colors" 
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-700/50 rounded-full transition-colors"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4 text-slate-400" />
+                  ) : (
+                    <Eye className="w-4 h-4 text-slate-400" />
+                  )}
+                </button>
               </div>
             </div>
             <div className="flex justify-end">
