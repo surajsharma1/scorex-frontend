@@ -5,6 +5,7 @@ import ManagerPreviewZoom from './ManagerPreviewZoom';
 import { overlayAPI, matchAPI, tournamentAPI } from '../services/api';
 import { CreatedOverlay, Match, Tournament } from './types';
 import { getBackendBaseUrl } from '../services/env';
+import { getDemoData, updatePreviewData } from '../utils/overlayPreview';
 
 interface OverlayTemplate {
   id: string;
@@ -306,200 +307,194 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   return (
     <>
       {tournamentId && (
-        <div className="mb-6 p-4 rounded-xl border" style={{ 
-          background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(147,51,234,0.1))', 
-          borderColor: 'rgba(59,130,246,0.3)'
+        <div className="mb-6 p-4 rounded-2xl flex items-center gap-3" style={{
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border)',
         }}>
-          <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: 'var(--accent)' }}>
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.25 5.5c-.375 0-.75.188-1.038.5L6.5 8.25a1.25 1.25 0 002 2h3.586l-.707.707a.5 .5 0 00.854.707l1.5-1.5A1.25 1.25 0 0013.75 10H9.688l.707.707a.5 .5 0 00-.708.707l-1.5-1.5a1.25 1.25 0 00-2.076-1.167l-2.5 2.5A1.25 1.25 0 003.75 13H7a1.25 1.25 0 002.5 0V10H13a1.25 1.25 0 002.5 0v-2.5A1.25 1.25 0 0013.75 6h-3.688l-.707-.707a.5 .5 0 00.708-.707l1.5 1.5a1.25 1.25 0 002.076 1.167l2.5-2.5A1.25 1.25 0 0016.25 7V9.5A1.25 1.25 0 0115 10.75H12.5a1.25 1.25 0 01-2.5 0V9H4a1.25 1.25 0 01-2.5 0V7a1.25 1.25 0 012.5-1.25h3.688l.707.707a.5 .5 0 00-.708.707L6.5 6.75a1.25 1.25 0 002.076-1.167l2.5 2.5A1.25 1.25 0 0110.25 8v-2.5z"/></svg>
-            Tournament Overlays ({matches.length} matches)
+          <div className="w-1.5 h-6 rounded-full" style={{ background: 'var(--accent)' }} />
+          <h2 className="text-base font-black" style={{ color: 'var(--text-primary)' }}>
+            Tournament Overlays
+            <span className="ml-2 text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>
+              ({matches.length} match{matches.length !== 1 ? 'es' : ''})
+            </span>
           </h2>
-
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-1 space-y-6">
-            <div className="p-4 rounded-xl border shadow-sm sticky top-4" style={{ 
-              background: 'var(--bg-card)', 
-              borderColor: 'var(--border)'
-            }}>
-              <button 
-                onClick={() => setShowCreateModal(true)}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg hover:shadow-green-500/25"
-              >
-                <Plus className="w-5 h-5" />
-                Create Overlay
-              </button>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+        {/* ── Left sidebar ── */}
+        <div className="lg:col-span-1 space-y-4">
+          {/* Create button */}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] hover:shadow-lg shadow-md"
+            style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 20px rgba(34,197,94,0.25)' }}
+          >
+            <Plus className="w-4 h-4" /> Create Overlay
+          </button>
 
-          <div className="bg-slate-800/50 dark:bg-slate-800/50 p-6 rounded-xl shadow-sm border border-slate-700/50 backdrop-blur-xl">
-            <h3 className="text-lg font-bold mb-4 text-slate-200">Templatest ({filteredOverlays.length})</h3>
-            <select 
+          {/* Templates */}
+          <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+              Templates <span style={{ color: 'var(--text-muted)' }}>({filteredOverlays.length})</span>
+            </h3>
+            <select
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full p-3 border border-slate-600 bg-slate-700/50 text-slate-200 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500"
+              onChange={e => setSelectedCategory(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl text-sm mb-3 outline-none transition-all"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
             >
-              {categories.map(cat => (
-                <option key={cat.value} value={cat.value}>{cat.label}</option>
-              ))}
+              {categories.map(cat => <option key={cat.value} value={cat.value}>{cat.label}</option>)}
             </select>
-            <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
+
+            <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
               {templatesLoading ? (
-                <p className="text-slate-400">Loading templates...</p>
+                <div className="col-span-2 py-4 text-center">
+                  <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" style={{ color: 'var(--text-muted)' }} />
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Loading…</p>
+                </div>
               ) : filteredOverlays.map(template => (
-                <div 
+                <div
                   key={template.id}
-                  onClick={() => {
-                    setCreateFormData({...createFormData, template: template.file});
-                    setSelectedTemplate(template);
-                  }}
-                  className={createFormData.template === template.file 
-                    ? 'p-3 rounded-lg cursor-pointer transition-all hover:shadow-md border-2 hover:border-emerald-400 hover:scale-[1.02] border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-400/50'
-                    : 'p-3 rounded-lg cursor-pointer transition-all hover:shadow-md border-2 hover:border-emerald-400 hover:scale-[1.02] border-slate-600'
+                  onClick={() => { setCreateFormData({ ...createFormData, template: template.file }); setSelectedTemplate(template); }}
+                  className="p-3 rounded-xl cursor-pointer transition-all hover:scale-[1.02] border-2"
+                  style={createFormData.template === template.file
+                    ? { borderColor: 'var(--accent)', background: 'var(--accent-dim)' }
+                    : { borderColor: 'var(--border)', background: 'var(--bg-elevated)' }
                   }
                 >
-                  <div className={`h-12 bg-gradient-to-br ${template.color} rounded-lg flex items-center justify-center mb-2 shadow-lg`}>
-                    <span className="text-white font-bold text-sm tracking-wide">{template.name.substring(0,3)}</span>
+                  <div className={`h-10 bg-gradient-to-br ${template.color} rounded-lg flex items-center justify-center mb-2`}>
+                    <span className="text-white font-black text-xs">{template.name.substring(0, 3).toUpperCase()}</span>
                   </div>
-                  <p className="text-xs font-semibold text-slate-200 text-center">{template.name}</p>
-                  <p className="text-xs text-slate-400 text-center">{template.category}</p>
+                  <p className="text-xs font-semibold text-center truncate" style={{ color: 'var(--text-primary)' }}>{template.name}</p>
+                  <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>{template.category}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-slate-800/50 p-6 rounded-xl shadow-sm border border-slate-700/50 backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-slate-200">Live Matches ({matches.length})</h3>
+          {/* Live matches */}
+          <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                Live Matches <span style={{ color: 'var(--text-muted)' }}>({matches.length})</span>
+              </h3>
               <button
-                className="flex items-center gap-1 px-3 py-2 bg-blue-500/80 hover:bg-blue-600 disabled:bg-blue-400/60 text-slate-100 text-sm font-semibold rounded-lg shadow-sm transition-all hover:shadow-md flex-shrink-0 ml-2 backdrop-blur-sm"
-                title="Refresh after creating new match"
+                onClick={refreshMatches}
+                className="p-1.5 rounded-lg transition-all"
+                style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}
+                title="Refresh matches"
               >
-                {matchesLoading ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-4 h-4" />
-                )}
+                <RefreshCw className={`w-3.5 h-3.5 ${matchesLoading ? 'animate-spin' : ''}`} />
               </button>
             </div>
-            <div className={`p-3 rounded-lg border border-slate-600/50 ${matchesLoading ? 'bg-blue-500/10 animate-pulse' : 'bg-slate-700/30'}`} style={{backdropFilter: 'blur(10px)'}}>
-              <select 
-                value={createFormData.match}
-                onChange={(e) => setCreateFormData({...createFormData, match: e.target.value})}
-                disabled={matchesLoading}
-                className="w-full p-3 border border-slate-600 bg-slate-700/50 text-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-slate-600/50 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <option value="">{matchesLoading ? 'Loading matches...' : 'Select Live Match'}</option>
-                {matches.map(m => (
-                  <option key={m._id} value={m._id}>
-                    {m.name ? `${m.name} - ` : ''}{m.team1?.name || 'Team 1'} vs {m.team2?.name || 'Team 2'} ({m.status || 'scheduled'})
-                  </option>
-                ))}
-              </select>
-            </div>
-            {matchesLoading && (
-              <p className="text-xs text-blue-400 mt-2 flex items-center gap-1">
-                <RefreshCw className="w-3 h-3 animate-spin" />
-                Refreshing live matches...
-              </p>
-            )}
+            <select
+              value={createFormData.match}
+              onChange={e => setCreateFormData({ ...createFormData, match: e.target.value })}
+              disabled={matchesLoading}
+              className="w-full px-3 py-2.5 rounded-xl text-sm outline-none transition-all disabled:opacity-50"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+            >
+              <option value="">{matchesLoading ? 'Loading…' : 'Select Live Match'}</option>
+              {matches.map(m => (
+                <option key={m._id} value={m._id}>
+                  {m.name ? `${m.name} – ` : ''}{m.team1?.name || 'Team 1'} vs {m.team2?.name || 'Team 2'} ({m.status || 'scheduled'})
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
+        {/* ── My Overlays ── */}
         <div className="lg:col-span-2">
-          <div className="bg-slate-800/70 p-6 rounded-xl shadow-lg border border-slate-700/70 backdrop-blur-xl">
-            <h2 className="text-xl font-bold mb-6 text-slate-200">My Overlays ({createdOverlays.length})</h2>
+          <div className="rounded-2xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <h2 className="text-base font-black mb-5" style={{ color: 'var(--text-primary)' }}>
+              My Overlays <span style={{ color: 'var(--text-muted)' }}>({createdOverlays.length})</span>
+            </h2>
+
             {overlaysLoading ? (
-              <p className="text-slate-400">Loading overlays...</p>
+              <div className="flex flex-col items-center py-12">
+                <RefreshCw className="w-8 h-8 animate-spin mb-3" style={{ color: 'var(--text-muted)' }} />
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading overlays…</p>
+              </div>
             ) : createdOverlays.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-slate-600">
-                  <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                  <Eye className="w-6 h-6" style={{ color: 'var(--text-muted)' }} />
                 </div>
-                <p className="text-slate-400 mb-4">No overlays created yet</p>
-                <p className="text-sm text-slate-500">Click "Create Overlay" to get started</p>
+                <p className="font-bold text-sm mb-1" style={{ color: 'var(--text-secondary)' }}>No overlays yet</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Click "Create Overlay" to get started</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {createdOverlays.map((overlay) => (
-                  <div key={overlay._id} className="border border-slate-700/70 rounded-lg p-5 hover:shadow-2xl hover:shadow-blue-500/25 hover:border-blue-500/50 transition-all bg-slate-800/50 backdrop-blur-sm group">
+                {createdOverlays.map(overlay => (
+                  <div
+                    key={overlay._id}
+                    className="rounded-2xl p-4 group transition-all hover:-translate-y-0.5"
+                    style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+                  >
                     <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-bold text-slate-200 text-lg pr-2 truncate flex-1 min-w-0">{overlay.name}</h3>
+                      <h3 className="font-bold text-sm pr-2 truncate flex-1" style={{ color: 'var(--text-primary)' }}>
+                        {overlay.name}
+                      </h3>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button
-                          onClick={() => handlePreviewOverlay(overlay)}
-                          className="p-2 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg transition-all"
-                          title="Preview"
-                        >
-                          <Eye className="w-4 h-4" />
+                        <button onClick={() => handlePreviewOverlay(overlay)}
+                          className="p-1.5 rounded-lg transition-all"
+                          style={{ background: 'rgba(59,130,246,0.1)', color: '#60a5fa' }} title="Preview">
+                          <Eye className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          onClick={() => handleEditOverlay(overlay)}
-                          className="p-2 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg transition-all"
-                          title="Edit"
-                        >
-                          <Edit className="w-4 h-4" />
+                        <button onClick={() => handleEditOverlay(overlay)}
+                          className="p-1.5 rounded-lg transition-all"
+                          style={{ background: 'rgba(245,158,11,0.1)', color: '#fbbf24' }} title="Edit">
+                          <Edit className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          onClick={() => handleDeleteOverlay(overlay._id!)}
-                          className="p-2 text-red-400 hover:bg-red-500/20 border border-red-500/30 rounded-lg transition-all"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
+                        <button onClick={() => handleDeleteOverlay(overlay._id!)}
+                          className="p-1.5 rounded-lg transition-all"
+                          style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }} title="Delete">
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
-                    <p className="text-sm text-slate-400 mb-3">Template: {overlay.template}</p>
-                    
-                    <div className="space-y-2 mb-4">
-                      <label className="block text-xs font-medium text-slate-400 mb-1">Public URL</label>
+
+                    <p className="text-xs mb-3 truncate" style={{ color: 'var(--text-muted)' }}>
+                      {overlay.template}
+                    </p>
+
+                    {/* Public URL */}
+                    <div className="mb-3">
+                      <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>Public URL</label>
                       <div className="flex gap-1">
                         <input
-                          readOnly
-                          value={overlay.publicUrl || ''}
-                          className="flex-1 text-xs px-3 py-2 bg-slate-700/70 border border-slate-600 text-slate-200 rounded-lg truncate"
+                          readOnly value={overlay.publicUrl || ''}
+                          className="flex-1 text-xs px-2.5 py-2 rounded-lg truncate outline-none"
+                          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
                         />
-                        <button
-                          onClick={() => handleCopyUrl(overlay)}
-                          className="p-2 hover:bg-slate-600/50 rounded-lg transition-colors border border-slate-600"
-                          title="Copy URL"
-                        >
-                          {copiedId === overlay._id ? (
-                            <span className="text-emerald-400 font-bold">✓</span>
-                          ) : (
-                            <Copy className="w-4 h-4 text-slate-400" />
-                          )}
+                        <button onClick={() => handleCopyUrl(overlay)}
+                          className="p-2 rounded-lg transition-all flex-shrink-0"
+                          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: copiedId === overlay._id ? 'var(--accent)' : 'var(--text-muted)' }}
+                          title="Copy URL">
+                          {copiedId === overlay._id ? <span className="text-xs font-bold">✓</span> : <Copy className="w-3.5 h-3.5" />}
                         </button>
-                        <button
-                          onClick={() => handleRegenerateUrl(overlay._id!)}
+                        <button onClick={() => handleRegenerateUrl(overlay._id!)}
                           disabled={regeneratingId === overlay._id}
-                          className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-all disabled:opacity-50 border border-blue-500/30"
-                          title="Regenerate (24h)"
-                        >
-                          {regeneratingId === overlay._id ? (
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <RefreshCw className="w-4 h-4" />
-                          )}
+                          className="p-2 rounded-lg transition-all flex-shrink-0 disabled:opacity-50"
+                          style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', color: '#60a5fa' }}
+                          title="Regenerate (24h)">
+                          <RefreshCw className={`w-3.5 h-3.5 ${regeneratingId === overlay._id ? 'animate-spin' : ''}`} />
                         </button>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center justify-between text-xs">
-                        <span className={overlay.isUrlExpired
-                          ? "px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30"
-                          : "px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                        }>
 
-                        {overlay.isUrlExpired ? '⚠️ Expired' : '✅ Active'}
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="px-2 py-1 rounded-full font-semibold"
+                        style={overlay.isUrlExpired
+                          ? { background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }
+                          : { background: 'rgba(34,197,94,0.1)', color: 'var(--accent)', border: '1px solid rgba(34,197,94,0.2)' }}>
+                        {overlay.isUrlExpired ? '⚠ Expired' : '● Active'}
                       </span>
-                      {overlay.urlExpiresAt && (
-                        <span className="text-slate-500">
-                          {formatTimeRemaining(overlay.urlExpiresAt)} left
-                        </span>
+                      {overlay.urlExpiresAt && !overlay.isUrlExpired && (
+                        <span style={{ color: 'var(--text-muted)' }}>{formatTimeRemaining(overlay.urlExpiresAt)} left</span>
                       )}
                     </div>
                   </div>
@@ -510,192 +505,187 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
         </div>
       </div>
 
-      {/* Modals remain unchanged - already themed */}
+      {/* ── Create Modal ── */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-slate-200">Create Overlay</h3>
-              <button onClick={() => setShowCreateModal(false)} className="p-1 hover:bg-slate-800 rounded-lg">
-                <X className="w-5 h-5 text-slate-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setShowCreateModal(false); }}>
+          <div className="rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
+            <div className="flex justify-between items-center px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-6 rounded-full" style={{ background: 'var(--accent)' }} />
+                <h3 className="text-base font-black" style={{ color: 'var(--text-primary)' }}>Create Overlay</h3>
+              </div>
+              <button onClick={() => setShowCreateModal(false)} className="p-1.5 rounded-lg" style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <form onSubmit={handleCreateOverlay} className="space-y-4">
+            <form onSubmit={handleCreateOverlay} className="p-5 space-y-4">
+              {[
+                { label: 'Overlay Name', key: 'name', type: 'input', placeholder: 'e.g. Final Match Scoreboard' },
+              ].map(f => (
+                <div key={f.key}>
+                  <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-muted)' }}>{f.label}</label>
+                  <input
+                    type="text" value={createFormData.name} required
+                    onChange={e => setCreateFormData({ ...createFormData, name: e.target.value })}
+                    placeholder={f.placeholder}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none transition-all"
+                    style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                  />
+                </div>
+              ))}
               <div>
-                <label className="block text-sm font-medium mb-2 text-slate-300">Name</label>
-                <input
-                  type="text"
-                  value={createFormData.name}
-                  onChange={(e) => setCreateFormData({...createFormData, name: e.target.value})}
-                  className="w-full px-4 py-3 border border-slate-600 bg-slate-800 text-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  placeholder="e.g. Final Match Scoreboard"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2 text-slate-300">Template</label>
-                <select
-                  value={createFormData.template}
-                  onChange={(e) => setCreateFormData({...createFormData, template: e.target.value})}
-                  className="w-full px-4 py-3 border border-slate-600 bg-slate-800 text-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  required
-                >
+                <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Template</label>
+                <select value={createFormData.template} onChange={e => setCreateFormData({ ...createFormData, template: e.target.value })} required
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
                   <option value="">Select Template</option>
-                  {templates.map(t => (
-                    <option key={t.id} value={t.file}>{t.name} ({t.category})</option>
-                  ))}
+                  {templates.map(t => <option key={t.id} value={t.file}>{t.name} ({t.category})</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2 text-slate-300">Match</label>
-                <select
-                  value={createFormData.match}
-                  onChange={(e) => setCreateFormData({...createFormData, match: e.target.value})}
-                  className="w-full px-4 py-3 border border-slate-600 bg-slate-800 text-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  required
-                >
+                <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Match</label>
+                <select value={createFormData.match} onChange={e => setCreateFormData({ ...createFormData, match: e.target.value })} required
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
                   <option value="">Select Match</option>
-                  {matches.map((m) => (
+                  {matches.map(m => (
                     <option key={m._id} value={m._id}>
-                      {m.name ? `${m.name} - ` : ''}{m.team1?.name || 'Team 1'} vs {m.team2?.name || 'Team 2'} ({m.status || 'scheduled'})
+                      {m.name ? `${m.name} – ` : ''}{m.team1?.name || 'T1'} vs {m.team2?.name || 'T2'} ({m.status || 'scheduled'})
                     </option>
                   ))}
                 </select>
               </div>
-              <button
-                type="submit"
-                disabled={createLoading}
-                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-900 font-bold py-3 px-6 rounded-xl hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {createLoading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-5 h-5" />
-                    Create Overlay
-                  </>
-                )}
+              <button type="submit" disabled={createLoading}
+                className="w-full py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000' }}>
+                {createLoading
+                  ? <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Creating…</>
+                  : <><Plus className="w-4 h-4" /> Create Overlay</>}
               </button>
             </form>
           </div>
         </div>
       )}
 
+      {/* ── Preview Modal ── */}
       {showPreviewModal && previewOverlay && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6"
           style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}
           onClick={e => { if (e.target === e.currentTarget) setShowPreviewModal(false); }}
         >
-          <div
-            className="rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden"
-            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', maxHeight: '90vh' }}
-          >
+          <div className="rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', maxHeight: '90vh' }}>
+
             {/* Header */}
-            <div
-              className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-5 py-4 gap-3 flex-shrink-0"
-              style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}
-            >
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center px-5 py-4 gap-3 flex-shrink-0"
+              style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}>
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-1.5 h-6 rounded-full" style={{ background: 'var(--accent)' }} />
-                  <h3 className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>
-                    {previewOverlay?.name}
-                  </h3>
+                  <h3 className="text-base font-black" style={{ color: 'var(--text-primary)' }}>{previewOverlay.name}</h3>
                 </div>
                 <div className="flex items-center gap-2 ml-3.5">
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Template:</span>
-                  <select
-                    value={previewTemplate}
-                    onChange={e => setPreviewTemplate(e.target.value)}
-                    className="px-2 py-1 rounded-lg text-xs font-semibold transition-all outline-none"
-                    style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-                  >
-                    {templates.map(t => (
-                      <option key={t.id} value={t.file}>{t.name}</option>
-                    ))}
+                  <select value={previewTemplate} onChange={e => setPreviewTemplate(e.target.value)}
+                    className="px-2 py-1 rounded-lg text-xs font-semibold outline-none"
+                    style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+                    {templates.map(t => <option key={t.id} value={t.file}>{t.name}</option>)}
                   </select>
-                  <span
-                    className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                    style={previewOverlay?.isUrlExpired
+                  <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                    style={previewOverlay.isUrlExpired
                       ? { background: 'rgba(239,68,68,0.1)', color: '#f87171' }
-                      : { background: 'rgba(34,197,94,0.1)', color: 'var(--accent)' }
-                    }
-                  >
-                    {previewOverlay?.isUrlExpired ? 'Expired' : 'Active'}
+                      : { background: 'rgba(34,197,94,0.1)', color: 'var(--accent)' }}>
+                    {previewOverlay.isUrlExpired ? 'Expired' : 'Active'}
                   </span>
                 </div>
               </div>
               <div className="flex gap-2 flex-shrink-0">
-                <button
-                  onClick={() => {
-                    if (previewOverlay && previewTemplate !== previewOverlay.template) {
-                      if (confirm('Update overlay template permanently?')) {
-                        console.log('Would update template to:', previewTemplate);
-                      }
-                    }
-                  }}
+                <button onClick={() => { if (previewOverlay && previewTemplate !== previewOverlay.template) { if (confirm('Update overlay template permanently?')) { console.log('Would update template to:', previewTemplate); } } }}
                   disabled={!previewOverlay || previewTemplate === previewOverlay.template}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40"
-                  style={{ background: 'rgba(34,197,94,0.15)', color: 'var(--accent)', border: '1px solid rgba(34,197,94,0.3)' }}
-                >
+                  style={{ background: 'rgba(34,197,94,0.1)', color: 'var(--accent)', border: '1px solid rgba(34,197,94,0.25)' }}>
                   <Save className="w-3.5 h-3.5" /> Apply
                 </button>
-                <a
-                  href={previewOverlay?.publicUrl || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
-                  style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}
-                >
+                <a href={previewOverlay.publicUrl || '#'} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold"
+                  style={{ background: 'rgba(59,130,246,0.1)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.25)' }}>
                   <ExternalLink className="w-3.5 h-3.5" /> Fullscreen
                 </a>
-                <button
-                  onClick={() => setShowPreviewModal(false)}
+                <button onClick={() => setShowPreviewModal(false)}
                   className="p-2 rounded-xl transition-all"
-                  style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}
-                >
+                  style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Controls bar */}
-            <div
-              className="flex flex-wrap items-center gap-3 px-5 py-3 flex-shrink-0"
-              style={{ borderBottom: '1px solid var(--border)' }}
-            >
-              <div className="flex items-center gap-2">
+            {/* Controls bar — zoom + push test buttons, NO slider */}
+            <div className="flex flex-wrap items-center gap-3 px-5 py-3 flex-shrink-0"
+              style={{ borderBottom: '1px solid var(--border)' }}>
+              <div className="flex items-center gap-1.5">
                 <Eye className="w-3.5 h-3.5" style={{ color: 'var(--accent)' }} />
                 <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
                   Live Preview
                 </span>
               </div>
-              <div className="flex items-center gap-2 flex-1 min-w-[160px]">
-                <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Progress:</label>
-                <input
-                  type="range" min="0" max="100" step="4"
-                  value={previewProgress}
-                  onChange={e => setPreviewProgress(Number(e.target.value))}
-                  className="flex-1 h-2 rounded cursor-pointer"
-                  style={{ accentColor: 'var(--accent)' }}
-                />
-                <span className="text-xs font-bold tabular-nums w-8" style={{ color: 'var(--accent)' }}>
-                  {previewProgress}%
-                </span>
-              </div>
+
+              {/* Zoom controls */}
               <ManagerPreviewZoom containerRef={previewContainerRef} />
+
+              {/* Spacer */}
+              <div className="flex-1" />
+
+              {/* Push test buttons — 4, 6, OUT */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Test push:</span>
+                <button
+                  onClick={() => {
+                    const data = { ...getDemoData(0.69), lastBall: 'FOUR', lastBallRuns: 4 };
+                    updatePreviewData(previewContainerRef.current, data);
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95"
+                  style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}
+                  title="Push FOUR to overlay"
+                >
+                  4️⃣ FOUR
+                </button>
+                <button
+                  onClick={() => {
+                    const data = { ...getDemoData(0.69), lastBall: 'SIX', lastBallRuns: 6 };
+                    updatePreviewData(previewContainerRef.current, data);
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95"
+                  style={{ background: 'rgba(168,85,247,0.15)', color: '#c084fc', border: '1px solid rgba(168,85,247,0.3)' }}
+                  title="Push SIX to overlay"
+                >
+                  6️⃣ SIX
+                </button>
+                <button
+                  onClick={() => {
+                    const data = { ...getDemoData(0.69), lastBall: 'WICKET', lastBallRuns: 0, wicket: true };
+                    updatePreviewData(previewContainerRef.current, data);
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95"
+                  style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}
+                  title="Push WICKET to overlay"
+                >
+                  🎯 OUT
+                </button>
+              </div>
             </div>
 
-            {/* Preview area */}
+            {/* Preview frame */}
             <div className="flex-1 overflow-hidden p-4" style={{ background: '#000', minHeight: 0 }}>
               <div
                 ref={previewContainerRef}
-                className="w-full h-full rounded-xl overflow-hidden relative"
-                style={{ aspectRatio: '16/9', border: '1px solid rgba(255,255,255,0.08)' }}
+                className="w-full h-full rounded-xl overflow-hidden"
+                style={{ aspectRatio: '16/9', border: '1px solid rgba(255,255,255,0.06)', minHeight: '200px' }}
               >
                 <OverlayPreviewRenderer
                   template={previewTemplate}
@@ -710,44 +700,50 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
         </div>
       )}
 
+      {/* ── Edit Modal ── */}
       {showEditModal && editOverlay && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-xl p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-slate-200">Edit Overlay</h3>
-              <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-slate-800 rounded-lg">
-                <X className="w-5 h-5 text-slate-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setShowEditModal(false); }}>
+          <div className="rounded-2xl shadow-xl w-full max-w-md"
+            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
+            <div className="flex justify-between items-center px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-6 rounded-full" style={{ background: '#fbbf24' }} />
+                <h3 className="text-base font-black" style={{ color: 'var(--text-primary)' }}>Edit Overlay</h3>
+              </div>
+              <button onClick={() => setShowEditModal(false)} className="p-1.5 rounded-lg"
+                style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="space-y-4 mb-6">
+            <div className="p-5 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2 text-slate-300">Name</label>
-                <input
-                  type="text"
-                  value={editFormData.name}
-                  onChange={(e) => setEditFormData({ name: e.target.value })}
-                  className="w-full px-4 py-3 border border-slate-600 bg-slate-800 text-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Name</label>
+                <input type="text" value={editFormData.name}
+                  onChange={e => setEditFormData({ name: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none transition-all"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                  onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--border)'}
                 />
               </div>
-              <div className="text-sm text-slate-400 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                <p><strong>Template:</strong> {editOverlay.template}</p>
-                <p><strong>Status:</strong> {editOverlay.isUrlExpired ? 'Expired' : 'Active'}</p>
+              <div className="p-3 rounded-xl text-xs" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                <p><span className="font-semibold">Template:</span> {editOverlay.template}</p>
+                <p className="mt-1"><span className="font-semibold">Status:</span> {editOverlay.isUrlExpired ? '⚠ Expired' : '● Active'}</p>
               </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={handleSaveEdit}
-                disabled={editLoading}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-slate-100 font-bold py-3 px-6 rounded-xl transition-all shadow-lg"
-              >
-                {editLoading ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-3 px-6 rounded-xl transition-all"
-              >
-                Cancel
-              </button>
+              <div className="flex gap-3">
+                <button onClick={handleSaveEdit} disabled={editLoading}
+                  className="flex-1 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000' }}>
+                  {editLoading ? <><RefreshCw className="w-4 h-4 animate-spin" /> Saving…</> : <><Save className="w-4 h-4" /> Save Changes</>}
+                </button>
+                <button onClick={() => setShowEditModal(false)}
+                  className="flex-1 py-2.5 rounded-xl font-bold text-sm transition-all"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -755,4 +751,3 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
     </>
   );
 }
-

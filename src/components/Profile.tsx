@@ -1,8 +1,100 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../App';
 import api from '../services/api';
-import { User, Mail, Shield, CreditCard, Edit3, Save, X, RefreshCw } from 'lucide-react';
+import {
+  User, Mail, Shield, CreditCard, Edit3, Save, X,
+  RefreshCw, Calendar, Star, Crown, Zap, Key, Check
+} from 'lucide-react';
 
+const MEMBERSHIP = [
+  { label: 'Free',       icon: Zap,   color: '#64748b', bg: 'rgba(100,116,139,0.12)', border: 'rgba(100,116,139,0.3)' },
+  { label: 'Premium',   icon: Star,  color: '#22c55e', bg: 'rgba(34,197,94,0.12)',   border: 'rgba(34,197,94,0.3)'   },
+  { label: 'Enterprise',icon: Crown, color: '#a855f7', bg: 'rgba(168,85,247,0.12)', border: 'rgba(168,85,247,0.3)'  },
+];
+
+function PasswordSection() {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ current: '', next: '', confirm: '' });
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (form.next !== form.confirm) { setMsg({ text: 'Passwords do not match', ok: false }); return; }
+    if (form.next.length < 6) { setMsg({ text: 'Password must be at least 6 characters', ok: false }); return; }
+    setSaving(true); setMsg(null);
+    try {
+      await api.put('/auth/change-password', { currentPassword: form.current, newPassword: form.next });
+      setMsg({ text: 'Password changed!', ok: true });
+      setForm({ current: '', next: '', confirm: '' });
+      setTimeout(() => { setOpen(false); setMsg(null); }, 2000);
+    } catch (e: any) {
+      setMsg({ text: e.response?.data?.message || 'Failed to change password', ok: false });
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
+      <button
+        onClick={() => { setOpen(o => !o); setMsg(null); }}
+        className="w-full flex items-center justify-between px-5 py-4 text-left transition-all"
+        style={{ color: 'var(--text-primary)' }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(59,130,246,0.12)' }}>
+            <Key className="w-4 h-4" style={{ color: '#60a5fa' }} />
+          </div>
+          <div>
+            <p className="font-bold text-sm">Change Password</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Update your account password</p>
+          </div>
+        </div>
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--bg-elevated)' }}>
+          <span className="text-xs font-bold" style={{ color: 'var(--text-muted)' }}>{open ? '−' : '+'}</span>
+        </div>
+      </button>
+
+      {open && (
+        <div className="px-5 pb-5 border-t" style={{ borderColor: 'var(--border)' }}>
+          {msg && (
+            <div className="mt-4 mb-3 p-3 rounded-xl flex items-center gap-2 text-sm"
+              style={msg.ok
+                ? { background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', color: '#22c55e' }
+                : { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}>
+              {msg.ok ? <Check className="w-4 h-4 flex-shrink-0" /> : <X className="w-4 h-4 flex-shrink-0" />}
+              {msg.text}
+            </div>
+          )}
+          <form onSubmit={save} className="space-y-3 mt-4">
+            {[
+              { label: 'Current Password', key: 'current' as const, placeholder: '••••••••' },
+              { label: 'New Password',     key: 'next'    as const, placeholder: 'Min 6 characters' },
+              { label: 'Confirm New',      key: 'confirm' as const, placeholder: 'Repeat new password' },
+            ].map(f => (
+              <div key={f.key}>
+                <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>{f.label}</label>
+                <input
+                  type="password" value={form[f.key]} required
+                  onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                  placeholder={f.placeholder}
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none transition-all"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                  onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                />
+              </div>
+            ))}
+            <button type="submit" disabled={saving}
+              className="w-full py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+              style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000' }}>
+              {saving ? <><RefreshCw className="w-4 h-4 animate-spin" /> Saving…</> : <><Save className="w-4 h-4" /> Update Password</>}
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Profile() {
   const { user } = useAuth();
@@ -10,7 +102,7 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ username: '', fullName: '' });
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState('');
+  const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   useEffect(() => {
     api.get('/auth/me').then(r => {
@@ -22,171 +114,183 @@ export default function Profile() {
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    setSaving(true); setMsg(null);
     try {
       await api.put('/users/profile', form);
       setProfile((p: any) => ({ ...p, ...form }));
       setEditing(false);
-      setMsg('Profile updated!');
-      setTimeout(() => setMsg(''), 3000);
+      setMsg({ text: 'Profile updated successfully!', ok: true });
+      setTimeout(() => setMsg(null), 3000);
     } catch (e: any) {
-      setMsg(e.response?.data?.message || 'Update failed');
+      setMsg({ text: e.response?.data?.message || 'Update failed', ok: false });
     } finally { setSaving(false); }
   };
 
-  const membershipLabels = ['Free', 'Premium', 'Enterprise'];
-  const membershipColors = ['text-slate-400', 'text-amber-400', 'text-purple-400'];
+  const level = profile?.membershipLevel || 0;
+  const mem = MEMBERSHIP[level] || MEMBERSHIP[0];
+  const MemIcon = mem.icon;
+
+  const membershipExpiry = profile?.membershipExpiresAt
+    ? new Date(profile.membershipExpiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    : null;
 
   return (
-    <div className="p-6 md:p-8 max-w-4xl mx-auto">
-      <div className="mb-8 flex items-center gap-3">
-        <div className="w-2 h-10 rounded-full bg-gradient-to-b from-[var(--accent)] to-green-600" />
-        <h1 className="text-3xl md:text-4xl font-black" style={{ color: 'var(--text-primary)' }}>Profile</h1>
-      </div>
+    <div className="min-h-screen relative" style={{ background: 'var(--bg-primary)' }}>
+      {/* BG orbs */}
+      <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.05) 0%, transparent 70%)' }} />
 
-      {msg && (
-        <div className={`mb-6 p-4 rounded-3xl text-sm backdrop-blur-xl shadow-2xl ${
-          msg.includes('updated') ? 'bg-green-900/20 border border-green-700/40 text-green-300' : 'bg-red-900/20 border border-red-700/40 text-red-300'
-        }`} style={{ border: '1px solid var(--border)' }}>
-          {msg}
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-green-400 to-emerald-600" />
+          <h1 className="text-2xl sm:text-3xl font-black" style={{ color: 'var(--text-primary)' }}>Profile</h1>
         </div>
-      )}
 
-      <div className="grid md:grid-cols-2 gap-8" style={{ 
-        background: 'var(--bg-card)', 
-        border: '1px solid var(--border)', 
-        borderRadius: '1.5rem', 
-        padding: '2rem', 
-        backdropFilter: 'blur(20px)',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-      }}>
-        {/* Profile Header */}
-        <div className="md:col-span-2 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-8 md:pb-12 border-b" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
-          <div className="flex items-center gap-6">
-            <div className="relative group" style={{ 
-              width: '5rem', height: '5rem', 
-              background: 'linear-gradient(135deg, var(--accent), #10b981)', 
-              borderRadius: '1.5rem',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: '900', fontSize: '1.5rem', color: 'white',
-              boxShadow: '0 0 0 0.25rem rgba(34,197,94,0.2)'
-            }}>
-              <span>{(profile?.username || user?.username || 'U')[0]?.toUpperCase()}</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-[var(--accent)]/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-[1.5rem] blur-xl animate-pulse" />
+        {/* Status message */}
+        {msg && (
+          <div className="mb-5 p-3.5 rounded-2xl flex items-center gap-2.5 text-sm"
+            style={msg.ok
+              ? { background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', color: '#22c55e' }
+              : { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}>
+            {msg.ok ? <Check className="w-4 h-4 flex-shrink-0" /> : <X className="w-4 h-4 flex-shrink-0" />}
+            {msg.text}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {/* ── Avatar card ── */}
+          <div
+            className="rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+          >
+            {/* Avatar */}
+            <div
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center font-black text-2xl sm:text-3xl flex-shrink-0 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #22c55e, #10b981)',
+                color: '#000',
+                boxShadow: '0 0 0 4px rgba(34,197,94,0.15)',
+              }}
+            >
+              {(profile?.username || user?.username || 'U')[0]?.toUpperCase()}
             </div>
-            <div>
-              <h2 className="text-2xl md:text-3xl font-black leading-tight" style={{ color: 'var(--text-primary)' }}>
+
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-black truncate" style={{ color: 'var(--text-primary)' }}>
                 {profile?.username || user?.username}
               </h2>
-              <p className="text-lg mt-1" style={{ color: 'var(--text-muted)' }}>{profile?.email || user?.email}</p>
-              <p className={`text-base font-bold mt-1 px-3 py-1 rounded-xl inline-block ${
-                profile?.membershipLevel === 1 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-400/30' :
-                profile?.membershipLevel === 2 ? 'bg-purple-500/10 text-purple-400 border border-purple-400/30' :
-                'bg-slate-800/50 text-slate-400 border border-slate-700/50'
-              }`}>
-                {membershipLabels[profile?.membershipLevel || 0]} Member
+              <p className="text-sm mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>
+                {profile?.email || user?.email}
               </p>
+              {/* Membership badge */}
+              <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                <div
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+                  style={{ background: mem.bg, border: `1px solid ${mem.border}`, color: mem.color }}
+                >
+                  <MemIcon className="w-3 h-3" />
+                  {mem.label} Member
+                </div>
+                {profile?.role === 'admin' && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+                    style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
+                    <Shield className="w-3 h-3" /> Admin
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          <button onClick={() => setEditing(!editing)}
-            className="group flex items-center gap-2 px-6 py-3 font-bold text-sm rounded-2xl transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
-            style={{
-              background: 'var(--bg-elevated)',
-              border: '1px solid var(--border-hover)',
-              color: 'var(--text-secondary)',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.1)'
-            }}>
-            {editing ? (
-              <>
-                <X className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span>Cancel</span>
-              </>
-            ) : (
-              <>
-                <Edit3 className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span>Edit Profile</span>
-              </>
-            )}
-          </button>
-        </div>
 
-        {/* Edit Form or Details */}
-        <div className={editing ? 'md:col-span-2' : ''}>
-          {editing ? (
-            <form onSubmit={save} className="space-y-6" style={{ backdropFilter: 'blur(12px)' }}>
-              <div className="space-y-4">
+            <button
+              onClick={() => { setEditing(v => !v); setMsg(null); }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all hover:scale-[1.02] flex-shrink-0"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
+            >
+              {editing ? <><X className="w-4 h-4" /> Cancel</> : <><Edit3 className="w-4 h-4" /> Edit</>}
+            </button>
+          </div>
+
+          {/* ── Edit form ── */}
+          {editing && (
+            <div className="rounded-2xl p-5 sm:p-6" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+              <h3 className="font-bold text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>Edit Profile</h3>
+              <form onSubmit={save} className="space-y-4">
                 <div>
-                  <label className="text-sm font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>Username</label>
-                  <input 
-                    value={form.username} 
+                  <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Username</label>
+                  <input
+                    value={form.username}
                     onChange={e => setForm({ ...form, username: e.target.value })}
-                    className="w-full px-4 py-3.5 text-sm font-semibold rounded-2xl focus:outline-none focus:ring-2 ring-[var(--accent)] transition-all"
-                    style={{
-                      background: 'var(--bg-elevated)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--text-primary)'
-                    }}
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+                    style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-bold mb-2 block" style={{ color: 'var(--text-secondary)' }}>Full Name</label>
-                  <input 
-                    value={form.fullName} 
+                  <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Full Name</label>
+                  <input
+                    value={form.fullName}
                     onChange={e => setForm({ ...form, fullName: e.target.value })}
                     placeholder="Enter your full name"
-                    className="w-full px-4 py-3.5 text-sm font-semibold rounded-2xl focus:outline-none focus:ring-2 ring-[var(--accent)] transition-all"
-                    style={{
-                      background: 'var(--bg-elevated)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--text-primary)'
-                    }}
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+                    style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
                   />
                 </div>
-              </div>
-              <button type="submit" disabled={saving}
-                className="w-full lg:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-[var(--accent)] to-green-600 hover:from-green-600 hover:to-emerald-600 text-white font-black text-lg rounded-2xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saving ? (
-                  <>
-                    <RefreshCw className="w-5 h-5 animate-spin" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-5 h-5" />
-                    <span>Save Changes</span>
-                  </>
-                )}
-              </button>
-            </form>
-          ) : (
-            <div className="space-y-6" style={{ backdropFilter: 'blur(12px)' }}>
-              {[
-                { label: 'Email', value: profile?.email || '—', icon: Mail, className: '' },
-                { label: 'Role', value: profile?.role || 'User', icon: Shield, className: profile?.role === 'admin' ? 'border-red-500/30 bg-red-500/5' : '' },
-                { label: 'Full Name', value: profile?.fullName || '—', icon: User, className: '' },
-                { label: 'Member Since', value: profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—', icon: CreditCard, className: '' },
-              ].map(({ label, value, icon: Icon, className }, i) => (
-                <div key={label} className={`flex items-center gap-4 p-5 rounded-2xl group hover:-translate-y-1 transition-all ${className}`} 
-                     style={{
-                       background: 'var(--bg-elevated)',
-                       border: '1px solid var(--border)',
-                       boxShadow: '0 4px 14px rgba(0,0,0,0.08)'
-                     }}>
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--accent)]/10 p-3 flex-shrink-0 flex items-center justify-center group-hover:scale-110 transition-all">
-                    <Icon className="w-6 h-6 text-[var(--accent)]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-sm font-bold block mb-1 opacity-80" style={{ color: 'var(--text-secondary)' }}>{label}</span>
-                    <span className="text-lg font-black capitalize" style={{ color: 'var(--text-primary)' }}>{value}</span>
-                  </div>
-                </div>
-              ))}
+                <button type="submit" disabled={saving}
+                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-50 hover:scale-[1.02]"
+                  style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 20px rgba(34,197,94,0.25)' }}>
+                  {saving ? <><RefreshCw className="w-4 h-4 animate-spin" /> Saving…</> : <><Save className="w-4 h-4" /> Save Changes</>}
+                </button>
+              </form>
             </div>
           )}
+
+          {/* ── Info cards ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              { label: 'Email',        value: profile?.email || '—',  icon: Mail,     iconColor: '#60a5fa' },
+              { label: 'Full Name',    value: profile?.fullName || '—', icon: User,   iconColor: 'var(--accent)' },
+              { label: 'Role',         value: profile?.role || 'viewer', icon: Shield, iconColor: profile?.role === 'admin' ? '#f87171' : 'var(--text-muted)' },
+              { label: 'Member Since', value: profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—', icon: Calendar, iconColor: '#f59e0b' },
+            ].map(({ label, value, icon: Icon, iconColor }) => (
+              <div key={label}
+                className="flex items-center gap-3.5 p-4 rounded-2xl transition-all hover:-translate-y-0.5"
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'var(--bg-elevated)' }}>
+                  <Icon className="w-4 h-4" style={{ color: iconColor }} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>{label}</p>
+                  <p className="text-sm font-bold capitalize truncate mt-0.5" style={{ color: 'var(--text-primary)' }}>{value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Membership expiry if active */}
+          {level > 0 && membershipExpiry && (
+            <div
+              className="flex items-center gap-3.5 p-4 rounded-2xl"
+              style={{ background: mem.bg, border: `1px solid ${mem.border}` }}
+            >
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'var(--bg-card)' }}>
+                <CreditCard className="w-4 h-4" style={{ color: mem.color }} />
+              </div>
+              <div>
+                <p className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Membership Expires</p>
+                <p className="text-sm font-bold mt-0.5" style={{ color: mem.color }}>{membershipExpiry}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Password change */}
+          <PasswordSection />
         </div>
       </div>
     </div>
   );
 }
-

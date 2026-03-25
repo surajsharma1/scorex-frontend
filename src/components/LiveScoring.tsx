@@ -61,7 +61,7 @@ function TossModal({ match, onDone }: { match: any; onDone: (data: any) => void 
   );
 }
 
-function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, title, defaultStriker = '', defaultNonStriker = '', defaultBowler = '', onDone, onClose }: any) {
+function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, title, defaultStriker = '', defaultNonStriker = '', defaultBowler = '', onDone, onClose, currentInningsData }: any) {
   const [striker, setStriker] = useState(defaultStriker);
   const [nonStriker, setNonStriker] = useState(defaultNonStriker);
   const [bowler, setBowler] = useState(defaultBowler);
@@ -73,8 +73,18 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
   const t1Id = match.team1?._id || match.team1;
   const battingTeam = t1Id === battingTeamId ? match.team1 : match.team2;
   const bowlingTeam = battingTeam === match.team1 ? match.team2 : match.team1;
-  const bPlayers: any[] = battingTeam?.players || [];
+  const allBPlayers: any[] = battingTeam?.players || [];
   const bowlPlayers: any[] = bowlingTeam?.players || [];
+
+  // Build set of out players from current innings data so they're excluded
+  const outPlayerNames = new Set<string>(
+    (currentInningsData?.batsmen || [])
+      .filter((b: any) => b.isOut)
+      .map((b: any) => b.name)
+  );
+
+  // Available batting players = team roster minus dismissed players
+  const availableBatsmen = allBPlayers.filter((p: any) => !outPlayerNames.has(p.name));
 
   const isValid = () => striker && nonStriker && bowler && striker !== nonStriker;
 
@@ -83,27 +93,28 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
       <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-lg my-4 relative">
         {onClose && <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-white"><X className="w-5 h-5" /></button>}
         <h2 className="text-xl font-black text-white mb-2 flex items-center gap-2"><Users className="w-5 h-5 text-blue-400" /> {title}</h2>
-        <p className="text-slate-500 text-xs mb-5">Innings {inningsNum} | {battingTeam?.name || 'Batting Team'} vs {bowlingTeam?.name || 'Bowling Team'}</p>
+        <p className="text-slate-500 text-xs mb-1">Innings {inningsNum} | {battingTeam?.name || 'Batting Team'} vs {bowlingTeam?.name || 'Bowling Team'}</p>
+        {outPlayerNames.size > 0 && (
+          <p className="text-amber-500/70 text-xs mb-4">⚠ {outPlayerNames.size} dismissed player{outPlayerNames.size > 1 ? 's' : ''} hidden from selection</p>
+        )}
 
         <div className="space-y-4">
           <div>
             <label className="text-slate-400 text-sm font-semibold mb-1.5 block">🏏 Striker</label>
             <select value={striker} onChange={e => setStriker(e.target.value)} className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm">
               <option value="">-- Select Player --</option>
-              {bPlayers.map((p: any) => <option key={p._id || p.name} value={p.name}>{p.name}</option>)}
+              {availableBatsmen.map((p: any) => <option key={p._id || p.name} value={p.name}>{p.name}</option>)}
             </select>
           </div>
           <div>
             <label className="text-slate-400 text-sm font-semibold mb-1.5 block">⬤ Non-Striker</label>
             <select value={nonStriker} onChange={e => setNonStriker(e.target.value)} className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm">
               <option value="">-- Select Player --</option>
-              {bPlayers.filter((p: any) => p.name !== striker).map((p: any) => <option key={p._id || p.name} value={p.name}>{p.name}</option>)}
+              {availableBatsmen.filter((p: any) => p.name !== striker).map((p: any) => <option key={p._id || p.name} value={p.name}>{p.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-slate-400 text-sm font-semibold mb-1.5 flex justify-between">
-              <span>🎳 Bowler</span> 
-            </label>
+            <label className="text-slate-400 text-sm font-semibold mb-1.5 block">🎳 Bowler</label>
             <select value={bowler} onChange={e => setBowler(e.target.value)} className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm">
               <option value="">-- Select Bowler --</option>
               {bowlPlayers.map((p: any) => <option key={p._id || p.name} value={p.name}>{p.name}</option>)}
@@ -214,8 +225,23 @@ export default function LiveScoring() {
     } catch (e: any) { setError(e.response?.data?.message || 'Failed to record ball'); } finally { setSubmitting(false); }
   };
 
+  const handleStrikeChange = async () => {
+    if (!id || submitting) return;
+    setSubmitting(true);
+    try {
+      await matchAPI.selectPlayers(id, {
+        striker: match?.nonStrikerName,
+        nonStriker: match?.strikerName,
+        bowler: match?.currentBowlerName,
+      });
+      await fetchMatch();
+      setLastBall('⇄ Strike Changed');
+    } catch (e: any) { setError('Failed to change strike'); }
+    finally { setSubmitting(false); }
+  };
+
   const handleRetirement = (type: 'striker' | 'nonStriker') => {
-    setPanel('main'); 
+    setPanel('main');
     setStep('playerSelect');
     submitBall({ retired: true, outBatsmanName: type === 'striker' ? match?.strikerName : match?.nonStrikerName });
   };
@@ -297,7 +323,8 @@ export default function LiveScoring() {
       {(step === 'players' || step === 'playerSelect') && (
         <PlayerSelectModal match={match} battingTeamId={currentBattingTeamId} bowlingTeamId={currentBowlingTeamId} inningsNum={match.currentInnings || 1}
           title={step === 'players' ? 'Select Opening Players' : 'Player Selection'}
-          defaultStriker={defStriker} defaultNonStriker={defNonStriker} defaultBowler={defBowler} 
+          defaultStriker={defStriker} defaultNonStriker={defNonStriker} defaultBowler={defBowler}
+          currentInningsData={innings}
           onDone={handlePlayersDone} onClose={step === 'playerSelect' ? () => setStep('scoring') : undefined} />
       )}
 
@@ -465,6 +492,7 @@ export default function LiveScoring() {
         {panel === 'others' && (
           <div className="space-y-3">
              <div className="flex items-center gap-2 mb-4"><button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Other Actions</h3></div>
+            <button onClick={() => { setPanel('main'); handleStrikeChange(); }} disabled={submitting} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-blue-900/30 hover:bg-blue-700/40 text-left border border-blue-700/40 text-blue-300 disabled:opacity-40">⇄ Change Strike (Swap Batsmen)</button>
             <button onClick={() => handleRetirement('striker')} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🚶 Retired Hurt (Striker)</button>
             <button onClick={() => handleRetirement('nonStriker')} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🚶 Retired Hurt (Non-Striker)</button>
             <button onClick={() => { setPanel('main'); setStep('playerSelect'); }} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🔄 Change Bowler Mid-Over</button>
