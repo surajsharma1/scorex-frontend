@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Eye, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { Eye, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCcw, Circle, Award, Target } from 'lucide-react';
 
 interface MembershipPreviewProps {
   overlayFile: string;
@@ -9,6 +9,9 @@ interface MembershipPreviewProps {
 
 const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, planName, baseUrl }) => {
   const [progress, setProgress] = useState(50);
+  const [demoRuns, setDemoRuns] = useState(0);
+  const [demoWickets, setDemoWickets] = useState(0);
+  const [demoSixes, setDemoSixes] = useState(0);
   const [iframeLoading, setIframeLoading] = useState(true);
   const [iframeError, setIframeError] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -17,7 +20,7 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
   const [containerW, setContainerW] = useState(0);
   const [containerH, setContainerH] = useState(0);
 
-  const previewUrl = `${baseUrl}/overlays/${overlayFile}?demo=true&progress=${progress}%`;
+  const previewUrl = `${baseUrl}/overlays/${overlayFile}?demo=true&progress=${progress}%&runs=${demoRuns}&wickets=${demoWickets}&sixes=${demoSixes}`;
 
   // Measure container
   useEffect(() => {
@@ -77,6 +80,31 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
           <span className="text-xs font-bold tabular-nums w-8" style={{ color: 'var(--accent)' }}>
             {progress}%
           </span>
+        </div>
+
+        {/* Demo Score Buttons */}
+        <div className="flex items-center gap-1 rounded-lg p-1 bg-blue-500/10 border border-blue-500/30">
+          <button 
+            onClick={() => setDemoRuns(r => r + 4)}
+            className="p-1.5 rounded font-bold text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md active:scale-95 transition-all"
+            title="4 Runs"
+          >
+            4
+          </button>
+          <button 
+            onClick={() => setDemoSixes(s => s + 1)}
+            className="p-1.5 rounded font-bold text-xs bg-purple-600 hover:bg-purple-700 text-white shadow-md active:scale-95 transition-all"
+            title="Six!"
+          >
+            6
+          </button>
+          <button 
+            onClick={() => setDemoWickets(w => w + 1)}
+            className="p-1.5 rounded font-bold text-xs bg-red-600 hover:bg-red-700 text-white shadow-md active:scale-95 transition-all"
+            title="OUT"
+          >
+            OUT
+          </button>
         </div>
 
         <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: 'var(--bg-card)' }}>
