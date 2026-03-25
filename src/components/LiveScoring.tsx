@@ -153,10 +153,22 @@ export default function LiveScoring() {
   const [lastBall, setLastBall] = useState<string>('');
   const [error, setError] = useState('');
   const [tossData, setTossData] = useState<any>(null);
-  
+  const [isDecisionPending, setIsDecisionPending] = useState(false);
+  const [tossWinner, setTossWinner] = useState("EAGLES"); // Example
+  const [tossDecision, setTossDecision] = useState("BAT"); // BAT or BOWL
   const [wicketModal, setWicketModal] = useState<{ open: boolean; baseData: BallData }>({ open: false, baseData: {} });
   const [selectedWicketType, setSelectedWicketType] = useState<string>('');
   const [outBatsman, setOutBatsman] = useState<'striker' | 'nonStriker'>('striker');
+
+  const toggleDecisionPending = () => {
+    const newState = !isDecisionPending;
+    setIsDecisionPending(newState);
+    
+    socket.emit('updateMatchState', { 
+      match, 
+      decisionPending: newState 
+    });
+  };
 
   const fetchMatch = useCallback(async () => {
     if (!id) return;
@@ -179,7 +191,7 @@ export default function LiveScoring() {
   
   useEffect(() => {
     if (!id) return;
-    socket.joinMatch(id);
+    socket.joinMatch(id); 
     const handleScoreUpdate = (data: any) => { if (data.match) setMatch(data.match); };
     const handleInningsEnded = () => fetchMatch();
     const handleMatchEnded = (data: any) => { setMatch(data); setStep('done'); };
@@ -505,8 +517,8 @@ export default function LiveScoring() {
 
         {panel === 'others' && (
           <div className="space-y-3">
-             <div className="flex items-center gap-2 mb-4"><button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Other Actions</h3></div>
-            <button onClick={() => { setPanel('main'); setLastBall('⚖ Decision Pending...'); }} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-amber-900/30 hover:bg-amber-700/40 text-left border border-amber-700/40 text-amber-300">⚖ Decision Pending</button>
+            <div className="flex items-center gap-2 mb-4"><button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Other Actions</h3></div>
+            <button onClick={toggleDecisionPending}className={`btn ${isDecisionPending ? 'btn-danger' : 'btn-warning'}`}>{isDecisionPending ? 'Cancel Decision Pending' : 'Trigger Decision Pending'}</button>
             <button onClick={() => { setPanel('main'); handleStrikeChange(); }} disabled={submitting} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-blue-900/30 hover:bg-blue-700/40 text-left border border-blue-700/40 text-blue-300 disabled:opacity-40">⇄ Change Strike (Swap Batsmen)</button>
             <button onClick={() => handleRetirement('striker')} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🚶 Retired Hurt (Striker)</button>
             <button onClick={() => handleRetirement('nonStriker')} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🚶 Retired Hurt (Non-Striker)</button>
