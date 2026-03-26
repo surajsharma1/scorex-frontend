@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { useDebounce } from '../hooks/useDebounce';
+import { useValueDebounce } from '../hooks/useValueDebounce';
+
+
 
 import { Eye, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
@@ -11,9 +13,11 @@ interface MembershipPreviewProps {
 
 const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, planName, baseUrl }) => {
 const [progress, setProgress] = useState(50);
-  const [debouncedProgress] = useDebounce(progress, 300);
+  const debouncedProgress = useValueDebounce(progress, 300);
   const [zoom, setZoom] = useState(1);
-  const [debouncedZoom] = useDebounce(zoom, 300);
+  const debouncedZoom = useValueDebounce(zoom, 300);
+
+
   const [iframeLoading, setIframeLoading] = useState(true);
   const [iframeError, setIframeError] = useState(false);
 
@@ -112,7 +116,7 @@ const [progress, setProgress] = useState(50);
 
           <button onClick={() => setZoom(1)} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Reset">
             <RotateCcw className="w-3.5 h-3.5" />
-          </button>
+            </button>
         </div>
       </div>
 
