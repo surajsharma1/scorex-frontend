@@ -695,10 +695,11 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                   template={previewTemplate}
                   progress={previewProgress}
                   baseUrl={baseUrlLocal}
-                  previewMode={false}
+                  previewMode={true}
                   onLoad={() => setPreviewLoading(false)}
                   onError={() => setPreviewError(true)}
                 />
+
 
               </div>
             </div>

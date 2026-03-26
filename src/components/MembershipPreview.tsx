@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useValueDebounce } from '../hooks/useValueDebounce';
-
-
+import OverlayPreviewRenderer from './OverlayPreviewRenderer';
 
 import { Eye, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
@@ -11,62 +10,24 @@ interface MembershipPreviewProps {
   baseUrl: string;
 }
 
+
 const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, planName, baseUrl }) => {
-const [progress, setProgress] = useState(50);
+  const [progress, setProgress] = useState(50);
   const debouncedProgress = useValueDebounce(progress, 300);
   const [zoom, setZoom] = useState(1);
-  const debouncedZoom = useValueDebounce(zoom, 300);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-
-  const [iframeLoading, setIframeLoading] = useState(true);
-  const [iframeError, setIframeError] = useState(false);
-
-  const outerRef = useRef<HTMLDivElement>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [containerW, setContainerW] = useState(0);
-  const [containerH, setContainerH] = useState(0);
-
-  const previewUrl = useMemo(() => `${baseUrl}/overlays/${overlayFile}?demo=true&preview=true&progress=${debouncedProgress}%`, [baseUrl, overlayFile, debouncedProgress]);
-
-
-  // Measure container
-  useEffect(() => {
-    const el = outerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(entries => {
-      for (const e of entries) {
-        setContainerW(e.contentRect.width);
-        setContainerH(e.contentRect.height);
-      }
-    });
-    ro.observe(el);
-    const r = el.getBoundingClientRect();
-    setContainerW(r.width);
-    setContainerH(r.height);
-    return () => ro.disconnect();
-  }, []);
-
-  const idealScale = containerW > 0
-    ? Math.min(containerW / 1920, containerH > 0 ? containerH / 1080 : containerW / 1920)
-    : 0;
-  const effectiveScale = idealScale * zoom;
 
   const clamp = (v: number) => Math.max(0.1, Math.min(3, v));
 
-  const retryLoad = () => {
-    setIframeLoading(true);
-    setIframeError(false);
-    if (iframeRef.current) iframeRef.current.src = previewUrl;
+  const triggerAnimation = (eventType: string) => {
+    window.postMessage({
+      type: 'OVERLAY_ACTION',
+      payload: { event: eventType }
+    }, '*');
   };
 
-  const triggerAnimation = (eventType: string) => {
-    if (iframeRef.current && iframeRef.current.contentWindow) {
-      iframeRef.current.contentWindow.postMessage({
-        type: 'OVERLAY_ACTION',
-        payload: { event: eventType }
-      }, '*');
-    }
-  };
 
   return (
     <div
@@ -94,7 +55,7 @@ const [progress, setProgress] = useState(50);
               step="4"
               value={progress}
               onChange={e => setProgress(Number(e.target.value))}
-              disabled={iframeLoading}
+              disabled={loading}
               className="w-24 h-2 rounded cursor-pointer accent-green-500"
             />
 
@@ -103,14 +64,15 @@ const [progress, setProgress] = useState(50);
           </span>
         </div>
 
+
         <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: 'var(--bg-card)' }}>
-          <button onClick={() => setZoom(z => clamp(z * 0.8))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom Out" disabled={iframeLoading}>
+          <button onClick={() => setZoom(z => clamp(z * 0.8))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom Out" disabled={loading}>
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <span className="px-2 text-xs font-bold tabular-nums" style={{ color: 'var(--accent)' }}>
             {Math.round(zoom * 100)}%
           </span>
-          <button onClick={() => setZoom(z => clamp(z * 1.25))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom In" disabled={iframeLoading}>
+          <button onClick={() => setZoom(z => clamp(z * 1.25))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom In" disabled={loading}>
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
 
@@ -126,27 +88,20 @@ const [progress, setProgress] = useState(50);
         className="relative overflow-hidden"
         style={{ width: '100%', aspectRatio: '16/9', background: '#000' }}
       >
-        {/* iframe scaled to fit */}
-        <div style={{
-          position: 'absolute', top: 0, left: 0,
-          width: '1920px', height: '1080px',
-          transform: `scale(${effectiveScale})`,
-          transformOrigin: 'top left',
-          pointerEvents: 'none',
-        }}>
-          <iframe
-            ref={iframeRef}
-            src={previewUrl}
-            title={`${planName} Overlay Preview`}
-            style={{ width: '1920px', height: '1080px', border: 'none', display: 'block', background: 'transparent' }}
-            sandbox="allow-scripts allow-same-origin"
-            loading="eager"
-            onLoad={() => { setIframeLoading(false); setIframeError(false); }}
-            onError={() => { setIframeLoading(false); setIframeError(true); }}
-          />
-        </div>
+        <OverlayPreviewRenderer 
+          template={overlayFile}
+          progress={progress}
+          baseUrl={baseUrl}
+          previewMode={true}
+          zoom={zoom}
+          onLoad={() => setLoading(false)}
+          onError={(err) => {
+            setError(err);
+            setLoading(false);
+          }}
+        />
 
-        {iframeLoading && (
+        {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-20">
             <div className="text-center">
               <RefreshCw className="w-10 h-10 animate-spin mx-auto mb-3 text-emerald-400" />
@@ -155,26 +110,20 @@ const [progress, setProgress] = useState(50);
           </div>
         )}
 
-        {iframeError && (
+        {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-slate-900/95 z-20">
             <div className="text-center p-8 max-w-sm">
               <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-              <p className="text-slate-300 text-sm mb-4">Backend unreachable</p>
-              <div className="flex gap-2 justify-center">
-                <button onClick={retryLoad}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-all">
-                  Retry
-                </button>
-                <button onClick={() => window.open(previewUrl, '_blank')}
-                  className="px-4 py-2 text-sm rounded-xl font-semibold transition-all"
-                  style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>
-                  Open Direct
-                </button>
-              </div>
+              <p className="text-slate-300 text-sm mb-4">{error}</p>
+              <button onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-all">
+                Retry
+              </button>
             </div>
           </div>
         )}
       </div>
+
 
       {/* Animation Trigger Controls */}
       <div className="p-3 border-t flex flex-wrap gap-2 justify-center" style={{ background: 'var(--bg-elevated)', borderTopColor: 'var(--border)' }}>
