@@ -139,6 +139,14 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     };
   }, []);
 
+  const triggerAnimation = (eventType: string) => {
+    // Send message to the window so the injected engine.js can pick it up
+    window.postMessage({
+      type: 'OVERLAY_ACTION',
+      payload: { event: eventType }
+    }, '*');
+  };
+
   return (
     /* overflow:hidden is the critical gate — nothing leaks outside */
     <div
@@ -159,6 +167,16 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
           }}
         />
       </div>
+
+      {/* Floating Animation Triggers */}
+      {!loading && !error && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30">
+            <button onClick={() => triggerAnimation('FOUR')} className="px-4 py-2 bg-blue-600/80 text-white shadow-lg rounded-xl text-xs font-bold hover:bg-blue-500 transition-all backdrop-blur-md">4</button>
+            <button onClick={() => triggerAnimation('SIX')} className="px-4 py-2 bg-green-600/80 text-white shadow-lg rounded-xl text-xs font-bold hover:bg-green-500 transition-all backdrop-blur-md">6</button>
+            <button onClick={() => triggerAnimation('WICKET')} className="px-4 py-2 bg-red-600/80 text-white shadow-lg rounded-xl text-xs font-bold hover:bg-red-500 transition-all backdrop-blur-md">OUT</button>
+            <button onClick={() => triggerAnimation('DECISION_PENDING')} className="px-4 py-2 bg-amber-600/80 text-white shadow-lg rounded-xl text-xs font-bold hover:bg-amber-500 transition-all backdrop-blur-md">PENDING</button>
+        </div>
+      )}
 
       {/* Loading */}
       {loading && (

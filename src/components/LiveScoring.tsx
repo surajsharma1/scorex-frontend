@@ -12,7 +12,7 @@ function RunButtons({ onSelect, disabled = false, extraLabel = '' }: { onSelect:
   return (
     <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 md:gap-3">
       {[0, 1, 2, 3, 4, 5, 6].map(r => (
-        <button key={r} disabled={disabled} onClick={() => onSelect(r)} className="py-4 sm:py-3 md:py-4 rounded-xl font-bold text-lg sm:text-base lg:text-lg bg-slate-700 hover:bg-slate-600 text-white transition-all active:scale-95 disabled:opacity-40 shadow-md">
+        <button key={r} disabled={disabled} onClick={() => onSelect(r)} className="py-4 sm:py-3 md:py-4 rounded-xl font-bold text-lg sm:text-base lg:text-lg bg-slate-700 hover:bg-slate-600 text-white transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-md">
           {extraLabel ? `${extraLabel}+${r}` : (r === 0 ? '•' : r)}
         </button>
       ))}
@@ -76,7 +76,6 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
   const allBPlayers: any[] = battingTeam?.players || [];
   const bowlPlayers: any[] = bowlingTeam?.players || [];
 
-  // Robust check for dismissed players
   const outPlayerNames = new Set<string>(
     (currentInningsData?.batsmen || [])
       .filter((b: any) => b.isOut || b.dismissal || (b.outType && b.outType !== ''))
@@ -84,7 +83,6 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
   );
 
   const availableBatsmen = allBPlayers.filter((p: any) => !outPlayerNames.has(p.name));
-
   const isValid = () => striker && nonStriker && bowler && striker !== nonStriker;
 
   return (
@@ -153,9 +151,10 @@ export default function LiveScoring() {
   const [lastBall, setLastBall] = useState<string>('');
   const [error, setError] = useState('');
   const [tossData, setTossData] = useState<any>(null);
+  
+  // Decision Pending State
   const [isDecisionPending, setIsDecisionPending] = useState(false);
-  const [tossWinner, setTossWinner] = useState("EAGLES"); // Example
-  const [tossDecision, setTossDecision] = useState("BAT"); // BAT or BOWL
+  
   const [wicketModal, setWicketModal] = useState<{ open: boolean; baseData: BallData }>({ open: false, baseData: {} });
   const [selectedWicketType, setSelectedWicketType] = useState<string>('');
   const [outBatsman, setOutBatsman] = useState<'striker' | 'nonStriker'>('striker');
@@ -169,6 +168,9 @@ export default function LiveScoring() {
       decisionPending: newState 
     });
   };
+
+  // Derived state to lock out all actions
+  const isActionDisabled = submitting || isDecisionPending;
 
   const fetchMatch = useCallback(async () => {
     if (!id) return;
@@ -223,7 +225,7 @@ export default function LiveScoring() {
   };
 
   const submitBall = async (data: BallData) => {
-    if (!id || submitting) return; 
+    if (!id || isActionDisabled) return; 
     setSubmitting(true); 
     setError('');
     try {
@@ -238,7 +240,7 @@ export default function LiveScoring() {
   };
 
   const handleStrikeChange = async () => {
-    if (!id || submitting) return;
+    if (!id || isActionDisabled) return;
     setSubmitting(true);
     try {
       await matchAPI.selectPlayers(id, {
@@ -259,7 +261,7 @@ export default function LiveScoring() {
   };
 
   const handleUndo = async () => {
-    if (!id || submitting || !confirm('Undo last ball?')) return; 
+    if (!id || isActionDisabled || !confirm('Undo last ball?')) return; 
     setSubmitting(true);
     try { await matchAPI.undoBall(id); await fetchMatch(); setLastBall('↩ Undone'); setPanel('main'); } catch (e: any) { setError('Cannot undo'); } finally { setSubmitting(false); }
   };
@@ -408,7 +410,7 @@ export default function LiveScoring() {
         <div className="flex items-center justify-between">
           <div><h1 className="font-bold text-white text-sm">{match.name}</h1><p className="text-slate-500 text-xs">{match.venue} · {match.format}</p></div>
           <div className="flex gap-2">
-            <button onClick={handleUndo} disabled={submitting} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-600/20 text-amber-400 text-xs font-semibold"><RotateCcw className="w-3.5 h-3.5" /> Undo</button>
+            <button onClick={handleUndo} disabled={isActionDisabled} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-600/20 text-amber-400 text-xs font-semibold disabled:opacity-40"><RotateCcw className="w-3.5 h-3.5" /> Undo</button>
             <button onClick={() => navigate(-1)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-semibold"><LogOut className="w-3.5 h-3.5" /> Leave</button>
           </div>
         </div>
@@ -460,83 +462,96 @@ export default function LiveScoring() {
 
       {/* ── Scoring Panels ───────────────────────────────────────────────────── */}
       <div className="flex-1 bg-slate-950 px-4 py-4 overflow-y-auto">
+        
+        {/* Toggle Decision Pending (Highest Priority Above Runs) */}
+        <button 
+          onClick={toggleDecisionPending}
+          className={`w-full py-4 mb-4 rounded-xl font-black text-lg transition-all flex items-center justify-center gap-2 ${
+            isDecisionPending 
+              ? 'bg-amber-500 text-black shadow-[0_0_20px_rgba(245,158,11,0.6)] animate-pulse' 
+              : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700'
+          }`}
+        >
+          <AlertTriangle className="w-5 h-5" />
+          {isDecisionPending ? 'RESUME MATCH (DECISION PENDING)' : 'THIRD UMPIRE / DECISION PENDING'}
+        </button>
+
         {panel === 'main' && (
           <div className="space-y-4">
             <div><p className="text-slate-600 text-xs font-semibold uppercase tracking-wider mb-2">Runs</p>
               <div className="grid grid-cols-4 gap-3">
                 {[0, 1, 2, 3, 4, 6].map(r => (
-                  <button key={r} disabled={submitting} onClick={() => submitBall({ runs: r })} className={`py-5 rounded-2xl font-black text-2xl transition-all active:scale-95 disabled:opacity-40 shadow-lg ${r === 4 ? 'bg-blue-600 shadow-blue-600/30' : r === 6 ? 'bg-purple-600 shadow-purple-600/30' : r === 0 ? 'bg-slate-800 text-slate-300' : 'bg-slate-700'}`}>{r === 0 ? '•' : r}</button>
+                  <button key={r} disabled={isActionDisabled} onClick={() => submitBall({ runs: r })} className={`py-5 rounded-2xl font-black text-2xl transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg ${r === 4 ? 'bg-blue-600 shadow-blue-600/30' : r === 6 ? 'bg-purple-600 shadow-purple-600/30' : r === 0 ? 'bg-slate-800 text-slate-300' : 'bg-slate-700'}`}>{r === 0 ? '•' : r}</button>
                 ))}
               </div>
             </div>
             <div><p className="text-slate-600 text-xs font-semibold uppercase tracking-wider mb-2">Extras & Wickets</p>
               <div className="grid grid-cols-2 gap-2">
                 {[{ label: 'Wide', icon: '↔', panel: 'wide' as ScoringPanel, color: 'bg-amber-600/20 border-amber-600/40 text-amber-300' }, { label: 'No Ball', icon: '⊘', panel: 'noBall' as ScoringPanel, color: 'bg-orange-600/20 border-orange-600/40 text-orange-300' }, { label: 'Bye', icon: 'B', panel: 'bye' as ScoringPanel, color: 'bg-teal-600/20 border-teal-600/40 text-teal-300' }, { label: 'Leg Bye', icon: 'LB', panel: 'legBye' as ScoringPanel, color: 'bg-cyan-600/20 border-cyan-600/40 text-cyan-300' }].map(btn => (
-                  <button key={btn.label} onClick={() => setPanel(btn.panel)} className={`py-3 px-4 rounded-xl font-bold text-sm border flex items-center gap-2 ${btn.color}`}><span className="font-black">{btn.icon}</span> {btn.label}</button>
+                  <button key={btn.label} disabled={isActionDisabled} onClick={() => setPanel(btn.panel)} className={`py-3 px-4 rounded-xl font-bold text-sm border flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed ${btn.color}`}><span className="font-black">{btn.icon}</span> {btn.label}</button>
                 ))}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => openWicketModal({})} className="py-4 rounded-2xl font-black text-lg bg-red-700 hover:bg-red-600 text-white shadow-lg active:scale-95">OUT! 🎯</button>
-              <button onClick={() => setPanel('others')} className="py-4 rounded-2xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">Others…</button>
+              <button disabled={isActionDisabled} onClick={() => openWicketModal({})} className="py-4 rounded-2xl font-black text-lg bg-red-700 hover:bg-red-600 text-white shadow-lg active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">OUT! 🎯</button>
+              <button disabled={isActionDisabled} onClick={() => setPanel('others')} className="py-4 rounded-2xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed">Others…</button>
             </div>
           </div>
         )}
 
         {panel === 'wide' && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4"><button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Wide Ball</h3></div>
-            <RunButtons onSelect={r => submitBall({ wide: true, runs: r })} disabled={submitting} extraLabel="Wd" />
-            <div className="border-t border-slate-800 pt-4"><button onClick={() => { setPanel('main'); openWicketModal({ wide: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full">Wicket (Off Wide)</button></div>
+            <div className="flex items-center gap-2 mb-4"><button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Wide Ball</h3></div>
+            <RunButtons onSelect={r => submitBall({ wide: true, runs: r })} disabled={isActionDisabled} extraLabel="Wd" />
+            <div className="border-t border-slate-800 pt-4"><button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ wide: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">Wicket (Off Wide)</button></div>
           </div>
         )}
 
         {panel === 'noBall' && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4"><button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">No Ball</h3></div>
-            <RunButtons onSelect={r => submitBall({ noBall: true, runs: r })} disabled={submitting} extraLabel="NB" />
-            <div className="border-t border-slate-800 pt-4"><button onClick={() => { setPanel('main'); openWicketModal({ noBall: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full">Run Out (Off No Ball)</button></div>
+            <div className="flex items-center gap-2 mb-4"><button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">No Ball</h3></div>
+            <RunButtons onSelect={r => submitBall({ noBall: true, runs: r })} disabled={isActionDisabled} extraLabel="NB" />
+            <div className="border-t border-slate-800 pt-4"><button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ noBall: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">Run Out (Off No Ball)</button></div>
           </div>
         )}
 
         {panel === 'bye' && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4"><button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Byes</h3></div>
-            <div className="grid grid-cols-4 gap-2">{[1, 2, 3, 4].map(r => <button key={r} disabled={submitting} onClick={() => { setPanel('main'); submitBall({ bye: r }); }} className="py-4 rounded-xl font-bold text-lg bg-teal-900/40 hover:bg-teal-700/60 border border-teal-700/40 text-teal-200">B{r}</button>)}</div>
-            <div className="border-t border-slate-800 pt-4"><button onClick={() => { setPanel('main'); openWicketModal({ bye: 0 }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full">Run Out (Off Bye)</button></div>
+            <div className="flex items-center gap-2 mb-4"><button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Byes</h3></div>
+            <div className="grid grid-cols-4 gap-2">{[1, 2, 3, 4].map(r => <button key={r} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ bye: r }); }} className="py-4 rounded-xl font-bold text-lg bg-teal-900/40 hover:bg-teal-700/60 border border-teal-700/40 text-teal-200 disabled:opacity-40 disabled:cursor-not-allowed">B{r}</button>)}</div>
+            <div className="border-t border-slate-800 pt-4"><button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ bye: 0 }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">Run Out (Off Bye)</button></div>
           </div>
         )}
 
         {panel === 'legBye' && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4"><button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Leg Byes</h3></div>
-            <div className="grid grid-cols-4 gap-2">{[1, 2, 3, 4].map(r => <button key={r} disabled={submitting} onClick={() => { setPanel('main'); submitBall({ legBye: r }); }} className="py-4 rounded-xl font-bold text-lg bg-cyan-900/40 hover:bg-cyan-700/60 border border-cyan-700/40 text-cyan-200">LB{r}</button>)}</div>
-            <div className="border-t border-slate-800 pt-4"><button onClick={() => { setPanel('main'); openWicketModal({ legBye: 0 }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full">Run Out (Off Leg Bye)</button></div>
+            <div className="flex items-center gap-2 mb-4"><button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Leg Byes</h3></div>
+            <div className="grid grid-cols-4 gap-2">{[1, 2, 3, 4].map(r => <button key={r} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ legBye: r }); }} className="py-4 rounded-xl font-bold text-lg bg-cyan-900/40 hover:bg-cyan-700/60 border border-cyan-700/40 text-cyan-200 disabled:opacity-40 disabled:cursor-not-allowed">LB{r}</button>)}</div>
+            <div className="border-t border-slate-800 pt-4"><button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ legBye: 0 }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">Run Out (Off Leg Bye)</button></div>
           </div>
         )}
 
         {panel === 'others' && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-4"><button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Other Actions</h3></div>
-            <button onClick={toggleDecisionPending}className={`btn ${isDecisionPending ? 'btn-danger' : 'btn-warning'}`}>{isDecisionPending ? 'Cancel Decision Pending' : 'Trigger Decision Pending'}</button>
-            <button onClick={() => { setPanel('main'); handleStrikeChange(); }} disabled={submitting} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-blue-900/30 hover:bg-blue-700/40 text-left border border-blue-700/40 text-blue-300 disabled:opacity-40">⇄ Change Strike (Swap Batsmen)</button>
-            <button onClick={() => handleRetirement('striker')} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🚶 Retired Hurt (Striker)</button>
-            <button onClick={() => handleRetirement('nonStriker')} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🚶 Retired Hurt (Non-Striker)</button>
-            <button onClick={() => { setPanel('main'); setStep('playerSelect'); }} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300">🔄 Change Bowler Mid-Over</button>
+            <div className="flex items-center gap-2 mb-4"><button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Other Actions</h3></div>
+            <button onClick={() => { setPanel('main'); handleStrikeChange(); }} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-blue-900/30 hover:bg-blue-700/40 text-left border border-blue-700/40 text-blue-300 disabled:opacity-40 disabled:cursor-not-allowed">⇄ Change Strike (Swap Batsmen)</button>
+            <button onClick={() => handleRetirement('striker')} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed">🚶 Retired Hurt (Striker)</button>
+            <button onClick={() => handleRetirement('nonStriker')} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed">🚶 Retired Hurt (Non-Striker)</button>
+            <button onClick={() => { setPanel('main'); setStep('playerSelect'); }} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed">🔄 Change Bowler Mid-Over</button>
             <div className="pt-3 border-t border-slate-800 mt-2">
               <p className="text-slate-500 text-xs mb-2">Penalty Runs</p>
-              <div className="grid grid-cols-5 gap-2">{[1,2,3,4,5].map(p => <button key={p} onClick={() => { setPanel('main'); submitBall({ penalty: p }); }} className="py-2 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300">+{p}</button>)}</div>
+              <div className="grid grid-cols-5 gap-2">{[1,2,3,4,5].map(p => <button key={p} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ penalty: p }); }} className="py-2 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed">+{p}</button>)}</div>
             </div>
             <div className="border-t border-slate-800 pt-3 mt-4">
-              <button onClick={handleEndInnings} disabled={submitting} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-orange-900/30 hover:bg-orange-700/40 border border-orange-700/40 text-orange-300 mb-2">🔚 End Innings Manually</button>
-              <button onClick={handleEndMatch} disabled={submitting} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/40 border border-red-700/40 text-red-300">🏁 End Match</button>
+              <button onClick={handleEndInnings} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-orange-900/30 hover:bg-orange-700/40 border border-orange-700/40 text-orange-300 mb-2 disabled:opacity-40 disabled:cursor-not-allowed">🔚 End Innings Manually</button>
+              <button onClick={handleEndMatch} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/40 border border-red-700/40 text-red-300 disabled:opacity-40 disabled:cursor-not-allowed">🏁 End Match</button>
             </div>
           </div>
         )}
       </div>
 
       <div className="bg-slate-900 border-t border-slate-800 px-4 py-3 grid grid-cols-2 gap-3">
-        <button onClick={handleEndInnings} disabled={submitting} className="py-3 rounded-xl font-semibold text-sm bg-orange-900/30 hover:bg-orange-700/40 border border-orange-700/40 text-orange-300 flex justify-center items-center gap-2"><RefreshCw className="w-4 h-4" /> Change Inning</button>
+        <button onClick={handleEndInnings} disabled={isActionDisabled} className="py-3 rounded-xl font-semibold text-sm bg-orange-900/30 hover:bg-orange-700/40 border border-orange-700/40 text-orange-300 flex justify-center items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"><RefreshCw className="w-4 h-4" /> Change Inning</button>
         <button onClick={() => navigate(-1)} className="py-3 rounded-xl font-semibold text-sm bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex justify-center items-center gap-2"><LogOut className="w-4 h-4" /> Leave & Save</button>
       </div>
 

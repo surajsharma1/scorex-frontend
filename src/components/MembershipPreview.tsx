@@ -49,6 +49,15 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
     if (iframeRef.current) iframeRef.current.src = previewUrl;
   };
 
+  const triggerAnimation = (eventType: string) => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'OVERLAY_ACTION',
+        payload: { event: eventType }
+      }, '*');
+    }
+  };
+
   return (
     <div
       className="rounded-2xl overflow-hidden"
@@ -149,6 +158,15 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
             </div>
           </div>
         )}
+      </div>
+
+      {/* Animation Trigger Controls */}
+      <div className="p-3 border-t flex flex-wrap gap-2 justify-center" style={{ background: 'var(--bg-elevated)', borderTopColor: 'var(--border)' }}>
+          <span className="text-xs font-bold flex items-center mr-2 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Trigger Animations:</span>
+          <button onClick={() => triggerAnimation('FOUR')} className="px-3 py-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded text-xs font-bold hover:bg-blue-500/30 transition-colors">FOUR</button>
+          <button onClick={() => triggerAnimation('SIX')} className="px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded text-xs font-bold hover:bg-green-500/30 transition-colors">SIX</button>
+          <button onClick={() => triggerAnimation('WICKET')} className="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/30 rounded text-xs font-bold hover:bg-red-500/30 transition-colors">WICKET</button>
+          <button onClick={() => triggerAnimation('DECISION_PENDING')} className="px-3 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-xs font-bold hover:bg-amber-500/30 transition-colors">DECISION PENDING</button>
       </div>
     </div>
   );
