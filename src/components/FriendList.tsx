@@ -183,30 +183,36 @@ export default function FriendList() {
                 <div>
                   <p className="text-xs font-bold mb-2 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Incoming Requests</p>
                   <div className="space-y-2">
-                    {requests.map((r: any) => (
-                      <div key={r._id} className="flex items-center justify-between p-4 rounded-xl"
-                        style={{ background: 'var(--bg-card)', border: '1px solid rgba(34,197,94,0.2)' }}>
-                        <div className="flex items-center gap-3">
-                          <Avatar name={r.from?.username || r.user1?.username || '?'} />
-                          <div>
-                            <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{r.from?.username || r.user1?.username}</p>
-                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Sent you a friend request</p>
+                    {requests.map((r: any) => {
+                      // Backend returns { _id, user: <requester>, sentAt }
+                      const person = r.user || r.from || r.requester || {};
+                      return (
+                        <div key={r._id} className="flex items-center justify-between p-4 rounded-xl"
+                          style={{ background: 'var(--bg-card)', border: '1px solid rgba(34,197,94,0.2)' }}>
+                          <div className="flex items-center gap-3">
+                            <Avatar name={person.username || '?'} />
+                            <div>
+                              <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
+                                {person.username || person.fullName || 'Unknown User'}
+                              </p>
+                              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Sent you a friend request</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => accept(r._id)}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105"
+                              style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e' }}>
+                              <Check className="w-3.5 h-3.5" /> Accept
+                            </button>
+                            <button onClick={() => reject(r._id)}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105"
+                              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
+                              <X className="w-3.5 h-3.5" /> Decline
+                            </button>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <button onClick={() => accept(r._id)}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105"
-                            style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e' }}>
-                            <Check className="w-3.5 h-3.5" /> Accept
-                          </button>
-                          <button onClick={() => reject(r._id)}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105"
-                            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
-                            <X className="w-3.5 h-3.5" /> Decline
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -214,23 +220,29 @@ export default function FriendList() {
                 <div>
                   <p className="text-xs font-bold mb-2 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Sent Requests</p>
                   <div className="space-y-2">
-                    {sent.map((r: any) => (
-                      <div key={r._id} className="flex items-center justify-between p-4 rounded-xl"
-                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                        <div className="flex items-center gap-3">
-                          <Avatar name={r.to?.username || r.user2?.username || '?'} />
-                          <div>
-                            <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{r.to?.username || r.user2?.username}</p>
-                            <p className="text-xs flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
-                              <Clock className="w-3 h-3" /> Pending response
-                            </p>
+                    {sent.map((r: any) => {
+                      // Backend returns { _id, user: <recipient>, sentAt }
+                      const person = r.user || r.to || r.recipient || {};
+                      return (
+                        <div key={r._id} className="flex items-center justify-between p-4 rounded-xl"
+                          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                          <div className="flex items-center gap-3">
+                            <Avatar name={person.username || '?'} />
+                            <div>
+                              <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
+                                {person.username || person.fullName || 'Unknown User'}
+                              </p>
+                              <p className="text-xs flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
+                                <Clock className="w-3 h-3" /> Pending response
+                              </p>
+                            </div>
                           </div>
+                          <span className="px-2 py-1 rounded-lg text-xs" style={{ background: 'rgba(245,158,11,0.1)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.3)' }}>
+                            Pending
+                          </span>
                         </div>
-                        <span className="px-2 py-1 rounded-lg text-xs" style={{ background: 'rgba(245,158,11,0.1)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.3)' }}>
-                          Pending
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -259,7 +271,8 @@ export default function FriendList() {
               </button>
             </div>
           ) : friends.map((f: any) => {
-            const friend = f.user1?._id === f.user2?._id ? f.user1 : (f.user2 || f.user1 || f.from || f);
+            // Backend returns { _id, friend: <user object>, since }
+            const friend = f.friend || f.user || f.requester || f.recipient || f;
             return (
               <div key={f._id} className="flex items-center justify-between p-4 rounded-xl transition-all hover:-translate-y-0.5 group"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>

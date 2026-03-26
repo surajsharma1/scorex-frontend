@@ -119,8 +119,11 @@ export function updatePreviewData(container: HTMLElement | null, data: PreviewDa
     }
   });
 
-  // Dispatch custom event for template-specific JS
-  container.dispatchEvent(new CustomEvent('scorex:update', { detail: data }));
+  // Dispatch on the container div (for OverlayPreviewRenderer internal listener)
+  container.dispatchEvent(new CustomEvent('scorex:update', { detail: data, bubbles: true }));
+
+  // ALSO dispatch on window — engine.js injected into the overlay HTML listens on window
+  window.dispatchEvent(new CustomEvent('scorex:update', { detail: data }));
 }
 
 // Fetch overlay HTML for preview (proxy via backend to avoid CORS)

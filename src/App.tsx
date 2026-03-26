@@ -288,8 +288,9 @@ export default function App() {
             <Route path="/profile" element={<ProtectedDashboardRoute><Profile /></ProtectedDashboardRoute>} />
             <Route path="/membership" element={<ProtectedDashboardRoute><Membership /></ProtectedDashboardRoute>} />
             <Route path="/clubs" element={<ProtectedDashboardRoute><ClubList /></ProtectedDashboardRoute>} />
-            <Route path="/clubs/:id" element={<ProtectedDashboardRoute><ClubDetail /></ProtectedDashboardRoute>} />
             <Route path="/clubs/create" element={<ProtectedDashboardRoute><CreateClubForm /></ProtectedDashboardRoute>} />
+            <Route path="/clubs/:id/manage" element={<ProtectedDashboardRoute><ClubManagement /></ProtectedDashboardRoute>} />
+            <Route path="/clubs/:id" element={<ProtectedDashboardRoute><ClubDetail /></ProtectedDashboardRoute>} />
 
             <Route path="/friends" element={<ProtectedDashboardRoute><FriendList /></ProtectedDashboardRoute>} />
             <Route path="/leaderboard" element={<ProtectedDashboardRoute><Leaderboard /></ProtectedDashboardRoute>} />

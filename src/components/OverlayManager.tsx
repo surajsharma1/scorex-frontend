@@ -68,10 +68,10 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const baseUrlLocal = getBackendBaseUrl();
 
   useEffect(() => {
-    // Load templates from API
-    overlayAPI.getOverlayTemplates()
-      .then(res => {
-        const data: OverlayTemplate[] = res.data;
+    // Load templates
+    fetch('/templates.json')
+      .then(res => res.json())
+      .then((data: OverlayTemplate[]) => {
         setTemplates(data);
         if (data.length > 0) {
           setSelectedTemplate(data[0]);
@@ -90,7 +90,6 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
       })
       .finally(() => setTemplatesLoading(false));
   }, []);
-
 
   const loadCreatedOverlays = async () => {
     try {
@@ -648,6 +647,8 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                 <button
                   onClick={() => {
                     const data = { ...getDemoData(0.69), lastBall: 'FOUR', lastBallRuns: 4 };
+                    // Dispatch on window so engine.js inside overlay HTML receives it
+                    window.dispatchEvent(new CustomEvent('scorex:update', { detail: data }));
                     updatePreviewData(previewContainerRef.current, data);
                   }}
                   className="px-3 py-1.5 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95"
@@ -659,6 +660,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                 <button
                   onClick={() => {
                     const data = { ...getDemoData(0.69), lastBall: 'SIX', lastBallRuns: 6 };
+                    window.dispatchEvent(new CustomEvent('scorex:update', { detail: data }));
                     updatePreviewData(previewContainerRef.current, data);
                   }}
                   className="px-3 py-1.5 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95"
@@ -670,6 +672,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                 <button
                   onClick={() => {
                     const data = { ...getDemoData(0.69), lastBall: 'WICKET', lastBallRuns: 0, wicket: true };
+                    window.dispatchEvent(new CustomEvent('scorex:update', { detail: data }));
                     updatePreviewData(previewContainerRef.current, data);
                   }}
                   className="px-3 py-1.5 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95"

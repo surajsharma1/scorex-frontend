@@ -121,9 +121,22 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
   useEffect(() => {
     const container = innerRef.current;
     if (!container) return;
-    const handler = (e: CustomEvent<PreviewData>) => updatePreviewData(container, e.detail);
-    container.addEventListener('scorex:update', handler as EventListener);
-    return () => container.removeEventListener('scorex:update', handler as EventListener);
+
+    // Listen on the inner container for direct React-driven updates
+    const handleContainerUpdate = (e: CustomEvent<PreviewData>) => updatePreviewData(container, e.detail);
+    container.addEventListener('scorex:update', handleContainerUpdate as EventListener);
+
+    // ALSO listen on window — engine.js inside injected overlay HTML fires on window
+    const handleWindowUpdate = (e: Event) => {
+      const ce = e as CustomEvent<PreviewData>;
+      if (ce.detail) updatePreviewData(container, ce.detail);
+    };
+    window.addEventListener('scorex:update', handleWindowUpdate);
+
+    return () => {
+      container.removeEventListener('scorex:update', handleContainerUpdate as EventListener);
+      window.removeEventListener('scorex:update', handleWindowUpdate);
+    };
   }, []);
 
   return (
