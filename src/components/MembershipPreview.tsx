@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { useDebounce } from '../hooks/useDebounce';
+
 import { Eye, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
 interface MembershipPreviewProps {
@@ -8,16 +10,20 @@ interface MembershipPreviewProps {
 }
 
 const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, planName, baseUrl }) => {
-  const [progress, setProgress] = useState(50);
+const [progress, setProgress] = useState(50);
+  const [debouncedProgress] = useDebounce(progress, 300);
+  const [zoom, setZoom] = useState(1);
+  const [debouncedZoom] = useDebounce(zoom, 300);
   const [iframeLoading, setIframeLoading] = useState(true);
   const [iframeError, setIframeError] = useState(false);
-  const [zoom, setZoom] = useState(1);
+
   const outerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [containerW, setContainerW] = useState(0);
   const [containerH, setContainerH] = useState(0);
 
-  const previewUrl = `${baseUrl}/overlays/${overlayFile}?demo=true&preview=true&progress=${progress}%`;
+  const previewUrl = useMemo(() => `${baseUrl}/overlays/${overlayFile}?demo=true&preview=true&progress=${debouncedProgress}%`, [baseUrl, overlayFile, debouncedProgress]);
+
 
   // Measure container
   useEffect(() => {
@@ -77,9 +83,11 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
 
         <div className="flex items-center gap-2">
           <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Progress:</label>
-          <input
+  input
             type="range" min="0" max="100" step="4" value={progress}
             onChange={e => setProgress(Number(e.target.value))}
+            disabled={iframeLoading}
+
             className="w-24 h-2 rounded cursor-pointer"
             style={{ accentColor: 'var(--accent)' }}
           />
@@ -89,15 +97,16 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         </div>
 
         <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: 'var(--bg-card)' }}>
-          <button onClick={() => setZoom(z => clamp(z * 0.8))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom Out">
+          <button onClick={() => setZoom(z => clamp(z * 0.8))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom Out" disabled={iframeLoading}>
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <span className="px-2 text-xs font-bold tabular-nums" style={{ color: 'var(--accent)' }}>
             {Math.round(zoom * 100)}%
           </span>
-          <button onClick={() => setZoom(z => clamp(z * 1.25))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom In">
+          <button onClick={() => setZoom(z => clamp(z * 1.25))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom In" disabled={iframeLoading}>
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
+
           <button onClick={() => setZoom(1)} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Reset">
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
