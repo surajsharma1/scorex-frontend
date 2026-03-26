@@ -18,8 +18,10 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const clamp = (v: number) => Math.max(0.1, Math.min(3, v));
+
 
   const triggerAnimation = (eventType: string) => {
     window.postMessage({
@@ -84,7 +86,7 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
 
       {/* Preview frame */}
       <div
-        ref={outerRef}
+        ref={containerRef}
         className="relative overflow-hidden"
         style={{ width: '100%', aspectRatio: '16/9', background: '#000' }}
       >
@@ -123,6 +125,8 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
           </div>
         )}
       </div>
+
+
 
 
       {/* Animation Trigger Controls */}
