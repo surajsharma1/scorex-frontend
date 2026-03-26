@@ -1,17 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { X, ZoomIn, ZoomOut, RotateCcw, Monitor, Smartphone, Tablet } from 'lucide-react';
 import OverlayPreviewRenderer from './OverlayPreviewRenderer';
+import type { OverlayTemplate } from '../types/overlay';
 import { getBackendBaseUrl } from '../services/env';
 
 interface FloatingOverlayPreviewProps {
   isOpen: boolean;
   onClose: () => void;
   level: number;
-  templates: any[]; // Using any to robustly handle different backend responses
+  templates: OverlayTemplate[];
   selectedOverlay: string;
   onOverlaySelect: (filename: string) => void;
 }
 
+// Screen size presets (width x height aspect)
 const SCREEN_PRESETS = [
   { label: 'Desktop',  icon: Monitor,     w: '100%',  h: '100%',   aspect: '16/9' },
   { label: 'Tablet',   icon: Tablet,      w: '768px', h: '576px',  aspect: '4/3'  },
@@ -22,151 +24,215 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
   isOpen,
   onClose,
   level,
-  templates = [],
+  templates,
   selectedOverlay,
   onOverlaySelect,
 }) => {
   const [zoom, setZoom] = useState(1);
   const [screenPreset, setScreenPreset] = useState<number>(0);
-  const baseUrl = getBackendBaseUrl();
-
-  // Safely filter templates by the required membership level
-  const levelTemplates = templates.filter((t: any) => t.level === level || t.level === undefined);
-
-  // 🔥 AUTO-SELECT FIX: If the modal opens and nothing is selected, select the first available overlay
-  useEffect(() => {
-    if (isOpen && !selectedOverlay && levelTemplates.length > 0) {
-      const first = levelTemplates[0];
-      const fileId = first.file || first.url || first.template || first.name || '';
-      onOverlaySelect(fileId);
-    }
-  }, [isOpen, selectedOverlay, levelTemplates, onOverlaySelect]);
 
   if (!isOpen) return null;
 
-  const clamp = (v: number) => Math.max(0.1, Math.min(3, v));
-  const activePreset = SCREEN_PRESETS[screenPreset];
+  const baseUrl = getBackendBaseUrl();
+  const levelTemplates = templates.filter(t => t.level === level);
+  const count = levelTemplates.length;
+  const planName = level === 1 ? 'Premium' : 'Enterprise';
+  const accentColor = level === 1 ? '#22c55e' : '#a855f7';
+
+  const clampZoom = (v: number) => Math.max(0.25, Math.min(3, v));
+  const zoomIn    = () => setZoom(z => clampZoom(parseFloat((z * 1.25).toFixed(2))));
+  const zoomOut   = () => setZoom(z => clampZoom(parseFloat((z * 0.8).toFixed(2))));
+  const resetZoom = () => setZoom(1);
+
+  const preset = SCREEN_PRESETS[screenPreset];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div 
-        className="w-full max-w-6xl max-h-[95vh] flex flex-col rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
-        style={{ background: 'var(--bg-primary)', border: '1px solid var(--border)' }}
+    <div
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-6"
+      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="flex flex-col rounded-2xl shadow-2xl overflow-hidden w-full"
+        style={{
+          background: 'var(--bg-secondary)',
+          border: `1px solid ${accentColor}30`,
+          boxShadow: `0 0 60px ${accentColor}20`,
+          maxWidth: '1100px',
+          maxHeight: '95vh',
+        }}
       >
         {/* ── Header ── */}
-        <div className="flex items-center justify-between p-5" style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)' }}>
-          <div>
-            <h3 className="font-black text-xl flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-              <Monitor className="w-5 h-5 text-emerald-400" />
-              Level {level} Overlays
-            </h3>
-            <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
-              {levelTemplates.length} premium broadcast designs available
-            </p>
+        <div
+          className="flex items-center justify-between px-5 py-4 flex-shrink-0"
+          style={{ borderBottom: '1px solid var(--border)' }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="w-1.5 h-8 rounded-full"
+              style={{ background: `linear-gradient(to bottom, ${accentColor}, ${accentColor}88)` }}
+            />
+            <div>
+              <h2 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>
+                {planName} Overlay Preview
+              </h2>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                {count} design{count !== 1 ? 's' : ''} available
+              </p>
+            </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-red-500/20 text-red-400 transition-all active:scale-95"
+            className="p-2 rounded-xl transition-all hover:scale-110"
+            style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* ── Template Selector ── */}
-        <div className="p-5" style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
-          <div className="flex gap-3 overflow-x-auto pb-4 snap-x scrollbar-hide">
-            {levelTemplates.map((t: any, idx: number) => {
-              // 🔥 ROBUST PROPERTY FALLBACK: Handles different backend response formats
-              const file = t.file || t.url || t.template || '';
-              const id = t._id || t.id || `template-${idx}`;
-              const name = t.name || t.title || file || `Template ${idx + 1}`;
-              
-              const isSelected = selectedOverlay === file;
+        {/* ── Controls bar ── */}
+        <div
+          className="flex flex-wrap items-center gap-3 px-5 py-3 flex-shrink-0"
+          style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}
+        >
+          {/* Overlay selector */}
+          <select
+            value={selectedOverlay}
+            onChange={e => onOverlaySelect(e.target.value)}
+            className="flex-1 min-w-[160px] px-3 py-2 rounded-xl text-sm font-semibold transition-all"
+            style={{
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-primary)',
+              outline: 'none',
+            }}
+          >
+            <option value="">Choose overlay design…</option>
+            {levelTemplates.map(t => (
+              <option key={t.id} value={t.url.split('/').pop()!}>{t.name}</option>
+            ))}
+          </select>
 
+          {/* Screen presets */}
+          <div className="flex gap-1 rounded-xl p-1" style={{ background: 'var(--bg-elevated)' }}>
+            {SCREEN_PRESETS.map((p, i) => {
+              const Icon = p.icon;
               return (
                 <button
-                  key={id}
-                  onClick={() => onOverlaySelect(file)}
-                  className={`flex-shrink-0 w-[240px] rounded-xl p-3 border-2 transition-all snap-start text-left ${
-                    isSelected
-                      ? 'border-emerald-500 bg-emerald-500/10'
-                      : 'border-[var(--border)] hover:border-emerald-500/50 bg-[var(--bg-elevated)]'
-                  }`}
+                  key={p.label}
+                  onClick={() => setScreenPreset(i)}
+                  title={p.label}
+                  className="p-2 rounded-lg transition-all"
+                  style={screenPreset === i
+                    ? { background: accentColor, color: '#000' }
+                    : { color: 'var(--text-muted)' }}
                 >
-                  <div className="aspect-video bg-black rounded-lg mb-3 overflow-hidden relative pointer-events-none">
-                     {/* Mini Preview Thumbnail */}
-                     <div className="w-[1920px] h-[1080px] absolute top-0 left-0" style={{ transform: 'scale(0.125)', transformOrigin: 'top left' }}>
-                        <OverlayPreviewRenderer template={file} progress={90} baseUrl={baseUrl} />
-                     </div>
-                  </div>
-                  <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{name}</p>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t.category || 'Broadcast'}</p>
+                  <Icon className="w-4 h-4" />
                 </button>
               );
             })}
-            
-            {levelTemplates.length === 0 && (
-              <p className="text-sm text-center w-full" style={{ color: 'var(--text-muted)' }}>
-                No templates found for this level.
-              </p>
-            )}
           </div>
+
+          {/* Zoom controls */}
+          <div className="flex items-center gap-1 rounded-xl p-1" style={{ background: 'var(--bg-elevated)' }}>
+            <button
+              onClick={zoomOut}
+              className="p-2 rounded-lg transition-all hover:text-white"
+              style={{ color: 'var(--text-muted)' }}
+              title="Zoom Out"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <span
+              className="px-2 text-xs font-bold tabular-nums min-w-[44px] text-center"
+              style={{ color: accentColor }}
+            >
+              {Math.round(zoom * 100)}%
+            </span>
+            <button
+              onClick={zoomIn}
+              className="p-2 rounded-lg transition-all hover:text-white"
+              style={{ color: 'var(--text-muted)' }}
+              title="Zoom In"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button
+              onClick={resetZoom}
+              className="p-2 rounded-lg transition-all text-xs font-bold"
+              style={{ color: 'var(--text-muted)' }}
+              title="Reset Zoom"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Zoom slider */}
+          <input
+            type="range"
+            min={25}
+            max={200}
+            step={5}
+            value={Math.round(zoom * 100)}
+            onChange={e => setZoom(parseInt(e.target.value) / 100)}
+            className="w-28 hidden sm:block"
+            style={{ accentColor }}
+          />
         </div>
 
-        {/* ── Main Preview Area ── */}
-        <div className="flex-1 overflow-hidden relative bg-[#0a0a0a] flex items-center justify-center p-8">
-          
-          {/* Toolbar */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 p-1.5 rounded-2xl z-20 shadow-xl backdrop-blur-md bg-white/5 border border-white/10">
-            {SCREEN_PRESETS.map((preset, i) => (
-              <button
-                key={preset.label}
-                onClick={() => setScreenPreset(i)}
-                className={`p-2 rounded-xl transition-all flex items-center gap-2 text-xs font-bold ${
-                  screenPreset === i ? 'bg-white text-black' : 'text-gray-400 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                <preset.icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{preset.label}</span>
-              </button>
-            ))}
-            <div className="w-px h-6 bg-white/20 mx-2" />
-            <div className="flex items-center gap-1 text-gray-300">
-              <button onClick={() => setZoom(z => clamp(z * 0.8))} className="p-1.5 hover:bg-white/10 rounded-lg"><ZoomOut className="w-4 h-4" /></button>
-              <span className="text-xs font-mono w-12 text-center">{Math.round(zoom * 100)}%</span>
-              <button onClick={() => setZoom(z => clamp(z * 1.25))} className="p-1.5 hover:bg-white/10 rounded-lg"><ZoomIn className="w-4 h-4" /></button>
-              <button onClick={() => setZoom(1)} className="p-1.5 hover:bg-white/10 rounded-lg"><RotateCcw className="w-4 h-4" /></button>
-            </div>
-          </div>
-
-          {/* Render Active Overlay */}
+        {/* ── Preview area ── */}
+        <div
+          className="flex-1 flex items-center justify-center overflow-hidden p-4"
+          style={{ background: '#000', minHeight: 0 }}
+        >
           {selectedOverlay ? (
-            <div 
-              className="bg-black shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-300 overflow-hidden"
+            /* The outer box simulates the chosen screen size.
+               It fills the available space but is constrained to the preset's
+               aspect ratio — just like a real screen. The OverlayPreviewRenderer
+               then scales the 1920×1080 overlay to fit inside THIS box,
+               then zoom multiplies on top. Nothing ever bleeds outside. */
+            <div
               style={{
-                width: activePreset.w,
-                height: activePreset.h,
-                aspectRatio: activePreset.aspect,
+                width:  preset.w,
+                maxWidth: '100%',
+                aspectRatio: preset.aspect,
+                maxHeight: '100%',
+                border: `2px solid ${accentColor}40`,
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: `0 0 40px ${accentColor}15`,
+                background: '#0a0a0f',
                 position: 'relative',
               }}
             >
               <OverlayPreviewRenderer
                 template={selectedOverlay}
-                progress={85}
+                progress={69}
                 baseUrl={baseUrl}
                 zoom={zoom}
-                className="rounded-none border-none"
+                className=""
+                heightClass=""
               />
             </div>
           ) : (
             <div className="text-center p-12">
-              <Monitor className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-              <p className="font-bold text-lg text-gray-400">Select an overlay above</p>
+              <div
+                className="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+                style={{ background: 'var(--bg-elevated)' }}
+              >
+                <Monitor className="w-8 h-8" style={{ color: 'var(--text-muted)' }} />
+              </div>
+              <p className="font-bold text-lg" style={{ color: 'var(--text-secondary)' }}>
+                Select an overlay above
+              </p>
+              <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+                {count} designs to preview
+              </p>
             </div>
           )}
         </div>
-        
-        {/* ── Footer Hint ── */}
+
+        {/* ── Footer hint ── */}
         <div
           className="px-5 py-2 flex-shrink-0 text-xs flex justify-between"
           style={{ borderTop: '1px solid var(--border)', color: 'var(--text-muted)', background: 'var(--bg-card)' }}

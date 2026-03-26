@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { Eye, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
-import OverlayPreviewRenderer from './OverlayPreviewRenderer';
+import React, { useState, useRef, useEffect } from 'react';
+import { Eye, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
 interface MembershipPreviewProps {
   overlayFile: string;
@@ -10,27 +9,61 @@ interface MembershipPreviewProps {
 
 const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, planName, baseUrl }) => {
   const [progress, setProgress] = useState(50);
+  const [iframeLoading, setIframeLoading] = useState(true);
+  const [iframeError, setIframeError] = useState(false);
   const [zoom, setZoom] = useState(1);
-  
+  const outerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [containerW, setContainerW] = useState(0);
+  const [containerH, setContainerH] = useState(0);
+
+  const previewUrl = `${baseUrl}/overlays/${overlayFile}?demo=true&progress=${progress}%`;
+
+  // Measure container
+  useEffect(() => {
+    const el = outerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      for (const e of entries) {
+        setContainerW(e.contentRect.width);
+        setContainerH(e.contentRect.height);
+      }
+    });
+    ro.observe(el);
+    const r = el.getBoundingClientRect();
+    setContainerW(r.width);
+    setContainerH(r.height);
+    return () => ro.disconnect();
+  }, []);
+
+  const idealScale = containerW > 0
+    ? Math.min(containerW / 1920, containerH > 0 ? containerH / 1080 : containerW / 1920)
+    : 0;
+  const effectiveScale = idealScale * zoom;
+
   const clamp = (v: number) => Math.max(0.1, Math.min(3, v));
 
-  // The standardized messaging function that triggers CSS/JS animations inside the rendered overlay
-  const triggerAnimation = (eventType: string) => {
-    window.postMessage({
-      type: 'OVERLAY_ACTION',
-      payload: { event: eventType }
-    }, '*');
+  const retryLoad = () => {
+    setIframeLoading(true);
+    setIframeError(false);
+    if (iframeRef.current) iframeRef.current.src = previewUrl;
   };
 
-  // Ensure we always have a string to render, even if the prop drops temporarily
-  const safeOverlayFile = overlayFile || 'lvl1-modern-bar.html';
+  const triggerAnimation = (eventType: string) => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'OVERLAY_ACTION',
+        payload: { event: eventType }
+      }, '*');
+    }
+  };
 
   return (
     <div
-      className="rounded-2xl overflow-hidden flex flex-col h-full"
+      className="rounded-2xl overflow-hidden"
       style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
     >
-      {/* ── Top Control Bar ── */}
+      {/* Controls */}
       <div
         className="flex flex-wrap items-center gap-3 px-4 py-3"
         style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)' }}
@@ -42,7 +75,6 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
           </span>
         </div>
 
-        {/* Progress Slider to feed demo data */}
         <div className="flex items-center gap-2">
           <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Progress:</label>
           <input
@@ -56,7 +88,6 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
           </span>
         </div>
 
-        {/* Zoom Controls */}
         <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: 'var(--bg-card)' }}>
           <button onClick={() => setZoom(z => clamp(z * 0.8))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom Out">
             <ZoomOut className="w-3.5 h-3.5" />
@@ -73,44 +104,69 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         </div>
       </div>
 
-      {/* ── Main Preview Frame ── */}
-      <div className="relative w-full aspect-video bg-black flex-1">
-          <OverlayPreviewRenderer 
-            template={safeOverlayFile} 
-            progress={progress} 
-            baseUrl={baseUrl} 
-            zoom={zoom}
-            className="rounded-none border-none"
+      {/* Preview frame */}
+      <div
+        ref={outerRef}
+        className="relative overflow-hidden"
+        style={{ width: '100%', aspectRatio: '16/9', background: '#000' }}
+      >
+        {/* iframe scaled to fit */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0,
+          width: '1920px', height: '1080px',
+          transform: `scale(${effectiveScale})`,
+          transformOrigin: 'top left',
+          pointerEvents: 'none',
+        }}>
+          <iframe
+            ref={iframeRef}
+            src={previewUrl}
+            title={`${planName} Overlay Preview`}
+            style={{ width: '1920px', height: '1080px', border: 'none', display: 'block', background: 'transparent' }}
+            sandbox="allow-scripts allow-same-origin"
+            loading="eager"
+            onLoad={() => { setIframeLoading(false); setIframeError(false); }}
+            onError={() => { setIframeLoading(false); setIframeError(true); }}
           />
+        </div>
+
+        {iframeLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-20">
+            <div className="text-center">
+              <RefreshCw className="w-10 h-10 animate-spin mx-auto mb-3 text-emerald-400" />
+              <p className="text-slate-300 text-sm">Loading overlay…</p>
+            </div>
+          </div>
+        )}
+
+        {iframeError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-900/95 z-20">
+            <div className="text-center p-8 max-w-sm">
+              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+              <p className="text-slate-300 text-sm mb-4">Backend unreachable</p>
+              <div className="flex gap-2 justify-center">
+                <button onClick={retryLoad}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-all">
+                  Retry
+                </button>
+                <button onClick={() => window.open(previewUrl, '_blank')}
+                  className="px-4 py-2 text-sm rounded-xl font-semibold transition-all"
+                  style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>
+                  Open Direct
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ── Bottom Animation Triggers ── */}
-      <div className="p-3 border-t flex flex-wrap gap-2 justify-center items-center" style={{ background: 'var(--bg-elevated)', borderTopColor: 'var(--border)' }}>
-          <span className="text-xs font-bold mr-2 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Test Triggers:</span>
-          <button 
-            onClick={() => triggerAnimation('FOUR')} 
-            className="px-4 py-1.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-xs font-bold hover:bg-blue-500/30 transition-colors"
-          >
-            FOUR
-          </button>
-          <button 
-            onClick={() => triggerAnimation('SIX')} 
-            className="px-4 py-1.5 bg-green-500/20 text-green-400 border border-green-500/30 rounded-lg text-xs font-bold hover:bg-green-500/30 transition-colors"
-          >
-            SIX
-          </button>
-          <button 
-            onClick={() => triggerAnimation('WICKET')} 
-            className="px-4 py-1.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-bold hover:bg-red-500/30 transition-colors"
-          >
-            WICKET
-          </button>
-          <button 
-            onClick={() => triggerAnimation('DECISION_PENDING')} 
-            className="px-4 py-1.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg text-xs font-bold hover:bg-amber-500/30 transition-colors"
-          >
-            DECISION PENDING
-          </button>
+      {/* Animation Trigger Controls */}
+      <div className="p-3 border-t flex flex-wrap gap-2 justify-center" style={{ background: 'var(--bg-elevated)', borderTopColor: 'var(--border)' }}>
+          <span className="text-xs font-bold flex items-center mr-2 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Trigger Animations:</span>
+          <button onClick={() => triggerAnimation('FOUR')} className="px-3 py-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded text-xs font-bold hover:bg-blue-500/30 transition-colors">FOUR</button>
+          <button onClick={() => triggerAnimation('SIX')} className="px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded text-xs font-bold hover:bg-green-500/30 transition-colors">SIX</button>
+          <button onClick={() => triggerAnimation('WICKET')} className="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/30 rounded text-xs font-bold hover:bg-red-500/30 transition-colors">WICKET</button>
+          <button onClick={() => triggerAnimation('DECISION_PENDING')} className="px-3 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-xs font-bold hover:bg-amber-500/30 transition-colors">DECISION PENDING</button>
       </div>
     </div>
   );
