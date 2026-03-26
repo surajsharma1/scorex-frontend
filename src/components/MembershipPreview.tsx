@@ -83,14 +83,17 @@ const [progress, setProgress] = useState(50);
 
         <div className="flex items-center gap-2">
           <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Progress:</label>
-  input
-            type="range" min="0" max="100" step="4" value={progress}
-            onChange={e => setProgress(Number(e.target.value))}
-            disabled={iframeLoading}
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="4"
+              value={progress}
+              onChange={e => setProgress(Number(e.target.value))}
+              disabled={iframeLoading}
+              className="w-24 h-2 rounded cursor-pointer accent-green-500"
+            />
 
-            className="w-24 h-2 rounded cursor-pointer"
-            style={{ accentColor: 'var(--accent)' }}
-          />
           <span className="text-xs font-bold tabular-nums w-8" style={{ color: 'var(--accent)' }}>
             {progress}%
           </span>
