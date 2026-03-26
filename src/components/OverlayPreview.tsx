@@ -1,21 +1,29 @@
-import React, { useState } from 'react';
-import { Maximize2, Eye, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Eye, X, Maximize2, Minimize2 } from 'lucide-react';
 import MembershipPreview from './MembershipPreview';
 import OverlayPreviewRenderer from './OverlayPreviewRenderer';
-import type { OverlayTemplate } from '../types/overlay';
 import { getBackendBaseUrl } from '../services/env';
 
 interface OverlayPreviewProps {
   level: number;
-  templates: OverlayTemplate[];
+  templates: any[]; // Using any to robustly handle different backend formats
 }
 
-const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates }) => {
+const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates = [] }) => {
   const [selectedOverlay, setSelectedOverlay] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const baseUrl = getBackendBaseUrl();
-  const levelTemplates = templates.filter(t => t.level === level);
-  const count = levelTemplates.length;
+  
+  // Safely filter templates by the required membership level
+  const levelTemplates = templates.filter((t: any) => t.level === level || !t.level);
+
+  // 🔥 AUTO-SELECT FIX: Prevent blank preview on load
+  useEffect(() => {
+    if (!selectedOverlay && levelTemplates.length > 0) {
+      const first = levelTemplates[0];
+      setSelectedOverlay(first.file || first.url || first.template || first.name || '');
+    }
+  }, [levelTemplates, selectedOverlay]);
 
   if (levelTemplates.length === 0) return null;
 
@@ -23,74 +31,89 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates }) => 
 
   return (
     <div className={`fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm transition-all ${isFullscreen ? 'p-0' : ''}`}>
-      <div className={`bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 transition-all max-w-4xl w-full ${isFullscreen ? 'h-screen w-screen m-0 rounded-none border-0' : 'max-h-[90vh] overflow-y-auto p-6'}`}>
+      <div 
+        className={`bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 transition-all w-full flex flex-col ${
+          isFullscreen 
+            ? 'h-screen max-w-none m-0 rounded-none border-0' 
+            : 'max-w-5xl max-h-[90vh] p-6'
+        }`}
+      >
+        
+        {/* ── Header Area (Only visible when not fullscreen) ── */}
         {!isFullscreen && (
           <>
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200/50">
-              <div className="flex justify-between items-center">
-                <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-                  Overlay Preview ({count} designs)
-                </h3>
-                <div className="flex gap-1 text-sm">
-                  <button onClick={() => document.documentElement.style.setProperty('--zoom', '0.75')} className="p-1 rounded bg-gray-200 hover:bg-gray-300 transition-colors" title="-">-</button>
-                  <button onClick={() => document.documentElement.style.setProperty('--zoom', '1.25')} className="p-1 rounded bg-blue-500 hover:bg-blue-600 text-white transition-colors" title="+">+</button>
-                  <button onClick={() => document.documentElement.style.setProperty('--zoom', '1')} className="p-1 rounded bg-green-500 hover:bg-green-600 text-white transition-colors" title="1x">1x</button>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button 
-                  onClick={toggleFullscreen}
-                  className="p-2 hover:bg-gray-200 rounded-lg transition-all"
-                  title="Fullscreen"
-                >
-                  <Maximize2 className="w-5 h-5" />
-                </button>
-                <button 
-                  onClick={() => setSelectedOverlay('')}
-                  className="p-2 hover:bg-gray-200 rounded-lg transition-all"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-lg dark:text-white flex items-center gap-2">
+                <Eye className="w-5 h-5 text-blue-500" /> Live Overlay Preview
+              </h3>
+              <button 
+                onClick={() => {/* Add close handler if this component is rendered conditionally by a parent */}} 
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg text-gray-500 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              {levelTemplates.slice(0, 9).map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => setSelectedOverlay(t.url.split('/').pop()!)}
-                  className="group p-4 rounded-xl hover:shadow-xl hover:scale-105 transition-all border hover:border-blue-400 bg-gradient-to-b from-white/70 to-gray-50/70 hover:from-blue-50"
-                >
-<div className="preview-container aspect-square rounded-lg overflow-hidden mb-2 group-hover:scale-[1.05] transition-transform max-h-48">
-                    <div className="preview-scale-fallback preview-scale w-[512px] h-[288px]">
-                      <OverlayPreviewRenderer 
-                        template={t.url.split('/').pop()!} 
-                        progress={69}
-                        heightClass="h-[288px]"
-                        baseUrl={baseUrl}
-                      />
+            {/* Template Selector Row (Desktop) */}
+            <div className="hidden md:flex gap-4 overflow-x-auto pb-4 snap-x mb-4 scrollbar-hide">
+              {levelTemplates.map((t: any, idx: number) => {
+                // 🔥 ROBUST NAME FALLBACK
+                const file = t.file || t.url || t.template || '';
+                const name = t.name || t.title || file || `Template ${idx + 1}`;
+                const id = t._id || t.id || `tpl-${idx}`;
+
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setSelectedOverlay(file)}
+                    className={`flex-shrink-0 w-64 rounded-xl p-3 border-2 transition-all snap-start text-left ${
+                      selectedOverlay === file 
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                        : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 bg-white dark:bg-gray-800'
+                    }`}
+                  >
+                    <div className="aspect-video bg-gray-100 dark:bg-gray-900 rounded-lg mb-3 overflow-hidden relative pointer-events-none">
+                      {/* Mini thumbnail using the renderer scaled down */}
+                      <div className="w-[1920px] h-[1080px] absolute top-0 left-0" style={{ transform: 'scale(0.125)', transformOrigin: 'top left' }}>
+                        <OverlayPreviewRenderer template={file} progress={69} baseUrl={baseUrl} />
+                      </div>
                     </div>
-                  </div>
-                  <p className="font-semibold text-sm line-clamp-1">{t.name}</p>
-                </button>
-              ))}
+                    <p className="font-semibold text-sm line-clamp-1 dark:text-white">{name}</p>
+                  </button>
+                )
+              })}
             </div>
 
+            {/* Template Selector Dropdown (Mobile) */}
             <select 
               value={selectedOverlay}
               onChange={(e) => setSelectedOverlay(e.target.value)}
-              className="w-full p-3 rounded-xl border-2 border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="md:hidden w-full p-3 rounded-xl border-2 border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
             >
-              <option value="">Select design to preview...</option>
-              {levelTemplates.map(t => (
-                <option key={t.id} value={t.url.split('/').pop()!}>{t.name}</option>
-              ))}
+              <option value="" disabled>Select design to preview...</option>
+              {levelTemplates.map((t: any, idx: number) => {
+                const file = t.file || t.url || t.template || '';
+                const name = t.name || t.title || file || `Template ${idx + 1}`;
+                return <option key={idx} value={file}>{name}</option>
+              })}
             </select>
           </>
         )}
 
+        {/* ── Main Preview Container ── */}
         {selectedOverlay && (
-          <div className="preview-container rounded-xl overflow-hidden shadow-2xl border-4 border-blue-200/50 h-full">
+          <div className="relative preview-container rounded-xl overflow-hidden shadow-2xl border-4 border-blue-200/50 dark:border-blue-900/50 flex-1 min-h-[400px] flex flex-col bg-black">
+            
+            {/* Fullscreen Toggle Button */}
+            <button 
+              onClick={toggleFullscreen}
+              className="absolute top-4 right-4 z-50 p-2 bg-black/50 hover:bg-black/80 text-white rounded-lg backdrop-blur-md transition-all"
+              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            >
+              {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+            </button>
+
+            {/* Renders the heavily interactive MembershipPreview containing the animation triggers */}
             <MembershipPreview
               overlayFile={selectedOverlay}
               planName={level === 1 ? 'Premium' : 'Enterprise'}
