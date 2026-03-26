@@ -25,10 +25,11 @@ export const usePreviewScale = ({ containerRef, initialZoom = 1 }: UsePreviewSca
     const container = containerRef.current;
     if (!container) return;
     updateContainerSize();
-    const ro = new ResizeObserver(() => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(updateContainerSize);
-    });
+  const ro = new ResizeObserver((entries) => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => updateContainerSize());
+  });
+
     ro.observe(container);
     return () => {
       ro.disconnect();

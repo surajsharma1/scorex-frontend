@@ -17,7 +17,7 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
   const [containerW, setContainerW] = useState(0);
   const [containerH, setContainerH] = useState(0);
 
-  const previewUrl = `${baseUrl}/overlays/${overlayFile}?demo=true&progress=${progress}%`;
+  const previewUrl = `${baseUrl}/overlays/${overlayFile}?demo=true&preview=true&progress=${progress}%`;
 
   // Measure container
   useEffect(() => {

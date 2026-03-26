@@ -13,9 +13,11 @@ interface OverlayPreviewProps {
 const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates }) => {
   const [selectedOverlay, setSelectedOverlay] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const baseUrl = getBackendBaseUrl();
   const levelTemplates = templates.filter(t => t.level === level);
   const count = levelTemplates.length;
+  const visibleTemplates = showAll ? levelTemplates : levelTemplates.slice(0, 3);
 
   if (levelTemplates.length === 0) return null;
 
@@ -55,7 +57,7 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates }) => 
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              {levelTemplates.slice(0, 9).map(t => (
+              {visibleTemplates.map(t => (
                 <button
                   key={t.id}
                   onClick={() => setSelectedOverlay(t.url.split('/').pop()!)}
@@ -68,6 +70,7 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates }) => 
                         progress={69}
                         heightClass="h-[288px]"
                         baseUrl={baseUrl}
+                        previewMode={true}
                       />
                     </div>
                   </div>
@@ -75,6 +78,14 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates }) => 
                 </button>
               ))}
             </div>
+{count > 3 && !showAll && (
+              <button
+                onClick={() => setShowAll(true)}
+                className="col-span-full mx-auto py-3 px-6 rounded-xl font-semibold text-sm transition-all hover:shadow-lg bg-blue-500/10 hover:bg-blue-500/20 border border-blue-400/30 text-blue-400"
+              >
+                Show all ({count} designs)
+              </button>
+            )}
 
             <select 
               value={selectedOverlay}

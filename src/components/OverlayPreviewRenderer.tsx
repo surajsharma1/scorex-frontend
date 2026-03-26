@@ -13,6 +13,7 @@ interface OverlayPreviewRendererProps {
   onError?: (error: string) => void;
   /** External zoom multiplier. 1 = fit-to-container (default). */
   zoom?: number;
+  previewMode?: boolean;
 }
 
 const OVERLAY_W = 1920;
@@ -27,6 +28,7 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
   onLoad,
   onError,
   zoom: externalZoom,
+  previewMode = false,
 }) => {
   const outerRef   = useRef<HTMLDivElement>(null);
   const innerRef   = useRef<HTMLDivElement>(null);
@@ -88,19 +90,21 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const htmlContent = await fetchOverlayHTML(controllerBaseUrl, template);
+      const htmlContent = await fetchOverlayHTML(controllerBaseUrl, template, previewMode);
       if (innerRef.current) {
         innerRef.current.innerHTML = htmlContent;
 
-        const script = document.createElement('script');
-        script.src = `${controllerBaseUrl}/overlays/engine.js`;
-        script.async = true;
-        innerRef.current.appendChild(script);
+        if (!previewMode) {
+          const script = document.createElement('script');
+          script.src = `${controllerBaseUrl}/overlays/engine.js`;
+          script.async = true;
+          innerRef.current.appendChild(script);
 
-        const utilsScript = document.createElement('script');
-        utilsScript.src = `${controllerBaseUrl}/overlays/overlay-utils.js`;
-        utilsScript.async = true;
-        innerRef.current.appendChild(utilsScript);
+          const utilsScript = document.createElement('script');
+          utilsScript.src = `${controllerBaseUrl}/overlays/overlay-utils.js`;
+          utilsScript.async = true;
+          innerRef.current.appendChild(utilsScript);
+        }
 
         const demoData = getDemoData(progress / 100);
         setPreviewData(demoData);
@@ -114,7 +118,7 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [template, progress, controllerBaseUrl, onLoad, onError]);
+  }, [template, progress, controllerBaseUrl, onLoad, onError, previewMode]);
 
   useEffect(() => { loadPreview(); }, [loadPreview]);
 

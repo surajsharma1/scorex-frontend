@@ -209,10 +209,12 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
                 template={selectedOverlay}
                 progress={69}
                 baseUrl={baseUrl}
+                previewMode={true}
                 zoom={zoom}
                 className=""
                 heightClass=""
               />
+
             </div>
           ) : (
             <div className="text-center p-12">
