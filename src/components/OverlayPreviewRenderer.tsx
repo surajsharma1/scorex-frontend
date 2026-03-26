@@ -11,6 +11,7 @@ interface OverlayPreviewRendererProps {
   baseUrl?: string;
   onLoad?: () => void;
   onError?: (error: string) => void;
+  /** External zoom multiplier. 1 = fit-to-container (default). */
   zoom?: number;
 }
 
@@ -38,6 +39,7 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
 
   const controllerBaseUrl = baseUrl || getBackendBaseUrl();
 
+  // Measure the outer container dynamically to calculate the exact scale needed
   useEffect(() => {
     const el = outerRef.current;
     if (!el) return;
@@ -54,6 +56,7 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     return () => ro.disconnect();
   }, []);
 
+  // Listen for internal zoom events (e.g., from ManagerPreviewZoom)
   useEffect(() => {
     const el = outerRef.current?.closest('[data-preview-host]') || outerRef.current?.parentElement;
     if (!el) return;
@@ -65,19 +68,22 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     return () => document.removeEventListener('scorex:zoom', handler);
   }, []);
 
+  // Calculate ideal scale: fit 1920×1080 inside container
   const idealScale = containerW > 0
     ? Math.min(containerW / OVERLAY_W, containerH > 0 ? containerH / OVERLAY_H : containerW / OVERLAY_W)
     : 0;
 
+  // Favor external zoom prop if provided, otherwise fallback to internal
   const activeZoom = externalZoom !== undefined ? externalZoom : internalZoom;
   const effectiveScale = idealScale * activeZoom;
 
+  // Apply scale via CSS transform
   useEffect(() => {
     if (!innerRef.current || effectiveScale === 0) return;
     innerRef.current.style.transform = `scale(${effectiveScale})`;
   }, [effectiveScale]);
 
-  // 🔥 FIX: Removed onLoad and onError from dependencies to prevent infinite loops
+  // Load and inject the overlay HTML and its scripts safely
   const loadPreview = useCallback(async () => {
     if (!template) return;
     try {
@@ -86,37 +92,42 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
       const htmlContent = await fetchOverlayHTML(controllerBaseUrl, template);
       
       if (innerRef.current) {
+        // Inject HTML
         innerRef.current.innerHTML = htmlContent;
 
+        // Inject overlay logic engine
         const script = document.createElement('script');
         script.src = `${controllerBaseUrl}/overlays/engine.js`;
         script.async = true;
         innerRef.current.appendChild(script);
 
+        // Inject utilities
         const utilsScript = document.createElement('script');
         utilsScript.src = `${controllerBaseUrl}/overlays/overlay-utils.js`;
         utilsScript.async = true;
         innerRef.current.appendChild(utilsScript);
 
+        // Feed initial demo data based on slider progress
         const demoData = getDemoData(progress / 100);
         setPreviewData(demoData);
         updatePreviewData(innerRef.current, demoData);
         
-        if (onLoad) onLoad();
+        onLoad?.();
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Preview load failed';
       setError(msg);
-      if (onError) onError(msg);
+      onError?.(msg);
     } finally {
       setLoading(false);
     }
-  }, [template, progress, controllerBaseUrl]); // Dependencies isolated
+  }, [template, progress, controllerBaseUrl, onLoad, onError]);
 
   useEffect(() => { 
     loadPreview(); 
   }, [loadPreview]);
 
+  // Synchronize dynamic updates to the injected DOM
   useEffect(() => {
     const container = innerRef.current;
     if (!container) return;
@@ -142,6 +153,7 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
       className={`relative overflow-hidden rounded-2xl bg-[#0a0a0a] ${heightClass} ${className}`}
       style={{ width: '100%', height: '100%' }}
     >
+      {/* Overlay canvas maintained at native 1920×1080, scaled automatically */}
       <div style={{ position: 'absolute', top: 0, left: 0, overflow: 'hidden', width: '100%', height: '100%' }}>
         <div
           ref={innerRef}
@@ -155,15 +167,18 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
         />
       </div>
 
+      {/* Loading State */}
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/90 backdrop-blur-sm z-20">
           <div className="text-center p-8">
             <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-emerald-400" />
             <p className="text-slate-300 text-lg font-medium">Rendering preview…</p>
+            <p className="text-sm text-slate-500 mt-2">{template}</p>
           </div>
         </div>
       )}
 
+      {/* Error State */}
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-red-900/95 z-20">
           <div className="text-center p-8 rounded-2xl border-2 border-red-500/50 max-w-md bg-slate-900/50">
@@ -180,6 +195,7 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
         </div>
       )}
 
+      {/* Live Badge Status Indicator */}
       {!loading && !error && previewData && (
         <div className="absolute top-3 right-3 bg-emerald-500/90 text-white px-3 py-1 rounded-full text-xs font-bold z-10 shadow-lg flex items-center gap-1">
           <Eye className="w-3 h-3" /> LIVE

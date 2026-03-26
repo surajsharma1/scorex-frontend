@@ -6,7 +6,7 @@ import { getBackendBaseUrl } from '../services/env';
 
 interface OverlayPreviewProps {
   level: number;
-  templates: any[]; 
+  templates: any[]; // Using any to robustly handle different backend formats
 }
 
 const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates = [] }) => {
@@ -14,17 +14,16 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates = [] }
   const [isFullscreen, setIsFullscreen] = useState(false);
   const baseUrl = getBackendBaseUrl();
   
+  // Safely filter templates by the required membership level
   const levelTemplates = templates.filter((t: any) => t.level === level || !t.level);
 
-  // 🔥 FIX: Stabilized dependencies to prevent infinite loop crashes
+  // 🔥 AUTO-SELECT FIX: Prevent blank preview on load
   useEffect(() => {
-    if (!selectedOverlay && templates.length > 0) {
-      const first = templates.find((t: any) => t.level === level || !t.level);
-      if (first) {
-         setSelectedOverlay(first.file || first.url || first.template || first.name || 'default');
-      }
+    if (!selectedOverlay && levelTemplates.length > 0) {
+      const first = levelTemplates[0];
+      setSelectedOverlay(first.file || first.url || first.template || first.name || '');
     }
-  }, [templates, level, selectedOverlay]);
+  }, [levelTemplates, selectedOverlay]);
 
   if (levelTemplates.length === 0) return null;
 
@@ -34,19 +33,31 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates = [] }
     <div className={`fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm transition-all ${isFullscreen ? 'p-0' : ''}`}>
       <div 
         className={`bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 transition-all w-full flex flex-col ${
-          isFullscreen ? 'h-screen max-w-none m-0 rounded-none border-0' : 'max-w-5xl max-h-[90vh] p-6'
+          isFullscreen 
+            ? 'h-screen max-w-none m-0 rounded-none border-0' 
+            : 'max-w-5xl max-h-[90vh] p-6'
         }`}
       >
+        
+        {/* ── Header Area (Only visible when not fullscreen) ── */}
         {!isFullscreen && (
           <>
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-lg dark:text-white flex items-center gap-2">
                 <Eye className="w-5 h-5 text-blue-500" /> Live Overlay Preview
               </h3>
+              <button 
+                onClick={() => {/* Add close handler if this component is rendered conditionally by a parent */}} 
+                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg text-gray-500 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
+            {/* Template Selector Row (Desktop) */}
             <div className="hidden md:flex gap-4 overflow-x-auto pb-4 snap-x mb-4 scrollbar-hide">
               {levelTemplates.map((t: any, idx: number) => {
+                // 🔥 ROBUST NAME FALLBACK
                 const file = t.file || t.url || t.template || '';
                 const name = t.name || t.title || file || `Template ${idx + 1}`;
                 const id = t._id || t.id || `tpl-${idx}`;
@@ -62,6 +73,7 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates = [] }
                     }`}
                   >
                     <div className="aspect-video bg-gray-100 dark:bg-gray-900 rounded-lg mb-3 overflow-hidden relative pointer-events-none">
+                      {/* Mini thumbnail using the renderer scaled down */}
                       <div className="w-[1920px] h-[1080px] absolute top-0 left-0" style={{ transform: 'scale(0.125)', transformOrigin: 'top left' }}>
                         <OverlayPreviewRenderer template={file} progress={69} baseUrl={baseUrl} />
                       </div>
@@ -72,6 +84,7 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates = [] }
               })}
             </div>
 
+            {/* Template Selector Dropdown (Mobile) */}
             <select 
               value={selectedOverlay}
               onChange={(e) => setSelectedOverlay(e.target.value)}
@@ -87,15 +100,20 @@ const OverlayPreview: React.FC<OverlayPreviewProps> = ({ level, templates = [] }
           </>
         )}
 
+        {/* ── Main Preview Container ── */}
         {selectedOverlay && (
           <div className="relative preview-container rounded-xl overflow-hidden shadow-2xl border-4 border-blue-200/50 dark:border-blue-900/50 flex-1 min-h-[400px] flex flex-col bg-black">
+            
+            {/* Fullscreen Toggle Button */}
             <button 
               onClick={toggleFullscreen}
               className="absolute top-4 right-4 z-50 p-2 bg-black/50 hover:bg-black/80 text-white rounded-lg backdrop-blur-md transition-all"
+              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
             >
               {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
             </button>
 
+            {/* Renders the heavily interactive MembershipPreview containing the animation triggers */}
             <MembershipPreview
               overlayFile={selectedOverlay}
               planName={level === 1 ? 'Premium' : 'Enterprise'}
