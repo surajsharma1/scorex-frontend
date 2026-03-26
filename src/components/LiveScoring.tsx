@@ -1,12 +1,37 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import { socket } from '../services/socket';
 import { RotateCcw, LogOut, ChevronRight, Zap, AlertTriangle, X, RefreshCw, Users } from 'lucide-react';
 
-interface BallData { runs?: number; wide?: boolean; noBall?: boolean; bye?: number; legBye?: number; wicket?: boolean; outType?: string; outBatsmanName?: string; outFielder?: string; retired?: boolean; penalty?: number; }
+interface BallData { 
+  runs?: number; 
+  wide?: boolean; 
+  noBall?: boolean; 
+  bye?: number; 
+  legBye?: number; 
+  wicket?: boolean; 
+  outType?: string; 
+  outBatsmanName?: string; 
+  outFielder?: string; 
+  retired?: boolean; 
+  penalty?: number; 
+}
+
 type ScoringPanel = 'main' | 'wide' | 'noBall' | 'bye' | 'legBye' | 'wicket' | 'others';
 type ScoreStep = 'toss' | 'players' | 'scoring' | 'playerSelect' | 'inningsBreak' | 'done';
+
+const WICKET_TYPES = [
+  { id: 'bowled', label: 'Bowled' }, 
+  { id: 'caught', label: 'Caught' }, 
+  { id: 'lbw', label: 'LBW' }, 
+  { id: 'run_out', label: 'Run Out' }, 
+  { id: 'stumped', label: 'Stumped' }, 
+  { id: 'hit_wicket', label: 'Hit Wicket' }, 
+  { id: 'handled_ball', label: 'Handled Ball' }, 
+  { id: 'obstructing', label: 'Obstructing' }, 
+  { id: 'timed_out', label: 'Timed Out' }
+];
 
 function RunButtons({ onSelect, disabled = false, extraLabel = '' }: { onSelect: (runs: number) => void; disabled?: boolean; extraLabel?: string; }) {
   return (
@@ -20,18 +45,26 @@ function RunButtons({ onSelect, disabled = false, extraLabel = '' }: { onSelect:
   );
 }
 
-const WICKET_TYPES = [{ id: 'bowled', label: 'Bowled' }, { id: 'caught', label: 'Caught' }, { id: 'lbw', label: 'LBW' }, { id: 'run_out', label: 'Run Out' }, { id: 'stumped', label: 'Stumped' }, { id: 'hit_wicket', label: 'Hit Wicket' }, { id: 'handled_ball', label: 'Handled Ball' }, { id: 'obstructing', label: 'Obstructing' }, { id: 'timed_out', label: 'Timed Out' }];
-
 function TossModal({ match, onDone }: { match: any; onDone: (data: any) => void }) {
   const [tossWinner, setTossWinner] = useState('');
   const [decision, setDecision] = useState<'bat' | 'bowl'>('bat');
+  
   const submit = () => {
     if (!tossWinner) return;
     const t1Id = match.team1?._id || match.team1;
     const team = t1Id === tossWinner ? match.team1 : match.team2;
     const other = team._id === t1Id ? match.team2 : match.team1;
-    onDone({ tossWinnerId: tossWinner, tossWinnerName: team.name || team.team1Name, tossDecision: decision, battingTeamId: decision === 'bat' ? team._id || team : other._id || other, battingTeamName: decision === 'bat' ? team.name : other.name, bowlingTeamId: decision === 'bat' ? other._id || other : team._id || team, bowlingTeamName: decision === 'bat' ? other.name : team.name });
+    onDone({ 
+      tossWinnerId: tossWinner, 
+      tossWinnerName: team.name || team.team1Name, 
+      tossDecision: decision, 
+      battingTeamId: decision === 'bat' ? team._id || team : other._id || other, 
+      battingTeamName: decision === 'bat' ? team.name : other.name, 
+      bowlingTeamId: decision === 'bat' ? other._id || other : team._id || team, 
+      bowlingTeamName: decision === 'bat' ? other.name : team.name 
+    });
   };
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
       <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md">
@@ -41,8 +74,13 @@ function TossModal({ match, onDone }: { match: any; onDone: (data: any) => void 
             <label className="text-slate-400 text-sm font-semibold mb-2 block">Who won the toss?</label>
             <div className="grid grid-cols-2 gap-3">
               {[match.team1, match.team2].map(team => {
-                const id = team?._id || team; const name = team?.name || `Team ${id}`;
-                return <button key={id} onClick={() => setTossWinner(id)} className={`py-3 px-4 rounded-xl font-bold text-sm border-2 ${tossWinner === id ? 'border-blue-500 bg-blue-500/20 text-white' : 'border-slate-700 text-slate-400'}`}>{name}</button>;
+                const id = team?._id || team; 
+                const name = team?.name || `Team ${id}`;
+                return (
+                  <button key={id} onClick={() => setTossWinner(id)} className={`py-3 px-4 rounded-xl font-bold text-sm border-2 ${tossWinner === id ? 'border-blue-500 bg-blue-500/20 text-white' : 'border-slate-700 text-slate-400'}`}>
+                    {name}
+                  </button>
+                );
               })}
             </div>
           </div>
@@ -50,11 +88,15 @@ function TossModal({ match, onDone }: { match: any; onDone: (data: any) => void 
             <label className="text-slate-400 text-sm font-semibold mb-2 block">Decision</label>
             <div className="grid grid-cols-2 gap-3">
               {(['bat', 'bowl'] as const).map(d => (
-                <button key={d} onClick={() => setDecision(d)} className={`py-3 px-4 rounded-xl font-bold text-sm border-2 capitalize ${decision === d ? 'border-green-500 bg-green-500/20 text-white' : 'border-slate-700 text-slate-400'}`}>{d === 'bat' ? '🏏 Bat' : '🎳 Bowl'}</button>
+                <button key={d} onClick={() => setDecision(d)} className={`py-3 px-4 rounded-xl font-bold text-sm border-2 capitalize ${decision === d ? 'border-green-500 bg-green-500/20 text-white' : 'border-slate-700 text-slate-400'}`}>
+                  {d === 'bat' ? '🏏 Bat' : '🎳 Bowl'}
+                </button>
               ))}
             </div>
           </div>
-          <button onClick={submit} disabled={!tossWinner} className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold rounded-xl mt-4">Continue</button>
+          <button onClick={submit} disabled={!tossWinner} className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-bold rounded-xl mt-4">
+            Continue
+          </button>
         </div>
       </div>
     </div>
@@ -67,7 +109,9 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
   const [bowler, setBowler] = useState(defaultBowler);
 
   useEffect(() => {
-    setStriker(defaultStriker); setNonStriker(defaultNonStriker); setBowler(defaultBowler);
+    setStriker(defaultStriker); 
+    setNonStriker(defaultNonStriker); 
+    setBowler(defaultBowler);
   }, [defaultStriker, defaultNonStriker, defaultBowler]);
 
   const t1Id = match.team1?._id || match.team1;
@@ -91,6 +135,7 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
         {onClose && <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-white"><X className="w-5 h-5" /></button>}
         <h2 className="text-xl font-black text-white mb-2 flex items-center gap-2"><Users className="w-5 h-5 text-blue-400" /> {title}</h2>
         <p className="text-slate-500 text-xs mb-1">Innings {inningsNum} | {battingTeam?.name || 'Batting Team'} vs {bowlingTeam?.name || 'Bowling Team'}</p>
+        
         {outPlayerNames.size > 0 && (
           <p className="text-amber-500/70 text-xs mb-4">⚠ {outPlayerNames.size} dismissed player{outPlayerNames.size > 1 ? 's' : ''} hidden from selection</p>
         )}
@@ -117,7 +162,9 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
               {bowlPlayers.map((p: any) => <option key={p._id || p.name} value={p.name}>{p.name}</option>)}
             </select>
           </div>
-          <button onClick={() => isValid() && onDone({ striker, nonStriker, bowler })} disabled={!isValid()} className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white font-bold rounded-xl mt-2">Confirm Selection</button>
+          <button onClick={() => isValid() && onDone({ striker, nonStriker, bowler })} disabled={!isValid()} className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:opacity-40 text-white font-bold rounded-xl mt-2">
+            Confirm Selection
+          </button>
         </div>
       </div>
     </div>
@@ -132,9 +179,17 @@ function InningsBreak({ match, onContinue }: { match: any; onContinue: () => voi
       <div className="bg-slate-900 border border-blue-500/30 rounded-2xl p-8 w-full max-w-sm text-center">
         <div className="text-5xl mb-4">🏏</div>
         <h2 className="text-2xl font-black text-white mb-2">Innings Break</h2>
-        <div className="bg-slate-800 rounded-xl p-4 mb-6"><p className="text-slate-400 text-sm">{innings1?.teamName || 'Team 1'} scored</p><p className="text-4xl font-black text-white">{innings1?.score}/{innings1?.wickets}</p><p className="text-slate-400 text-sm mt-1">{innings1?.overs?.toFixed ? innings1.overs.toFixed(1) : 0} overs</p></div>
-        <div className="bg-blue-900/40 border border-blue-500/30 rounded-xl p-4 mb-6"><p className="text-blue-400 font-bold text-lg">Target: {target}</p></div>
-        <button onClick={onContinue} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl">Select Players for 2nd Innings →</button>
+        <div className="bg-slate-800 rounded-xl p-4 mb-6">
+          <p className="text-slate-400 text-sm">{innings1?.teamName || 'Team 1'} scored</p>
+          <p className="text-4xl font-black text-white">{innings1?.score}/{innings1?.wickets}</p>
+          <p className="text-slate-400 text-sm mt-1">{innings1?.overs?.toFixed ? innings1.overs.toFixed(1) : 0} overs</p>
+        </div>
+        <div className="bg-blue-900/40 border border-blue-500/30 rounded-xl p-4 mb-6">
+          <p className="text-blue-400 font-bold text-lg">Target: {target}</p>
+        </div>
+        <button onClick={onContinue} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl">
+          Select Players for 2nd Innings →
+        </button>
       </div>
     </div>
   );
@@ -152,7 +207,7 @@ export default function LiveScoring() {
   const [error, setError] = useState('');
   const [tossData, setTossData] = useState<any>(null);
   
-  // Decision Pending State
+  // 🔥 Decision Pending State
   const [isDecisionPending, setIsDecisionPending] = useState(false);
   
   const [wicketModal, setWicketModal] = useState<{ open: boolean; baseData: BallData }>({ open: false, baseData: {} });
@@ -162,14 +217,10 @@ export default function LiveScoring() {
   const toggleDecisionPending = () => {
     const newState = !isDecisionPending;
     setIsDecisionPending(newState);
-    
-    socket.emit('updateMatchState', { 
-      match, 
-      decisionPending: newState 
-    });
+    socket.emit('updateMatchState', { match, decisionPending: newState });
   };
 
-  // Derived state to lock out all actions
+  // 🔥 Derived state to completely lock out all scoring actions
   const isActionDisabled = submitting || isDecisionPending;
 
   const fetchMatch = useCallback(async () => {
@@ -183,13 +234,22 @@ export default function LiveScoring() {
         const innings = m.innings?.[m.currentInnings - 1];
         if (!innings || (!m.strikerName && !m.nonStrikerName)) {
           setStep('players');
+        } else {
+          setStep('scoring');
         }
-        else setStep('scoring');
-      } else setStep('toss');
-    } catch (e) { setError('Failed to load match'); } finally { setLoading(false); }
+      } else {
+        setStep('toss');
+      }
+    } catch (e) { 
+      setError('Failed to load match'); 
+    } finally { 
+      setLoading(false); 
+    }
   }, [id]);
 
-  useEffect(() => { fetchMatch(); }, [fetchMatch]);
+  useEffect(() => { 
+    fetchMatch(); 
+  }, [fetchMatch]);
   
   useEffect(() => {
     if (!id) return;
@@ -210,18 +270,28 @@ export default function LiveScoring() {
     };
   }, [id, fetchMatch]);
 
-  const handleTossDone = (data: any) => { setTossData(data); setStep('players'); };
+  const handleTossDone = (data: any) => { 
+    setTossData(data); 
+    setStep('players'); 
+  };
 
   const handlePlayersDone = async (players: { striker?: string; nonStriker?: string; bowler?: string }) => {
     if (!id || !match) return; 
     setSubmitting(true);
     try {
-      if (match.status !== 'live') await matchAPI.startMatch(id, { ...tossData, striker: players.striker, nonStriker: players.nonStriker, bowler: players.bowler });
-      else await matchAPI.selectPlayers(id, players);
+      if (match.status !== 'live') {
+        await matchAPI.startMatch(id, { ...tossData, striker: players.striker, nonStriker: players.nonStriker, bowler: players.bowler });
+      } else {
+        await matchAPI.selectPlayers(id, players);
+      }
       await fetchMatch(); 
       setStep('scoring'); 
       setPanel('main');
-    } catch (e: any) { setError(e.response?.data?.message || 'Failed to update players'); } finally { setSubmitting(false); }
+    } catch (e: any) { 
+      setError(e.response?.data?.message || 'Failed to update players'); 
+    } finally { 
+      setSubmitting(false); 
+    }
   };
 
   const submitBall = async (data: BallData) => {
@@ -236,7 +306,11 @@ export default function LiveScoring() {
       if (res.data.data?.matchEnded) setStep('done');
       else if (res.data.data?.inningsEnded) setStep('inningsBreak');
       else if (res.data.data?.needPlayerSelection) setStep('playerSelect');
-    } catch (e: any) { setError(e.response?.data?.message || 'Failed to record ball'); } finally { setSubmitting(false); }
+    } catch (e: any) { 
+      setError(e.response?.data?.message || 'Failed to record ball'); 
+    } finally { 
+      setSubmitting(false); 
+    }
   };
 
   const handleStrikeChange = async () => {
@@ -250,8 +324,11 @@ export default function LiveScoring() {
       });
       await fetchMatch();
       setLastBall('⇄ Strike Changed');
-    } catch (e: any) { setError('Failed to change strike'); }
-    finally { setSubmitting(false); }
+    } catch (e: any) { 
+      setError('Failed to change strike'); 
+    } finally { 
+      setSubmitting(false); 
+    }
   };
 
   const handleRetirement = (type: 'striker' | 'nonStriker') => {
@@ -263,19 +340,46 @@ export default function LiveScoring() {
   const handleUndo = async () => {
     if (!id || isActionDisabled || !confirm('Undo last ball?')) return; 
     setSubmitting(true);
-    try { await matchAPI.undoBall(id); await fetchMatch(); setLastBall('↩ Undone'); setPanel('main'); } catch (e: any) { setError('Cannot undo'); } finally { setSubmitting(false); }
+    try { 
+      await matchAPI.undoBall(id); 
+      await fetchMatch(); 
+      setLastBall('↩ Undone'); 
+      setPanel('main'); 
+    } catch (e: any) { 
+      setError('Cannot undo'); 
+    } finally { 
+      setSubmitting(false); 
+    }
   };
 
   const handleEndInnings = async () => {
-    if (!confirm('End current innings?')) return; 
+    if (isActionDisabled || !confirm('End current innings?')) return; 
     setSubmitting(true);
-    try { await matchAPI.endInnings(id!); await fetchMatch(); setStep('inningsBreak'); } catch (e: any) {} finally { setSubmitting(false); }
+    try { 
+      await matchAPI.endInnings(id!); 
+      await fetchMatch(); 
+      setStep('inningsBreak'); 
+    } catch (e: any) {} finally { 
+      setSubmitting(false); 
+    }
   };
 
   const handleEndMatch = async () => {
-    if (!confirm('End the match?')) return; 
+    if (isActionDisabled || !confirm('End the match?')) return; 
     setSubmitting(true);
-    try { await matchAPI.endMatch(id!, {}); await fetchMatch(); setStep('done'); } catch (e: any) {} finally { setSubmitting(false); }
+    try { 
+      await matchAPI.endMatch(id!, {}); 
+      await fetchMatch(); 
+      setStep('done'); 
+    } catch (e: any) {} finally { 
+      setSubmitting(false); 
+    }
+  };
+
+  const openWicketModal = (baseData: BallData = {}) => { 
+    setSelectedWicketType(''); 
+    setWicketModal({ open: true, baseData }); 
+    setOutBatsman('striker'); 
   };
 
   const innings = match?.innings?.[match?.currentInnings - 1] || {};
@@ -297,7 +401,8 @@ export default function LiveScoring() {
   let thisOverBalls: any[] = []; 
   let validCount = 0;
   for (let i = safeHistory.length - 1; i >= 0; i--) {
-    const b = safeHistory[i]; thisOverBalls.unshift(b);
+    const b = safeHistory[i]; 
+    thisOverBalls.unshift(b);
     if (!(b.extras === 'wide' || b.wide || b.extras === 'nb' || b.noBall || b.extras === 'noBall')) validCount++;
     if (validCount >= validBallsInCurrentOver) break;
   }
@@ -314,21 +419,28 @@ export default function LiveScoring() {
 
   if (step === 'players') { defStriker = ''; defNonStriker = ''; defBowler = ''; }
 
-  const openWicketModal = (baseData: BallData = {}) => { 
-    setSelectedWicketType(''); 
-    setWicketModal({ open: true, baseData }); 
-    setOutBatsman('striker'); 
-  };
-
-  if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" /></div>;
-  if (!match) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><p className="text-red-400 text-xl">Match not found</p></div>;
+  if (loading) return (
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+    </div>
+  );
+  
+  if (!match) return (
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <p className="text-red-400 text-xl">Match not found</p>
+    </div>
+  );
+  
   if (step === 'done') return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
       <div className="bg-slate-900 border border-slate-700 rounded-2xl p-8 text-center max-w-md w-full">
-        <div className="text-5xl mb-4">🏆</div><h2 className="text-2xl font-black text-white mb-2">Match Completed</h2>
+        <div className="text-5xl mb-4">🏆</div>
+        <h2 className="text-2xl font-black text-white mb-2">Match Completed</h2>
         {match.winnerName && <p className="text-green-400 font-semibold mb-4">{match.winnerName} won!</p>}
         {match.resultSummary && <p className="text-slate-400 mb-6">{match.resultSummary}</p>}
-        <button onClick={() => navigate(-1)} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl mt-4">Back to Match</button>
+        <button onClick={() => navigate(-1)} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl mt-4">
+          Back to Match
+        </button>
       </div>
     </div>
   );
@@ -338,11 +450,19 @@ export default function LiveScoring() {
       {step === 'toss' && <TossModal match={match} onDone={handleTossDone} />}
 
       {(step === 'players' || step === 'playerSelect') && (
-        <PlayerSelectModal match={match} battingTeamId={currentBattingTeamId} bowlingTeamId={currentBowlingTeamId} inningsNum={match.currentInnings || 1}
+        <PlayerSelectModal 
+          match={match} 
+          battingTeamId={currentBattingTeamId} 
+          bowlingTeamId={currentBowlingTeamId} 
+          inningsNum={match.currentInnings || 1}
           title={step === 'players' ? 'Select Opening Players' : 'Player Selection'}
-          defaultStriker={defStriker} defaultNonStriker={defNonStriker} defaultBowler={defBowler}
+          defaultStriker={defStriker} 
+          defaultNonStriker={defNonStriker} 
+          defaultBowler={defBowler}
           currentInningsData={innings}
-          onDone={handlePlayersDone} onClose={step === 'playerSelect' ? () => setStep('scoring') : undefined} />
+          onDone={handlePlayersDone} 
+          onClose={step === 'playerSelect' ? () => setStep('scoring') : undefined} 
+        />
       )}
 
       {step === 'inningsBreak' && <InningsBreak match={match} onContinue={() => setStep('playerSelect')} />}
@@ -408,7 +528,10 @@ export default function LiveScoring() {
       {/* ── Header & Score Display ────────────────────────────────────────── */}
       <div className="bg-slate-900 border-b border-slate-800 px-4 py-3">
         <div className="flex items-center justify-between">
-          <div><h1 className="font-bold text-white text-sm">{match.name}</h1><p className="text-slate-500 text-xs">{match.venue} · {match.format}</p></div>
+          <div>
+            <h1 className="font-bold text-white text-sm">{match.name}</h1>
+            <p className="text-slate-500 text-xs">{match.venue} · {match.format}</p>
+          </div>
           <div className="flex gap-2">
             <button onClick={handleUndo} disabled={isActionDisabled} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-600/20 text-amber-400 text-xs font-semibold disabled:opacity-40"><RotateCcw className="w-3.5 h-3.5" /> Undo</button>
             <button onClick={() => navigate(-1)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-semibold"><LogOut className="w-3.5 h-3.5" /> Leave</button>
@@ -420,21 +543,38 @@ export default function LiveScoring() {
         <div className="flex items-center justify-between mb-3">
           <div>
              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">{innings?.teamName || match.team1Name} · Inn {match.currentInnings}</p>
-             <div className="flex items-end gap-2 mt-0.5"><span className="text-5xl font-black text-white">{score}/{wickets}</span><span className="text-slate-400 text-lg mb-1">({oversDisplay} ov)</span></div>
+             <div className="flex items-end gap-2 mt-0.5">
+                <span className="text-5xl font-black text-white">{score}/{wickets}</span>
+                <span className="text-slate-400 text-lg mb-1">({oversDisplay} ov)</span>
+             </div>
           </div>
           <div className="text-right">
-            <div className="text-slate-500 text-xs mb-1">Run Rate</div><div className="text-2xl font-black text-green-400">{runRate}</div>
-            {target && <div className="mt-1"><div className="text-xs text-blue-400 font-semibold">Target {target}</div><div className="text-xs text-slate-400">Need {requiredRuns} @ {rrr}</div></div>}
+            <div className="text-slate-500 text-xs mb-1">Run Rate</div>
+            <div className="text-2xl font-black text-green-400">{runRate}</div>
+            {target && (
+              <div className="mt-1">
+                <div className="text-xs text-blue-400 font-semibold">Target {target}</div>
+                <div className="text-xs text-slate-400">Need {requiredRuns} @ {rrr}</div>
+              </div>
+            )}
           </div>
         </div>
 
+        {/* Current Over Balls */}
         <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-2 scrollbar-hide">
           <span className="text-slate-600 text-xs mr-2 font-semibold">Over:</span>
           {thisOverBalls.map((b: any, i: number) => {
-            const isWide = b.extras === 'wide' || b.wide; const isNoBall = b.extras === 'nb' || b.noBall || b.extras === 'noBall';
-            return <span key={i} className={`min-w-[1.75rem] h-7 px-1.5 flex flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${b.wicket ? 'bg-red-600 text-white shadow-md' : (isWide || isNoBall) ? 'bg-amber-500 text-white shadow-md' : b.runs === 4 ? 'bg-blue-600 text-white shadow-md' : b.runs === 6 ? 'bg-purple-600 text-white shadow-md' : 'bg-slate-700 text-slate-200'}`}>{b.wicket ? 'W' : isWide ? 'Wd' : isNoBall ? 'Nb' : (b.runs || '•')}</span>;
+            const isWide = b.extras === 'wide' || b.wide; 
+            const isNoBall = b.extras === 'nb' || b.noBall || b.extras === 'noBall';
+            return (
+              <span key={i} className={`min-w-[1.75rem] h-7 px-1.5 flex flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${b.wicket ? 'bg-red-600 text-white shadow-md' : (isWide || isNoBall) ? 'bg-amber-500 text-white shadow-md' : b.runs === 4 ? 'bg-blue-600 text-white shadow-md' : b.runs === 6 ? 'bg-purple-600 text-white shadow-md' : 'bg-slate-700 text-slate-200'}`}>
+                {b.wicket ? 'W' : isWide ? 'Wd' : isNoBall ? 'Nb' : (b.runs || '•')}
+              </span>
+            );
           })}
-          {Array(Math.max(0, 6 - validBallsInCurrentOver)).fill(0).map((_, i) => <span key={`empty-${i}`} className="min-w-[1.75rem] h-7 flex flex-shrink-0 items-center justify-center rounded-full text-xs bg-slate-800/50 border border-slate-700/50 text-slate-600">·</span>)}
+          {Array(Math.max(0, 6 - validBallsInCurrentOver)).fill(0).map((_, i) => (
+            <span key={`empty-${i}`} className="min-w-[1.75rem] h-7 flex flex-shrink-0 items-center justify-center rounded-full text-xs bg-slate-800/50 border border-slate-700/50 text-slate-600">·</span>
+          ))}
         </div>
 
         {/* Dynamic Players Display */}
@@ -452,18 +592,28 @@ export default function LiveScoring() {
           <div className="bg-slate-800/60 rounded-xl p-2.5">
             <div className="text-slate-500 mb-0.5">🎳 Bowler</div>
             <div className="text-white font-semibold truncate">{match.currentBowlerName || '–'}</div>
-            {match.currentBowlerName && <div className="text-slate-400 mt-0.5">{safeBowlers.find((b:any)=>b.name===match.currentBowlerName)?.overs}.{safeBowlers.find((b:any)=>b.name===match.currentBowlerName)?.balls % 6}ov {safeBowlers.find((b:any)=>b.name===match.currentBowlerName)?.runs}R</div>}
+            {match.currentBowlerName && (
+              <div className="text-slate-400 mt-0.5">
+                {safeBowlers.find((b:any)=>b.name===match.currentBowlerName)?.overs}.{safeBowlers.find((b:any)=>b.name===match.currentBowlerName)?.balls % 6}ov {safeBowlers.find((b:any)=>b.name===match.currentBowlerName)?.runs}R
+              </div>
+            )}
           </div>
         </div>
 
         {lastBall && <div className="mt-3 text-center"><span className="text-xs bg-slate-800 border border-slate-700 rounded-full px-3 py-1 text-slate-300">Last: {lastBall}</span></div>}
-        {error && <div className="mt-2 bg-red-900/30 border border-red-700/40 rounded-lg px-3 py-2 flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-red-400" /><span className="text-red-300 text-xs">{error}</span><button onClick={() => setError('')} className="ml-auto text-red-400"><X className="w-3.5 h-3.5" /></button></div>}
+        {error && (
+          <div className="mt-2 bg-red-900/30 border border-red-700/40 rounded-lg px-3 py-2 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-400" />
+            <span className="text-red-300 text-xs">{error}</span>
+            <button onClick={() => setError('')} className="ml-auto text-red-400"><X className="w-3.5 h-3.5" /></button>
+          </div>
+        )}
       </div>
 
       {/* ── Scoring Panels ───────────────────────────────────────────────────── */}
       <div className="flex-1 bg-slate-950 px-4 py-4 overflow-y-auto">
         
-        {/* Toggle Decision Pending (Highest Priority Above Runs) */}
+        {/* 🔥 THE DECISION PENDING TOGGLE */}
         <button 
           onClick={toggleDecisionPending}
           className={`w-full py-4 mb-4 rounded-xl font-black text-lg transition-all flex items-center justify-center gap-2 ${
@@ -478,85 +628,181 @@ export default function LiveScoring() {
 
         {panel === 'main' && (
           <div className="space-y-4">
-            <div><p className="text-slate-600 text-xs font-semibold uppercase tracking-wider mb-2">Runs</p>
+            <div>
+              <p className="text-slate-600 text-xs font-semibold uppercase tracking-wider mb-2">Runs</p>
               <div className="grid grid-cols-4 gap-3">
                 {[0, 1, 2, 3, 4, 6].map(r => (
-                  <button key={r} disabled={isActionDisabled} onClick={() => submitBall({ runs: r })} className={`py-5 rounded-2xl font-black text-2xl transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg ${r === 4 ? 'bg-blue-600 shadow-blue-600/30' : r === 6 ? 'bg-purple-600 shadow-purple-600/30' : r === 0 ? 'bg-slate-800 text-slate-300' : 'bg-slate-700'}`}>{r === 0 ? '•' : r}</button>
+                  <button 
+                    key={r} 
+                    disabled={isActionDisabled} 
+                    onClick={() => submitBall({ runs: r })} 
+                    className={`py-5 rounded-2xl font-black text-2xl transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg ${r === 4 ? 'bg-blue-600 shadow-blue-600/30' : r === 6 ? 'bg-purple-600 shadow-purple-600/30' : r === 0 ? 'bg-slate-800 text-slate-300' : 'bg-slate-700'}`}
+                  >
+                    {r === 0 ? '•' : r}
+                  </button>
                 ))}
               </div>
             </div>
-            <div><p className="text-slate-600 text-xs font-semibold uppercase tracking-wider mb-2">Extras & Wickets</p>
+            
+            <div>
+              <p className="text-slate-600 text-xs font-semibold uppercase tracking-wider mb-2">Extras & Wickets</p>
               <div className="grid grid-cols-2 gap-2">
-                {[{ label: 'Wide', icon: '↔', panel: 'wide' as ScoringPanel, color: 'bg-amber-600/20 border-amber-600/40 text-amber-300' }, { label: 'No Ball', icon: '⊘', panel: 'noBall' as ScoringPanel, color: 'bg-orange-600/20 border-orange-600/40 text-orange-300' }, { label: 'Bye', icon: 'B', panel: 'bye' as ScoringPanel, color: 'bg-teal-600/20 border-teal-600/40 text-teal-300' }, { label: 'Leg Bye', icon: 'LB', panel: 'legBye' as ScoringPanel, color: 'bg-cyan-600/20 border-cyan-600/40 text-cyan-300' }].map(btn => (
-                  <button key={btn.label} disabled={isActionDisabled} onClick={() => setPanel(btn.panel)} className={`py-3 px-4 rounded-xl font-bold text-sm border flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed ${btn.color}`}><span className="font-black">{btn.icon}</span> {btn.label}</button>
+                {[
+                  { label: 'Wide', icon: '↔', panel: 'wide' as ScoringPanel, color: 'bg-amber-600/20 border-amber-600/40 text-amber-300' }, 
+                  { label: 'No Ball', icon: '⊘', panel: 'noBall' as ScoringPanel, color: 'bg-orange-600/20 border-orange-600/40 text-orange-300' }, 
+                  { label: 'Bye', icon: 'B', panel: 'bye' as ScoringPanel, color: 'bg-teal-600/20 border-teal-600/40 text-teal-300' }, 
+                  { label: 'Leg Bye', icon: 'LB', panel: 'legBye' as ScoringPanel, color: 'bg-cyan-600/20 border-cyan-600/40 text-cyan-300' }
+                ].map(btn => (
+                  <button 
+                    key={btn.label} 
+                    disabled={isActionDisabled} 
+                    onClick={() => setPanel(btn.panel)} 
+                    className={`py-3 px-4 rounded-xl font-bold text-sm border flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed ${btn.color}`}
+                  >
+                    <span className="font-black">{btn.icon}</span> {btn.label}
+                  </button>
                 ))}
               </div>
             </div>
+            
             <div className="grid grid-cols-2 gap-2">
-              <button disabled={isActionDisabled} onClick={() => openWicketModal({})} className="py-4 rounded-2xl font-black text-lg bg-red-700 hover:bg-red-600 text-white shadow-lg active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">OUT! 🎯</button>
-              <button disabled={isActionDisabled} onClick={() => setPanel('others')} className="py-4 rounded-2xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed">Others…</button>
+              <button disabled={isActionDisabled} onClick={() => openWicketModal({})} className="py-4 rounded-2xl font-black text-lg bg-red-700 hover:bg-red-600 text-white shadow-lg active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">
+                OUT! 🎯
+              </button>
+              <button disabled={isActionDisabled} onClick={() => setPanel('others')} className="py-4 rounded-2xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                Others…
+              </button>
             </div>
           </div>
         )}
 
         {panel === 'wide' && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4"><button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Wide Ball</h3></div>
+            <div className="flex items-center gap-2 mb-4">
+              <button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <h3 className="text-white font-bold">Wide Ball</h3>
+            </div>
             <RunButtons onSelect={r => submitBall({ wide: true, runs: r })} disabled={isActionDisabled} extraLabel="Wd" />
-            <div className="border-t border-slate-800 pt-4"><button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ wide: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">Wicket (Off Wide)</button></div>
+            <div className="border-t border-slate-800 pt-4">
+              <button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ wide: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">
+                Wicket (Off Wide)
+              </button>
+            </div>
           </div>
         )}
 
         {panel === 'noBall' && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4"><button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">No Ball</h3></div>
+            <div className="flex items-center gap-2 mb-4">
+              <button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <h3 className="text-white font-bold">No Ball</h3>
+            </div>
             <RunButtons onSelect={r => submitBall({ noBall: true, runs: r })} disabled={isActionDisabled} extraLabel="NB" />
-            <div className="border-t border-slate-800 pt-4"><button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ noBall: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">Run Out (Off No Ball)</button></div>
+            <div className="border-t border-slate-800 pt-4">
+              <button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ noBall: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">
+                Run Out (Off No Ball)
+              </button>
+            </div>
           </div>
         )}
 
         {panel === 'bye' && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4"><button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Byes</h3></div>
-            <div className="grid grid-cols-4 gap-2">{[1, 2, 3, 4].map(r => <button key={r} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ bye: r }); }} className="py-4 rounded-xl font-bold text-lg bg-teal-900/40 hover:bg-teal-700/60 border border-teal-700/40 text-teal-200 disabled:opacity-40 disabled:cursor-not-allowed">B{r}</button>)}</div>
-            <div className="border-t border-slate-800 pt-4"><button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ bye: 0 }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">Run Out (Off Bye)</button></div>
+            <div className="flex items-center gap-2 mb-4">
+              <button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <h3 className="text-white font-bold">Byes</h3>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {[1, 2, 3, 4].map(r => (
+                <button key={r} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ bye: r }); }} className="py-4 rounded-xl font-bold text-lg bg-teal-900/40 hover:bg-teal-700/60 border border-teal-700/40 text-teal-200 disabled:opacity-40 disabled:cursor-not-allowed">
+                  B{r}
+                </button>
+              ))}
+            </div>
+            <div className="border-t border-slate-800 pt-4">
+              <button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ bye: 0 }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">
+                Run Out (Off Bye)
+              </button>
+            </div>
           </div>
         )}
 
         {panel === 'legBye' && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4"><button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Leg Byes</h3></div>
-            <div className="grid grid-cols-4 gap-2">{[1, 2, 3, 4].map(r => <button key={r} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ legBye: r }); }} className="py-4 rounded-xl font-bold text-lg bg-cyan-900/40 hover:bg-cyan-700/60 border border-cyan-700/40 text-cyan-200 disabled:opacity-40 disabled:cursor-not-allowed">LB{r}</button>)}</div>
-            <div className="border-t border-slate-800 pt-4"><button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ legBye: 0 }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">Run Out (Off Leg Bye)</button></div>
+            <div className="flex items-center gap-2 mb-4">
+              <button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <h3 className="text-white font-bold">Leg Byes</h3>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {[1, 2, 3, 4].map(r => (
+                <button key={r} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ legBye: r }); }} className="py-4 rounded-xl font-bold text-lg bg-cyan-900/40 hover:bg-cyan-700/60 border border-cyan-700/40 text-cyan-200 disabled:opacity-40 disabled:cursor-not-allowed">
+                  LB{r}
+                </button>
+              ))}
+            </div>
+            <div className="border-t border-slate-800 pt-4">
+              <button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ legBye: 0 }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">
+                Run Out (Off Leg Bye)
+              </button>
+            </div>
           </div>
         )}
 
         {panel === 'others' && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-4"><button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button><h3 className="text-white font-bold">Other Actions</h3></div>
-            <button onClick={() => { setPanel('main'); handleStrikeChange(); }} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-blue-900/30 hover:bg-blue-700/40 text-left border border-blue-700/40 text-blue-300 disabled:opacity-40 disabled:cursor-not-allowed">⇄ Change Strike (Swap Batsmen)</button>
-            <button onClick={() => handleRetirement('striker')} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed">🚶 Retired Hurt (Striker)</button>
-            <button onClick={() => handleRetirement('nonStriker')} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed">🚶 Retired Hurt (Non-Striker)</button>
-            <button onClick={() => { setPanel('main'); setStep('playerSelect'); }} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed">🔄 Change Bowler Mid-Over</button>
+            <div className="flex items-center gap-2 mb-4">
+              <button disabled={isActionDisabled} onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <h3 className="text-white font-bold">Other Actions</h3>
+            </div>
+            <button onClick={() => { setPanel('main'); handleStrikeChange(); }} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-blue-900/30 hover:bg-blue-700/40 text-left border border-blue-700/40 text-blue-300 disabled:opacity-40 disabled:cursor-not-allowed">
+              ⇄ Change Strike (Swap Batsmen)
+            </button>
+            <button onClick={() => handleRetirement('striker')} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed">
+              🚶 Retired Hurt (Striker)
+            </button>
+            <button onClick={() => handleRetirement('nonStriker')} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed">
+              🚶 Retired Hurt (Non-Striker)
+            </button>
+            <button onClick={() => { setPanel('main'); setStep('playerSelect'); }} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed">
+              🔄 Change Bowler Mid-Over
+            </button>
+            
             <div className="pt-3 border-t border-slate-800 mt-2">
               <p className="text-slate-500 text-xs mb-2">Penalty Runs</p>
-              <div className="grid grid-cols-5 gap-2">{[1,2,3,4,5].map(p => <button key={p} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ penalty: p }); }} className="py-2 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed">+{p}</button>)}</div>
+              <div className="grid grid-cols-5 gap-2">
+                {[1,2,3,4,5].map(p => (
+                  <button key={p} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ penalty: p }); }} className="py-2 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed">
+                    +{p}
+                  </button>
+                ))}
+              </div>
             </div>
+            
             <div className="border-t border-slate-800 pt-3 mt-4">
-              <button onClick={handleEndInnings} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-orange-900/30 hover:bg-orange-700/40 border border-orange-700/40 text-orange-300 mb-2 disabled:opacity-40 disabled:cursor-not-allowed">🔚 End Innings Manually</button>
-              <button onClick={handleEndMatch} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/40 border border-red-700/40 text-red-300 disabled:opacity-40 disabled:cursor-not-allowed">🏁 End Match</button>
+              <button onClick={handleEndInnings} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-orange-900/30 hover:bg-orange-700/40 border border-orange-700/40 text-orange-300 mb-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                🔚 End Innings Manually
+              </button>
+              <button onClick={handleEndMatch} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/40 border border-red-700/40 text-red-300 disabled:opacity-40 disabled:cursor-not-allowed">
+                🏁 End Match
+              </button>
             </div>
           </div>
         )}
       </div>
 
       <div className="bg-slate-900 border-t border-slate-800 px-4 py-3 grid grid-cols-2 gap-3">
-        <button onClick={handleEndInnings} disabled={isActionDisabled} className="py-3 rounded-xl font-semibold text-sm bg-orange-900/30 hover:bg-orange-700/40 border border-orange-700/40 text-orange-300 flex justify-center items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"><RefreshCw className="w-4 h-4" /> Change Inning</button>
-        <button onClick={() => navigate(-1)} className="py-3 rounded-xl font-semibold text-sm bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex justify-center items-center gap-2"><LogOut className="w-4 h-4" /> Leave & Save</button>
+        <button onClick={handleEndInnings} disabled={isActionDisabled} className="py-3 rounded-xl font-semibold text-sm bg-orange-900/30 hover:bg-orange-700/40 border border-orange-700/40 text-orange-300 flex justify-center items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+          <RefreshCw className="w-4 h-4" /> Change Inning
+        </button>
+        <button onClick={() => navigate(-1)} className="py-3 rounded-xl font-semibold text-sm bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex justify-center items-center gap-2">
+          <LogOut className="w-4 h-4" /> Leave & Save
+        </button>
       </div>
 
       {submitting && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm text-slate-300 flex items-center gap-2 shadow-xl z-40"><div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /> Recording...</div>
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm text-slate-300 flex items-center gap-2 shadow-xl z-40">
+          <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /> Recording...
+        </div>
       )}
     </div>
   );
