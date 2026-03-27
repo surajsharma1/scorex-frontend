@@ -94,7 +94,7 @@ export function updatePreviewData(container: HTMLElement | null, data: PreviewDa
   if (!container) return;
 
   // Update common data elements (used across overlay templates)
-  const selectors = {
+  const selectors: Record<string, string> = {
     matchName: '#matchName',
     teamName: '#teamName',
     teamScore: '#teamScore',
@@ -122,16 +122,55 @@ export function updatePreviewData(container: HTMLElement | null, data: PreviewDa
   // Dispatch on the container div (for OverlayPreviewRenderer internal listener)
   container.dispatchEvent(new CustomEvent('scorex:update', { detail: data, bubbles: true }));
 
-  // ALSO dispatch on window — engine.js injected into the overlay HTML listens on window
+  // Dispatch on window — engine.js + overlay scripts listen on window
   window.dispatchEvent(new CustomEvent('scorex:update', { detail: data }));
+
+  // Also post UPDATE_SCORE message — this is what overlay <script> blocks listen for
+  window.postMessage({ type: 'UPDATE_SCORE', data }, '*');
+}
+
+/**
+ * Trigger 4 / 6 / WICKET animations in overlay scripts.
+ *
+ * lvl2 overlays detect animations via SCORE DELTA (new - old === 4/6, or wickets increased).
+ * So we send two consecutive UPDATE_SCORE messages:
+ *   1. baseline data  (establishes cSc / cWk inside overlay script)
+ *   2. incremented data  (delta triggers the animation branch)
+ *
+ * lvl1 overlays have no animation, so they just silently update their DOM.
+ */
+export function pushAnimation(
+  type: 'FOUR' | 'SIX' | 'WICKET',
+  container: HTMLElement | null,
+  baseProgress: number = 0.69
+) {
+  const base = getDemoData(baseProgress);
+
+  // Step 1: send baseline so overlay script knows previous score (establishes cSc/cWk)
+  updatePreviewData(container, base);
+  window.postMessage({ type: 'UPDATE_SCORE', data: base }, '*');
+  window.dispatchEvent(new CustomEvent('scorex:update', { detail: base }));
+
+  // Step 2: after a short tick, send incremented value so overlay delta logic fires
+  setTimeout(() => {
+    const updated: any = type === 'FOUR'
+      ? { ...base, team1Score: base.team1Score + 4, strikerRuns: base.strikerRuns + 4, lastBall: 'FOUR', lastBallRuns: 4 }
+      : type === 'SIX'
+      ? { ...base, team1Score: base.team1Score + 6, strikerRuns: base.strikerRuns + 6, lastBall: 'SIX', lastBallRuns: 6 }
+      : { ...base, team1Wickets: base.team1Wickets + 1, strikerName: 'New Batter', strikerRuns: 0, strikerBalls: 0, lastBall: 'WICKET', wicket: true };
+
+    updatePreviewData(container, updated as PreviewData);
+    // UPDATE_SCORE is what every overlay HTML file listens for via window.addEventListener('message')
+    window.postMessage({ type: 'UPDATE_SCORE', data: updated }, '*');
+    window.dispatchEvent(new CustomEvent('scorex:update', { detail: updated }));
+  }, 80);
 }
 
 // Fetch overlay HTML for preview (proxy via backend to avoid CORS)
-export async function fetchOverlayHTML(baseUrl: string, template: string, previewMode = true): Promise<string> {
-  const previewParam = previewMode ? '?preview=true' : '';
+export async function fetchOverlayHTML(baseUrl: string, template: string): Promise<string> {
 
   try {
-    const response = await fetch(`${baseUrl}/overlays/${template}${previewParam}`, {
+    const response = await fetch(`${baseUrl}/overlays/${template}`, {
       headers: { 'Accept': 'text/html' }
     });
     if (!response.ok) throw new Error('Failed to fetch overlay HTML');

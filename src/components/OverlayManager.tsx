@@ -5,7 +5,7 @@ import ManagerPreviewZoom from './ManagerPreviewZoom';
 import { overlayAPI, matchAPI, tournamentAPI } from '../services/api';
 import { CreatedOverlay, Match, Tournament } from './types';
 import { getBackendBaseUrl } from '../services/env';
-import { getDemoData, updatePreviewData } from '../utils/overlayPreview';
+import { getDemoData, updatePreviewData, pushAnimation } from '../utils/overlayPreview';
 
 interface OverlayTemplate {
   id: string;
@@ -641,16 +641,11 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
               {/* Spacer */}
               <div className="flex-1" />
 
-              {/* Push test buttons — 4, 6, OUT */}
+              {/* Push test buttons — 4, 6, OUT (delta-based so animations fire) */}
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Test push:</span>
                 <button
-                  onClick={() => {
-                    const data = { ...getDemoData(0.69), lastBall: 'FOUR', lastBallRuns: 4 };
-                    // Dispatch on window so engine.js inside overlay HTML receives it
-                    window.dispatchEvent(new CustomEvent('scorex:update', { detail: data }));
-                    updatePreviewData(previewContainerRef.current, data);
-                  }}
+                  onClick={() => pushAnimation('FOUR', previewContainerRef.current)}
                   className="px-3 py-1.5 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95"
                   style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}
                   title="Push FOUR to overlay"
@@ -658,11 +653,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                   4️⃣ FOUR
                 </button>
                 <button
-                  onClick={() => {
-                    const data = { ...getDemoData(0.69), lastBall: 'SIX', lastBallRuns: 6 };
-                    window.dispatchEvent(new CustomEvent('scorex:update', { detail: data }));
-                    updatePreviewData(previewContainerRef.current, data);
-                  }}
+                  onClick={() => pushAnimation('SIX', previewContainerRef.current)}
                   className="px-3 py-1.5 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95"
                   style={{ background: 'rgba(168,85,247,0.15)', color: '#c084fc', border: '1px solid rgba(168,85,247,0.3)' }}
                   title="Push SIX to overlay"
@@ -670,11 +661,7 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                   6️⃣ SIX
                 </button>
                 <button
-                  onClick={() => {
-                    const data = { ...getDemoData(0.69), lastBall: 'WICKET', lastBallRuns: 0, wicket: true };
-                    window.dispatchEvent(new CustomEvent('scorex:update', { detail: data }));
-                    updatePreviewData(previewContainerRef.current, data);
-                  }}
+                  onClick={() => pushAnimation('WICKET', previewContainerRef.current)}
                   className="px-3 py-1.5 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95"
                   style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}
                   title="Push WICKET to overlay"
@@ -695,12 +682,9 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
                   template={previewTemplate}
                   progress={previewProgress}
                   baseUrl={baseUrlLocal}
-                  previewMode={true}
                   onLoad={() => setPreviewLoading(false)}
                   onError={() => setPreviewError(true)}
                 />
-
-
               </div>
             </div>
           </div>

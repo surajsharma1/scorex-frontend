@@ -4,7 +4,6 @@ import FloatingOverlayPreview from './FloatingOverlayPreview';
 import { getBackendBaseUrl } from '../services/env';
 import { overlayAPI, paymentAPI } from '../services/api';
 import api from '../services/api';
-import type { OverlayTemplate } from '../types/overlay';
 import {
   Check, Zap, Crown, Star, Clock, Calendar,
   AlertCircle, Eye, ChevronRight, Shield, Sparkles
@@ -105,14 +104,24 @@ export default function Membership() {
   const [membership, setMembership] = useState<any>(null);
   const [backendUser, setBackendUser] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState('');
-  const [templates, setTemplates] = useState<OverlayTemplate[]>([]);
-
   const [showFloatingPreview, setShowFloatingPreview] = useState(false);
   const [floatingPreviewLevel, setFloatingPreviewLevel] = useState(1);
-  const [selectedFloatingOverlay, setSelectedFloatingOverlay] = useState('lvl1-modern-bar.html');
+  const [selectedFloatingOverlay, setSelectedFloatingOverlay] = useState('');
+  const [templates, setTemplates] = useState<any[]>([]);
 
+  // Load ALL templates from public static file (no auth filter — used for preview & count display)
   useEffect(() => {
-    overlayAPI.getOverlayTemplates().then(res => setTemplates(res.data)).catch(console.error);
+    fetch('/templates.json')
+      .then(r => r.json())
+      .then((data: Array<{ id: string; name: string; file: string; category: string; color: string }>) => {
+        const mapped = data.map(t => ({
+          ...t,
+          url: `/overlays/${t.file}`,
+          level: t.id.startsWith('lvl2') ? 2 : 1,
+        }));
+        setTemplates(mapped);
+      })
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -367,7 +376,7 @@ export default function Membership() {
                     <button
                       onClick={() => {
                         setFloatingPreviewLevel(plan.level);
-                        setSelectedFloatingOverlay(plan.level === 1 ? 'lvl1-modern-bar.html' : 'lvl2-broadcast-pro.html');
+                        setSelectedFloatingOverlay(''); // user picks from dropdown
                         setShowFloatingPreview(true);
                       }}
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] mb-3"
@@ -465,7 +474,6 @@ export default function Membership() {
         isOpen={showFloatingPreview}
         onClose={() => setShowFloatingPreview(false)}
         level={floatingPreviewLevel}
-        templates={templates}
         selectedOverlay={selectedFloatingOverlay}
         onOverlaySelect={setSelectedFloatingOverlay}
       />

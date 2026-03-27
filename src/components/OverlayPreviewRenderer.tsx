@@ -13,7 +13,6 @@ interface OverlayPreviewRendererProps {
   onError?: (error: string) => void;
   /** External zoom multiplier. 1 = fit-to-container (default). */
   zoom?: number;
-  previewMode?: boolean;
 }
 
 const OVERLAY_W = 1920;
@@ -28,89 +27,105 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
   onLoad,
   onError,
   zoom: externalZoom,
-  previewMode = false,
 }) => {
-  const outerRef   = useRef<HTMLDivElement>(null);
-  const innerRef   = useRef<HTMLDivElement>(null);
-  const [loading, setLoading]       = useState(true);
-  const [error, setError]           = useState<string | null>(null);
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
-  const [containerW, setContainerW] = useState(0);
-  const [containerH, setContainerH] = useState(0);
+  const [containerW, setContainerW]   = useState(0);
+  const [containerH, setContainerH]   = useState(0);
   const [internalZoom, setInternalZoom] = useState(1);
+  // Track demo score for delta-based animation push
+  const demoScoreRef = useRef({ score: 124, wickets: 4 });
 
   const controllerBaseUrl = baseUrl || getBackendBaseUrl();
 
-  // Measure container
+  // ── Measure container ──────────────────────────────────────────────────────
   useEffect(() => {
     const el = outerRef.current;
     if (!el) return;
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0)  setContainerW(r.width);
+      if (r.height > 0) setContainerH(r.height);
+    };
     const ro = new ResizeObserver(entries => {
       for (const e of entries) {
-        setContainerW(e.contentRect.width);
-        setContainerH(e.contentRect.height);
+        if (e.contentRect.width  > 0) setContainerW(e.contentRect.width);
+        if (e.contentRect.height > 0) setContainerH(e.contentRect.height);
       }
     });
     ro.observe(el);
-    const r = el.getBoundingClientRect();
-    setContainerW(r.width);
-    setContainerH(r.height);
-    return () => ro.disconnect();
+    // Initial measurement (may be 0 before paint — retry once after RAF)
+    measure();
+    const raf = requestAnimationFrame(measure);
+    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
   }, []);
 
-  // Listen for zoom events dispatched by ManagerPreviewZoom
+  // ── Listen for zoom events from ManagerPreviewZoom ──────────────────────
   useEffect(() => {
-    const el = outerRef.current?.closest('[data-preview-host]') || outerRef.current?.parentElement;
-    if (!el) return;
     const handler = (e: Event) => {
       const ce = e as CustomEvent<{ zoom: number }>;
       setInternalZoom(ce.detail.zoom);
     };
-    // listen on document so bubbled events from sibling refs work
     document.addEventListener('scorex:zoom', handler);
     return () => document.removeEventListener('scorex:zoom', handler);
   }, []);
 
   // idealScale: fit 1920×1080 inside container
   const idealScale = containerW > 0
-    ? Math.min(containerW / OVERLAY_W, containerH > 0 ? containerH / OVERLAY_H : containerW / OVERLAY_W)
+    ? Math.min(
+        containerW / OVERLAY_W,
+        containerH > 0 ? containerH / OVERLAY_H : containerW / OVERLAY_W
+      )
     : 0;
 
-  const activeZoom = externalZoom !== undefined ? externalZoom : internalZoom;
+  const activeZoom    = externalZoom !== undefined ? externalZoom : internalZoom;
   const effectiveScale = idealScale * activeZoom;
 
-  // Apply scale via transform (transform-origin top-left)
+  // Apply scale — update every render cycle so it reacts to container size changes
   useEffect(() => {
     if (!innerRef.current || effectiveScale === 0) return;
     innerRef.current.style.transform = `scale(${effectiveScale})`;
   }, [effectiveScale]);
 
+  // ── Load overlay HTML ──────────────────────────────────────────────────────
   const loadPreview = useCallback(async () => {
     if (!template) return;
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      const htmlContent = await fetchOverlayHTML(controllerBaseUrl, template, previewMode);
-      if (innerRef.current) {
-        innerRef.current.innerHTML = htmlContent;
+      const htmlContent = await fetchOverlayHTML(controllerBaseUrl, template);
+      if (!innerRef.current) return;
 
-        if (!previewMode) {
-          const script = document.createElement('script');
-          script.src = `${controllerBaseUrl}/overlays/engine.js`;
-          script.async = true;
-          innerRef.current.appendChild(script);
+      innerRef.current.innerHTML = htmlContent;
 
-          const utilsScript = document.createElement('script');
-          utilsScript.src = `${controllerBaseUrl}/overlays/overlay-utils.js`;
-          utilsScript.async = true;
-          innerRef.current.appendChild(utilsScript);
+      // Inject engine + utils scripts so live data wires up
+      const addScript = (src: string) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.async = true;
+        innerRef.current?.appendChild(s);
+      };
+      addScript(`${controllerBaseUrl}/overlays/overlay-utils.js`);
+      addScript(`${controllerBaseUrl}/overlays/engine.js`);
+
+      const demoData = getDemoData(progress / 100);
+      // Reset delta tracker to match demo base score
+      demoScoreRef.current = { score: demoData.team1Score, wickets: demoData.team1Wickets };
+      setPreviewData(demoData);
+
+      // Delay data push until after the container has been painted (avoids scale=0 on first frame)
+      setTimeout(() => {
+        if (innerRef.current) {
+          updatePreviewData(innerRef.current, demoData);
+          // Also send as UPDATE_SCORE for overlay's own message listener
+          window.postMessage({ type: 'UPDATE_SCORE', data: demoData }, '*');
         }
+      }, 80);
 
-        const demoData = getDemoData(progress / 100);
-        setPreviewData(demoData);
-        updatePreviewData(innerRef.current, demoData);
-        onLoad?.();
-      }
+      onLoad?.();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Preview load failed';
       setError(msg);
@@ -118,19 +133,19 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [template, progress, controllerBaseUrl, onLoad, onError, previewMode]);
+  }, [template, progress, controllerBaseUrl, onLoad, onError]);
 
   useEffect(() => { loadPreview(); }, [loadPreview]);
 
+  // ── Listen for scorex:update events ───────────────────────────────────────
   useEffect(() => {
     const container = innerRef.current;
     if (!container) return;
 
-    // Listen on the inner container for direct React-driven updates
-    const handleContainerUpdate = (e: CustomEvent<PreviewData>) => updatePreviewData(container, e.detail);
+    const handleContainerUpdate = (e: CustomEvent<PreviewData>) =>
+      updatePreviewData(container, e.detail);
     container.addEventListener('scorex:update', handleContainerUpdate as EventListener);
 
-    // ALSO listen on window — engine.js inside injected overlay HTML fires on window
     const handleWindowUpdate = (e: Event) => {
       const ce = e as CustomEvent<PreviewData>;
       if (ce.detail) updatePreviewData(container, ce.detail);
@@ -143,16 +158,34 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     };
   }, []);
 
-  const triggerAnimation = (eventType: string) => {
-    // Send message to the window so the injected engine.js can pick it up
-    window.postMessage({
-      type: 'OVERLAY_ACTION',
-      payload: { event: eventType }
-    }, '*');
+  // ── Push animation event using score DELTA (overlays detect 4/6/wicket this way) ──
+  const pushAnimationEvent = (type: 'FOUR' | 'SIX' | 'WICKET') => {
+    const cur = demoScoreRef.current;
+    let newScore   = cur.score;
+    let newWickets = cur.wickets;
+    if (type === 'FOUR')   newScore   += 4;
+    if (type === 'SIX')    newScore   += 6;
+    if (type === 'WICKET') newWickets += 1;
+    demoScoreRef.current = { score: newScore, wickets: newWickets };
+
+    const base = getDemoData(progress / 100);
+    const payload = {
+      ...base,
+      team1Score:   newScore,
+      team1Wickets: newWickets,
+      lastBall:     type,
+      lastBallRuns: type === 'FOUR' ? 4 : type === 'SIX' ? 6 : 0,
+      wicket:       type === 'WICKET',
+    };
+
+    // UPDATE_SCORE is what all overlay HTML message listeners expect
+    window.postMessage({ type: 'UPDATE_SCORE', data: payload }, '*');
+    // scorex:update for the React-side DOM updater
+    window.dispatchEvent(new CustomEvent('scorex:update', { detail: payload }));
+    if (innerRef.current) updatePreviewData(innerRef.current, payload);
   };
 
   return (
-    /* overflow:hidden is the critical gate — nothing leaks outside */
     <div
       ref={outerRef}
       className={`relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 ${heightClass} ${className}`}
@@ -163,22 +196,33 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
         <div
           ref={innerRef}
           style={{
-            width: `${OVERLAY_W}px`,
-            height: `${OVERLAY_H}px`,
-            transform: `scale(${effectiveScale})`,
+            width:           `${OVERLAY_W}px`,
+            height:          `${OVERLAY_H}px`,
+            transform:       `scale(${effectiveScale || 0.001})`,
             transformOrigin: 'top left',
-            pointerEvents: 'none',
+            pointerEvents:   'none',
           }}
         />
       </div>
 
-      {/* Floating Animation Triggers */}
+      {/* Animation push buttons — only shown when overlay is loaded */}
       {!loading && !error && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30">
-            <button onClick={() => triggerAnimation('FOUR')} className="px-4 py-2 bg-blue-600/80 text-white shadow-lg rounded-xl text-xs font-bold hover:bg-blue-500 transition-all backdrop-blur-md">4</button>
-            <button onClick={() => triggerAnimation('SIX')} className="px-4 py-2 bg-green-600/80 text-white shadow-lg rounded-xl text-xs font-bold hover:bg-green-500 transition-all backdrop-blur-md">6</button>
-            <button onClick={() => triggerAnimation('WICKET')} className="px-4 py-2 bg-red-600/80 text-white shadow-lg rounded-xl text-xs font-bold hover:bg-red-500 transition-all backdrop-blur-md">OUT</button>
-            <button onClick={() => triggerAnimation('DECISION_PENDING')} className="px-4 py-2 bg-amber-600/80 text-white shadow-lg rounded-xl text-xs font-bold hover:bg-amber-500 transition-all backdrop-blur-md">PENDING</button>
+          <button
+            onClick={() => pushAnimationEvent('FOUR')}
+            className="px-4 py-2 bg-blue-600/80 text-white shadow-lg rounded-xl text-xs font-bold hover:bg-blue-500 transition-all backdrop-blur-md"
+            title="Push FOUR — triggers overlay animation via score delta"
+          >4</button>
+          <button
+            onClick={() => pushAnimationEvent('SIX')}
+            className="px-4 py-2 bg-green-600/80 text-white shadow-lg rounded-xl text-xs font-bold hover:bg-green-500 transition-all backdrop-blur-md"
+            title="Push SIX — triggers overlay animation via score delta"
+          >6</button>
+          <button
+            onClick={() => pushAnimationEvent('WICKET')}
+            className="px-4 py-2 bg-red-600/80 text-white shadow-lg rounded-xl text-xs font-bold hover:bg-red-500 transition-all backdrop-blur-md"
+            title="Push WICKET — triggers overlay animation via wicket delta"
+          >OUT</button>
         </div>
       )}
 
