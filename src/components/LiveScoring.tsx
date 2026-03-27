@@ -104,32 +104,12 @@ export default function LiveScoring() {
   // ─── API HANDLERS ──────────────────────────────────────────────────────────
 
   const handleTossSubmit = async () => {
-    if (!tossWinner || !tossDecision || !selectedStriker || !selectedNonStriker || !selectedBowler) {
-      return addToast({ type: 'error', message: 'Complete all fields: toss + players' });
-    }
+    if (!tossWinner || !tossDecision) return addToast({ type: 'error', message: 'Complete toss details' });
     setActionLoading(true);
     try {
-      const tossWinnerTeam = match!.team1._id.toString() === tossWinner ? match!.team1 : match!.team2;
-      const otherTeam = tossWinnerTeam === match!.team1 ? match!.team2 : match!.team1;
-      
-      const battingTeam = tossDecision === 'bat' ? tossWinnerTeam : otherTeam;
-      const bowlingTeam = tossDecision === 'bat' ? otherTeam : tossWinnerTeam;
-      
-      await matchAPI.startMatch(id!, { 
-        tossWinnerId: tossWinner,
-        tossWinnerName: tossWinnerTeam.name,
-        tossDecision,
-        battingTeamId: battingTeam._id.toString(),
-        battingTeamName: battingTeam.name,
-        bowlingTeamId: bowlingTeam._id.toString(),
-        bowlingTeamName: bowlingTeam.name,
-        striker: selectedStriker,
-        nonStriker: selectedNonStriker,
-        bowler: selectedBowler 
-      });
+      await matchAPI.startMatch(id!, { tossWinner, tossDecision });
       loadMatch();
-      setStep('scoring');
-    } catch (e: any) { addToast({ type: 'error', message: e.response?.data?.message || 'Failed to start match' }); }
+    } catch (e: any) { addToast({ type: 'error', message: e.response?.data?.message || 'Failed to save toss' }); }
     finally { setActionLoading(false); }
   };
 
@@ -234,24 +214,7 @@ export default function LiveScoring() {
                 <button onClick={() => setTossDecision('bowl')} className={`py-4 rounded-xl font-bold transition-all border ${tossDecision === 'bowl' ? 'bg-blue-500 text-black border-blue-500' : 'bg-[var(--bg-elevated)] text-[var(--text-primary)] border-[var(--border)]'}`}>BOWL</button>
               </div>
             </div>
-            <div className="space-y-4">
-              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Striker (Batting Team)</label>
-              <select value={selectedStriker} onChange={e => setSelectedStriker(e.target.value)} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)]">
-                <option value="">Select Striker</option>
-                {match!.team1.players?.map((p: any) => <option key={p._id} value={p._id}>{p.name}</option>)}
-              </select>
-              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Non-Striker</label>
-              <select value={selectedNonStriker} onChange={e => setSelectedNonStriker(e.target.value)} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)]">
-                <option value="">Select Non-Striker</option>
-                {match!.team1.players?.map((p: any) => <option key={p._id} value={p._id}>{p.name}</option>)}
-              </select>
-              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Opening Bowler</label>
-              <select value={selectedBowler} onChange={e => setSelectedBowler(e.target.value)} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)]">
-<option value="">Select Bowler</option>
-                {match!.team2.players?.map((p: any) => <option key={p._id} value={p._id}>{p.name}</option>)}
-              </select>
-            </div>
-            <button onClick={handleTossSubmit} disabled={actionLoading || !tossWinner || !selectedStriker || !selectedNonStriker || !selectedBowler} className="w-full py-4 mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black rounded-xl shadow-lg disabled:opacity-50">Start Match</button>
+            <button onClick={handleTossSubmit} disabled={actionLoading || !tossWinner} className="w-full py-4 mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black rounded-xl shadow-lg disabled:opacity-50">Start Match</button>
           </div>
         </div>
       </div>
