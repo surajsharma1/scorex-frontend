@@ -121,7 +121,7 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
 
   // ── Load overlay HTML ──────────────────────────────────────────────────────
   const loadPreview = useCallback(async () => {
-    if (!template || isLoaded) return;
+    if (!template) return;
     setLoading(true);
     setError(null);
     try {
@@ -137,7 +137,7 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
       // Reset delta tracker to match demo base score
       demoScoreRef.current = { score: demoData.team1Score, wickets: demoData.team1Wickets };
       setPreviewData(demoData);
-      setIsLoaded(true);
+
 
       // Single-frame delay for paint + scale stabilization
       requestAnimationFrame(() => {
@@ -152,11 +152,10 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
       const msg = err instanceof Error ? err.message : 'Preview load failed';
       setError(msg + ` (${template})`);
       onError?.(msg);
-      setIsLoaded(true); // Prevent retry loops
     } finally {
       setLoading(false);
     }
-  }, [template, progress, controllerBaseUrl, onLoad, onError, isLoaded]);
+  }, [template, progress, controllerBaseUrl, onLoad, onError]);
 
   // Load once on mount/template change, skip if already loaded
   useEffect(() => { 

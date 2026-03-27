@@ -30,6 +30,13 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
     }, '*');
   };
 
+  // Add these above your return statement
+  const handleLoad = React.useCallback(() => setLoading(false), []);
+  
+  const handleError = React.useCallback((err: string) => {
+    setError(err);
+    setLoading(false);
+  }, []);
 
   return (
     <div
@@ -95,11 +102,8 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
           progress={progress}
           baseUrl={baseUrl}
           zoom={zoom}
-          onLoad={() => setLoading(false)}
-          onError={(err) => {
-            setError(err);
-            setLoading(false);
-          }}
+          onLoad={handleLoad}
+          onError={handleError}
         />
 
         {loading && (

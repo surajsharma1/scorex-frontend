@@ -131,10 +131,10 @@ export function updatePreviewData(container: HTMLElement | null, data: PreviewDa
   }
 
   // Dispatch on the container div (for OverlayPreviewRenderer internal listener)
-  container.dispatchEvent(new CustomEvent('scorex:update', { detail: data, bubbles: true }));
+ // container.dispatchEvent(new CustomEvent('scorex:update', { detail: data, bubbles: true }));
 
   // Dispatch on window — engine.js + overlay scripts listen on window
-  window.dispatchEvent(new CustomEvent('scorex:update', { detail: data }));
+ // window.dispatchEvent(new CustomEvent('scorex:update', { detail: data }));
 
   // Also post UPDATE_SCORE message — this is what overlay <script> blocks listen for
   window.postMessage({ type: 'UPDATE_SCORE', data }, '*');
