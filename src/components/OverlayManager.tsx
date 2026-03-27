@@ -68,19 +68,25 @@ export default function OverlayManager({ tournamentId, matches: propMatches }: O
   const baseUrlLocal = getBackendBaseUrl();
 
   useEffect(() => {
-    // Load templates
-    fetch('/templates.json')
-      .then(res => res.json())
-      .then((data: OverlayTemplate[]) => {
+    // Fetch from your secure backend API, NOT the static /templates.json
+    overlayAPI.getOverlayTemplates() // <-- We use your API service here
+      .then(res => {
+        // The API returns the data directly in res.data
+        const data: OverlayTemplate[] = res.data; 
+        
         setTemplates(data);
         if (data.length > 0) {
           setSelectedTemplate(data[0]);
         }
+        
         // Generate categories
         const cats: Category[] = [{ value: 'all', label: 'All Overlays' }];
         const uniqueCats = [...new Set(data.map(t => t.category))];
         uniqueCats.forEach(cat => {
-          cats.push({ value: cat, label: `${cat.replace('Scoreboard', 'Level 1 - Scoreboard').replace('Replay/Effects', 'Level 2 - Replay/Effects')}` });
+          cats.push({ 
+            value: cat, 
+            label: `${cat.replace('Scoreboard', 'Level 1 - Scoreboard').replace('Replay/Effects', 'Level 2 - Replay/Effects')}` 
+          });
         });
         setCategories(cats);
       })
