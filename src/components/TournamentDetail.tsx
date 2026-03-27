@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useToast } from '../hooks/useToast';
+import { Trash2 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { tournamentAPI } from '../services/api';
 import TeamManagement from './TeamManagement';
@@ -14,6 +16,8 @@ export default function TournamentDetail() {
   const [tournament, setTournament] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (!id) return;
@@ -22,6 +26,30 @@ export default function TournamentDetail() {
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        setCurrentUser(JSON.parse(userStr));
+      } catch (e) {
+        console.error('Failed to parse user');
+      }
+    }
+  }, []);
+
+  const handleDeleteTournament = async () => {
+    if (!confirm(`Delete "${tournament?.name || 'tournament'}"? All teams, matches and data will be permanently lost.`)) return;
+    try {
+      await tournamentAPI.deleteTournament(id!);
+      addToast({ type: 'success', title: 'Tournament Deleted', message: 'Tournament has been deleted successfully.' });
+      navigate('/tournaments');
+    } catch (error: any) {
+      addToast({ type: 'error', title: 'Error', message: error.response?.data?.message || 'Failed to delete tournament' });
+    }
+  };
+
+  const isAuthorized = currentUser && (currentUser._id === tournament?.createdBy?._id || currentUser.role === 'admin');
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
@@ -65,6 +93,15 @@ export default function TournamentDetail() {
                 style={{ background: 'rgba(34,197,94,0.15)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' }}>
                 {tournament.status}
               </span>
+              {(currentUser?._id === tournament.createdBy?._id || currentUser?.role === 'admin') && (
+                <button
+                  onClick={handleDeleteTournament}
+                  className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-200 transition-all ml-2"
+                  title="Delete Tournament"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              )}
             </div>
             <div className="flex flex-wrap gap-4 mt-3 ml-5">
               <span className="flex items-center gap-1.5 text-sm" style={{ color: 'var(--text-secondary)' }}>

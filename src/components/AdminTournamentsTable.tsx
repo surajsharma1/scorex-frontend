@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Zap, Trash2, Download, Search } from 'lucide-react';
+import { useToast } from '../hooks/useToast';
 import { adminAPI, tournamentAPI } from '../services/api';
 
 interface Tournament {
@@ -15,6 +16,7 @@ export default function AdminTournamentsTable() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const { addToast } = useToast();
 
   useEffect(() => {
     loadTournaments();
@@ -34,10 +36,11 @@ export default function AdminTournamentsTable() {
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this tournament? All matches will be lost.')) return;
     try {
-      await adminAPI.banUser(id, { duration: '1day' }); // Use admin delete
+      await tournamentAPI.deleteTournament(id);
       setTournaments(t => t.filter(t => t._id !== id));
-    } catch (err) {
-      alert('Delete failed');
+      addToast({ type: 'success', title: 'Tournament Deleted', message: 'Tournament has been deleted successfully.' });
+    } catch (error: any) {
+      addToast({ type: 'error', title: 'Error', message: error.response?.data?.message || 'Failed to delete tournament' });
     }
   };
 
