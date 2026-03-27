@@ -94,7 +94,6 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
           template={overlayFile}
           progress={progress}
           baseUrl={baseUrl}
-          previewMode={true}
           zoom={zoom}
           onLoad={() => setLoading(false)}
           onError={(err) => {

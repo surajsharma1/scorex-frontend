@@ -474,6 +474,7 @@ export default function Membership() {
         isOpen={showFloatingPreview}
         onClose={() => setShowFloatingPreview(false)}
         level={floatingPreviewLevel}
+        templates={templates.filter((t: any) => t.level === floatingPreviewLevel)}
         selectedOverlay={selectedFloatingOverlay}
         onOverlaySelect={setSelectedFloatingOverlay}
       />
