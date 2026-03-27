@@ -18,6 +18,8 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
   const [match, setMatch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'overview' | 'scoreboard' | 'players' | 'leaderboard'>('overview');
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { addToast } = useToast();
 
   useEffect(() => {
     matchAPI.getMatch(matchId)
@@ -25,6 +27,17 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
       .catch(e => console.error(e))
       .finally(() => setLoading(false));
   }, [matchId]);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        setCurrentUser(JSON.parse(userStr));
+      } catch (e) {
+        console.error('Failed to parse user');
+      }
+    }
+  }, []);
 
   if (loading) return (
     <div className="min-h-[90vh] flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
@@ -52,6 +65,19 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
     });
   });
   allBatsmen.sort((a, b) => b.runs - a.runs);
+
+  const handleDeleteMatch = async () => {
+    if (!confirm(`Delete "${match.name}" match? This action cannot be undone.`)) return;
+    try {
+      await matchAPI.deleteMatch(matchId);
+      addToast({ type: 'success', title: 'Match Deleted', message: 'Match has been deleted successfully.' });
+      onBack();
+    } catch (error: any) {
+      addToast({ type: 'error', title: 'Error', message: error.response?.data?.message || 'Failed to delete match' });
+    }
+  };
+
+  const isAuthorized = currentUser && (currentUser.role === 'admin' || currentUser._id === match.tournament?.createdBy?._id);
 
   return (
     <div className="min-h-[90vh] max-h-[90vh] overflow-hidden flex flex-col rounded-2xl" style={{ background: 'var(--bg-primary)' }}>
@@ -84,6 +110,15 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
             }}>
             <Zap className="w-4 h-4" /> Live Score
           </button>
+          {isAuthorized && (
+            <button
+              onClick={handleDeleteMatch}
+              className="p-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-200 transition-all shadow-md hover:shadow-lg ml-2"
+              title="Delete Match"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Score summary */}
