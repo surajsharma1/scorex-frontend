@@ -94,6 +94,9 @@ export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: Scor
       bowler: existing?.[teamKey]?.bowler || createDefaultBowler(),
     });
     return {
+      striker: '',
+      bowler: '',
+      nonStrikerId: '',
       team1: getTeamData('team1', 0),
       team2: getTeamData('team2', 1),
       battingTeam: existing?.battingTeam || 'team1',
