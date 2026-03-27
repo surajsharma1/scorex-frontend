@@ -194,7 +194,7 @@ export async function fetchOverlayHTML(baseUrl: string, template: string): Promi
   const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout for prod backend
 
   try {
-    const response = await fetch(`${baseUrl}/overlays/${template}`, {
+    const response = await fetch(`${baseUrl}/overlays/${template}?preview=true`, {
       headers: { 'Accept': 'text/html' },
       signal: controller.signal
     });
