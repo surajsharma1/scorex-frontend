@@ -162,26 +162,27 @@ export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: Scor
 
   const currentTeam = liveScores[liveScores.battingTeam] || { name: 'Batting Team', score: 0, wickets: 0, overs: 0, balls: 0, batsmen: [], bowler: createDefaultBowler() };
 
-  const createOverlayData = useMemo(() => {
-    const isBattingTeam1 = liveScores.battingTeam === 'team1';
-    const battingTeamData = liveScores[liveScores.battingTeam];
-    const bowlingTeamData = isBattingTeam1 ? liveScores.team2 : liveScores.team1;
-    const t1Name = teams[0]?.name || 'Team 1';
-    const t2Name = teams[1]?.name || 'Team 2';
+const createOverlayData = useMemo((): LiveScores => {
+    const currentTeam = liveScores[liveScores.battingTeam || 'team1'] || { name: '', score: 0, wickets: 0, overs: 0, balls: 0, batsmen: [], bowler: { name: '', overs: 0, maidens: 0, runs: 0, wickets: 0, economy: 0 } };
+    const striker = currentTeam.batsmen?.[0]?.name || '';
+    const bowler = currentTeam.bowler?.name || '';
+    const nonStrikerId = currentTeam.batsmen?.[1]?.name || '';
+    
     return {
-      tournament: { name: tournament.name || 'Tournament', id: tournament._id },
-      team1: { name: t1Name, shortName: t1Name.substring(0, 3).toUpperCase(), score: isBattingTeam1 ? (battingTeamData?.score || 0) : (bowlingTeamData?.score || 0), wickets: isBattingTeam1 ? (battingTeamData?.wickets || 0) : (bowlingTeamData?.wickets || 0), overs: isBattingTeam1 ? `${battingTeamData?.overs || 0}.${battingTeamData?.balls || 0}` : `${bowlingTeamData?.overs || 0}.${bowlingTeamData?.balls || 0}`, color: '#004BA0', isBatting: isBattingTeam1 },
-      team2: { name: t2Name, shortName: t2Name.substring(0, 3).toUpperCase(), score: !isBattingTeam1 ? (battingTeamData?.score || 0) : (bowlingTeamData?.score || 0), wickets: !isBattingTeam1 ? (battingTeamData?.wickets || 0) : (bowlingTeamData?.wickets || 0), overs: !isBattingTeam1 ? `${battingTeamData?.overs || 0}.${battingTeamData?.balls || 0}` : `${bowlingTeamData?.overs || 0}.${bowlingTeamData?.balls || 0}`, color: '#FCCA06', isBatting: !isBattingTeam1 },
-      striker: { name: battingTeamData?.batsmen?.[0]?.name || 'Striker', runs: battingTeamData?.batsmen?.[0]?.runs || 0, balls: battingTeamData?.batsmen?.[0]?.balls || 0, fours: battingTeamData?.batsmen?.[0]?.fours || 0, sixes: battingTeamData?.batsmen?.[0]?.sixes || 0, status: '*' },
-      nonStriker: { name: battingTeamData?.batsmen?.[1]?.name || 'Non-Striker', runs: battingTeamData?.batsmen?.[1]?.runs || 0, balls: battingTeamData?.batsmen?.[1]?.balls || 0, fours: battingTeamData?.batsmen?.[1]?.fours || 0, sixes: battingTeamData?.batsmen?.[1]?.sixes || 0, status: '' },
-      bowler: { name: battingTeamData?.bowler?.name || 'Bowler', overs: battingTeamData?.bowler?.overs || 0, maidens: battingTeamData?.bowler?.maidens || 0, runs: battingTeamData?.bowler?.runs || 0, wickets: battingTeamData?.bowler?.wickets || 0 },
-      stats: { currentRunRate: liveScores.currentRunRate || 0, requiredRunRate: liveScores.requiredRunRate || 0, target: liveScores.target || 0, last5Overs: liveScores.lastFiveOvers || '' },
-      battingTeam: liveScores.battingTeam, innings: liveScores.innings || 1, status: liveScores.target ? 'Chasing' : 'Batting', result: '',
-      strikerId: '',
-      bowlerId: '',
-      nonStrikerId: ''
+      striker,
+      bowler,
+      nonStrikerId,
+      team1: liveScores.team1,
+      team2: liveScores.team2,
+      battingTeam: liveScores.battingTeam || 'team1',
+      currentRunRate: liveScores.currentRunRate || 0,
+      requiredRunRate: liveScores.requiredRunRate || 0,
+      target: liveScores.target || 0,
+      lastFiveOvers: liveScores.lastFiveOvers || '',
+      innings: liveScores.innings || 1,
+      isChasing: liveScores.isChasing || false,
     };
-  }, [liveScores, tournament, teams]);
+  }, [liveScores]);
 
   useEffect(() => {
     if (channelRef.current && tossWinner) channelRef.current.postMessage(createOverlayData);
