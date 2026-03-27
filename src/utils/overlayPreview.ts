@@ -93,31 +93,42 @@ export function normalizeScoreData(rawData: any): PreviewData | null {
 export function updatePreviewData(container: HTMLElement | null, data: PreviewData) {
   if (!container) return;
 
-  // Update common data elements (used across overlay templates)
-  const selectors: Record<string, string> = {
-    matchName: '#matchName',
-    teamName: '#teamName',
-    teamScore: '#teamScore',
-    teamWickets: '#teamWickets',
-    teamOvers: '#teamOvers',
-    strikerName: '#strikerName',
-    strikerRuns: '#strikerRuns',
-    strikerBalls: '#strikerBalls',
-    nonStrikerName: '#nonStrikerName',
-    nonStrikerRuns: '#nonStrikerRuns',
-    nonStrikerBalls: '#nonStrikerBalls',
-    bowlerName: '#bowlerName',
-    bowlerRuns: '#bowlerRuns',
-    bowlerWickets: '#bowlerWickets',
-    bowlerOvers: '#bowlerOvers'
-  };
+  try {
+    // Update common data elements (used across overlay templates)
+    const selectors: Record<string, string> = {
+      matchName: '#matchName',
+      teamName: '#teamName',
+      teamScore: '#teamScore',
+      teamWickets: '#teamWickets',
+      teamOvers: '#teamOvers',
+      strikerName: '#strikerName',
+      strikerRuns: '#strikerRuns',
+      strikerBalls: '#strikerBalls',
+      nonStrikerName: '#nonStrikerName',
+      nonStrikerRuns: '#nonStrikerRuns',
+      nonStrikerBalls: '#nonStrikerBalls',
+      bowlerName: '#bowlerName',
+      bowlerRuns: '#bowlerRuns',
+      bowlerWickets: '#bowlerWickets',
+      bowlerOvers: '#bowlerOvers',
+      target: '#target',
+      runRate: '#runRate',
+      requiredRunRate: '#requiredRunRate',
+      status: '#status'
+    };
 
-  Object.entries(selectors).forEach(([key, selector]) => {
-    const el = container.querySelector(selector) as HTMLElement;
-    if (el && data[key as keyof PreviewData] !== undefined) {
-      el.textContent = String(data[key as keyof PreviewData]);
-    }
-  });
+    Object.entries(selectors).forEach(([key, selector]) => {
+      try {
+        const el = container.querySelector(selector) as HTMLElement;
+        if (el && data[key as keyof PreviewData] !== undefined) {
+          el.textContent = String(data[key as keyof PreviewData]);
+          el.style.opacity = '1'; // Fade in updates
+        }
+      } catch {}
+    });
+  } catch (e) {
+    console.warn('Preview data update failed:', e);
+  }
 
   // Dispatch on the container div (for OverlayPreviewRenderer internal listener)
   container.dispatchEvent(new CustomEvent('scorex:update', { detail: data, bubbles: true }));
@@ -166,21 +177,44 @@ export function pushAnimation(
   }, 80);
 }
 
-// Fetch overlay HTML for preview (proxy via backend to avoid CORS)
+const htmlCache = new Map<string, { html: string; timestamp: number }>();
+
+// Fetch overlay HTML for preview (cached, timeout/retry)
 export async function fetchOverlayHTML(baseUrl: string, template: string): Promise<string> {
+  const cacheKey = `${baseUrl}-${template}`;
+  const cached = htmlCache.get(cacheKey);
+  const now = Date.now();
+  const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  if (cached && (now - cached.timestamp) < CACHE_TTL) {
+    return cached.html;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout for prod backend
 
   try {
     const response = await fetch(`${baseUrl}/overlays/${template}`, {
-      headers: { 'Accept': 'text/html' }
+      headers: { 'Accept': 'text/html' },
+      signal: controller.signal
     });
-    if (!response.ok) throw new Error('Failed to fetch overlay HTML');
-    return await response.text();
+    clearTimeout(timeoutId);
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${template} not found`);
+    
+    const html = await response.text();
+    htmlCache.set(cacheKey, { html, timestamp: now });
+    return html;
   } catch (error) {
-    console.warn('Preview HTML fetch failed, using fallback:', error);
-    return `<div style="padding:2rem;text-align:center;color:#666;background:#f0f0f0;border-radius:1rem;font-family:system-ui">
-      <h3>Preview Template: ${template}</h3>
-      <p>Backend proxy needed or template not found</p>
-      <p class="text-xs mt-4 opacity-75">Live data ready via demo</p>
+    clearTimeout(timeoutId);
+    console.warn('Preview HTML fetch failed:', error);
+    
+    // Fallback with better UX
+    return `<div style="padding:3rem;text-align:center;color:#888;background:linear-gradient(135deg,#1e293b,#334155);border-radius:1.5rem;font-family:system-ui;border:2px dashed #64748b">
+      <h3 style="color:#f1f5f9;margin-bottom:1rem;font-size:1.4rem">📺 Preview: ${template}</h3>
+      <p style="font-size:1.1rem;margin-bottom:0.5rem">Template loading from backend...</p>
+      <p style="font-size:0.9rem;color:#94a3b8">Live data updates work via demo mode</p>
+      <p style="font-size:0.8rem;color:#64748b;margin-top:1rem">Try 4️⃣ 6️⃣ OUT buttons!</p>
     </div>`;
   }
 }

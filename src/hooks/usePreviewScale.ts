@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from 'react';
 
 interface UsePreviewScaleProps {
   containerRef: React.RefObject<HTMLDivElement>;
@@ -24,25 +24,47 @@ export const usePreviewScale = ({ containerRef, initialZoom = 1 }: UsePreviewSca
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    updateContainerSize();
-  const ro = new ResizeObserver((entries) => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(() => updateContainerSize());
-  });
 
+    let rafId: number;
+    const updateSize = () => {
+      const rect = container.getBoundingClientRect();
+      // Skip if size is zero or unchanged to prevent infinite loops
+      if (rect.width > 0 && rect.height > 0) {
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          setContainerSize({ width: rect.width, height: rect.height });
+        });
+      }
+    };
+
+    const ro = new ResizeObserver(() => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(updateSize);
+    });
+
+    // Initial
+    updateSize();
     ro.observe(container);
+
     return () => {
       ro.disconnect();
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (rafId) cancelAnimationFrame(rafId);
     };
-  }, [updateContainerSize]);
+  }, []);
 
-  // idealScale: makes 1920x1080 fit inside container
-  const idealScale = containerSize.width > 0
-    ? Math.min(containerSize.width / 1920, containerSize.height > 0 ? containerSize.height / 1080 : 1)
-    : 0.1;
+  // Memoized idealScale
+  const idealScale = React.useMemo(() => {
+    if (containerSize.width === 0 || containerSize.height === 0) return 0.1;
+    return Math.min(
+      containerSize.width / 1920,
+      containerSize.height / 1080
+    );
+  }, [containerSize.width, containerSize.height]);
 
-  const effectiveZoom = idealScale * userZoom;
+  const effectiveZoom = React.useMemo(() => 
+    idealScale * userZoom, 
+    [idealScale, userZoom]
+  );
 
   const clamp = (v: number) => Math.max(0.1, Math.min(3.0, v));
   const setZoomMultiplier = useCallback((v: number) => setUserZoom(clamp(v)), []);

@@ -36,31 +36,50 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
   const [containerW, setContainerW]   = useState(0);
   const [containerH, setContainerH]   = useState(0);
   const [internalZoom, setInternalZoom] = useState(1);
+  const [isLoaded, setIsLoaded] = useState(false);
   // Track demo score for delta-based animation push
   const demoScoreRef = useRef({ score: 124, wickets: 4 });
 
   const controllerBaseUrl = baseUrl || getBackendBaseUrl();
 
-  // ── Measure container ──────────────────────────────────────────────────────
+  // ── Measure container (debounced to prevent ResizeObserver loop) ────────
   useEffect(() => {
     const el = outerRef.current;
     if (!el) return;
+
+    let rafId: number;
+    const updateSize = (width: number, height: number) => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        // Only update if size significantly changed (2px tolerance prevents jitter loops)
+        if (Math.abs(containerW - width) > 2) setContainerW(width);
+        if (Math.abs(containerH - height) > 2) setContainerH(height);
+      });
+    };
+
     const measure = () => {
       const r = el.getBoundingClientRect();
-      if (r.width > 0)  setContainerW(r.width);
-      if (r.height > 0) setContainerH(r.height);
+      if (r.width > 0) updateSize(r.width, r.height);
     };
+
     const ro = new ResizeObserver(entries => {
       for (const e of entries) {
-        if (e.contentRect.width  > 0) setContainerW(e.contentRect.width);
-        if (e.contentRect.height > 0) setContainerH(e.contentRect.height);
+        const w = e.contentRect.width;
+        const h = e.contentRect.height;
+        if (w > 0 && h > 0) updateSize(w, h);
       }
     });
+
     ro.observe(el);
-    // Initial measurement (may be 0 before paint — retry once after RAF)
+    
+    // Initial measurements
     measure();
-    const raf = requestAnimationFrame(measure);
-    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
+    requestAnimationFrame(measure);
+
+    return () => {
+      ro.disconnect();
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   // ── Listen for zoom events from ManagerPreviewZoom ──────────────────────
@@ -73,26 +92,36 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     return () => document.removeEventListener('scorex:zoom', handler);
   }, []);
 
-  // idealScale: fit 1920×1080 inside container
-  const idealScale = containerW > 0
-    ? Math.min(
-        containerW / OVERLAY_W,
-        containerH > 0 ? containerH / OVERLAY_H : containerW / OVERLAY_W
-      )
-    : 0;
+  // Memoized scale calculation
+  const idealScale = React.useMemo(() => 
+    containerW > 0
+      ? Math.min(
+          containerW / OVERLAY_W,
+          containerH > 0 ? containerH / OVERLAY_H : Infinity
+        )
+      : 0,
+    [containerW, containerH]
+  );
 
-  const activeZoom    = externalZoom !== undefined ? externalZoom : internalZoom;
-  const effectiveScale = idealScale * activeZoom;
+  const activeZoom = React.useMemo(() => 
+    externalZoom !== undefined ? externalZoom : internalZoom,
+    [externalZoom, internalZoom]
+  );
 
-  // Apply scale — update every render cycle so it reacts to container size changes
-  useEffect(() => {
+  const effectiveScale = React.useMemo(() => 
+    idealScale * activeZoom,
+    [idealScale, activeZoom]
+  );
+
+  // Apply scale via useLayoutEffect (synchronous before paint)
+  React.useLayoutEffect(() => {
     if (!innerRef.current || effectiveScale === 0) return;
     innerRef.current.style.transform = `scale(${effectiveScale})`;
   }, [effectiveScale]);
 
   // ── Load overlay HTML ──────────────────────────────────────────────────────
   const loadPreview = useCallback(async () => {
-    if (!template) return;
+    if (!template || isLoaded) return;
     setLoading(true);
     setError(null);
     try {
@@ -100,42 +129,47 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
       if (!innerRef.current) return;
 
       innerRef.current.innerHTML = htmlContent;
-
-      // Inject engine + utils scripts so live data wires up
-      const addScript = (src: string) => {
-        const s = document.createElement('script');
-        s.src = src;
-        s.async = true;
-        innerRef.current?.appendChild(s);
-      };
-      addScript(`${controllerBaseUrl}/overlays/overlay-utils.js`);
-      addScript(`${controllerBaseUrl}/overlays/engine.js`);
+      
+      // Preview logic fully ported to overlayPreview.ts - no external scripts needed
+      // CSP-safe: relies on inline HTML scripts + updatePreviewData DOM updates
 
       const demoData = getDemoData(progress / 100);
       // Reset delta tracker to match demo base score
       demoScoreRef.current = { score: demoData.team1Score, wickets: demoData.team1Wickets };
       setPreviewData(demoData);
+      setIsLoaded(true);
 
-      // Delay data push until after the container has been painted (avoids scale=0 on first frame)
-      setTimeout(() => {
+      // Single-frame delay for paint + scale stabilization
+      requestAnimationFrame(() => {
         if (innerRef.current) {
           updatePreviewData(innerRef.current, demoData);
-          // Also send as UPDATE_SCORE for overlay's own message listener
           window.postMessage({ type: 'UPDATE_SCORE', data: demoData }, '*');
         }
-      }, 80);
+        onLoad?.();
+      });
 
-      onLoad?.();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Preview load failed';
-      setError(msg);
+      setError(msg + ` (${template})`);
       onError?.(msg);
+      setIsLoaded(true); // Prevent retry loops
     } finally {
       setLoading(false);
     }
-  }, [template, progress, controllerBaseUrl, onLoad, onError]);
+  }, [template, progress, controllerBaseUrl, onLoad, onError, isLoaded]);
 
-  useEffect(() => { loadPreview(); }, [loadPreview]);
+  // Load once on mount/template change, skip if already loaded
+  useEffect(() => { 
+    loadPreview(); 
+  }, [loadPreview]);
+
+  // ── Data refresh on previewData change
+  useEffect(() => {
+    if (previewData && innerRef.current) {
+      updatePreviewData(innerRef.current, previewData);
+      window.postMessage({ type: 'UPDATE_SCORE', data: previewData }, '*');
+    }
+  }, [previewData]);
 
   // ── Listen for scorex:update events ───────────────────────────────────────
   useEffect(() => {

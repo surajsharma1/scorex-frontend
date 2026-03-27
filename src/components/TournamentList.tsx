@@ -55,7 +55,7 @@ export default function TournamentList() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tournaments.map(t => (
+          {(Array.isArray(tournaments) ? tournaments : []).map(t => (
             <div key={t._id} onClick={() => navigate(`/tournaments/${t._id}`)}
               className="group cursor-pointer rounded-2xl p-5 transition-all hover:-translate-y-1 hover:shadow-xl"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
