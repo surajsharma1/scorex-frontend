@@ -1,194 +1,189 @@
 import { useState, useEffect } from 'react';
-import { 
-  DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor,
-  useSensor, useSensors, DragEndEvent 
-} from '@dnd-kit/core';
-import { 
-  arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy 
-} from '@dnd-kit/sortable';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Trophy, GripVertical, Save, ChevronDown } from 'lucide-react';
-import { tournamentAPI, bracketAPI } from '../services/api';
-import { Tournament, Team } from './types';
+import { Trophy, Save, Plus, ChevronRight, X } from 'lucide-react';
+import { bracketAPI, teamAPI } from '../services/api';
+import { useToast } from '../hooks/useToast';
+import type { Team } from './types';
 
-// Sortable Team Item Component
-function SortableTeam({ id, team, index }: { id: string; team: Team; index: number }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 10 : 1,
-    opacity: isDragging ? 0.8 : 1
-  };
-
-  return (
-    <div 
-      ref={setNodeRef}
-      className={`flex items-center justify-between p-4 mb-3 rounded-xl transition-all ${isDragging ? 'shadow-2xl scale-[1.02]' : ''}`}
-      // Using global theme variables for the drag items
-      style={{ 
-        ...style, 
-        background: 'var(--bg-elevated)', 
-        border: `1px solid ${isDragging ? '#22c55e' : 'var(--border)'}`,
-        boxShadow: isDragging ? '0 8px 32px rgba(34,197,94,0.15)' : 'none'
-      }}>
-      <div className="flex items-center gap-4">
-
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs"
-             style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>
-          {index + 1}
-        </div>
-        <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{team.name}</span>
-      </div>
-      <div {...attributes} {...listeners} className="cursor-grab touch-none p-2 rounded-lg hover:bg-white/5 transition-colors">
-        <GripVertical className="h-5 w-5" style={{ color: 'var(--text-muted)' }} />
-      </div>
-    </div>
-  );
+interface MatchNode {
+  id: string;
+  team1: Team | null;
+  team2: Team | null;
+  winner: Team | null;
+  isBye: boolean;
 }
 
-export default function BracketView() {
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
-  const [bracketTeams, setBracketTeams] = useState<Team[]>([]);
-  const [isLoading, setLoading] = useState(false);
+interface Round {
+  id: string;
+  title: string;
+  matches: MatchNode[];
+}
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(TouchSensor), 
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
+export default function BracketView({ tournamentId }: { tournamentId?: string }) {
+  const { addToast } = useToast();
+  const [rounds, setRounds] = useState<Round[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { loadTournaments(); }, []);
+  const [editingMatch, setEditingMatch] = useState<{ roundId: string, matchId: string } | null>(null);
 
-  const loadTournaments = async () => {
-    try {
-      const res = await tournamentAPI.getTournaments();
-      setTournaments(res.data.tournaments || res.data.data || res.data || []);
-    } catch (e) { console.error("Failed to load tournaments"); }
+  useEffect(() => {
+    if (!tournamentId) return;
+    const init = async () => {
+      try {
+        const tRes = await teamAPI.getTeams(tournamentId);
+        setTeams(tRes.data.data || []);
+        
+        const bRes = await bracketAPI.getBracket(tournamentId); 
+        const existing = bRes.data?.data;
+        
+        if (existing && existing.rounds && existing.rounds.length > 0) {
+          setRounds(existing.rounds);
+        } else {
+          setRounds([{ id: 'r1', title: 'Quarter Finals', matches: [{ id: 'm1', team1: null, team2: null, winner: null, isBye: false }] }]);
+        }
+      } catch (e) {
+        console.error(e);
+        if (rounds.length === 0) setRounds([{ id: 'r1', title: 'Quarter Finals', matches: [{ id: 'm1', team1: null, team2: null, winner: null, isBye: false }] }]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
+  }, [tournamentId]);
+
+  const addRound = () => {
+    const newRoundNum = rounds.length + 1;
+    setRounds([...rounds, { 
+      id: `r${newRoundNum}`, 
+      title: `Round ${newRoundNum}`, 
+      matches: [{ id: `m${Date.now()}`, team1: null, team2: null, winner: null, isBye: false }] 
+    }]);
   };
 
-  const handleTournamentSelect = async (tId: string) => {
-    if (!tId) return;
-    setLoading(true);
-    try {
-      const res = await tournamentAPI.getTournament(tId);
-      const tData = res.data.data || res.data;
-      setSelectedTournament(tData);
-      setBracketTeams(tData.teams || []);
-    } catch (e) { console.error("Failed to load details"); } 
-    finally { setLoading(false); }
+  const addMatchToRound = (roundId: string) => {
+    setRounds(rounds.map(r => {
+      if (r.id === roundId) {
+        return { ...r, matches: [...r.matches, { id: `m${Date.now()}`, team1: null, team2: null, winner: null, isBye: false }] };
+      }
+      return r;
+    }));
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (active.id !== over?.id) {
-      setBracketTeams((items) => {
-        const oldIndex = items.findIndex(item => item._id === active.id);
-        const newIndex = items.findIndex(item => item._id === over?.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
+  const updateMatchNode = (roundId: string, matchId: string, updates: Partial<MatchNode>) => {
+    setRounds(rounds.map(r => {
+      if (r.id === roundId) {
+        return { ...r, matches: r.matches.map(m => m.id === matchId ? { ...m, ...updates } : m) };
+      }
+      return r;
+    }));
+    setEditingMatch(null);
   };
 
   const saveBracket = async () => {
-    if (!selectedTournament) return;
     try {
-      await bracketAPI.updateBracket(selectedTournament._id, { teams: bracketTeams.map(t => t._id) });
-      alert("Bracket seeding saved!");
-    } catch (e) { alert("Failed to save bracket"); }
+      await bracketAPI.updateBracket(tournamentId!, { type: 'knockout', numberOfTeams: teams.length, rounds });
+      addToast({ type: 'success', message: 'Bracket schedule saved successfully!' });
+    } catch (e) {
+      addToast({ type: 'error', message: 'Failed to save bracket' });
+    }
   };
 
+  if (loading) return <div className="py-12 text-center text-[var(--text-muted)] animate-pulse">Loading Bracket Engine...</div>;
+
   return (
-    <div className="p-6 max-w-6xl relative min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-        {/* Background Orb */}
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none"
-             style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.05) 0%, transparent 70%)' }} />
-
-        {/* Header & Green Selection Button */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 relative z-10">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-green-400 to-emerald-600" />
-                <h1 className="text-3xl font-black flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                    <Trophy className="w-8 h-8 text-green-400" /> Tournament Brackets
-                </h1>
-              </div>
-              <p className="ml-5 text-sm" style={{ color: 'var(--text-muted)' }}>Manage your knockout seeding</p>
-            </div>
-
-            {/* GREEN SELECT BUTTON TRICK */}
-            <div className="relative group cursor-pointer w-full sm:w-auto">
-              <div className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-lg"
-                   style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 16px rgba(34,197,94,0.3)' }}>
-                Select Tournament <ChevronDown className="w-4 h-4" />
-              </div>
-              <select 
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none"
-                onChange={(e) => handleTournamentSelect(e.target.value)}
-              >
-                <option value="">Select a Tournament</option>
-                {tournaments.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
-              </select>
-            </div>
+    <div className="bg-[var(--bg-primary)] min-h-[60vh] rounded-3xl border border-[var(--border)] overflow-hidden flex flex-col relative">
+      <div className="bg-[var(--bg-card)] p-4 sm:p-6 border-b border-[var(--border)] flex flex-wrap gap-4 items-center justify-between z-10 shadow-sm">
+        <div>
+          <h3 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-2"><Trophy className="w-5 h-5 text-green-500"/> Visual Bracket Editor</h3>
+          <p className="text-xs text-[var(--text-muted)] mt-1">Design your playoff structure, assign BYEs, and map matches.</p>
         </div>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <button onClick={addRound} className="flex-1 sm:flex-none px-4 py-2 bg-[var(--bg-elevated)] text-[var(--text-primary)] font-bold rounded-xl border border-[var(--border)] hover:bg-[var(--bg-hover)] transition-all text-sm flex items-center justify-center gap-2">
+            <Plus className="w-4 h-4"/> Add Round
+          </button>
+          <button onClick={saveBracket} className="flex-1 sm:flex-none px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold rounded-xl shadow-lg hover:scale-105 transition-transform text-sm flex items-center justify-center gap-2">
+            <Save className="w-4 h-4"/> Save Layout
+          </button>
+        </div>
+      </div>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex justify-center py-20 relative z-10">
-            <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
-          </div>
-        )}
+      <div className="flex-1 overflow-auto custom-scrollbar p-4 sm:p-8 bg-black/20">
+        <div className="flex gap-8 sm:gap-16 w-max min-w-full pb-8">
+          {rounds.map((round, rIndex) => (
+            <div key={round.id} className="flex flex-col gap-6 min-w-[240px] sm:min-w-[280px] shrink-0">
+              <div className="bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl p-3 text-center shadow-md relative group">
+                <input type="text" value={round.title} onChange={(e) => setRounds(rounds.map(r => r.id === round.id ? { ...r, title: e.target.value } : r))} className="w-full bg-transparent text-center font-black text-[var(--text-primary)] outline-none focus:text-green-400 transition-colors uppercase tracking-wider text-sm" />
+                <button onClick={() => addMatchToRound(round.id)} className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-green-500 text-black rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:scale-110"><Plus className="w-4 h-4" /></button>
+              </div>
 
-        {/* Main Content Area */}
-        {selectedTournament && !isLoading && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
-                {/* Drag & Drop Area */}
-                <div className="p-6 rounded-2xl shadow-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                    <div className="flex justify-between items-center mb-6 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
-                        <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Seed Teams</h3>
-                        <span className="text-xs font-semibold tracking-wider uppercase" style={{ color: 'var(--text-muted)' }}>Drag to reorder</span>
+              <div className="flex flex-col gap-6 sm:gap-10 flex-1 justify-around relative">
+                {round.matches.map((match, mIndex) => (
+                  <div key={match.id} className="relative group">
+                    {rIndex < rounds.length - 1 && <div className="absolute top-1/2 left-full w-8 sm:w-16 border-t-2 border-[var(--border)] -z-10" />}
+                    <div onClick={() => setEditingMatch({ roundId: round.id, matchId: match.id })} className={`bg-[var(--bg-card)] border-2 ${match.isBye ? 'border-amber-500/50 border-dashed' : 'border-[var(--border)]'} rounded-xl overflow-hidden shadow-lg cursor-pointer hover:border-green-500 transition-colors relative z-10`}>
+                      <div className={`p-3 border-b border-[var(--border)] flex justify-between items-center ${match.winner?._id === match.team1?._id ? 'bg-green-500/10' : ''}`}>
+                        <span className={`font-bold text-sm truncate ${match.team1 ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)] italic'}`}>{match.team1?.name || 'TBD'}</span>
+                        {match.winner?._id === match.team1?._id && <ChevronRight className="w-4 h-4 text-green-500" />}
+                      </div>
+                      <div className={`p-3 flex justify-between items-center ${match.winner?._id === match.team2?._id ? 'bg-green-500/10' : ''}`}>
+                        {match.isBye ? <span className="font-bold text-sm text-amber-500 tracking-widest uppercase">BYE</span> : <span className={`font-bold text-sm truncate ${match.team2 ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)] italic'}`}>{match.team2?.name || 'TBD'}</span>}
+                        {match.winner?._id === match.team2?._id && <ChevronRight className="w-4 h-4 text-green-500" />}
+                      </div>
                     </div>
-                    
-                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                        <SortableContext items={bracketTeams.map(t => t._id)} strategy={verticalListSortingStrategy}>
-                            <div className="space-y-1">
-                                {bracketTeams.map((team, index) => (
-                                    <SortableTeam key={team._id} id={team._id} team={team} index={index} />
-                                ))}
-                            </div>
-                        </SortableContext>
-                    </DndContext>
-
-                    <button 
-                        onClick={saveBracket}
-                        className="mt-6 w-full py-3.5 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
-                        style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 20px rgba(34,197,94,0.2)' }}
-                    >
-                        <Save className="w-4 h-4" /> Save Seeding
-                    </button>
-                </div>
-
-                {/* Preview Area */}
-                <div className="p-8 rounded-2xl border-2 border-dashed flex items-center justify-center text-center"
-                     style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'var(--border)' }}>
-                    <div>
-                        <Trophy className="w-20 h-20 mx-auto mb-4 opacity-20" style={{ color: 'var(--text-primary)' }} />
-                        <p className="text-lg font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Bracket Preview Visualization</p>
-                        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>(Generates automatically after saving seeds)</p>
-                    </div>
-                </div>
+                  </div>
+                ))}
+              </div>
             </div>
-        )}
+          ))}
+        </div>
+      </div>
 
-        {!selectedTournament && !isLoading && (
-           <div className="text-center py-20 rounded-3xl relative z-10" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-             <Trophy className="w-16 h-16 opacity-20 mx-auto mb-4" style={{ color: 'var(--text-primary)' }} />
-             <p className="font-semibold text-lg" style={{ color: 'var(--text-muted)' }}>Use the green button above to select a tournament</p>
-           </div>
-        )}
+      {editingMatch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-[var(--bg-card)] rounded-3xl border border-[var(--border)] p-6 animate-in zoom-in-95 shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black text-[var(--text-primary)]">Configure Match</h3>
+              <button onClick={() => setEditingMatch(null)} className="text-[var(--text-muted)] hover:text-white"><X className="w-5 h-5"/></button>
+            </div>
+            {(() => {
+              const r = rounds.find(r => r.id === editingMatch.roundId);
+              const m = r?.matches.find(m => m.id === editingMatch.matchId);
+              if (!m) return null;
+              return (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Slot 1 / Home Team</label>
+                    <select value={m.team1?._id || ''} onChange={e => updateMatchNode(editingMatch.roundId, editingMatch.matchId, { team1: teams.find(t => t._id === e.target.value) || null })} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none">
+                      <option value="">-- TBD / Empty --</option>
+                      {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+                    </select>
+                  </div>
+                  <label className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 cursor-pointer mt-2">
+                    <input type="checkbox" checked={m.isBye} onChange={e => updateMatchNode(editingMatch.roundId, editingMatch.matchId, { isBye: e.target.checked, team2: null })} className="w-4 h-4 accent-amber-500" />
+                    <span className="text-sm font-bold text-amber-500">Auto-Advance (BYE)</span>
+                  </label>
+                  {!m.isBye && (
+                    <div>
+                      <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider mt-2">Slot 2 / Away Team</label>
+                      <select value={m.team2?._id || ''} onChange={e => updateMatchNode(editingMatch.roundId, editingMatch.matchId, { team2: teams.find(t => t._id === e.target.value) || null })} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none">
+                        <option value="">-- TBD / Empty --</option>
+                        {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  <div className="pt-4 border-t border-[var(--border)] mt-6">
+                    <label className="block text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Set Winner</label>
+                    <div className="flex gap-2">
+                      <button onClick={() => updateMatchNode(editingMatch.roundId, editingMatch.matchId, { winner: m.team1 })} disabled={!m.team1} className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-all ${m.winner?._id === m.team1?._id ? 'bg-green-500/20 border-green-500 text-green-400' : 'bg-[var(--bg-elevated)] border-[var(--border)] text-[var(--text-secondary)]'} disabled:opacity-50`}>Team 1</button>
+                      <button onClick={() => updateMatchNode(editingMatch.roundId, editingMatch.matchId, { winner: m.team2 })} disabled={!m.team2 || m.isBye} className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-all ${m.winner?._id === m.team2?._id ? 'bg-green-500/20 border-green-500 text-green-400' : 'bg-[var(--bg-elevated)] border-[var(--border)] text-[var(--text-secondary)]'} disabled:opacity-50`}>Team 2</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

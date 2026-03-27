@@ -16,7 +16,7 @@ export default function OAuthCallback() {
     api.get('/auth/me')
       .then(res => {
         const u = res.data.data;
-        login({ token, data: { token, user: u } });
+        login({ token, user: u });
         navigate('/dashboard');
       })
       .catch(() => { localStorage.removeItem('token'); navigate('/login?error=oauth_failed'); });

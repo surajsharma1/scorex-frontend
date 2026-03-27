@@ -147,6 +147,9 @@ export interface Bowler {
 }
 
 export interface LiveScores {
+  striker: string | number | readonly string[];
+  bowler: string | number | readonly string[];
+  nonStrikerId: any;
   team1: TeamInnings;
   team2: TeamInnings;
   battingTeam: 'team1' | 'team2';
