@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Trash2 } from 'lucide-react';
 import { socket } from '../services/socket';
 import { useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import {
   ArrowLeft, Zap, BarChart2, Users, MapPin, Shield, Activity
 } from 'lucide-react';
+import { useToast } from '../hooks/useToast';
 
 interface Props {
   matchId: string;

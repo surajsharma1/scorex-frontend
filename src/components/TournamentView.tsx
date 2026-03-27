@@ -7,8 +7,9 @@ import { useAuth } from '../App';
 import { useToast } from '../hooks/useToast';
 import {
   Plus, Trash2, Zap, BarChart2, Users, Trophy, LayoutGrid, CheckCircle2,
-  Calendar, MapPin, ChevronRight, X, Filter
+  Calendar, MapPin, ChevronLeft, ChevronRight, X, Filter
 } from 'lucide-react';
+
 import TeamManagement from './TeamManagement';
 import BracketView from './BracketView';
 import PointsTable from './Leaderboard'; // Reusing leaderboard for points
@@ -146,17 +147,34 @@ export default function TournamentView() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-green-500/5 rounded-full blur-3xl pointer-events-none translate-x-1/2 -translate-y-1/2" />
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <StatusBadge status={selected.status} />
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[var(--bg-elevated)] text-[var(--text-secondary)] uppercase border border-[var(--border)]">{selected.type.replace('_', ' ')}</span>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => navigate('/tournaments')}
+                className="p-2 rounded-xl hover:bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-green-400 transition-colors md:hidden"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <StatusBadge status={selected.status} />
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-[var(--bg-elevated)] text-[var(--text-secondary)] uppercase border border-[var(--border)]">{selected.type.replace('_', ' ')}</span>
+                </div>
+                <h1 className="text-3xl sm:text-5xl font-black text-[var(--text-primary)] mb-2">{selected.name}</h1>
+                <p className="text-sm sm:text-base text-[var(--text-muted)] flex items-center gap-2">
+                  <MapPin className="w-4 h-4" /> {selected.venue || 'Location TBA'}
+                </p>
               </div>
-              <h1 className="text-3xl sm:text-5xl font-black text-[var(--text-primary)] mb-2">{selected.name}</h1>
-              <p className="text-sm sm:text-base text-[var(--text-muted)] flex items-center gap-2">
-                <MapPin className="w-4 h-4" /> {selected.venue || 'Location TBA'}
-              </p>
+              <button 
+                onClick={() => navigate('/tournaments')}
+                className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg hover:scale-105"
+                style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 16px rgba(34,197,94,0.3)' }}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back to Tournaments
+              </button>
             </div>
           </div>
+
 
           {/* Navigation Tabs (Scrollable on mobile) */}
           <div className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-4 mt-8">
@@ -227,7 +245,8 @@ export default function TournamentView() {
 
         {activeTab === 'teams' && <TeamManagement tournamentId={id} onTeamsChange={loadData} />}
         {activeTab === 'brackets' && <BracketView />}
-        {activeTab === 'points' && <PointsTable />}
+        {activeTab === 'points' && <PointsTable tournamentId={id!} />}
+
         {activeTab === 'overlays' && <OverlayManager tournamentId={id} matches={matches} />}
       </div>
 

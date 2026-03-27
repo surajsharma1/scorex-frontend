@@ -2,28 +2,32 @@ import { useState, useEffect } from 'react';
 import { tournamentAPI } from '../services/api';
 import { Trophy, BarChart2, ChevronDown } from 'lucide-react';
 
-export default function Leaderboard() {
-  const [tournaments, setTournaments] = useState<any[]>([]);
-  const [selectedTournament, setSelectedTournament] = useState('');
+interface Props {
+  tournamentId?: string;
+}
+
+export default function Leaderboard({ tournamentId }: Props) {
   const [pointsTable, setPointsTable] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    tournamentAPI.getMyTournaments().then(r => {
-      const list = r.data.data || [];
-      setTournaments(list);
-      if (list.length > 0) setSelectedTournament(list[0]._id);
-    }).catch(() => {});
-  }, []);
+  if (!tournamentId) {
+    return (
+      <div className="text-center py-20 rounded-3xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <Trophy className="w-16 h-16 opacity-20 mx-auto mb-4" style={{ color: 'var(--text-primary)' }} />
+        <p className="font-semibold text-lg" style={{ color: 'var(--text-muted)' }}>View points from a specific tournament page</p>
+      </div>
+    );
+  }
+
 
   useEffect(() => {
-    if (!selectedTournament) return;
     setLoading(true);
-    tournamentAPI.getPointsTable(selectedTournament)
+    tournamentAPI.getPointsTable(tournamentId)
       .then(r => setPointsTable(r.data.data || []))
       .catch(() => setPointsTable([]))
       .finally(() => setLoading(false));
-  }, [selectedTournament]);
+  }, [tournamentId]);
+
 
   return (
     <div className="p-6 max-w-5xl relative min-h-screen" style={{ background: 'var(--bg-primary)' }}>
@@ -39,35 +43,22 @@ export default function Leaderboard() {
               <Trophy className="w-8 h-8 text-green-400" /> Leaderboard
             </h1>
           </div>
-          <p className="ml-5 text-sm" style={{ color: 'var(--text-muted)' }}>Tournament points table</p>
+          <p className="ml-5 text-sm" style={{ color: 'var(--text-muted)' }}>Points table</p>
         </div>
-        
-        {/* GREEN SELECT TOURNAMENT BUTTON TRICK */}
-        {tournaments.length > 0 && (
-          <div className="relative group cursor-pointer">
-            <div className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg"
-                 style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 16px rgba(34,197,94,0.3)' }}>
-              Select Tournament <ChevronDown className="w-4 h-4" />
-            </div>
-            {/* The actual select element hidden invisibly over the button */}
-            <select value={selectedTournament} onChange={e => setSelectedTournament(e.target.value)}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none">
-              {tournaments.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
-            </select>
-          </div>
-        )}
       </div>
+
 
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
         </div>
-      ) : !selectedTournament ? (
+      ) : pointsTable.length === 0 ? (
         <div className="text-center py-20 rounded-3xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <Trophy className="w-16 h-16 opacity-20 mx-auto mb-4" style={{ color: 'var(--text-primary)' }} />
-          <p className="font-semibold text-lg" style={{ color: 'var(--text-muted)' }}>Create a tournament first to see its leaderboard</p>
+          <p className="font-semibold text-lg" style={{ color: 'var(--text-muted)' }}>No matches completed yet</p>
         </div>
       ) : (
+
         <div className="rounded-3xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <div className="px-6 py-5 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
             <BarChart2 className="w-6 h-6 text-green-400" />
