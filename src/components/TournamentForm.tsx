@@ -42,11 +42,17 @@ export default function TournamentForm() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await tournamentAPI.createTournament(formData);
+      const tournamentData = {
+        ...formData,
+        venue: formData.location,
+        teams: formData.selectedTeams,
+        prizePool: 0
+      };
+      await tournamentAPI.createTournament(tournamentData);
       addToast({ type: 'success', message: 'Tournament created successfully!' });
       navigate('/tournaments');
     } catch (err: any) {
@@ -86,12 +92,12 @@ export default function TournamentForm() {
 
             <div className="md:col-span-2">
               <label className="block text-sm font-bold mb-2 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
-                <MapPin className="w-4 h-4" /> Location
+                <MapPin className="w-4 h-4" /> Venue
               </label>
               <input type="text" required value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})}
                 className="w-full p-3 sm:p-4 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all"
                 style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-                placeholder="e.g., Eden Gardens, London" />
+                placeholder="e.g., Eden Gardens" />
             </div>
 
             <div>
