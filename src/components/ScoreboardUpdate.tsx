@@ -176,7 +176,10 @@ export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: Scor
       nonStriker: { name: battingTeamData?.batsmen?.[1]?.name || 'Non-Striker', runs: battingTeamData?.batsmen?.[1]?.runs || 0, balls: battingTeamData?.batsmen?.[1]?.balls || 0, fours: battingTeamData?.batsmen?.[1]?.fours || 0, sixes: battingTeamData?.batsmen?.[1]?.sixes || 0, status: '' },
       bowler: { name: battingTeamData?.bowler?.name || 'Bowler', overs: battingTeamData?.bowler?.overs || 0, maidens: battingTeamData?.bowler?.maidens || 0, runs: battingTeamData?.bowler?.runs || 0, wickets: battingTeamData?.bowler?.wickets || 0 },
       stats: { currentRunRate: liveScores.currentRunRate || 0, requiredRunRate: liveScores.requiredRunRate || 0, target: liveScores.target || 0, last5Overs: liveScores.lastFiveOvers || '' },
-      battingTeam: liveScores.battingTeam, innings: liveScores.innings || 1, status: liveScores.target ? 'Chasing' : 'Batting', result: ''
+      battingTeam: liveScores.battingTeam, innings: liveScores.innings || 1, status: liveScores.target ? 'Chasing' : 'Batting', result: '',
+      strikerId: '',
+      bowlerId: '',
+      nonStrikerId: ''
     };
   }, [liveScores, tournament, teams]);
 

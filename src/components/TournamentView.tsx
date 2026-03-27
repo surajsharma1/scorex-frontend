@@ -137,7 +137,7 @@ export default function TournamentView() {
 
   if (!selected) return <div className="flex h-screen items-center justify-center bg-[var(--bg-primary)]"><div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin" /></div>;
 
-  const isOwner = selected.organizer === user?._id || user?.role === 'admin';
+  const isOwner = selected.organizer === user?.id || selected.organizer === user?._id || user?.role === 'admin';
 
   return (
     <div className="min-h-screen pb-20 bg-[var(--bg-primary)]">
