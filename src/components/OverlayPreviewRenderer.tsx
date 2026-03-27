@@ -176,8 +176,11 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     const container = innerRef.current;
     if (!container) return;
 
-    const handleContainerUpdate = (e: CustomEvent<PreviewData>) =>
-      updatePreviewData(container, e.detail);
+      const handleContainerUpdate = (e: CustomEvent<PreviewData>) => {
+        if (e.defaultPrevented) return; // Prevent recursion
+        e.preventDefault();
+        updatePreviewData(container, e.detail);
+      };
     container.addEventListener('scorex:update', handleContainerUpdate as EventListener);
 
     const handleWindowUpdate = (e: Event) => {
