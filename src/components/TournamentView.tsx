@@ -360,7 +360,7 @@ export default function TournamentView() {
         )}
 
         {activeTab === 'teams' && <TeamManagement tournamentId={id} onTeamsChange={loadData} />}
-        {activeTab === 'brackets' && <BracketView tournamentId={id} />}
+{activeTab === 'brackets' && <BracketView />}
         {activeTab === 'points' && <PointsTable />}
         {activeTab === 'overlays' && <OverlayManager tournamentId={id} matches={matches} />}
       </div>
