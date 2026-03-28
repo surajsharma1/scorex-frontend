@@ -27,28 +27,44 @@ export default function BracketView({ tournamentId }: { tournamentId?: string })
   const [editingMatch, setEditingMatch] = useState<{ roundId: string, matchId: string } | null>(null);
 
   useEffect(() => {
-    if (!tournamentId) return;
+    if (!tournamentId) {
+      setLoading(false);
+      return;
+    }
+    
+    let isMounted = true;
+    
     const init = async () => {
       try {
         const tRes = await teamAPI.getTeams(tournamentId);
-        setTeams(tRes.data.data || []);
+        if (isMounted) setTeams(tRes.data?.data || tRes.data?.teams || []);
         
-        const bRes = await bracketAPI.getBracket(tournamentId); 
-        const existing = bRes.data?.data;
-        
-        if (existing && existing.rounds && existing.rounds.length > 0) {
-          setRounds(existing.rounds);
-        } else {
-          setRounds([{ id: 'r1', title: 'Quarter Finals', matches: [{ id: 'm1', team1: null, team2: null, winner: null, isBye: false }] }]);
+        try {
+          const bRes = await bracketAPI.getBracket(tournamentId); 
+          const existing = bRes.data?.data || bRes.data;
+          
+          if (isMounted && existing && existing.rounds && existing.rounds.length > 0) {
+            setRounds(existing.rounds);
+            setLoading(false);
+            return; // Successful fetch, early exit
+          }
+        } catch (err) {
+          console.warn("No existing bracket found or API error. Initializing empty bracket.");
         }
       } catch (e) {
-        console.error(e);
-        if (rounds.length === 0) setRounds([{ id: 'r1', title: 'Quarter Finals', matches: [{ id: 'm1', team1: null, team2: null, winner: null, isBye: false }] }]);
+        console.error("Failed to load teams for bracket", e);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          // Guarantee state resolves to an empty bracket if nothing was set
+          setRounds(prev => prev.length === 0 ? [{ id: 'r1', title: 'Quarter Finals', matches: [{ id: 'm1', team1: null, team2: null, winner: null, isBye: false }] }] : prev);
+          setLoading(false);
+        }
       }
     };
+    
     init();
+    
+    return () => { isMounted = false; };
   }, [tournamentId]);
 
   const addRound = () => {
@@ -80,15 +96,22 @@ export default function BracketView({ tournamentId }: { tournamentId?: string })
   };
 
   const saveBracket = async () => {
+    if (!tournamentId) return;
     try {
-      await bracketAPI.updateBracket(tournamentId!, { type: 'knockout', numberOfTeams: teams.length, rounds });
+      await bracketAPI.updateBracket(tournamentId, { type: 'knockout', numberOfTeams: teams.length, rounds });
       addToast({ type: 'success', message: 'Bracket schedule saved successfully!' });
-    } catch (e) {
-      addToast({ type: 'error', message: 'Failed to save bracket' });
+    } catch (e: any) {
+      console.error(e);
+      addToast({ type: 'error', message: 'Failed to save bracket. Backend may require creation first.' });
     }
   };
 
-  if (loading) return <div className="py-12 text-center text-[var(--text-muted)] animate-pulse">Loading Bracket Engine...</div>;
+  if (loading) return (
+    <div className="py-24 text-center">
+      <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+      <p className="text-[var(--text-muted)] font-bold animate-pulse">Waking up Bracket Engine...</p>
+    </div>
+  );
 
   return (
     <div className="bg-[var(--bg-primary)] min-h-[60vh] rounded-3xl border border-[var(--border)] overflow-hidden flex flex-col relative">
