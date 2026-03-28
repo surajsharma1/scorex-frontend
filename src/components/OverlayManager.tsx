@@ -1,15 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import OverlayPreviewContainer from './OverlayPreviewContainer';
 import { 
   Eye, Save, Trash2, Copy, RefreshCw, X, PlaySquare, 
-  Target, ShieldAlert, Timer, Maximize2, Smartphone, ZoomIn 
+  Target, ShieldAlert, Timer, Maximize2, Smartphone, ZoomIn, Activity 
 } from 'lucide-react';
 import { overlayAPI } from '../services/api';
 import { getBackendBaseUrl, getApiBaseUrl } from '../services/env';
 import { useAuth } from '../App';
 import { useToast } from '../hooks/useToast';
 
-// Safe filename extractor
+// ─── SAFE EXTRACTOR ────────────────────────────────────────────────────────
 const getTemplateFilename = (t: any): string => {
   if (t.file) return t.file;
   if (t.url) return t.url.split('/').pop() || '';
@@ -17,6 +17,46 @@ const getTemplateFilename = (t: any): string => {
   return `${t.id || 'default'}.html`;
 };
 
+// ─── ISOLATED COUNTDOWN BADGE (Prevents 1-second root re-renders) ──────────
+const CountdownBadge = ({ expiresAt, overlayId, onExpire }: { expiresAt: string, overlayId: string, onExpire: (id: string) => void }) => {
+  const [timeLeft, setTimeLeft] = useState(() => new Date(expiresAt).getTime() - Date.now());
+
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    const interval = setInterval(() => {
+      const remaining = new Date(expiresAt).getTime() - Date.now();
+      setTimeLeft(remaining);
+      if (remaining <= 0) {
+        clearInterval(interval);
+        onExpire(overlayId);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt, overlayId, onExpire, timeLeft]);
+
+  if (timeLeft <= 0) {
+    return (
+      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-red-500/20 border-red-500/40 text-red-400">
+        <Timer className="w-3.5 h-3.5" />
+        <span className="text-[11px] font-black font-mono tracking-widest">EXPIRED</span>
+      </div>
+    );
+  }
+
+  const h = String(Math.floor((timeLeft / (1000 * 60 * 60)) % 24)).padStart(2, '0');
+  const m = String(Math.floor((timeLeft / 1000 / 60) % 60)).padStart(2, '0');
+  const s = String(Math.floor((timeLeft / 1000) % 60)).padStart(2, '0');
+
+  return (
+    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-green-500/20 border-green-500/40 text-green-400">
+      <Timer className="w-3.5 h-3.5" />
+      <span className="text-[11px] font-black font-mono tracking-widest">{`${h}:${m}:${s}`}</span>
+    </div>
+  );
+};
+
+
+// ─── MAIN COMPONENT ────────────────────────────────────────────────────────
 export default function OverlayManager({ tournamentId }: { tournamentId?: string, matches?: any[] }) {
   const { user } = useAuth();
   const { addToast } = useToast();
@@ -31,39 +71,18 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState({ name: '', template: '' });
   
-  // Real-time clock for countdowns
-  const [now, setNow] = useState(Date.now());
-
-  // Mobile Fullscreen Modal State & Refs
+  // Mobile Fullscreen Modal State & Stable Refs
   const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
   const [mobileZoom, setMobileZoom] = useState(1);
-  const fullscreenPreviewRef = useRef<HTMLDivElement>(null);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
   const userLevel = (user as any)?.membership?.level || (user as any)?.membershipLevel || 0;
   const isEligible = userLevel > 0;
 
-  // Global Clock Tick
-  useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   useEffect(() => {
     loadData();
   }, []);
-
-  // Monitor Active Preview for Expiration Ejection
-  useEffect(() => {
-    if (activePreview && activePreview.urlExpiresAt) {
-      const timeLeft = new Date(activePreview.urlExpiresAt).getTime() - now;
-      if (timeLeft <= 0) {
-        setActivePreview(null);
-        setIsMobileFullscreen(false);
-        setMobileZoom(1);
-        addToast({ type: 'error', message: 'The active preview link has expired and is no longer accessible.' });
-      }
-    }
-  }, [now, activePreview, addToast]);
 
   const loadData = async () => {
     setLoading(true);
@@ -127,26 +146,44 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
     }
   };
 
-  // Manual Zoom Handler for Fullscreen Mobile
+  // Ejects the preview if the active one expires
+  const handleOverlayExpire = useCallback((expiredId: string) => {
+    if (activePreview?._id === expiredId) {
+      setActivePreview(null);
+      setIsMobileFullscreen(false);
+      addToast({ type: 'error', message: 'The active preview link has expired.' });
+    }
+  }, [activePreview, addToast]);
+
+  // Deep animation trigger that bypasses iframe security boundaries
+  const triggerAnim = (event: string) => {
+    const payload = { type: 'OVERLAY_ACTION', payload: { event } };
+    
+    // Send to global window
+    window.postMessage(payload, '*');
+    window.dispatchEvent(new CustomEvent('OVERLAY_ACTION', { detail: { event } }));
+
+    // Send to deep iframe
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach(iframe => {
+      try {
+        iframe.contentWindow?.postMessage(payload, '*');
+      } catch (e) { console.warn("Iframe blocked postMessage"); }
+    });
+  };
+
   const handleMobileZoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
     setMobileZoom(val);
-    
-    // Force dispatch event for the inner preview scaling hook
     const evt = new CustomEvent('scorex:zoom', { detail: { zoom: val }, bubbles: true });
     window.dispatchEvent(evt);
-    if (fullscreenPreviewRef.current) {
-      fullscreenPreviewRef.current.dispatchEvent(evt);
-    }
+    if (previewContainerRef.current) previewContainerRef.current.dispatchEvent(evt);
   };
 
-  const formatTimeLeft = (ms: number) => {
-    if (ms <= 0) return '00:00:00';
-    const h = String(Math.floor((ms / (1000 * 60 * 60)) % 24)).padStart(2, '0');
-    const m = String(Math.floor((ms / 1000 / 60) % 60)).padStart(2, '0');
-    const s = String(Math.floor((ms / 1000) % 60)).padStart(2, '0');
-    return `${h}:${m}:${s}`;
-  };
+  // Memoized dummy callbacks to prevent infinite re-renders
+  const dummyRetry = useCallback(() => {}, []);
+  const dummySetLoading = useCallback(() => {}, []);
+  const dummySetError = useCallback(() => {}, []);
 
   if (!isEligible) {
     return (
@@ -172,7 +209,6 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
           </button>
         </div>
 
-        {/* Create Overlay Form */}
         {showCreate && (
           <form onSubmit={handleCreate} className="mb-6 p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border)] flex flex-col md:flex-row gap-4 items-end animate-in fade-in slide-in-from-top-4 duration-200 shadow-inner">
             <div className="flex-1 w-full">
@@ -194,11 +230,9 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
           </form>
         )}
 
-        {/* Overlays Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {createdOverlays.map(overlay => {
-            const timeLeftMs = new Date(overlay.urlExpiresAt).getTime() - now;
-            const isExpired = timeLeftMs <= 0;
+            const isExpired = new Date(overlay.urlExpiresAt).getTime() - Date.now() <= 0;
             const isActive = activePreview?._id === overlay._id;
             
             return (
@@ -213,13 +247,11 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
                     </p>
                   </div>
                   
-                  {/* Dynamic Countdown Badge */}
-                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border ${isExpired ? 'bg-red-500/20 border-red-500/40 text-red-400' : 'bg-green-500/20 border-green-500/40 text-green-400'}`}>
-                    <Timer className="w-3.5 h-3.5" />
-                    <span className="text-[11px] font-black font-mono tracking-widest">
-                      {isExpired ? 'EXPIRED' : formatTimeLeft(timeLeftMs)}
-                    </span>
-                  </div>
+                  <CountdownBadge 
+                    expiresAt={overlay.urlExpiresAt} 
+                    overlayId={overlay._id} 
+                    onExpire={handleOverlayExpire} 
+                  />
                 </div>
 
                 <div className="flex items-center gap-2 mt-5 pt-4 border-t border-[var(--border)]">
@@ -264,7 +296,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
             
             const existing = createdOverlays.find(o => getTemplateFilename(o) === tmpl);
             if (existing) {
-               const isExp = (new Date(existing.urlExpiresAt).getTime() - now) <= 0;
+               const isExp = new Date(existing.urlExpiresAt).getTime() - Date.now() <= 0;
                if (!isExp) setActivePreview(existing);
                else addToast({ type: 'error', message: 'That overlay has expired.' });
             } else {
@@ -281,28 +313,39 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
         </div>
 
         {activePreview ? (
-          <div className="w-full aspect-video bg-[#000] rounded-2xl overflow-hidden border border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.1)] relative group">
-            <OverlayPreviewContainer
-              src={`/overlays/${getTemplateFilename(activePreview)}`}
-              title="Preview"
-              baseUrl={baseUrl}
-              heightClass="h-full"
-              previewContainerRef={{ current: null } as any}
-              previewIframeRef={{ current: null } as any}
-              retryLoad={() => {}}
-              setIframeLoading={() => {}}
-              setIframeError={() => {}}
-            />
-            
-            {/* Expand Button for Small Screens */}
-            <button 
-              onClick={() => setIsMobileFullscreen(true)}
-              className="md:hidden absolute top-4 right-4 p-3 bg-black/80 backdrop-blur-md text-white rounded-xl border border-white/20 shadow-2xl flex items-center gap-2 active:scale-95 transition-all z-10"
-            >
-              <Maximize2 className="w-5 h-5 text-blue-400" />
-              <span className="text-xs font-black uppercase tracking-wider text-blue-400">Full Screen</span>
-            </button>
-          </div>
+          <>
+            <div className="w-full aspect-video bg-[#000] rounded-2xl overflow-hidden border border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.1)] relative group">
+              <OverlayPreviewContainer
+                src={`/overlays/${getTemplateFilename(activePreview)}`}
+                title="Preview"
+                baseUrl={baseUrl}
+                heightClass="h-full"
+                previewContainerRef={previewContainerRef}
+                previewIframeRef={previewIframeRef}
+                retryLoad={dummyRetry}
+                setIframeLoading={dummySetLoading}
+                setIframeError={dummySetError}
+              />
+              
+              {/* Expand Button for Small Screens */}
+              <button 
+                onClick={() => setIsMobileFullscreen(true)}
+                className="md:hidden absolute top-4 right-4 p-3 bg-black/80 backdrop-blur-md text-white rounded-xl border border-white/20 shadow-2xl flex items-center gap-2 active:scale-95 transition-all z-10"
+              >
+                <Maximize2 className="w-5 h-5 text-blue-400" />
+                <span className="text-xs font-black uppercase tracking-wider text-blue-400">Full Screen</span>
+              </button>
+            </div>
+
+            {/* Triggers Bar Restored OUTSIDE the preview iframe */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3 p-4 bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border)] shadow-inner">
+               <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mr-2 sm:mr-4 flex items-center gap-2"><Activity className="w-4 h-4 text-blue-500"/> Triggers:</span>
+               <button onClick={() => triggerAnim('FOUR')} className="flex-1 sm:flex-none px-6 py-3 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-sm">FOUR (4)</button>
+               <button onClick={() => triggerAnim('SIX')} className="flex-1 sm:flex-none px-6 py-3 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">SIX (6)</button>
+               <button onClick={() => triggerAnim('WICKET')} className="flex-1 sm:flex-none px-6 py-3 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">OUT (W)</button>
+               <button onClick={() => triggerAnim('DECISION PENDING')} className="w-full sm:w-auto px-6 py-3 bg-amber-500/10 text-amber-500 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-black transition-all tracking-wide shadow-sm">DECISION PENDING (DP)</button>
+            </div>
+          </>
         ) : (
           <div className="aspect-video flex flex-col items-center justify-center border-2 border-dashed border-[var(--border)] rounded-2xl bg-[var(--bg-elevated)]/30">
             <Eye className="w-12 h-12 text-[var(--border)] mb-3" />
@@ -315,16 +358,13 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
       {isMobileFullscreen && activePreview && (
         <div className="fixed inset-0 z-[999] bg-black flex flex-col animate-in fade-in duration-200">
           
-          {/* Header with Integrated Zoom Control */}
           <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center p-4 bg-[#0a0a0f] border-b border-gray-800 shrink-0 gap-4">
-            
             <div className="text-white font-bold flex items-center gap-3">
               <Smartphone className="w-5 h-5 text-blue-500 animate-pulse" />
               <span className="text-sm">Rotate phone for best view</span>
             </div>
 
             <div className="flex items-center justify-between w-full sm:w-auto gap-4">
-              {/* Zoom Slider */}
               <div className="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-700 shadow-inner">
                 <ZoomIn className="w-4 h-4 text-gray-400" />
                 <input
@@ -340,21 +380,12 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
                   {Math.round(mobileZoom * 100)}%
                 </span>
               </div>
-
-              {/* Close Button */}
-              <button 
-                onClick={() => {
-                  setIsMobileFullscreen(false);
-                  setMobileZoom(1); // Reset zoom on close
-                }} 
-                className="p-2 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
-              >
+              <button onClick={() => { setIsMobileFullscreen(false); setMobileZoom(1); }} className="p-2 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">
                 <X className="w-6 h-6" />
               </button>
             </div>
           </div>
           
-          {/* Preview Area (Massive, Fill Remaining Space) */}
           <div className="flex-1 w-full relative bg-[#000] overflow-hidden flex justify-center items-center">
             <OverlayPreviewContainer
               src={`/overlays/${getTemplateFilename(activePreview)}`}
@@ -362,16 +393,26 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
               baseUrl={baseUrl}
               zoom={mobileZoom}
               heightClass="absolute inset-0 w-full h-full"
-              previewContainerRef={fullscreenPreviewRef}
-              previewIframeRef={{ current: null } as any}
-              retryLoad={() => {}}
-              setIframeLoading={() => {}}
-              setIframeError={() => {}}
+              previewContainerRef={previewContainerRef}
+              previewIframeRef={previewIframeRef}
+              retryLoad={dummyRetry}
+              setIframeLoading={dummySetLoading}
+              setIframeError={dummySetError}
             />
+          </div>
+
+          {/* Triggers Bar Restored OUTSIDE the mobile preview iframe */}
+          <div className="p-4 bg-[#0a0a0f] border-t border-gray-800 flex overflow-x-auto hide-scrollbar gap-3 shrink-0">
+             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest mr-2 flex items-center gap-2 shrink-0">
+               <Activity className="w-4 h-4 text-blue-500"/> Triggers:
+             </span>
+             <button onClick={() => triggerAnim('FOUR')} className="px-6 py-3.5 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl whitespace-nowrap shrink-0 active:scale-95 transition-transform">FOUR (4)</button>
+             <button onClick={() => triggerAnim('SIX')} className="px-6 py-3.5 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl whitespace-nowrap shrink-0 active:scale-95 transition-transform">SIX (6)</button>
+             <button onClick={() => triggerAnim('WICKET')} className="px-6 py-3.5 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl whitespace-nowrap shrink-0 active:scale-95 transition-transform">OUT (W)</button>
+             <button onClick={() => triggerAnim('DECISION PENDING')} className="px-6 py-3.5 bg-amber-500/10 text-amber-500 font-bold border border-amber-500/30 rounded-xl whitespace-nowrap shrink-0 active:scale-95 transition-transform">DECISION PENDING (DP)</button>
           </div>
         </div>
       )}
-
     </div>
   );
 }
