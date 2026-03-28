@@ -1,10 +1,10 @@
-  import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import OverlayPreviewContainer from './OverlayPreviewContainer';
 import { 
   Eye, Save, Trash2, Copy, RefreshCw, X, PlaySquare, 
   Target, ShieldAlert, Timer, Maximize2, Smartphone, ZoomIn, Activity 
 } from 'lucide-react';
-import { overlayAPI } from '../services/api';
+import { overlayAPI, matchAPI } from '../services/api';
 import { getBackendBaseUrl, getApiBaseUrl } from '../services/env';
 import { useAuth } from '../App';
 import { useToast } from '../hooks/useToast';
@@ -63,13 +63,15 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   const baseUrl = getBackendBaseUrl();
   const apiBaseUrl = getApiBaseUrl(); 
   
+  const [liveMatches, setLiveMatches] = useState([]);
+  const [matchLoading, setMatchLoading] = useState(false);
   const [createdOverlays, setCreatedOverlays] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [activePreview, setActivePreview] = useState<any | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [createForm, setCreateForm] = useState({ name: '', template: '' });
+  const [createForm, setCreateForm] = useState({ name: '', template: '', match: '' });
   
   // Mobile Fullscreen Modal State & Stable Refs
   const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
@@ -83,6 +85,28 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (tournamentId) {
+      fetchLiveMatches();
+    }
+  }, [tournamentId]);
+
+  const fetchLiveMatches = async () => {
+    if (!tournamentId) return;
+    setMatchLoading(true);
+    try {
+      const res = await matchAPI.getMatches({ status: 'live', tournamentId });
+      setLiveMatches(res.data.data || res.data || []);
+      if ((res.data.data || res.data || []).length > 0 && !createForm.match) {
+        setCreateForm(prev => ({ ...prev, match: (res.data.data[0]._id || res.data[0]._id) }));
+      }
+    } catch (e) {
+      console.error('Failed to load live matches', e);
+    } finally {
+      setMatchLoading(false);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -113,7 +137,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
       await overlayAPI.createOverlay({ ...createForm, tournamentId });
       addToast({ type: 'success', message: 'Overlay deployed successfully. Link valid for 24 hours.' });
       setShowCreate(false);
-      setCreateForm({ name: '', template: '' });
+      setCreateForm({ name: '', template: '', match: '' });
       loadData();
     } catch (err: any) {
       addToast({ type: 'error', message: err.response?.data?.message || 'Creation failed' });
@@ -216,6 +240,17 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
               <input type="text" required value={createForm.name} onChange={e=>setCreateForm({...createForm, name: e.target.value})} placeholder="e.g. Grand Final Scorebug" className="w-full p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-white outline-none focus:border-green-500 transition-colors" />
             </div>
             <div className="flex-1 w-full">
+              <label className="block text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Live Match (for real scoreboard data)</label>
+              <select value={createForm.match} onChange={e=>setCreateForm({...createForm, match: e.target.value})} className="w-full p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-white outline-none focus:border-green-500 transition-colors appearance-none font-semibold">
+                <option value="">Auto-detect live match</option>
+                {liveMatches.map((m: any) => (
+                  <option key={m._id} value={m._id}>
+                    {m.name} ({m.status?.toUpperCase()})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1 w-full">
               <label className="block text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Select Base Template</label>
               <select required value={createForm.template} onChange={e=>setCreateForm({...createForm, template: e.target.value})} className="w-full p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-white outline-none focus:border-green-500 transition-colors appearance-none font-semibold">
                 <option value="">-- Choose Template --</option>
@@ -226,7 +261,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
                 ))}
               </select>
             </div>
-            <button type="submit" className="w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black rounded-xl hover:scale-105 transition-transform shadow-lg">Create</button>
+            <button type="submit" className="w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black rounded-xl hover:scale-105 transition-transform shadow-lg">Create Live Overlay</button>
           </form>
         )}
 
@@ -243,7 +278,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
                   <div>
                     <h4 className={`font-bold text-lg ${isExpired ? 'text-red-300' : 'text-white'}`}>{overlay.name}</h4>
                     <p className={`text-xs font-mono mt-1 truncate max-w-[200px] inline-block px-2 py-0.5 rounded ${isExpired ? 'bg-red-500/10 text-red-400' : 'bg-blue-500/10 text-blue-400'}`}>
-                      {getTemplateFilename(overlay)}
+                      {getTemplateFilename(overlay)} {overlay.match && '(Live Match)'}
                     </p>
                   </div>
                   
@@ -325,7 +360,8 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
                 previewIframeRef={previewIframeRef}
                 retryLoad={dummyRetry}
                 setIframeLoading={dummySetLoading}
-                setIframeError={dummySetError} baseUrl={''}              />
+                setIframeError={dummySetError} 
+                baseUrl={''} />
               {/* Expand Button for Small Screens */}
               <button 
                 onClick={() => setIsMobileFullscreen(true)}
@@ -415,3 +451,4 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
     </div>
   );
 }
+
