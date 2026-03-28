@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import OverlayPreviewContainer from './OverlayPreviewContainer';
-import { Eye, Plus, Save, Trash2, Edit, Copy, RefreshCw, ExternalLink, X, AlertCircle, PlaySquare, Target, Activity, ShieldAlert } from 'lucide-react';
+import { Eye, Plus, Save, Trash2, Edit, Copy, RefreshCw, ExternalLink, X, AlertCircle, PlaySquare, Target, Activity, ShieldAlert, Timer } from 'lucide-react';
 import { overlayAPI } from '../services/api';
 import { getBackendBaseUrl, getApiBaseUrl } from '../services/env';
 import { useAuth } from '../App';
@@ -17,6 +17,7 @@ export default function OverlayManager({ tournamentId, matches }: { tournamentId
   const { user } = useAuth();
   const { addToast } = useToast();
   const baseUrl = getBackendBaseUrl();
+  const apiBaseUrl = getApiBaseUrl(); // For copying exact route paths
   
   const [createdOverlays, setCreatedOverlays] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
@@ -26,12 +27,33 @@ export default function OverlayManager({ tournamentId, matches }: { tournamentId
   const [showCreate, setShowCreate] = useState(false);
   const [createForm, setCreateForm] = useState({ name: '', template: '' });
   
+  // Real-time clock for countdowns
+  const [now, setNow] = useState(Date.now());
+
   const userLevel = (user as any)?.membership?.level || (user as any)?.membershipLevel || 0;
   const isEligible = userLevel > 0;
 
+  // Global Clock Tick (Updates every second)
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch Data
   useEffect(() => {
     loadData();
   }, []);
+
+  // Monitor Active Preview for Expiration Ejection
+  useEffect(() => {
+    if (activePreview && activePreview.urlExpiresAt) {
+      const timeLeft = new Date(activePreview.urlExpiresAt).getTime() - now;
+      if (timeLeft <= 0) {
+        setActivePreview(null);
+        addToast({ type: 'error', message: 'The active preview link has expired and is no longer accessible.' });
+      }
+    }
+  }, [now, activePreview, addToast]);
 
   const loadData = async () => {
     setLoading(true);
@@ -41,7 +63,6 @@ export default function OverlayManager({ tournamentId, matches }: { tournamentId
         overlayAPI.getOverlays()
       ]);
       
-      // Safely extract templates whether backend returns {data: []}, {templates: []}, or just []
       const rawTemplates = tRes.data?.data || tRes.data?.templates || tRes.data || [];
       const availableTemplates = rawTemplates.filter((t: any) => userLevel >= (t.level || 1));
       
@@ -61,7 +82,7 @@ export default function OverlayManager({ tournamentId, matches }: { tournamentId
     
     try {
       await overlayAPI.createOverlay({ ...createForm, tournamentId });
-      addToast({ type: 'success', message: 'Overlay deployed successfully' });
+      addToast({ type: 'success', message: 'Overlay deployed successfully. Link valid for 24 hours.' });
       setShowCreate(false);
       setCreateForm({ name: '', template: '' });
       loadData();
@@ -86,7 +107,7 @@ export default function OverlayManager({ tournamentId, matches }: { tournamentId
     if (!isEligible) return addToast({ type: 'error', message: 'Active membership required to regenerate URLs.' });
     try {
       await overlayAPI.regenerateOverlay(id);
-      addToast({ type: 'success', message: 'URL Regenerated' });
+      addToast({ type: 'success', message: 'URL Regenerated for another 24 hours.' });
       loadData();
     } catch (e) { 
       addToast({ type: 'error', message: 'Regeneration failed' }); 
@@ -95,6 +116,14 @@ export default function OverlayManager({ tournamentId, matches }: { tournamentId
 
   const triggerAnim = (event: string) => {
     window.postMessage({ type: 'OVERLAY_ACTION', payload: { event } }, '*');
+  };
+
+  const formatTimeLeft = (ms: number) => {
+    if (ms <= 0) return '00:00:00';
+    const h = String(Math.floor((ms / (1000 * 60 * 60)) % 24)).padStart(2, '0');
+    const m = String(Math.floor((ms / 1000 / 60) % 60)).padStart(2, '0');
+    const s = String(Math.floor((ms / 1000) % 60)).padStart(2, '0');
+    return `${h}:${m}:${s}`;
   };
 
   if (!isEligible) {
@@ -146,24 +175,33 @@ export default function OverlayManager({ tournamentId, matches }: { tournamentId
         {/* Overlays Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {createdOverlays.map(overlay => {
-            const isExpired = new Date(overlay.urlExpiresAt) < new Date();
+            const timeLeftMs = new Date(overlay.urlExpiresAt).getTime() - now;
+            const isExpired = timeLeftMs <= 0;
             const isActive = activePreview?._id === overlay._id;
+            
             return (
               <div key={overlay._id} onClick={() => !isExpired && setActivePreview(overlay)}
-                className={`p-5 rounded-2xl border transition-all cursor-pointer shadow-sm ${isActive ? 'bg-green-500/10 border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'bg-[var(--bg-elevated)] border-[var(--border)] hover:border-blue-500/50'}`}>
+                className={`p-5 rounded-2xl border transition-all ${isExpired ? 'opacity-75 cursor-not-allowed bg-[var(--bg-elevated)] border-red-500/20' : 'cursor-pointer shadow-sm'} ${isActive ? 'bg-green-500/10 border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'bg-[var(--bg-elevated)] border-[var(--border)] hover:border-blue-500/50'}`}>
+                
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h4 className="font-bold text-white text-lg">{overlay.name}</h4>
-                    <p className="text-xs text-blue-400 font-mono mt-1 truncate max-w-[200px] bg-blue-500/10 inline-block px-2 py-0.5 rounded">{overlay.template}</p>
+                    <h4 className={`font-bold text-lg ${isExpired ? 'text-red-300' : 'text-white'}`}>{overlay.name}</h4>
+                    <p className={`text-xs font-mono mt-1 truncate max-w-[200px] inline-block px-2 py-0.5 rounded ${isExpired ? 'bg-red-500/10 text-red-400' : 'bg-blue-500/10 text-blue-400'}`}>
+                      {overlay.template}
+                    </p>
                   </div>
-                  {isExpired 
-                    ? <span className="px-2.5 py-1 bg-red-500/20 text-red-400 text-[10px] rounded-md font-bold uppercase border border-red-500/30 tracking-wider">Expired</span> 
-                    : <span className="px-2.5 py-1 bg-green-500/20 text-green-400 text-[10px] rounded-md font-bold uppercase border border-green-500/30 tracking-wider">Active</span>
-                  }
+                  
+                  {/* Dynamic Countdown Badge */}
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border ${isExpired ? 'bg-red-500/20 border-red-500/40 text-red-400' : 'bg-green-500/20 border-green-500/40 text-green-400'}`}>
+                    <Timer className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-black font-mono tracking-widest">
+                      {isExpired ? 'EXPIRED' : formatTimeLeft(timeLeftMs)}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2 mt-5 pt-4 border-t border-[var(--border)]">
-                  <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`${getApiBaseUrl()}/overlays/public/${overlay.publicId}`); addToast({type: 'success', message: 'URL Copied'}); }} 
+                  <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`${apiBaseUrl}/overlays/public/${overlay.publicId}`); addToast({type: 'success', message: 'URL Copied for OBS'}); }} 
                     disabled={isExpired} className="flex-1 py-2.5 bg-[var(--bg-primary)] rounded-xl border border-[var(--border)] text-xs font-bold text-[var(--text-secondary)] hover:text-white disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
                     <Copy className="w-3.5 h-3.5"/> Copy Link
                   </button>
@@ -195,13 +233,22 @@ export default function OverlayManager({ tournamentId, matches }: { tournamentId
             <h3 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
               <Target className="text-blue-500 w-5 h-5"/> Live Preview Engine
             </h3>
-            <p className="text-sm text-[var(--text-muted)] mt-1">Select an overlay above or from the dropdown to test animations.</p>
+            <p className="text-sm text-[var(--text-muted)] mt-1">Select an active overlay to test animations.</p>
           </div>
           
           <select value={activePreview?.template || ''} onChange={e => {
             const tmpl = e.target.value;
             if(!tmpl) return setActivePreview(null);
-            setActivePreview({ template: tmpl, name: 'Preview Mode' });
+            // Verify if selected template from dropdown has an active mapping
+            const existing = createdOverlays.find(o => o.template === tmpl);
+            if (existing) {
+               const isExp = (new Date(existing.urlExpiresAt).getTime() - now) <= 0;
+               if (!isExp) setActivePreview(existing);
+               else addToast({ type: 'error', message: 'That overlay has expired.' });
+            } else {
+               // Fallback if they just select a raw template without a created instance
+               setActivePreview({ template: tmpl, name: 'Preview Mode', urlExpiresAt: new Date(Date.now() + 86400000).toISOString() });
+            }
           }} className="w-full md:w-auto p-3.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-white outline-none focus:border-blue-500 min-w-[250px] appearance-none font-semibold shadow-inner">
             <option value="">-- Preview Template --</option>
             {templates.map(t => (
@@ -239,7 +286,7 @@ export default function OverlayManager({ tournamentId, matches }: { tournamentId
         ) : (
           <div className="aspect-video flex flex-col items-center justify-center border-2 border-dashed border-[var(--border)] rounded-2xl bg-[var(--bg-elevated)]/30">
             <Eye className="w-12 h-12 text-[var(--border)] mb-3" />
-            <p className="text-[var(--text-muted)] font-semibold">No overlay selected for preview</p>
+            <p className="text-[var(--text-muted)] font-semibold">No active overlay selected for preview</p>
           </div>
         )}
       </div>
