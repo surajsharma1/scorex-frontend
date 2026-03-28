@@ -7,10 +7,9 @@ import { useAuth } from '../App';
 import { useToast } from '../hooks/useToast';
 import {
   Plus, Trash2, Zap, BarChart2, Users, Trophy, LayoutGrid, CheckCircle2,
-  Calendar, MapPin, ChevronRight, X, Filter, ArrowLeft, Edit3
+  Calendar, MapPin, ChevronRight, X, ArrowLeft, Edit3
 } from 'lucide-react';
 import TeamManagement from './TeamManagement';
-import BracketView from './BracketView';
 import PointsTable from './Leaderboard'; 
 import StatusBadge from './StatusBadge';
 import type { Tournament, Match, Team } from './types';
@@ -29,13 +28,7 @@ interface CreateMatchForm {
 // ─── EDIT TOURNAMENT MODAL ────────────────────────────────────────────────────
 function EditTournamentModal({ tournament, onClose, onUpdated }: { tournament: Tournament, onClose: () => void, onUpdated: () => void }) {
   const { addToast } = useToast();
-  const [form, setForm] = useState<{
-    name: string;
-    venue: string;
-    startDate: string;
-    description: string;
-    status: "upcoming" | "ongoing" | "live" | "completed";
-  }>({
+  const [form, setForm] = useState({
     name: tournament.name || '',
     venue: tournament.venue || '',
     startDate: tournament.startDate ? new Date(tournament.startDate).toISOString().slice(0, 16) : '',
@@ -73,11 +66,13 @@ function EditTournamentModal({ tournament, onClose, onUpdated }: { tournament: T
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Status</label>
-<select value={form.status} onChange={e => setForm({...form, status: e.target.value as typeof form.status})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500">
+              <select value={form.status} onChange={e => setForm({...form, status: e.target.value as Tournament['status']})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500">
+
                 <option value="upcoming">Upcoming</option>
                 <option value="ongoing">Ongoing</option>
                 <option value="live">Live</option>
                 <option value="completed">Completed</option>
+
               </select>
             </div>
             <div>
@@ -195,7 +190,7 @@ export default function TournamentView() {
   const [selected, setSelected] = useState<Tournament | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'matches' | 'teams' | 'brackets' | 'points' | 'overlays'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'matches' | 'teams' | 'points' | 'overlays'>('overview');
   
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -284,13 +279,12 @@ export default function TournamentView() {
             </div>
           </div>
 
-          {/* Navigation Tabs */}
+          {/* Navigation Tabs - No Brackets */}
           <div className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-4 mt-8">
             {[
               { id: 'overview', icon: LayoutGrid, label: 'Overview' },
               { id: 'matches', icon: Zap, label: 'Matches' },
               { id: 'teams', icon: Users, label: 'Teams' },
-              { id: 'brackets', icon: Filter, label: 'Brackets' },
               { id: 'points', icon: Trophy, label: 'Points' },
               { id: 'overlays', icon: BarChart2, label: 'Overlays' }
             ].map(t => (
@@ -360,7 +354,6 @@ export default function TournamentView() {
         )}
 
         {activeTab === 'teams' && <TeamManagement tournamentId={id} onTeamsChange={loadData} />}
-{activeTab === 'brackets' && <BracketView />}
         {activeTab === 'points' && <PointsTable />}
         {activeTab === 'overlays' && <OverlayManager tournamentId={id} matches={matches} />}
       </div>

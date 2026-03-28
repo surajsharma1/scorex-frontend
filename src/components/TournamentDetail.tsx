@@ -5,10 +5,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { tournamentAPI } from '../services/api';
 import TeamManagement from './TeamManagement';
 import TournamentStats from './TournamentStats';
-import BracketView from './BracketView';
 import { Trophy, Calendar, MapPin, Users, Settings, Activity, LayoutGrid, ChevronRight, ArrowLeft } from 'lucide-react';
 
-type TabType = 'overview' | 'teams' | 'matches' | 'brackets' | 'stats' | 'settings';
+type TabType = 'overview' | 'teams' | 'matches' | 'stats' | 'settings';
 
 export default function TournamentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -96,7 +95,6 @@ export default function TournamentDetail() {
     { key: 'overview', label: 'Overview', icon: LayoutGrid },
     { key: 'teams', label: 'Teams', icon: Users },
     { key: 'matches', label: 'Matches', icon: Activity },
-    { key: 'brackets', label: 'Brackets', icon: Trophy },
     { key: 'stats', label: 'Stats', icon: Activity },
     { key: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -186,7 +184,6 @@ export default function TournamentDetail() {
           </div>
         )}
         {activeTab === 'teams' && <TeamManagement tournamentId={id!} />}
-        {activeTab === 'brackets' && <BracketView />}
         {activeTab === 'stats' && <TournamentStats tournamentId={id!} matches={[]} />}
         {activeTab === 'settings' && (
           <div className="rounded-2xl p-8" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
