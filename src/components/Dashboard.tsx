@@ -25,11 +25,15 @@ export default function Dashboard() {
         const tournaments = tRes.data.data || [];
         const matches = mRes.data.data || [];
         const live = lRes.data.data || [];
+        const topTournaments = tournaments.slice(0, 3);
+        const teamPromises = topTournaments.map(t => 
+          teamAPI.getTeams(t._id).catch(() => ({ data: { data: [] } }))
+        );
+        const teamResponses = await Promise.all(teamPromises);
         let teamsCount = 0;
-        for (const t of tournaments.slice(0, 3)) {
-          const tRes2 = await teamAPI.getTeams(t._id).catch(() => ({ data: { data: [] } }));
-          teamsCount += (tRes2.data.data || []).length;
-        }
+        teamResponses.forEach(tRes2 => {
+          teamsCount += (tRes2.data?.data || []).length;
+        });
         setStats({ tournaments: tournaments.length, matches: matches.length, teams: teamsCount, live: live.length });
         setLiveMatches(live.slice(0, 3));
       } catch (e) { console.error(e); }

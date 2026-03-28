@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import OverlayPreviewContainer from './OverlayPreviewContainer';
 import { Eye, Plus, Save, Trash2, Edit, Copy, RefreshCw, ExternalLink, X, AlertCircle, PlaySquare, Target, Activity, ShieldAlert } from 'lucide-react';
 import { overlayAPI } from '../services/api';
-import { getBackendBaseUrl } from '../services/env';
+import { getBackendBaseUrl, getApiBaseUrl } from '../services/env';
 import { useAuth } from '../App';
 import { useToast } from '../hooks/useToast';
 
@@ -163,7 +163,7 @@ export default function OverlayManager({ tournamentId, matches }: { tournamentId
                 </div>
 
                 <div className="flex items-center gap-2 mt-5 pt-4 border-t border-[var(--border)]">
-                  <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`${baseUrl}/overlays/public/${overlay.publicId}`); addToast({type: 'success', message: 'URL Copied'}); }} 
+                  <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`${getApiBaseUrl()}/overlays/public/${overlay.publicId}`); addToast({type: 'success', message: 'URL Copied'}); }} 
                     disabled={isExpired} className="flex-1 py-2.5 bg-[var(--bg-primary)] rounded-xl border border-[var(--border)] text-xs font-bold text-[var(--text-secondary)] hover:text-white disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
                     <Copy className="w-3.5 h-3.5"/> Copy Link
                   </button>
