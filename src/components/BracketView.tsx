@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Save, Plus, ChevronRight, X } from 'lucide-react';
+import { Trophy, Save, Plus, X, Edit3, Trash2, Users, Layout, MessageSquare } from 'lucide-react';
 import { bracketAPI, teamAPI } from '../services/api';
 import { useToast } from '../hooks/useToast';
 import type { Team } from './types';
@@ -10,6 +10,7 @@ interface MatchNode {
   team2: Team | null;
   winner: Team | null;
   isBye: boolean;
+  label?: string; // Custom message/label
 }
 
 interface Round {
@@ -18,11 +19,20 @@ interface Round {
   matches: MatchNode[];
 }
 
+interface Group {
+  id: string;
+  name: string;
+  teams: Team[];
+}
+
 export default function BracketView({ tournamentId }: { tournamentId?: string }) {
   const { addToast } = useToast();
   const [rounds, setRounds] = useState<Round[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<'groups' | 'knockout'>('knockout');
 
   const [editingMatch, setEditingMatch] = useState<{ roundId: string, matchId: string } | null>(null);
 
@@ -32,181 +42,331 @@ export default function BracketView({ tournamentId }: { tournamentId?: string })
       return;
     }
     
-    let isMounted = true;
-    
     const init = async () => {
       try {
         const tRes = await teamAPI.getTeams(tournamentId);
-        if (isMounted) setTeams(tRes.data?.data || tRes.data?.teams || []);
+        setTeams(tRes.data?.data || tRes.data?.teams || []);
         
+        // Attempt to load existing brackets/groups if the backend supports it
         try {
-          const bRes = await bracketAPI.getBracket(tournamentId); 
-          const existing = bRes.data?.data || bRes.data;
-          
-          if (isMounted && existing && existing.rounds && existing.rounds.length > 0) {
-            setRounds(existing.rounds);
-            setLoading(false);
-            return; // Successful fetch, early exit
-          }
-        } catch (err) {
-          console.warn("No existing bracket found or API error. Initializing empty bracket.");
+          const bRes = await bracketAPI.getBracket(tournamentId);
+          if (bRes.data?.rounds) setRounds(bRes.data.rounds);
+          if (bRes.data?.groups) setGroups(bRes.data.groups);
+        } catch (e) {
+          // If no bracket exists yet, start fresh
+          setRounds([{ id: 'r1', title: 'Quarter Finals', matches: [] }]);
         }
-      } catch (e) {
-        console.error("Failed to load teams for bracket", e);
+      } catch (err) {
+        console.error(err);
       } finally {
-        if (isMounted) {
-          // Guarantee state resolves to an empty bracket if nothing was set
-          setRounds(prev => prev.length === 0 ? [{ id: 'r1', title: 'Quarter Finals', matches: [{ id: 'm1', team1: null, team2: null, winner: null, isBye: false }] }] : prev);
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
-    
     init();
-    
-    return () => { isMounted = false; };
   }, [tournamentId]);
 
+  const saveConfiguration = async () => {
+    if (!tournamentId) return;
+    setSaving(true);
+    try {
+      // Assuming your bracketAPI can accept groups as well
+      await bracketAPI.updateBracket(tournamentId, { rounds, groups });
+      addToast({ type: 'success', message: 'Tournament structure saved!' });
+    } catch (err: any) {
+      addToast({ type: 'error', message: err.response?.data?.message || 'Failed to save configuration' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ─── GROUP MANAGEMENT ────────────────────────────────────────────────────────
+  const addGroup = () => {
+    setGroups([...groups, { id: Date.now().toString(), name: `Group ${String.fromCharCode(65 + groups.length)}`, teams: [] }]);
+  };
+
+  const deleteGroup = (groupId: string) => {
+    if (confirm('Delete this group?')) setGroups(groups.filter(g => g.id !== groupId));
+  };
+
+  const updateGroupName = (groupId: string, name: string) => {
+    setGroups(groups.map(g => g.id === groupId ? { ...g, name } : g));
+  };
+
+  const addTeamToGroup = (groupId: string, teamId: string) => {
+    if (!teamId) return;
+    const team = teams.find(t => t._id === teamId);
+    if (!team) return;
+    
+    setGroups(groups.map(g => {
+      if (g.id === groupId && !g.teams.find(t => t._id === teamId)) {
+        return { ...g, teams: [...g.teams, team] };
+      }
+      return g;
+    }));
+  };
+
+  const removeTeamFromGroup = (groupId: string, teamId: string) => {
+    setGroups(groups.map(g => {
+      if (g.id === groupId) return { ...g, teams: g.teams.filter(t => t._id !== teamId) };
+      return g;
+    }));
+  };
+
+  // ─── KNOCKOUT MANAGEMENT ─────────────────────────────────────────────────────
   const addRound = () => {
-    const newRoundNum = rounds.length + 1;
-    setRounds([...rounds, { 
-      id: `r${newRoundNum}`, 
-      title: `Round ${newRoundNum}`, 
-      matches: [{ id: `m${Date.now()}`, team1: null, team2: null, winner: null, isBye: false }] 
-    }]);
+    setRounds([...rounds, { id: Date.now().toString(), title: `Round ${rounds.length + 1}`, matches: [] }]);
+  };
+
+  const deleteRound = (roundId: string) => {
+    if (confirm('Delete this entire round and its matches?')) setRounds(rounds.filter(r => r.id !== roundId));
+  };
+
+  const updateRoundTitle = (roundId: string, title: string) => {
+    setRounds(rounds.map(r => r.id === roundId ? { ...r, title } : r));
   };
 
   const addMatchToRound = (roundId: string) => {
-    setRounds(rounds.map(r => {
-      if (r.id === roundId) {
-        return { ...r, matches: [...r.matches, { id: `m${Date.now()}`, team1: null, team2: null, winner: null, isBye: false }] };
-      }
-      return r;
-    }));
+    const newMatch: MatchNode = {
+      id: Date.now().toString(), team1: null, team2: null, winner: null, isBye: false
+    };
+    setRounds(rounds.map(r => r.id === roundId ? { ...r, matches: [...r.matches, newMatch] } : r));
+  };
+
+  const deleteMatch = (roundId: string, matchId: string) => {
+    setRounds(rounds.map(r => r.id === roundId ? { ...r, matches: r.matches.filter(m => m.id !== matchId) } : r));
   };
 
   const updateMatchNode = (roundId: string, matchId: string, updates: Partial<MatchNode>) => {
     setRounds(rounds.map(r => {
       if (r.id === roundId) {
-        return { ...r, matches: r.matches.map(m => m.id === matchId ? { ...m, ...updates } : m) };
+        return {
+          ...r,
+          matches: r.matches.map(m => m.id === matchId ? { ...m, ...updates } : m)
+        };
       }
       return r;
     }));
-    setEditingMatch(null);
   };
 
-  const saveBracket = async () => {
-    if (!tournamentId) return;
-    try {
-      await bracketAPI.updateBracket(tournamentId, { type: 'knockout', numberOfTeams: teams.length, rounds });
-      addToast({ type: 'success', message: 'Bracket schedule saved successfully!' });
-    } catch (e: any) {
-      console.error(e);
-      addToast({ type: 'error', message: 'Failed to save bracket. Backend may require creation first.' });
-    }
-  };
-
-  if (loading) return (
-    <div className="py-24 text-center">
-      <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-      <p className="text-[var(--text-muted)] font-bold animate-pulse">Waking up Bracket Engine...</p>
-    </div>
-  );
+  if (loading) return <div className="py-20 text-center text-green-500 animate-pulse font-bold">Loading Builder...</div>;
 
   return (
-    <div className="bg-[var(--bg-primary)] min-h-[60vh] rounded-3xl border border-[var(--border)] overflow-hidden flex flex-col relative">
-      <div className="bg-[var(--bg-card)] p-4 sm:p-6 border-b border-[var(--border)] flex flex-wrap gap-4 items-center justify-between z-10 shadow-sm">
-        <div>
-          <h3 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-2"><Trophy className="w-5 h-5 text-green-500"/> Visual Bracket Editor</h3>
-          <p className="text-xs text-[var(--text-muted)] mt-1">Design your playoff structure, assign BYEs, and map matches.</p>
-        </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <button onClick={addRound} className="flex-1 sm:flex-none px-4 py-2 bg-[var(--bg-elevated)] text-[var(--text-primary)] font-bold rounded-xl border border-[var(--border)] hover:bg-[var(--bg-hover)] transition-all text-sm flex items-center justify-center gap-2">
-            <Plus className="w-4 h-4"/> Add Round
+    <div className="bg-[var(--bg-card)] rounded-3xl border border-[var(--border)] overflow-hidden flex flex-col min-h-[70vh]">
+      
+      {/* ── Header & Toolbar ── */}
+      <div className="p-6 border-b border-[var(--border)] bg-[var(--bg-elevated)] flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex items-center gap-2 p-1 bg-[var(--bg-primary)] rounded-xl border border-[var(--border)]">
+          <button 
+            onClick={() => setViewMode('knockout')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'knockout' ? 'bg-green-500/20 text-green-400' : 'text-[var(--text-muted)] hover:text-white'}`}>
+            <Layout className="w-4 h-4" /> Knockouts
           </button>
-          <button onClick={saveBracket} className="flex-1 sm:flex-none px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold rounded-xl shadow-lg hover:scale-105 transition-transform text-sm flex items-center justify-center gap-2">
-            <Save className="w-4 h-4"/> Save Layout
+          <button 
+            onClick={() => setViewMode('groups')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'groups' ? 'bg-blue-500/20 text-blue-400' : 'text-[var(--text-muted)] hover:text-white'}`}>
+            <Users className="w-4 h-4" /> Groups
           </button>
         </div>
+        
+        <button 
+          onClick={saveConfiguration} disabled={saving}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold rounded-xl shadow-lg hover:scale-[1.02] transition-transform disabled:opacity-50">
+          <Save className="w-4 h-4" /> {saving ? 'Saving...' : 'Save Structure'}
+        </button>
       </div>
 
-      <div className="flex-1 overflow-auto custom-scrollbar p-4 sm:p-8 bg-black/20">
-        <div className="flex gap-8 sm:gap-16 w-max min-w-full pb-8">
-          {rounds.map((round, rIndex) => (
-            <div key={round.id} className="flex flex-col gap-6 min-w-[240px] sm:min-w-[280px] shrink-0">
-              <div className="bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl p-3 text-center shadow-md relative group">
-                <input type="text" value={round.title} onChange={(e) => setRounds(rounds.map(r => r.id === round.id ? { ...r, title: e.target.value } : r))} className="w-full bg-transparent text-center font-black text-[var(--text-primary)] outline-none focus:text-green-400 transition-colors uppercase tracking-wider text-sm" />
-                <button onClick={() => addMatchToRound(round.id)} className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-green-500 text-black rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:scale-110"><Plus className="w-4 h-4" /></button>
-              </div>
+      {/* ── Work Area ── */}
+      <div className="p-6 flex-1 overflow-auto custom-scrollbar bg-[var(--bg-primary)]">
+        
+        {/* GROUP STAGE VIEW */}
+        {viewMode === 'groups' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-[var(--text-primary)]">Group Stage Configuration</h3>
+              <button onClick={addGroup} className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl text-blue-400 font-bold hover:bg-blue-500/10 transition-colors">
+                <Plus className="w-4 h-4" /> Add Group
+              </button>
+            </div>
+            
+            {groups.length === 0 ? (
+              <div className="text-center py-12 text-[var(--text-muted)]">No groups created yet. Click "Add Group" to start.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {groups.map(g => (
+                  <div key={g.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm relative group">
+                    <button onClick={() => deleteGroup(g.id)} className="absolute top-4 right-4 p-2 text-red-500/50 hover:text-red-500 bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    
+                    <input 
+                      value={g.name} 
+                      onChange={(e) => updateGroupName(g.id, e.target.value)}
+                      className="bg-transparent text-lg font-black text-blue-400 outline-none border-b border-transparent focus:border-blue-500/50 w-3/4 mb-4"
+                    />
 
-              <div className="flex flex-col gap-6 sm:gap-10 flex-1 justify-around relative">
-                {round.matches.map((match, mIndex) => (
-                  <div key={match.id} className="relative group">
-                    {rIndex < rounds.length - 1 && <div className="absolute top-1/2 left-full w-8 sm:w-16 border-t-2 border-[var(--border)] -z-10" />}
-                    <div onClick={() => setEditingMatch({ roundId: round.id, matchId: match.id })} className={`bg-[var(--bg-card)] border-2 ${match.isBye ? 'border-amber-500/50 border-dashed' : 'border-[var(--border)]'} rounded-xl overflow-hidden shadow-lg cursor-pointer hover:border-green-500 transition-colors relative z-10`}>
-                      <div className={`p-3 border-b border-[var(--border)] flex justify-between items-center ${match.winner?._id === match.team1?._id ? 'bg-green-500/10' : ''}`}>
-                        <span className={`font-bold text-sm truncate ${match.team1 ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)] italic'}`}>{match.team1?.name || 'TBD'}</span>
-                        {match.winner?._id === match.team1?._id && <ChevronRight className="w-4 h-4 text-green-500" />}
-                      </div>
-                      <div className={`p-3 flex justify-between items-center ${match.winner?._id === match.team2?._id ? 'bg-green-500/10' : ''}`}>
-                        {match.isBye ? <span className="font-bold text-sm text-amber-500 tracking-widest uppercase">BYE</span> : <span className={`font-bold text-sm truncate ${match.team2 ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)] italic'}`}>{match.team2?.name || 'TBD'}</span>}
-                        {match.winner?._id === match.team2?._id && <ChevronRight className="w-4 h-4 text-green-500" />}
-                      </div>
+                    <div className="space-y-2 mb-4">
+                      {g.teams.map(t => (
+                        <div key={t._id} className="flex items-center justify-between p-2 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)]">
+                          <span className="text-sm font-bold text-[var(--text-primary)]">{t.name}</span>
+                          <button onClick={() => removeTeamFromGroup(g.id, t._id)} className="text-[var(--text-muted)] hover:text-red-400 transition-colors">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                      {g.teams.length === 0 && <div className="text-xs text-[var(--text-muted)] italic">No teams in this group</div>}
                     </div>
+
+                    <select 
+                      onChange={(e) => { addTeamToGroup(g.id, e.target.value); e.target.value = ''; }}
+                      className="w-full p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] text-sm outline-none focus:border-blue-500">
+                      <option value="">+ Add Team</option>
+                      {teams.filter(t => !g.teams.find(gt => gt._id === t._id)).map(t => (
+                        <option key={t._id} value={t._id}>{t.name}</option>
+                      ))}
+                    </select>
                   </div>
                 ))}
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {editingMatch && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-[var(--bg-card)] rounded-3xl border border-[var(--border)] p-6 animate-in zoom-in-95 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-black text-[var(--text-primary)]">Configure Match</h3>
-              <button onClick={() => setEditingMatch(null)} className="text-[var(--text-muted)] hover:text-white"><X className="w-5 h-5"/></button>
-            </div>
-            {(() => {
-              const r = rounds.find(r => r.id === editingMatch.roundId);
-              const m = r?.matches.find(m => m.id === editingMatch.matchId);
-              if (!m) return null;
-              return (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider">Slot 1 / Home Team</label>
-                    <select value={m.team1?._id || ''} onChange={e => updateMatchNode(editingMatch.roundId, editingMatch.matchId, { team1: teams.find(t => t._id === e.target.value) || null })} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none">
-                      <option value="">-- TBD / Empty --</option>
-                      {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
-                    </select>
-                  </div>
-                  <label className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 cursor-pointer mt-2">
-                    <input type="checkbox" checked={m.isBye} onChange={e => updateMatchNode(editingMatch.roundId, editingMatch.matchId, { isBye: e.target.checked, team2: null })} className="w-4 h-4 accent-amber-500" />
-                    <span className="text-sm font-bold text-amber-500">Auto-Advance (BYE)</span>
-                  </label>
-                  {!m.isBye && (
-                    <div>
-                      <label className="block text-xs font-bold text-[var(--text-secondary)] mb-1 uppercase tracking-wider mt-2">Slot 2 / Away Team</label>
-                      <select value={m.team2?._id || ''} onChange={e => updateMatchNode(editingMatch.roundId, editingMatch.matchId, { team2: teams.find(t => t._id === e.target.value) || null })} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none">
-                        <option value="">-- TBD / Empty --</option>
-                        {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
-                      </select>
-                    </div>
-                  )}
-                  <div className="pt-4 border-t border-[var(--border)] mt-6">
-                    <label className="block text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Set Winner</label>
-                    <div className="flex gap-2">
-                      <button onClick={() => updateMatchNode(editingMatch.roundId, editingMatch.matchId, { winner: m.team1 })} disabled={!m.team1} className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-all ${m.winner?._id === m.team1?._id ? 'bg-green-500/20 border-green-500 text-green-400' : 'bg-[var(--bg-elevated)] border-[var(--border)] text-[var(--text-secondary)]'} disabled:opacity-50`}>Team 1</button>
-                      <button onClick={() => updateMatchNode(editingMatch.roundId, editingMatch.matchId, { winner: m.team2 })} disabled={!m.team2 || m.isBye} className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-all ${m.winner?._id === m.team2?._id ? 'bg-green-500/20 border-green-500 text-green-400' : 'bg-[var(--bg-elevated)] border-[var(--border)] text-[var(--text-secondary)]'} disabled:opacity-50`}>Team 2</button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
+            )}
           </div>
-        </div>
-      )}
+        )}
+
+        {/* KNOCKOUT BRACKET VIEW */}
+        {viewMode === 'knockout' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-[var(--text-primary)]">Knockout Bracket Builder</h3>
+              <button onClick={addRound} className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl text-green-400 font-bold hover:bg-green-500/10 transition-colors">
+                <Plus className="w-4 h-4" /> Add Round
+              </button>
+            </div>
+
+            <div className="flex gap-8 overflow-x-auto pb-8 hide-scrollbar snap-x">
+              {rounds.length === 0 ? (
+                <div className="w-full text-center py-12 text-[var(--text-muted)]">No rounds added. Start building your bracket!</div>
+              ) : (
+                rounds.map((round, rIndex) => (
+                  <div key={round.id} className="min-w-[320px] shrink-0 snap-start flex flex-col gap-4">
+                    
+                    {/* Round Header */}
+                    <div className="bg-[var(--bg-elevated)] border border-[var(--border)] p-3 rounded-2xl flex items-center justify-between group">
+                      <input 
+                        value={round.title} 
+                        onChange={(e) => updateRoundTitle(round.id, e.target.value)}
+                        className="bg-transparent font-black text-[var(--text-primary)] outline-none w-2/3"
+                      />
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => addMatchToRound(round.id)} className="p-1.5 rounded-lg text-green-400 hover:bg-green-500/20" title="Add Match">
+                          <Plus className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => deleteRound(round.id)} className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/20" title="Delete Round">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Round Matches */}
+                    {round.matches.map((m, mIndex) => (
+                      <div key={m.id} className="relative bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm group">
+                        
+                        {/* Match Controls */}
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => setEditingMatch({ roundId: round.id, matchId: m.id })} className="p-1.5 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-white" title="Settings">
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => deleteMatch(round.id, m.id)} className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white" title="Remove Match">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Custom Label */}
+                        {m.label && (
+                          <div className="mb-3 flex items-center gap-2">
+                            <MessageSquare className="w-3 h-3 text-amber-500" />
+                            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">{m.label}</span>
+                          </div>
+                        )}
+
+                        <div className="space-y-2">
+                          {/* Team 1 Selector */}
+                          <div className={`p-2 rounded-xl border ${m.winner?._id === m.team1?._id && m.team1 ? 'border-green-500/50 bg-green-500/5' : 'border-[var(--border)] bg-[var(--bg-elevated)]'}`}>
+                            <select 
+                              value={m.team1?._id || ''} 
+                              onChange={(e) => updateMatchNode(round.id, m.id, { team1: teams.find(t => t._id === e.target.value) || null, winner: null })}
+                              className="w-full bg-transparent text-sm font-bold text-[var(--text-primary)] outline-none">
+                              <option value="">TBD / Slot 1</option>
+                              {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+                            </select>
+                          </div>
+                          
+                          {/* Team 2 Selector */}
+                          {!m.isBye && (
+                            <div className={`p-2 rounded-xl border ${m.winner?._id === m.team2?._id && m.team2 ? 'border-green-500/50 bg-green-500/5' : 'border-[var(--border)] bg-[var(--bg-elevated)]'}`}>
+                              <select 
+                                value={m.team2?._id || ''} 
+                                onChange={(e) => updateMatchNode(round.id, m.id, { team2: teams.find(t => t._id === e.target.value) || null, winner: null })}
+                                className="w-full bg-transparent text-sm font-bold text-[var(--text-primary)] outline-none">
+                                <option value="">TBD / Slot 2</option>
+                                {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+                              </select>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Match Editing Modal/Overlay */}
+                        {editingMatch?.matchId === m.id && (
+                          <div className="absolute inset-0 z-10 bg-[var(--bg-card)]/95 backdrop-blur-sm p-4 rounded-2xl flex flex-col justify-center border border-green-500/30">
+                            <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase mb-2">Match Settings</h4>
+                            
+                            <input 
+                              type="text" 
+                              placeholder="Custom Match Label (e.g. Elimination)" 
+                              value={m.label || ''}
+                              onChange={(e) => updateMatchNode(round.id, m.id, { label: e.target.value })}
+                              className="w-full p-2 text-sm bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg mb-3 outline-none focus:border-green-500 text-[var(--text-primary)]"
+                            />
+                            
+                            <label className="flex items-center gap-2 text-sm font-bold text-[var(--text-primary)] mb-4 cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={m.isBye} 
+                                onChange={(e) => updateMatchNode(round.id, m.id, { isBye: e.target.checked, team2: null, winner: e.target.checked ? m.team1 : null })}
+                                className="w-4 h-4 accent-green-500"
+                              /> 
+                              Mark as Bye (Automatic Advance)
+                            </label>
+
+                            <div className="mt-auto flex gap-2">
+                              {!m.isBye && (
+                                <select 
+                                  value={m.winner?._id || ''} 
+                                  onChange={(e) => updateMatchNode(round.id, m.id, { winner: teams.find(t => t._id === e.target.value) || null })}
+                                  className="flex-1 p-2 text-sm font-bold bg-green-500/10 text-green-400 border border-green-500/30 rounded-lg outline-none">
+                                  <option value="">Set Winner</option>
+                                  {m.team1 && <option value={m.team1._id}>{m.team1.name}</option>}
+                                  {m.team2 && <option value={m.team2._id}>{m.team2.name}</option>}
+                                </select>
+                              )}
+                              <button onClick={() => setEditingMatch(null)} className="px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg text-sm font-bold hover:bg-[var(--bg-hover)]">Done</button>
+                            </div>
+                          </div>
+                        )}
+                        
+                      </div>
+                    ))}
+                    
+                    {round.matches.length === 0 && (
+                      <button onClick={() => addMatchToRound(round.id)} className="w-full p-4 border border-dashed border-[var(--border)] rounded-2xl text-[var(--text-muted)] hover:border-green-500/50 hover:text-green-400 transition-colors font-bold text-sm flex items-center justify-center gap-2">
+                        <Plus className="w-4 h-4" /> Add First Match
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
