@@ -6,6 +6,8 @@ import { getDemoData, updatePreviewData, PreviewData, fetchOverlayHTML } from '.
 interface OverlayPreviewRendererProps {
   template: string;
   progress?: number;
+  matchData?: any;
+  isPreview?: boolean;
   className?: string;
   heightClass?: string;
   baseUrl?: string;
@@ -15,12 +17,15 @@ interface OverlayPreviewRendererProps {
   zoom?: number;
 }
 
+
 const OVERLAY_W = 1920;
 const OVERLAY_H = 1080;
 
 const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
   template,
   progress = 69,
+  matchData,
+  isPreview = false,
   className = '',
   heightClass = '',
   baseUrl,
@@ -28,6 +33,8 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
   onError,
   zoom: externalZoom,
 }) => {
+  const effectiveProgress = matchData ? (matchData.runs || 0) / 200 : progress;
+
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading]         = useState(true);
@@ -229,8 +236,10 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
     >
       {/* Overlay content at native 1920×1080, scaled to fit */}
       <div style={{ position: 'absolute', top: 0, left: 0, overflow: 'hidden', width: '100%', height: '100%' }}>
-        <div
+<div
           ref={innerRef}
+          key={`${template}-${effectiveProgress}`}
+          className="score-box animate-slide-in"
           style={{
             width:           `${OVERLAY_W}px`,
             height:          `${OVERLAY_H}px`,
@@ -241,8 +250,8 @@ const OverlayPreviewRenderer: React.FC<OverlayPreviewRendererProps> = ({
         />
       </div>
 
-      {/* Animation push buttons — only shown when overlay is loaded */}
-      {!loading && !error && (
+      {/* Animation push buttons — only shown when overlay is loaded and NOT preview mode */}
+      {!loading && !error && !isPreview && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30">
           <button
             onClick={() => pushAnimationEvent('FOUR')}

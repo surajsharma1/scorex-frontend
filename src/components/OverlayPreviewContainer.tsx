@@ -5,6 +5,8 @@ import { AlertCircle } from 'lucide-react';
 interface OverlayPreviewContainerProps {
   src: string;
   title: string;
+  matchData?: any;
+  isPreview?: boolean;
   className?: string;
   heightClass?: string;
   onProgressChange?: (progress: number) => void;
@@ -23,6 +25,8 @@ interface OverlayPreviewContainerProps {
 const OverlayPreviewContainer: React.FC<OverlayPreviewContainerProps> = ({
   src,
   title,
+  matchData,
+  isPreview = true,
   className = '',
   heightClass = 'h-[500px] lg:h-[600px]',
   progress = 50,
@@ -48,6 +52,8 @@ const OverlayPreviewContainer: React.FC<OverlayPreviewContainerProps> = ({
       <OverlayPreviewRenderer
         template={template}
         progress={progress}
+        matchData={matchData}
+        isPreview={isPreview}
         baseUrl={baseUrl}
         zoom={zoom}
         onLoad={() => setIframeLoading(false)}

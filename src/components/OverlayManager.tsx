@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+  import { useState, useEffect, useRef, useCallback } from 'react';
 import OverlayPreviewContainer from './OverlayPreviewContainer';
 import { 
   Eye, Save, Trash2, Copy, RefreshCw, X, PlaySquare, 
@@ -318,15 +318,14 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
               <OverlayPreviewContainer
                 src={`/overlays/${getTemplateFilename(activePreview)}`}
                 title="Preview"
-                baseUrl={baseUrl}
+                isPreview={true}
+
                 heightClass="h-full"
                 previewContainerRef={previewContainerRef}
                 previewIframeRef={previewIframeRef}
                 retryLoad={dummyRetry}
                 setIframeLoading={dummySetLoading}
-                setIframeError={dummySetError}
-              />
-              
+                setIframeError={dummySetError} baseUrl={''}              />
               {/* Expand Button for Small Screens */}
               <button 
                 onClick={() => setIsMobileFullscreen(true)}

@@ -123,6 +123,12 @@ export function updatePreviewData(container: HTMLElement | null, data: PreviewDa
         if (el && data[key as keyof PreviewData] !== undefined) {
           el.textContent = String(data[key as keyof PreviewData]);
           el.style.opacity = '1'; // Fade in updates
+          // Trigger animation on score changes (like React key remount)
+          if (key === 'teamScore' || key === 'teamWickets' || key === 'strikerRuns') {
+            el.classList.add('animate-pulse');
+            el.dataset.runKey = data.team1Score?.toString() || '0';
+            setTimeout(() => el.classList.remove('animate-pulse'), 300);
+          }
         }
       } catch {}
     });
