@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Save, Plus, X, Edit3, Trash2, Users, Layout, MessageSquare } from 'lucide-react';
+import { Trophy, Save, Plus, X, Edit3, Trash2, Users, Layout, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { bracketAPI, teamAPI } from '../services/api';
 import { useToast } from '../hooks/useToast';
 import type { Team } from './types';
@@ -10,7 +10,7 @@ interface MatchNode {
   team2: Team | null;
   winner: Team | null;
   isBye: boolean;
-  label?: string; // Custom message/label
+  label?: string;
 }
 
 interface Round {
@@ -47,13 +47,11 @@ export default function BracketView({ tournamentId }: { tournamentId?: string })
         const tRes = await teamAPI.getTeams(tournamentId);
         setTeams(tRes.data?.data || tRes.data?.teams || []);
         
-        // Attempt to load existing brackets/groups if the backend supports it
         try {
           const bRes = await bracketAPI.getBracket(tournamentId);
           if (bRes.data?.rounds) setRounds(bRes.data.rounds);
           if (bRes.data?.groups) setGroups(bRes.data.groups);
         } catch (e) {
-          // If no bracket exists yet, start fresh
           setRounds([{ id: 'r1', title: 'Quarter Finals', matches: [] }]);
         }
       } catch (err) {
@@ -69,7 +67,6 @@ export default function BracketView({ tournamentId }: { tournamentId?: string })
     if (!tournamentId) return;
     setSaving(true);
     try {
-      // Assuming your bracketAPI can accept groups as well
       await bracketAPI.updateBracket(tournamentId, { rounds, groups });
       addToast({ type: 'success', message: 'Tournament structure saved!' });
     } catch (err: any) {
@@ -158,12 +155,12 @@ export default function BracketView({ tournamentId }: { tournamentId?: string })
         <div className="flex items-center gap-2 p-1 bg-[var(--bg-primary)] rounded-xl border border-[var(--border)]">
           <button 
             onClick={() => setViewMode('knockout')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'knockout' ? 'bg-green-500/20 text-green-400' : 'text-[var(--text-muted)] hover:text-white'}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'knockout' ? 'bg-green-500/20 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.2)]' : 'text-[var(--text-muted)] hover:text-white'}`}>
             <Layout className="w-4 h-4" /> Knockouts
           </button>
           <button 
             onClick={() => setViewMode('groups')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'groups' ? 'bg-blue-500/20 text-blue-400' : 'text-[var(--text-muted)] hover:text-white'}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'groups' ? 'bg-blue-500/20 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'text-[var(--text-muted)] hover:text-white'}`}>
             <Users className="w-4 h-4" /> Groups
           </button>
         </div>
@@ -266,97 +263,116 @@ export default function BracketView({ tournamentId }: { tournamentId?: string })
                     </div>
 
                     {/* Round Matches */}
-                    {round.matches.map((m, mIndex) => (
-                      <div key={m.id} className="relative bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm group">
-                        
-                        {/* Match Controls */}
-                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => setEditingMatch({ roundId: round.id, matchId: m.id })} className="p-1.5 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-white" title="Settings">
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-                          <button onClick={() => deleteMatch(round.id, m.id)} className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white" title="Remove Match">
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                    {round.matches.map((m, mIndex) => {
+                      const t1Won = m.winner?._id === m.team1?._id && m.team1;
+                      const t2Won = m.winner?._id === m.team2?._id && m.team2;
 
-                        {/* Custom Label */}
-                        {m.label && (
-                          <div className="mb-3 flex items-center gap-2">
-                            <MessageSquare className="w-3 h-3 text-amber-500" />
-                            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">{m.label}</span>
-                          </div>
-                        )}
-
-                        <div className="space-y-2">
-                          {/* Team 1 Selector */}
-                          <div className={`p-2 rounded-xl border ${m.winner?._id === m.team1?._id && m.team1 ? 'border-green-500/50 bg-green-500/5' : 'border-[var(--border)] bg-[var(--bg-elevated)]'}`}>
-                            <select 
-                              value={m.team1?._id || ''} 
-                              onChange={(e) => updateMatchNode(round.id, m.id, { team1: teams.find(t => t._id === e.target.value) || null, winner: null })}
-                              className="w-full bg-transparent text-sm font-bold text-[var(--text-primary)] outline-none">
-                              <option value="">TBD / Slot 1</option>
-                              {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
-                            </select>
-                          </div>
+                      return (
+                        <div key={m.id} className="relative bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 shadow-sm group">
                           
-                          {/* Team 2 Selector */}
-                          {!m.isBye && (
-                            <div className={`p-2 rounded-xl border ${m.winner?._id === m.team2?._id && m.team2 ? 'border-green-500/50 bg-green-500/5' : 'border-[var(--border)] bg-[var(--bg-elevated)]'}`}>
+                          {/* Match Controls */}
+                          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                            <button onClick={() => setEditingMatch({ roundId: round.id, matchId: m.id })} className="p-1.5 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-white" title="Settings">
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => deleteMatch(round.id, m.id)} className="p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white" title="Remove Match">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          {/* Custom Label */}
+                          {m.label && (
+                            <div className="mb-3 flex items-center gap-2">
+                              <MessageSquare className="w-3 h-3 text-amber-500" />
+                              <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">{m.label}</span>
+                            </div>
+                          )}
+
+                          <div className="space-y-2 relative">
+                            {/* Team 1 Selector */}
+                            <div className={`relative p-2 rounded-xl border overflow-hidden transition-all ${t1Won ? 'border-green-500 bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]' : 'border-[var(--border)] bg-[var(--bg-elevated)]'}`}>
+                              {t1Won && <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-green-500/20 to-transparent pointer-events-none flex items-center justify-end pr-2"><CheckCircle2 className="w-4 h-4 text-green-500" /></div>}
                               <select 
-                                value={m.team2?._id || ''} 
-                                onChange={(e) => updateMatchNode(round.id, m.id, { team2: teams.find(t => t._id === e.target.value) || null, winner: null })}
-                                className="w-full bg-transparent text-sm font-bold text-[var(--text-primary)] outline-none">
-                                <option value="">TBD / Slot 2</option>
+                                value={m.team1?._id || ''} 
+                                onChange={(e) => updateMatchNode(round.id, m.id, { team1: teams.find(t => t._id === e.target.value) || null, winner: null })}
+                                className="w-full bg-transparent text-sm font-bold text-[var(--text-primary)] outline-none relative z-10 appearance-none">
+                                <option value="">TBD / Slot 1</option>
                                 {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
                               </select>
                             </div>
-                          )}
-                        </div>
-
-                        {/* Match Editing Modal/Overlay */}
-                        {editingMatch?.matchId === m.id && (
-                          <div className="absolute inset-0 z-10 bg-[var(--bg-card)]/95 backdrop-blur-sm p-4 rounded-2xl flex flex-col justify-center border border-green-500/30">
-                            <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase mb-2">Match Settings</h4>
                             
-                            <input 
-                              type="text" 
-                              placeholder="Custom Match Label (e.g. Elimination)" 
-                              value={m.label || ''}
-                              onChange={(e) => updateMatchNode(round.id, m.id, { label: e.target.value })}
-                              className="w-full p-2 text-sm bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg mb-3 outline-none focus:border-green-500 text-[var(--text-primary)]"
-                            />
-                            
-                            <label className="flex items-center gap-2 text-sm font-bold text-[var(--text-primary)] mb-4 cursor-pointer">
-                              <input 
-                                type="checkbox" 
-                                checked={m.isBye} 
-                                onChange={(e) => updateMatchNode(round.id, m.id, { isBye: e.target.checked, team2: null, winner: e.target.checked ? m.team1 : null })}
-                                className="w-4 h-4 accent-green-500"
-                              /> 
-                              Mark as Bye (Automatic Advance)
-                            </label>
-
-                            <div className="mt-auto flex gap-2">
-                              {!m.isBye && (
+                            {/* Team 2 Selector */}
+                            {!m.isBye && (
+                              <div className={`relative p-2 rounded-xl border overflow-hidden transition-all ${t2Won ? 'border-green-500 bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.15)]' : 'border-[var(--border)] bg-[var(--bg-elevated)]'}`}>
+                                {t2Won && <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-green-500/20 to-transparent pointer-events-none flex items-center justify-end pr-2"><CheckCircle2 className="w-4 h-4 text-green-500" /></div>}
                                 <select 
-                                  value={m.winner?._id || ''} 
-                                  onChange={(e) => updateMatchNode(round.id, m.id, { winner: teams.find(t => t._id === e.target.value) || null })}
-                                  className="flex-1 p-2 text-sm font-bold bg-green-500/10 text-green-400 border border-green-500/30 rounded-lg outline-none">
-                                  <option value="">Set Winner</option>
-                                  {m.team1 && <option value={m.team1._id}>{m.team1.name}</option>}
-                                  {m.team2 && <option value={m.team2._id}>{m.team2.name}</option>}
+                                  value={m.team2?._id || ''} 
+                                  onChange={(e) => updateMatchNode(round.id, m.id, { team2: teams.find(t => t._id === e.target.value) || null, winner: null })}
+                                  className="w-full bg-transparent text-sm font-bold text-[var(--text-primary)] outline-none relative z-10 appearance-none">
+                                  <option value="">TBD / Slot 2</option>
+                                  {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
                                 </select>
-                              )}
-                              <button onClick={() => setEditingMatch(null)} className="px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg text-sm font-bold hover:bg-[var(--bg-hover)]">Done</button>
-                            </div>
+                              </div>
+                            )}
                           </div>
-                        )}
-                        
-                      </div>
-                    ))}
+
+                          {/* Match Editing Modal/Overlay */}
+                          {editingMatch?.matchId === m.id && (
+                            <div className="absolute inset-0 z-20 bg-[var(--bg-card)]/95 backdrop-blur-md p-4 rounded-2xl flex flex-col justify-center border border-green-500/40 shadow-2xl">
+                              <div className="flex items-center justify-between mb-3">
+                                <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Match Settings</h4>
+                                <button onClick={() => setEditingMatch(null)} className="p-1 rounded bg-[var(--bg-elevated)] hover:bg-[var(--bg-hover)]"><X className="w-4 h-4 text-[var(--text-muted)]"/></button>
+                              </div>
+                              
+                              <input 
+                                type="text" 
+                                placeholder="Custom Label (e.g. Elimination)" 
+                                value={m.label || ''}
+                                onChange={(e) => updateMatchNode(round.id, m.id, { label: e.target.value })}
+                                className="w-full p-2.5 text-sm font-bold bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl mb-3 outline-none focus:border-green-500 text-[var(--text-primary)]"
+                              />
+                              
+                              <label className="flex items-center gap-2 text-sm font-bold text-[var(--text-primary)] mb-4 cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={m.isBye} 
+                                  onChange={(e) => updateMatchNode(round.id, m.id, { isBye: e.target.checked, team2: null, winner: e.target.checked ? m.team1 : null })}
+                                  className="w-4 h-4 accent-green-500"
+                                /> 
+                                Mark as Bye (Auto-Advance)
+                              </label>
+
+                              {/* Restored Original Set Winner Buttons */}
+                              {!m.isBye && (
+                                <div className="mt-auto pt-3 border-t border-[var(--border)]">
+                                  <label className="block text-[10px] font-black text-[var(--text-secondary)] mb-2 uppercase tracking-widest">Set Winner</label>
+                                  <div className="flex gap-2">
+                                    <button 
+                                      onClick={() => updateMatchNode(round.id, m.id, { winner: m.team1 })} 
+                                      disabled={!m.team1} 
+                                      className={`flex-1 py-2.5 rounded-xl text-sm font-black border transition-all ${m.winner?._id === m.team1?._id ? 'bg-green-500/20 border-green-500 text-green-400 shadow-[0_0_10px_rgba(34,197,94,0.2)]' : 'bg-[var(--bg-elevated)] border-[var(--border)] text-[var(--text-secondary)] hover:text-white'} disabled:opacity-40`}
+                                    >
+                                      Team 1
+                                    </button>
+                                    <button 
+                                      onClick={() => updateMatchNode(round.id, m.id, { winner: m.team2 })} 
+                                      disabled={!m.team2} 
+                                      className={`flex-1 py-2.5 rounded-xl text-sm font-black border transition-all ${m.winner?._id === m.team2?._id ? 'bg-green-500/20 border-green-500 text-green-400 shadow-[0_0_10px_rgba(34,197,94,0.2)]' : 'bg-[var(--bg-elevated)] border-[var(--border)] text-[var(--text-secondary)] hover:text-white'} disabled:opacity-40`}
+                                    >
+                                      Team 2
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
+                        </div>
+                      );
+                    })}
                     
                     {round.matches.length === 0 && (
-                      <button onClick={() => addMatchToRound(round.id)} className="w-full p-4 border border-dashed border-[var(--border)] rounded-2xl text-[var(--text-muted)] hover:border-green-500/50 hover:text-green-400 transition-colors font-bold text-sm flex items-center justify-center gap-2">
+                      <button onClick={() => addMatchToRound(round.id)} className="w-full p-4 border border-dashed border-[var(--border)] rounded-2xl text-[var(--text-muted)] hover:border-green-500/50 hover:bg-green-500/5 hover:text-green-400 transition-colors font-bold text-sm flex items-center justify-center gap-2">
                         <Plus className="w-4 h-4" /> Add First Match
                       </button>
                     )}
