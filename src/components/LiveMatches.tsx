@@ -97,9 +97,9 @@ export default function LiveMatches() {
                     </div>
                   )}
 
-                  <button onClick={() => navigate(`/matches/${m._id}/score`)}
-                    className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-fluid-sm rounded-xl transition-all flex items-center justify-center gap-2">
-                    <Zap className="icon-fluid-sm" /> Open Scoreboard
+                  <button onClick={() => navigate(`/matches/${m._id}`)}
+                    className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-fluid-sm rounded-xl transition-all flex items-center justify-center gap-2">
+                    <Zap className="icon-fluid-sm" /> View Scoreboard
                   </button>
                 </div>
               </div>

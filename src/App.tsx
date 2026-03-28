@@ -213,10 +213,7 @@ export default function App() {
             <Route path="/oauth/callback" element={<OAuthCallback />} />
             
             <Route path="/live" element={<ProtectedDashboardRoute><LiveMatches /></ProtectedDashboardRoute>} />
-            <Route path="/live/:id" element={<ProtectedDashboardRoute><LiveMatchPage /></ProtectedDashboardRoute>} />
 
-            {/* Dashboard Shell */}
-            <Route path="/dashboard" element={<ProtectedDashboardRoute><Dashboard /></ProtectedDashboardRoute>} />
             <Route path="/profile" element={<ProtectedDashboardRoute><Profile /></ProtectedDashboardRoute>} />
             
             <Route path="/tournaments" element={<ProtectedDashboardRoute><TournamentList /></ProtectedDashboardRoute>} />

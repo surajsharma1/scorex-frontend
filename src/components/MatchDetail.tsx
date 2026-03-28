@@ -10,8 +10,8 @@ import { useToast } from '../hooks/useToast';
 
 interface Props {
   matchId: string;
-  onBack: () => void;
-  openScoreboard: () => void;
+  onBack?: () => void;
+  openScoreboard?: () => void;
 }
 
 export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) {
@@ -102,15 +102,23 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
               </div>
             </div>
           </div>
-          <button onClick={() => navigate(`/matches/${matchId}/score`)}
-            className="flex items-center gap-2 px-6 py-3 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg"
-            style={{ 
-              background: 'linear-gradient(135deg, var(--success), #059669)', 
-              color: 'rgb(var(--text-primary))',
-              boxShadow: '0 4px 14px 0 rgba(34,197,94,0.4)'
-            }}>
-            <Zap className="w-4 h-4" /> Live Score
-          </button>
+          {openScoreboard ? (
+            <button onClick={openScoreboard}
+              className="flex items-center gap-2 px-6 py-3 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg"
+              style={{ 
+                background: 'linear-gradient(135deg, var(--success), #059669)', 
+                color: 'rgb(var(--text-primary))',
+                boxShadow: '0 4px 14px 0 rgba(34,197,94,0.4)'
+              }}>
+              <Zap className="w-4 h-4" /> Live Score
+            </button>
+          ) : (
+            <button onClick={() => setTab('scoreboard')}
+              className="flex items-center gap-2 px-6 py-3 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-gray-600 hover:bg-gray-500"
+              style={{ color: 'rgb(var(--text-primary))', boxShadow: '0 4px 14px 0 rgba(75,85,99,0.4)' }}>
+              <Zap className="w-4 h-4" /> View Scoreboard
+            </button>
+          )}
           {isAuthorized && (
             <button
               onClick={handleDeleteMatch}

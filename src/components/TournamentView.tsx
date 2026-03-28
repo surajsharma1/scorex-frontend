@@ -367,7 +367,8 @@ export default function TournamentView() {
               <button onClick={() => setSelectedMatch(null)} className="p-2 rounded-xl bg-[var(--bg-elevated)] hover:bg-red-500/20 text-[var(--text-muted)] hover:text-red-400 transition-colors"><X className="w-5 h-5" /></button>
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-              <MatchDetail matchId={selectedMatch} onBack={() => setSelectedMatch(null)} openScoreboard={() => navigate(`/matches/${selectedMatch}/score`)} />
+              <MatchDetail matchId={selectedMatch} onBack={() => setSelectedMatch(null)} />
+
             </div>
           </div>
         </div>
