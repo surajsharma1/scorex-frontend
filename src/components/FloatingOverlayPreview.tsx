@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { X, ZoomIn, ZoomOut, RotateCcw, Monitor, Smartphone, Tablet } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { X, ZoomIn, ZoomOut, RotateCcw, Monitor, Smartphone, Tablet, Eye, RefreshCw, AlertCircle } from 'lucide-react';
+import { useValueDebounce } from '../hooks/useValueDebounce';
 import OverlayPreviewRenderer from './OverlayPreviewRenderer';
 import { getBackendBaseUrl } from '../services/env';
 import { getDemoData } from '../utils/overlayPreview';
@@ -46,7 +47,25 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
   const [zoom, setZoom] = useState(1);
   const [screenPreset, setScreenPreset] = useState<number>(0);
   const [localTemplates, setLocalTemplates] = useState<TemplateItem[]>([]);
+  const [progress, setProgress] = useState(50);
+  const debouncedProgress = useValueDebounce(progress, 300);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const demoScoreRef = useRef({ score: 124, wickets: 4 });
+
+  const handleLoad = useCallback(() => setLoading(false), []);
+  const handleError = useCallback((err: string) => {
+    setError(err);
+    setLoading(false);
+  }, []);
+
+  const triggerAnimation = (eventType: string) => {
+    window.postMessage({
+      type: 'OVERLAY_ACTION',
+      payload: { event: eventType }
+    }, '*');
+  };
 
   // Always load from public static file — no auth filter, always shows all designs
   useEffect(() => {
@@ -120,7 +139,7 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="flex flex-col rounded-2xl shadow-2xl overflow-hidden w-full"
+        className=" flex flex-col rounded-2xl shadow-2xl overflow-hidden w-full"
         style={{
           background: 'var(--bg-secondary)',
           border: `1px solid ${accentColor}30`,
@@ -214,6 +233,24 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
             className="w-28 hidden sm:block"
             style={{ accentColor }} />
 
+          {/* Progress slider */}
+          <div className="flex items-center gap-2">
+            <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Progress:</label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="4"
+              value={progress}
+              onChange={e => setProgress(Number(e.target.value))}
+              disabled={loading}
+              className="w-24 h-2 rounded cursor-pointer accent-green-500"
+            />
+            <span className="text-xs font-bold tabular-nums w-8" style={{ color: 'var(--accent)' }}>
+              {progress}%
+            </span>
+          </div>
+
           {/* ── Animation push buttons ── */}
           <div className="flex items-center gap-1.5 ml-auto">
             <span className="text-xs font-semibold hidden sm:block" style={{ color: 'var(--text-muted)' }}>Push:</span>
@@ -242,7 +279,7 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
         <div className="flex-1 flex items-center justify-center overflow-hidden p-4"
           style={{ background: '#000', minHeight: 0 }}>
           {resolvedSelected ? (
-            <div style={{
+            <div ref={containerRef} style={{
               width:       preset.w,
               maxWidth:    '100%',
               aspectRatio: preset.aspect,
@@ -254,17 +291,36 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
               background:  '#0a0a0f',
               position:    'relative',
             }}>
-              <OverlayPreviewRenderer
+              <OverlayPreviewRenderer 
                 key={resolvedSelected}
                 template={resolvedSelected}
-                progress={69}
-                matchData={{ runs: 142, wickets: 4 }}
-                isPreview={true}
+                progress={debouncedProgress}
                 baseUrl={baseUrl}
                 zoom={zoom}
-                className=""
-                heightClass=""
+                onLoad={handleLoad}
+                onError={handleError}
               />
+              {loading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-20">
+                  <div className="text-center">
+                    <RefreshCw className="w-10 h-10 animate-spin mx-auto mb-3 text-emerald-400" />
+                    <p className="text-slate-300 text-sm">Loading overlay…</p>
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-900/95 z-20">
+                  <div className="text-center p-8 max-w-sm">
+                    <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                    <p className="text-slate-300 text-sm mb-4">{error}</p>
+                    <button onClick={() => window.location.reload()}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-all">
+                      Retry
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center p-12">
@@ -282,11 +338,20 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
           )}
         </div>
 
+        {/* Animation Trigger Controls */}
+        <div className="p-3 border-t flex flex-wrap gap-2 justify-center" style={{ background: 'var(--bg-elevated)', borderTopColor: 'var(--border)' }}>
+          <span className="text-xs font-bold flex items-center mr-2 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Trigger Animations:</span>
+          <button onClick={() => triggerAnimation('FOUR')} className="px-3 py-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded text-xs font-bold hover:bg-blue-500/30 transition-colors">FOUR</button>
+          <button onClick={() => triggerAnimation('SIX')} className="px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded text-xs font-bold hover:bg-green-500/30 transition-colors">SIX</button>
+          <button onClick={() => triggerAnimation('WICKET')} className="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/30 rounded text-xs font-bold hover:bg-red-500/30 transition-colors">WICKET</button>
+          <button onClick={() => triggerAnimation('DECISION_PENDING')} className="px-3 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-xs font-bold hover:bg-amber-500/30 transition-colors">DECISION PENDING</button>
+        </div>
+
         {/* ── Footer ── */}
         <div className="px-5 py-2 flex-shrink-0 text-xs flex justify-between"
           style={{ borderTop: '1px solid var(--border)', color: 'var(--text-muted)', background: 'var(--bg-card)' }}>
           <span>Renders at 1920×1080 — scaled to preview frame</span>
-          <span>Push 4️⃣ 6️⃣ 🎯 to test animations</span>
+          <span>Progress slider + triggers match tournament overlay previews</span>
         </div>
       </div>
     </div>
