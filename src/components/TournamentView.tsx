@@ -354,7 +354,7 @@ export default function TournamentView() {
         )}
 
         {activeTab === 'teams' && <TeamManagement tournamentId={id} onTeamsChange={loadData} />}
-        {activeTab === 'points' && <PointsTable />}
+        {activeTab === 'points' && <PointsTable tournamentId={id!} />}
         {activeTab === 'overlays' && <OverlayManager tournamentId={id} matches={matches} />}
       </div>
 
