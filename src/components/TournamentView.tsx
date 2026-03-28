@@ -260,8 +260,8 @@ export default function TournamentView() {
                   </div>
                   <h4 className="text-sm font-bold text-green-400 mb-3">{m.name || 'League Match'}</h4>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center"><span className="font-bold text-[var(--text-primary)]">{m.team1.shortName || m.team1.name}</span><span className="font-mono text-[var(--text-secondary)]">{(m.liveScores as any)?.team1Score || 0}/{(m.liveScores as any)?.team1Wickets || 0}</span></div>
-                    <div className="flex justify-between items-center"><span className="font-bold text-[var(--text-primary)]">{m.team2.shortName || m.team2.name}</span><span className="font-mono text-[var(--text-secondary)]">{(m.liveScores as any)?.team2Score || 0}/{(m.liveScores as any)?.team2Wickets || 0}</span></div>
+{m.team1?.shortName || m.team1?.name || 'TBD'}
+{m.team2?.shortName || m.team2?.name || 'TBD'}
                   </div>
                 </div>
               ))}
