@@ -7,7 +7,7 @@ import { useAuth } from '../App';
 import { useToast } from '../hooks/useToast';
 import {
   Plus, Trash2, Zap, BarChart2, Users, Trophy, LayoutGrid, CheckCircle2,
-  Calendar, MapPin, ChevronRight, X, Filter, ArrowLeft
+  Calendar, MapPin, ChevronRight, X, Filter, ArrowLeft, Edit3
 } from 'lucide-react';
 import TeamManagement from './TeamManagement';
 import BracketView from './BracketView';
@@ -21,15 +21,92 @@ interface CreateMatchForm {
   date: string;
   venue: string;
   format: string;
+  overs: number | '';
   matchPhase: string; 
   name: string;
+}
+
+// ─── EDIT TOURNAMENT MODAL ────────────────────────────────────────────────────
+function EditTournamentModal({ tournament, onClose, onUpdated }: { tournament: Tournament, onClose: () => void, onUpdated: () => void }) {
+  const { addToast } = useToast();
+  const [form, setForm] = useState<{
+    name: string;
+    venue: string;
+    startDate: string;
+    description: string;
+    status: "upcoming" | "ongoing" | "live" | "completed";
+  }>({
+    name: tournament.name || '',
+    venue: tournament.venue || '',
+    startDate: tournament.startDate ? new Date(tournament.startDate).toISOString().slice(0, 16) : '',
+    description: tournament.description || '',
+    status: tournament.status || 'upcoming'
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await tournamentAPI.updateTournament(tournament._id, form);
+      addToast({ type: 'success', message: 'Tournament updated successfully' });
+      onUpdated();
+    } catch (err: any) {
+      addToast({ type: 'error', message: err.response?.data?.message || 'Error updating tournament' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="w-full max-w-lg bg-[var(--bg-card)] rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="px-6 py-4 flex items-center justify-between border-b border-[var(--border)]">
+          <h2 className="text-xl font-bold text-[var(--text-primary)]">Edit Tournament</h2>
+          <button type="button" onClick={onClose} className="p-2 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-muted)] transition-colors"><X className="w-5 h-5" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Tournament Name</label>
+            <input type="text" required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Status</label>
+<select value={form.status} onChange={e => setForm({...form, status: e.target.value as typeof form.status})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500">
+                <option value="upcoming">Upcoming</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="live">Live</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Start Date</label>
+              <input type="datetime-local" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Venue</label>
+            <input type="text" value={form.venue} onChange={e => setForm({...form, venue: e.target.value})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Description</label>
+            <textarea rows={3} value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
+          </div>
+          <button type="submit" disabled={loading} className="w-full py-4 mt-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-xl hover:scale-[1.02] transition-transform shadow-lg disabled:opacity-50">
+            {loading ? 'Saving...' : 'Save Changes'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 // ─── CREATE MATCH MODAL ───────────────────────────────────────────────────────
 function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournamentId: string, teams: Team[], onClose: () => void, onCreated: () => void }) {
   const { addToast } = useToast();
   const [form, setForm] = useState<CreateMatchForm>({
-    team1: '', team2: '', date: '', venue: '', format: 'T20', matchPhase: 'League', name: ''
+    team1: '', team2: '', date: '', venue: '', format: 'T20', overs: 20, matchPhase: 'League', name: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -75,7 +152,7 @@ function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournam
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Match Phase</label>
+              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Match Phase / Format</label>
               <select value={form.matchPhase} onChange={e => setForm({...form, matchPhase: e.target.value})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500">
                 <option value="League">League Match</option>
                 <option value="Quarter Final">Quarter Final</option>
@@ -85,13 +162,19 @@ function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournam
               </select>
             </div>
             <div>
+              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Custom Overs</label>
+              <input type="number" required min="1" max="100" placeholder="e.g. 20" value={form.overs} onChange={e => setForm({...form, overs: parseInt(e.target.value) || ''})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
               <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Date & Time</label>
               <input type="datetime-local" required value={form.date} onChange={e => setForm({...form, date: e.target.value})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Venue</label>
-            <input type="text" required value={form.venue} onChange={e => setForm({...form, venue: e.target.value})} placeholder="Match location" className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
+            <div>
+              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Venue</label>
+              <input type="text" required value={form.venue} onChange={e => setForm({...form, venue: e.target.value})} placeholder="Match location" className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
+            </div>
           </div>
           <button type="submit" disabled={loading} className="w-full py-4 mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold rounded-xl hover:scale-[1.02] transition-transform shadow-lg shadow-green-500/20 disabled:opacity-50">
             {loading ? 'Scheduling...' : 'Create Match'}
@@ -115,6 +198,7 @@ export default function TournamentView() {
   const [activeTab, setActiveTab] = useState<'overview' | 'matches' | 'teams' | 'brackets' | 'points' | 'overlays'>('overview');
   
   const [showMatchModal, setShowMatchModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
@@ -176,9 +260,14 @@ export default function TournamentView() {
               <ArrowLeft className="w-4 h-4" /> Back to Tournaments
             </button>
             {isOwner && (
-              <button onClick={handleDeleteTournament} className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all font-bold text-sm flex items-center gap-2 shadow-sm">
-                <Trash2 className="w-4 h-4" /> Delete Tournament
-              </button>
+              <div className="flex gap-2">
+                <button onClick={() => setShowEditModal(true)} className="px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white transition-all font-bold text-sm flex items-center gap-2 shadow-sm">
+                  <Edit3 className="w-4 h-4" /> Edit Tournament
+                </button>
+                <button onClick={handleDeleteTournament} className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all font-bold text-sm flex items-center gap-2 shadow-sm">
+                  <Trash2 className="w-4 h-4" /> Delete Tournament
+                </button>
+              </div>
             )}
           </div>
 
@@ -260,8 +349,8 @@ export default function TournamentView() {
                   </div>
                   <h4 className="text-sm font-bold text-green-400 mb-3">{m.name || 'League Match'}</h4>
                   <div className="space-y-3">
-{m.team1?.shortName || m.team1?.name || 'TBD'}
-{m.team2?.shortName || m.team2?.name || 'TBD'}
+                    <p className="text-[var(--text-primary)] font-semibold">{m.team1?.shortName || m.team1?.name || 'TBD'} <span className="text-[var(--text-muted)] font-normal text-xs ml-1">vs</span></p>
+                    <p className="text-[var(--text-primary)] font-semibold">{m.team2?.shortName || m.team2?.name || 'TBD'}</p>
                   </div>
                 </div>
               ))}
@@ -292,6 +381,7 @@ export default function TournamentView() {
       )}
 
       {showMatchModal && <CreateMatchModal tournamentId={id!} teams={teams} onClose={() => setShowMatchModal(false)} onCreated={() => { setShowMatchModal(false); loadData(); }} />}
+      {showEditModal && <EditTournamentModal tournament={selected} onClose={() => setShowEditModal(false)} onUpdated={() => { setShowEditModal(false); loadData(); }} />}
     </div>
   );
 }

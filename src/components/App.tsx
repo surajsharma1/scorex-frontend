@@ -8,6 +8,7 @@ import Dashboard from './Dashboard';
 import TournamentList from './TournamentList';
 import TournamentForm from './TournamentForm';
 import TournamentDetail from './TournamentDetail';
+import TournamentView from './TournamentView';
 import LiveMatches from './LiveMatches';
 import LiveMatchPage from './LiveMatchPage';
 import LiveScoring from './LiveScoring';
@@ -78,7 +79,9 @@ function App() {
         <Route path="/tournaments" element={<TournamentList />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/tournaments/create" element={<TournamentForm />} />
-        <Route path="/tournaments/:id" element={<TournamentDetail />} />
+        
+        {/* Routed to TournamentView for the fully-featured match center */}
+        <Route path="/tournaments/:id" element={<TournamentView />} />
 
         <Route path="/friends" element={<FriendList />} />
         <Route path="/clubs" element={<ClubManagement />} />
@@ -97,4 +100,3 @@ function App() {
 }
 
 export default App;
-

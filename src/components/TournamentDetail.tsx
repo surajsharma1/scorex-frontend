@@ -17,12 +17,26 @@ export default function TournamentDetail() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [currentUser, setCurrentUser] = useState<any>(null);
+  
+  // Edit form state
+  const [editForm, setEditForm] = useState({ name: '', venue: '', startDate: '', description: '', status: 'upcoming' });
+  const [savingEdit, setSavingEdit] = useState(false);
+  
   const { addToast } = useToast();
 
   useEffect(() => {
     if (!id) return;
     tournamentAPI.getTournament(id)
-      .then(res => setTournament(res.data))
+      .then(res => {
+        setTournament(res.data);
+        setEditForm({
+          name: res.data.name || '',
+          venue: res.data.venue || '',
+          startDate: res.data.startDate ? new Date(res.data.startDate).toISOString().slice(0, 16) : '',
+          description: res.data.description || '',
+          status: res.data.status || 'upcoming'
+        });
+      })
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
   }, [id]);
@@ -46,6 +60,21 @@ export default function TournamentDetail() {
       navigate('/tournaments');
     } catch (error: any) {
       addToast({ type: 'error', title: 'Error', message: error.response?.data?.message || 'Failed to delete tournament' });
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingEdit(true);
+    try {
+      await tournamentAPI.updateTournament(id!, editForm);
+      addToast({ type: 'success', message: 'Tournament settings saved successfully' });
+      const res = await tournamentAPI.getTournament(id!);
+      setTournament(res.data);
+    } catch (err: any) {
+      addToast({ type: 'error', message: err.response?.data?.message || 'Error saving tournament settings' });
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -160,17 +189,46 @@ export default function TournamentDetail() {
         {activeTab === 'brackets' && <BracketView />}
         {activeTab === 'stats' && <TournamentStats tournamentId={id!} matches={[]} />}
         {activeTab === 'settings' && (
-          <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
-            <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Tournament Settings</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>Settings configuration coming soon.</p>
+          <div className="rounded-2xl p-8" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <h3 className="text-xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>Edit Tournament Settings</h3>
+            <form onSubmit={handleEditSubmit} className="space-y-4 max-w-2xl">
+              <div>
+                <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Tournament Name</label>
+                <input type="text" required value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Status</label>
+                  <select value={editForm.status} onChange={e => setEditForm({...editForm, status: e.target.value})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500">
+                    <option value="upcoming">Upcoming</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Start Date</label>
+                  <input type="datetime-local" value={editForm.startDate} onChange={e => setEditForm({...editForm, startDate: e.target.value})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Venue</label>
+                <input type="text" value={editForm.venue} onChange={e => setEditForm({...editForm, venue: e.target.value})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Description</label>
+                <textarea rows={4} value={editForm.description} onChange={e => setEditForm({...editForm, description: e.target.value})} className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
+              </div>
+              <button type="submit" disabled={savingEdit} className="px-6 py-3 mt-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-xl hover:scale-[1.02] transition-transform shadow-lg disabled:opacity-50">
+                {savingEdit ? 'Saving...' : 'Save Settings'}
+              </button>
+            </form>
           </div>
         )}
         {activeTab === 'matches' && (
           <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
              <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-muted)' }} />
              <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Match Schedule</h3>
-             <p style={{ color: 'var(--text-secondary)' }}>Match scheduling interface loading...</p>
+             <p style={{ color: 'var(--text-secondary)' }}>Use the fully-featured Tournament View component instead of this fallback component for the best experience.</p>
           </div>
         )}
       </div>
