@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import { Match } from './types';
-import { ArrowLeft, Play, Pause, ExternalLink, Maximize2, Volume2, VolumeX, RefreshCw, Tv } from 'lucide-react';
+import { ArrowLeft, Play, Pause, ExternalLink, Maximize2, Volume2, VolumeX, RefreshCw, Tv, BarChart3, Users } from 'lucide-react';
 
 export default function LiveMatchPage() {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +13,10 @@ export default function LiveMatchPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [showEmbed, setShowEmbed] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [tab, setTab] = useState<'summary' | 'batsmen' | 'bowlers' | 'extras'>('summary');
+  const currentInningIndex = match?.currentInnings ? match.currentInnings - 1 : 0;
+  const currentInnings = match?.innings?.[currentInningIndex];
+  const inningsToShow = currentInnings ? [currentInnings, ...match.innings.filter((_:any, idx: number) => idx !== currentInningIndex)] : match.innings || [];
 
   useEffect(() => {
     if (id) {
@@ -353,40 +357,202 @@ export default function LiveMatchPage() {
               </div>
             </div>
 
-            {/* Batsmen */}
-            {match.status === 'ongoing' && (
-              <div className="bg-gray-800 rounded-lg p-4">
-                <h3 className="font-bold mb-3">Batsmen</h3>
-                <div className="space-y-2">
-                  <div className={`p-2 rounded ${match.battingTeam === 'team1' ? 'bg-green-900 border border-green-500' : 'bg-gray-700'}`}>
-                    <div className="flex justify-between">
-                      <span className="font-medium">{match.strikerName || 'Striker'}</span>
-                      <span className="text-yellow-400">*</span>
-                    </div>
-                    <div className="text-sm text-gray-400">0 (0)</div>
-                  </div>
-                  <div className="p-2 rounded bg-gray-700">
-                    <div className="flex justify-between">
-                      <span className="font-medium">{match.nonStrikerName || 'Non-Striker'}</span>
-                    </div>
-                    <div className="text-sm text-gray-400">0 (0)</div>
-                  </div>
-                </div>
+            {/* Scoreboard Tabs */}
+            <div className="bg-gray-800 rounded-lg overflow-hidden">
+              <div className="flex bg-gray-700 border-t border-gray-600 px-3 py-2 -mx-3 mt-0">
+                {(['summary', 'batsmen', 'bowlers', 'extras'] as const).map(t => {
+                  const isActive = tab === t;
+                  return (
+                    <button key={t} onClick={() => setTab(t)}
+                      className="flex-1 px-4 py-2 rounded-lg font-semibold transition-all relative text-sm"
+                      style={isActive 
+                        ? { background: '#059669', color: 'white', boxShadow: '0 2px 8px rgba(5,150,105,0.3)' }
+                        : { color: '#9ca3af' }
+                      }>
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </button>
+                  );
+                })}
               </div>
-            )}
 
-            {/* Bowler */}
-            {match.status === 'ongoing' && match.bowlerName && (
-              <div className="bg-gray-800 rounded-lg p-4">
-                <h3 className="font-bold mb-3">Bowler</h3>
-                <div className="p-2 rounded bg-gray-700">
-                  <div className="flex justify-between">
-                    <span className="font-medium">{match.bowlerName}</span>
-                  </div>
-                  <div className="text-sm text-gray-400">0/0 (0.0)</div>
-                </div>
+              {/* Tab Content */}
+              <div className="p-4 max-h-96 overflow-y-auto">
+                {tab === 'summary' && (
+                  <>
+                    {match.status === 'ongoing' && (
+                      <>
+                        {/* Batsmen Summary */}
+                        <div className="bg-gray-700 p-3 rounded-lg mb-4">
+                          <h4 className="font-bold mb-2 text-sm">Current Batsmen</h4>
+                          <div className="space-y-2 text-xs">
+                            <div className="flex justify-between py-1">
+                              <span className="font-medium">{match.strikerName || 'Striker'}</span>
+                              <span>*</span>
+                            </div>
+                            <div className="flex justify-between py-1">
+                              <span className="font-medium">{match.nonStrikerName || 'Non-Striker'}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Current Bowler */}
+                        {match.bowlerName && (
+                          <div className="bg-gray-700 p-3 rounded-lg">
+                            <h4 className="font-bold mb-2 text-sm">Bowler</h4>
+                            <div className="text-xs">{match.bowlerName} - 0/0 (0.0)</div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+                {tab === 'batsmen' && (
+                  <>
+                    {match.innings && match.innings.length > 0 ? (
+                      <>
+                        {match.innings.slice(0, 2).map((inn: any, i: number) => (
+                            <div key={i} className={`mb-4 ${i === 0 ? 'border-2 border-green-500' : ''}`}>
+                              <div className={`p-2 rounded-lg mb-2 ${i === 0 ? 'bg-green-900/50' : 'bg-gray-700'}`}>
+                                <h4 className={`font-bold text-xs uppercase tracking-wide ${i === 0 ? 'text-green-300' : ''}`}>
+                                  {i === 0 ? '⚡ LIVE ' : ''}{inn.teamName || `Innings ${i+1}`}
+                                </h4>
+                                <p className="text-xs text-gray-300">{inn.score || 0}/{inn.wickets || 0} ({inn.overs || 0}.{inn.balls || 0})</p>
+                              </div>
+                            {inn.batsmen && inn.batsmen.length > 0 && (
+                              <div className="overflow-x-auto bg-gray-900 rounded-lg">
+                                <table className="w-full text-xs">
+                                  <thead>
+                                    <tr className="border-b border-gray-600 bg-gray-800">
+                                      <th className="text-left py-2 px-2 font-semibold text-gray-300">Batsman</th>
+                                      <th className="text-center py-2 px-1 font-semibold text-gray-300">R</th>
+                                      <th className="text-center py-2 px-1 font-semibold text-gray-300">B</th>
+                                      <th className="text-center py-2 px-1 font-semibold text-gray-300">4s</th>
+                                      <th className="text-center py-2 px-1 font-semibold text-gray-300">6s</th>
+                                      <th className="text-center py-2 px-1 font-semibold text-gray-300">SR</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {inn.batsmen.slice(0, 6).map((b: any, j: number) => (
+                                      <tr key={j} className="border-b border-gray-700 hover:bg-gray-800">
+                                        <td className="py-1.5 px-2">
+                                          <div className="flex flex-col">
+                                            <span className="font-semibold text-white truncate max-w-20">{b.name}</span>
+                                            {b.isStriker && !b.isOut && <span className="text-yellow-400 text-[10px] font-bold ml-1">*</span>}
+                                            {!b.isOut && !b.isStriker && <span className="text-blue-400 text-[10px] font-bold ml-1">NS</span>}
+                                            {b.isOut ? (
+                                              <span className="text-gray-400 text-[10px]">{b.outType}</span>
+                                            ) : (
+                                              <span className="text-green-400 text-[10px] font-bold">not out</span>
+                                            )}
+                                          </div>
+                                        </td>
+                                        <td className="py-1.5 px-1 text-center font-bold text-white">{b.runs || 0}</td>
+                                        <td className="py-1.5 px-1 text-center text-gray-400">{b.balls || 0}</td>
+                                        <td className="py-1.5 px-1 text-center font-bold text-blue-400">{b.fours || 0}</td>
+                                        <td className="py-1.5 px-1 text-center font-bold text-purple-400">{b.sixes || 0}</td>
+                                        <td className="py-1.5 px-1 text-center text-gray-400">{b.strikeRate?.toFixed(1) || '-'}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="text-center py-4 text-gray-400 text-sm">No batting data available</div>
+                    )}
+                  </>
+                )}
+                {tab === 'bowlers' && (
+                  <>
+                    {match.innings && match.innings.length > 0 ? (
+                      <>
+                        {match.innings.slice(0, 2).map((inn: any, i: number) => (
+                          <div key={i} className="mb-4">
+                            <div className="bg-gray-700 p-2 rounded-lg mb-2">
+                              <h4 className="font-bold text-xs uppercase tracking-wide">{inn.teamName || `Innings ${i+1}`} Bowling</h4>
+                              <p className="text-xs text-gray-300">Target: {inn.targetScore || '-'}</p>
+                            </div>
+                            {inn.bowlers && inn.bowlers.length > 0 && (
+                              <div className="overflow-x-auto bg-gray-900 rounded-lg">
+                                <table className="w-full text-xs">
+                                  <thead>
+                                    <tr className="border-b border-gray-600 bg-gray-800">
+                                      <th className="text-left py-2 px-3 font-semibold text-gray-300">Bowler</th>
+                                      <th className="text-center py-2 px-1 font-semibold text-gray-300">O</th>
+                                      <th className="text-center py-2 px-1 font-semibold text-gray-300">M</th>
+                                      <th className="text-center py-2 px-1 font-semibold text-gray-300">R</th>
+                                      <th className="text-center py-2 px-1 font-semibold text-gray-300">W</th>
+                                      <th className="text-center py-2 px-1 font-semibold text-gray-300">Eco</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {inn.bowlers.slice(0, 6).map((b: any, j: number) => (
+                                      <tr key={j} className="border-b border-gray-700 hover:bg-gray-800">
+                                        <td className="py-1.5 px-3 font-bold text-white truncate max-w-20">{b.name}</td>
+                                        <td className="py-1.5 px-1 text-center text-gray-400">{(b.overs || 0).toFixed(1)}</td>
+                                        <td className="py-1.5 px-1 text-center text-gray-400">{b.maidens || 0}</td>
+                                        <td className="py-1.5 px-1 text-center text-gray-400">{b.runs || 0}</td>
+                                        <td className="py-1.5 px-1 text-center font-bold text-red-400">{b.wickets || 0}</td>
+                                        <td className="py-1.5 px-1 text-center text-gray-400">{b.economy?.toFixed(2) || '-'}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="text-center py-4 text-gray-400 text-sm">No bowling data available</div>
+                    )}
+                  </>
+                )}
+                {tab === 'extras' && (
+                  <>
+                    {match.innings && match.innings.length > 0 ? (
+                      <>
+                        {match.innings.slice(0, 2).map((inn: any, i: number) => (
+                          <div key={i} className="mb-4">
+                            <div className="bg-gray-700 p-2 rounded-lg mb-2">
+                              <h4 className="font-bold text-xs uppercase tracking-wide">{inn.teamName || `Innings ${i+1}`} Extras</h4>
+                            </div>
+                            {inn.extras ? (
+                              <div className="bg-gray-900 rounded-lg p-3">
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  <div>Wides: <span className="font-bold text-white">{inn.extras.wides || 0}</span></div>
+                                  <div>No Balls: <span className="font-bold text-white">{inn.extras.noBalls || 0}</span></div>
+                                  <div>Byes: <span className="font-bold text-white">{inn.extras.byes || 0}</span></div>
+                                  <div>Leg Byes: <span className="font-bold text-white">{inn.extras.legByes || 0}</span></div>
+                                  <div className="col-span-2 font-bold text-sm border-t border-gray-700 pt-1 mt-1">
+                                    Total Extras: <span className="text-white">{inn.extras.total || 0}</span>
+                                  </div>
+                                </div>
+                                {inn.fallOfWickets && inn.fallOfWickets.length > 0 && (
+                                  <div className="mt-3 pt-2 border-t border-gray-700">
+                                    <h5 className="font-bold text-xs mb-1 text-gray-300">Fall of Wickets</h5>
+                                    <p className="text-xs text-gray-400 leading-tight">
+                                      {inn.fallOfWickets.slice(0, 4).map((f: any) => `${f.score}/${f.wicket} (${f.batsman})`).join(' | ')}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="text-center py-4 text-gray-400 text-sm">No extras data</div>
+                            )}
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="text-center py-4 text-gray-400 text-sm">No extras data available</div>
+                    )}
+                  </>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Actions */}
             <div className="space-y-2">
