@@ -210,7 +210,9 @@ export default function App() {
             <Route path="/register" element={!token ? <Register /> : <Navigate to="/dashboard" />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
-            <Route path="/oauth/callback" element={<OAuthCallback />} />
+<Route path="/oauth/callback" element={<OAuthCallback />} />
+  <Route path="/dashboard" element={<ProtectedDashboardRoute><Dashboard /></ProtectedDashboardRoute>} />
+
             
             <Route path="/live" element={<ProtectedDashboardRoute><LiveMatches /></ProtectedDashboardRoute>} />
 

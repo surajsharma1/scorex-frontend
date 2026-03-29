@@ -49,7 +49,7 @@ export default function Sidebar({
 
 
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = () => { logout(); };
   const isAdmin = user?.role === 'admin';
 
   return (
