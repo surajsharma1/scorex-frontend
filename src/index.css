@@ -175,7 +175,7 @@ body {
 
   /* Sidebar Nav Classes */
   .sx-nav-item {
-    @apply hover:bg-bg-card-hover/70 hover:shadow-md transition-all duration-200;
+    @apply hover:bg-slate-800/50 hover:shadow-md transition-all duration-200;
   }
   html.light .sx-nav-item {
     @apply hover:bg-emerald-50/70 hover:shadow-emerald-100/50;
