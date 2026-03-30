@@ -394,11 +394,16 @@ export default function Membership() {
                   {/* CTA button */}
                   <button
                     onClick={() => handleUpgrade(plan)}
-                    disabled={isCurrent || isLower || loading === plan.name}
+                  disabled={loading === plan.name || isLower}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all disabled:cursor-not-allowed hover:scale-[1.02] hover:shadow-lg"
                     style={
                       isCurrent
-                        ? { background: plan.accentColor, border: `1px solid ${plan.borderColor}`, color: plan.iconColor === '#fff' ? '#22c55e' : plan.iconColor }
+                        ? { 
+                            background: 'linear-gradient(135deg, #22c55e, #10b981)', 
+                            color: '#000', 
+                            boxShadow: '0 0 25px rgba(34,197,94,0.4)',
+                            border: `1px solid ${plan.borderColor}`
+                          }
                         : isLower
                         ? { background: 'var(--bg-elevated)', color: 'var(--text-muted)', opacity: 0.5 }
                         : plan.level === 0
@@ -411,7 +416,7 @@ export default function Membership() {
                     {loading === plan.name
                       ? 'Processing…'
                       : isCurrent
-                      ? '✓ Current Plan'
+                      ? `Extend ${plan.name}`
                       : isLower
                       ? 'Downgrade'
                       : plan.level === 0

@@ -140,16 +140,31 @@ body {
     will-change: transform;
   }
 
-  /* Improved mobile hamburger button */
+  /* Neon Green Mobile Hamburger Button - Pops on Dark Blue BG */
   .mobile-hamburger {
-    @apply ring-2 ring-offset-2 ring-green-400/30 shadow-xl;
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(10px);
+    @apply ring-4 ring-green-400/50 ring-offset-2 ring-offset-transparent shadow-2xl shadow-green-500/25;
+    background: linear-gradient(145deg, rgba(34,197,94,0.95), rgba(16,185,129,0.9)) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(34,197,94,0.6);
+    box-shadow: 
+      0 0 0 1px rgba(34,197,94,0.5),
+      0 0 20px rgba(34,197,94,0.4),
+      0 0 40px rgba(34,197,94,0.25),
+      0 8px 32px rgba(0,0,0,0.4);
   }
 
   html.light .mobile-hamburger {
-    background: rgba(13, 26, 18, 0.95) !important;
-    --ring-color: rgba(34, 197, 94, 0.4);
+    background: linear-gradient(145deg, rgba(22,163,74,0.95), rgba(5,150,105,0.9)) !important;
+    border-color: rgba(22,163,74,0.6);
+  }
+
+  .mobile-hamburger:hover {
+    @apply scale-105;
+    box-shadow: 
+      0 0 0 1px rgba(34,197,94,0.6),
+      0 0 30px rgba(34,197,94,0.5),
+      0 0 60px rgba(34,197,94,0.3),
+      0 12px 40px rgba(0,0,0,0.5);
   }
   .icon-fluid-xs { width: clamp(0.75rem, 2vw, 0.875rem); height: clamp(0.75rem, 2vw, 0.875rem); }
 

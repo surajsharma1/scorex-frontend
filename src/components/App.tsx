@@ -76,10 +76,10 @@ function App() {
           />
         )}
         <button 
-          className="mobile-hamburger fixed top-4 left-4 z-50 p-3 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 md:hidden transition-all hover:scale-105 active:scale-95"
+          className="mobile-hamburger fixed top-4 left-4 z-50 p-3 rounded-xl shadow-2xl md:hidden transition-all hover:scale-105 active:scale-95"
           onClick={toggleSidebar}
         >
-          <Menu className="w-6 h-6 text-gray-800 dark:text-gray-200" />
+          <Menu className="w-6 h-6 text-white drop-shadow-md" />
         </button>
         <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onClose={closeSidebar} />
         <main className="flex-1 md:ml-[16rem] h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
