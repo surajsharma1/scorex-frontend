@@ -173,7 +173,7 @@ export default function Membership() {
 
       const amount = prices[plan.level][selectedDuration];
       const res = await paymentAPI.createRazorpayOrder(amount, plan.name);
-      const order = res.data;
+      const order = res.data.data;
       
       // Check Razorpay SDK & key
       if (!(window as any).Razorpay) {
@@ -184,7 +184,7 @@ export default function Membership() {
       addToast({ type: 'success', message: 'Opening payment gateway...' });
 
       const options: any = {
-        key: '', // TODO: Add your Razorpay Key here (e.g., import.meta.env.VITE_RAZORPAY_KEY)
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: 'INR',
         name: 'ScoreX Pro',
@@ -227,7 +227,7 @@ export default function Membership() {
       console.error('[Upgrade Error]', error);
       addToast({ type: 'error', message: error.message || 'Payment setup failed. Try again.' });
     } finally {
-      if (loading === 'paying') setLoading(null);
+      setLoading(null);
     }
   };
 

@@ -27,6 +27,8 @@ const ClubDetail = lazy(() => import('./components/ClubDetail'));
 const CreateClubForm = lazy(() => import('./components/CreateClubForm'));
 const ClubManagement = lazy(() => import('./components/ClubManagement'));
 
+const LiveScoreboardPreview = lazy(() => import('./components/LiveScoreboardPreview'));
+
 const FriendList = lazy(() => import('./components/FriendList'));
 const Leaderboard = lazy(() => import('./components/Leaderboard'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
@@ -242,6 +244,13 @@ export default function App() {
 
                 <Route path="/dashboard" element={<DashboardLayout user={user} logout={logout} token={token}><Dashboard /></DashboardLayout>} />
                 <Route path="/live" element={<DashboardLayout user={user} logout={logout} token={token}><LiveMatches /></DashboardLayout>} />
+                <Route path="/live/:id" element={
+                  <DashboardLayout user={user} logout={logout} token={token}>
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <LiveScoreboardPreview />
+                    </Suspense>
+                  </DashboardLayout>
+                } />
                 <Route path="/profile" element={<DashboardLayout user={user} logout={logout} token={token}><Profile /></DashboardLayout>} />
                 <Route path="/tournaments" element={<DashboardLayout user={user} logout={logout} token={token}><TournamentList /></DashboardLayout>} />
                 <Route path="/tournaments/create" element={<DashboardLayout user={user} logout={logout} token={token}><TournamentForm /></DashboardLayout>} />
