@@ -166,14 +166,12 @@ export default function App() {
     }
   };
 
-  const navigate = useNavigate();
-
   const logout = () => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/', { replace: true });
+    window.location.href = '/';
   };
 
   if (loading) return <LoadingSpinner />;
