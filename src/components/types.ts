@@ -34,6 +34,7 @@ export interface Team {
 
 
 export interface Tournament {
+  createdBy: any;
   _id: string;
   name: string;
   type: 'round_robin' | 'knockout' | 'league';

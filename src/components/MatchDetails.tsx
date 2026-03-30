@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { matchAPI, tournamentAPI } from '../services/api';
 import { Match, Tournament } from './types';
 import ScoreboardUpdate from './ScoreboardUpdate';
-import { ArrowLeft, Video, Save, Play, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Video, Save, Play, CheckCircle, Zap } from 'lucide-react';
+import { useToast } from '../hooks/useToast';
 
 export default function MatchDetails() {
   const { id } = useParams<{ id: string }>();
@@ -15,10 +16,23 @@ export default function MatchDetails() {
   // Video Link State
   const [videoLink, setVideoLink] = useState('');
   const [isSavingLink, setIsSavingLink] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { addToast } = useToast();
 
   useEffect(() => {
     fetchMatch();
   }, [id]);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        setCurrentUser(JSON.parse(userStr));
+      } catch (e) {
+        console.error('Failed to parse user');
+      }
+    }
+  }, []); // Empty dependency array for mount only
 
   const fetchMatch = async () => {
     if (!id) return;
@@ -96,6 +110,8 @@ export default function MatchDetails() {
       fetchMatch();
   };
 
+  const isAuthorized = currentUser?.role === 'admin';
+
   if (loading) return <div className="p-10 text-center">Loading match details...</div>;
   if (!match) return <div className="p-10 text-center">Match not found.</div>;
 
@@ -128,6 +144,14 @@ export default function MatchDetails() {
                   >
                       <Play className="w-4 h-4" /> Go Live
                   </button>
+              )}
+              {isAuthorized && ['upcoming', 'ongoing', 'live'].includes(match.status) && (
+                <button
+                  onClick={() => navigate(`/live-scoring/${match._id}`)}
+                  className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-lg transition-all hover:scale-105 shadow-lg text-sm bg-green-600 hover:bg-green-700"
+                >
+                  <Zap className="w-4 h-4" /> Live Scoring
+                </button>
               )}
 {match.status === 'live' && (
                   <>
