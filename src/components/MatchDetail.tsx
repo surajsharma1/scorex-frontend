@@ -103,26 +103,11 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
         </div>
       </div>
     </div>
-{match.status === 'live' && isAuthorized ? (
+{match.status === 'live' ? (
   <button
-    onClick={() => navigate(`/matches/${match._id}/score`)}
-    className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg text-sm"
-    style={{
-      background: 'linear-gradient(135deg, var(--success), #059669)',
-      color: '#000',
-      boxShadow: '0 4px 14px 0 rgba(34,197,94,0.4)'
-    }}>
-    <Zap className="w-4 h-4" /> Live Scoring
-  </button>
-) : match.status === 'live' ? (
-  <button
-    onClick={() => navigate(`/live/${match._id}`)}
-    className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg text-sm"
-    style={{
-      background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-      color: '#fff',
-      boxShadow: '0 4px 14px 0 rgba(239,68,68,0.4)'
-    }}>
+    onClick={() => navigate(`/live/${matchId}`)}
+    className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-slate-700 hover:bg-slate-600 text-sm"
+    style={{ color: 'var(--text-primary)' }}>
     <Zap className="w-4 h-4" /> Live Scoreboard
   </button>
 ) : (
