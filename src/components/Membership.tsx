@@ -101,7 +101,6 @@ export default function Membership() {
   const { user } = useAuth();
   const { addToast } = useToast();
 
-
   const [loading, setLoading] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<Duration>('1month');
   const [prices, setPrices] = useState(DEFAULT_PRICES);
@@ -172,27 +171,27 @@ export default function Membership() {
     try {
       addToast({ type: 'success', message: 'Creating secure payment order...' });
 
-
-      
       const amount = prices[plan.level][selectedDuration];
       const res = await paymentAPI.createRazorpayOrder(amount, plan.name);
       const order = res.data;
       
       // Check Razorpay SDK & key
-\n\n      if (!Razorpay) {\n
+      if (!(window as any).Razorpay) {
+        addToast({ type: 'error', message: 'Razorpay SDK failed to load.' });
+        return;
+      }
       
       addToast({ type: 'success', message: 'Opening payment gateway...' });
 
-      
       const options: any = {
-        key,
+        key: '', // TODO: Add your Razorpay Key here (e.g., import.meta.env.VITE_RAZORPAY_KEY)
         amount: order.amount,
         currency: 'INR',
         name: 'ScoreX Pro',
         description: `${plan.name} (${DURATION_LABELS[selectedDuration]})`,
         order_id: order.id,
         handler: async (response: any) => {
-            addToast({ type: 'success', message: 'Securing membership...' });
+          addToast({ type: 'success', message: 'Securing membership...' });
 
           try {
             await paymentAPI.verifyRazorpayPayment({ 
@@ -205,7 +204,6 @@ export default function Membership() {
             setTimeout(() => window.location.reload(), 1200);
           } catch (verifyErr) {
             addToast({ type: 'error', message: 'Payment OK but membership sync failed' });
-
             console.error(verifyErr);
           }
         },
@@ -222,7 +220,7 @@ export default function Membership() {
         }
       };
       
-      const rzp = new Razorpay(options);
+      const rzp = new (window as any).Razorpay(options);
       rzp.open();
       
     } catch (error: any) {
@@ -232,7 +230,6 @@ export default function Membership() {
       if (loading === 'paying') setLoading(null);
     }
   };
-
 
   return (
     <div
@@ -442,7 +439,6 @@ export default function Membership() {
                     onClick={() => handleUpgrade(plan)}
                     disabled={!!loading || isLower}
 
-
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all disabled:cursor-not-allowed hover:scale-[1.02] hover:shadow-lg"
                     style={
                       isCurrent
@@ -535,5 +531,3 @@ export default function Membership() {
     </div>
   );
 }
-
-
