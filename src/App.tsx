@@ -184,11 +184,51 @@ export default function App() {
   const AdminDashboardRoute = ({ children }: { children: React.ReactNode }) => {
     if (!token) return <Navigate to="/login" replace />;
     if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
-    
+
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+    const toggleSidebar = () => {
+      setSidebarOpen(prev => {
+        const willOpen = !prev;
+        if (willOpen) {
+          document.documentElement.classList.add('sidebar-open');
+          document.body.classList.add('sidebar-open');
+        } else {
+          document.documentElement.classList.remove('sidebar-open');
+          document.body.classList.remove('sidebar-open');
+        }
+        return willOpen;
+      });
+    };
+
+    const closeSidebar = () => {
+      setSidebarOpen(false);
+      document.documentElement.classList.remove('sidebar-open');
+      document.body.classList.remove('sidebar-open');
+    };
+
     return (
-      <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)]">
-        <Sidebar user={user} logout={logout} />
-        <main className="flex-1 overflow-y-auto w-full max-w-full">
+      <div className={`flex h-screen overflow-hidden bg-[var(--bg-primary)] ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+        {/* Mobile hamburger */}
+        <button
+          className="mobile-hamburger fixed top-4 left-4 z-50 p-3 rounded-xl shadow-2xl md:hidden transition-all hover:scale-105 active:scale-95"
+          onClick={toggleSidebar}
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        {/* Mobile backdrop */}
+        {isSidebarOpen && (
+          <div
+            className="mobile-sidebar-backdrop md:hidden fixed inset-0 z-30"
+            onClick={closeSidebar}
+          />
+        )}
+
+        <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onClose={closeSidebar} />
+        <main className="flex-1 md:ml-[16rem] h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
           <Suspense fallback={<LoadingSpinner />}>
             {children}
           </Suspense>
@@ -197,13 +237,53 @@ export default function App() {
     );
   };
 
-  const ProtectedDashboardRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedDashboardRoute = ({ children }: { children: React.ReactNode }) => {
     if (!token) return <Navigate to="/login" replace />;
-    
+
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+    const toggleSidebar = () => {
+      setSidebarOpen(prev => {
+        const willOpen = !prev;
+        if (willOpen) {
+          document.documentElement.classList.add('sidebar-open');
+          document.body.classList.add('sidebar-open');
+        } else {
+          document.documentElement.classList.remove('sidebar-open');
+          document.body.classList.remove('sidebar-open');
+        }
+        return willOpen;
+      });
+    };
+
+    const closeSidebar = () => {
+      setSidebarOpen(false);
+      document.documentElement.classList.remove('sidebar-open');
+      document.body.classList.remove('sidebar-open');
+    };
+
     return (
-      <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)]">
-        <Sidebar user={user} logout={logout} />
-        <main className="flex-1 overflow-y-auto w-full max-w-full">
+      <div className={`flex h-screen overflow-hidden bg-[var(--bg-primary)] ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+        {/* Mobile hamburger */}
+        <button
+          className="mobile-hamburger fixed top-4 left-4 z-50 p-3 rounded-xl shadow-2xl md:hidden transition-all hover:scale-105 active:scale-95"
+          onClick={toggleSidebar}
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        {/* Mobile backdrop */}
+        {isSidebarOpen && (
+          <div
+            className="mobile-sidebar-backdrop md:hidden fixed inset-0 z-30"
+            onClick={closeSidebar}
+          />
+        )}
+
+        <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onClose={closeSidebar} />
+        <main className="flex-1 md:ml-[16rem] h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
           <Suspense fallback={<LoadingSpinner />}>
             {children}
           </Suspense>
