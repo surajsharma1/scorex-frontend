@@ -94,15 +94,17 @@ function DashboardLayout({ children, user, logout, token, requireAdmin }: Dashbo
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[var(--bg-primary)]">
       
-      {/* Transparent Hamburger Button with Neon Green Icon */}
-      <button
-        className="fixed top-4 left-4 z-50 p-2 rounded-xl md:hidden transition-transform hover:scale-105 active:scale-95 bg-transparent"
-        onClick={toggleSidebar}
-      >
-        <svg className="w-7 h-7 text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
+      {/* FIXED: Hide this button completely when the sidebar is open */}
+      {!isSidebarOpen && (
+        <button
+          className="fixed top-4 left-4 z-50 p-2 rounded-xl md:hidden transition-transform hover:scale-105 active:scale-95 bg-transparent"
+          onClick={toggleSidebar}
+        >
+          <svg className="w-7 h-7 text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      )}
 
       {/* Clean Dark Overlay for Mobile */}
       {isSidebarOpen && (
@@ -122,7 +124,7 @@ function DashboardLayout({ children, user, logout, token, requireAdmin }: Dashbo
       </main>
     </div>
   );
-}
+} 
 
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
