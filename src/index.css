@@ -33,7 +33,9 @@ html { scroll-behavior: smooth; font-size: 16px; }
   --accent-dim:    rgba(34,197,94,0.15);
   --accent-glow:   rgba(34,197,94,0.3);
   --scrollbar-thumb: #1e293b;
-  --scrollbar-hover: #334155;
+--scrollbar-hover: #334155;
+  --sidebar-width: 16rem;
+  --sidebar-collapsed: 4rem;
   --font-orbitron: 'Orbitron', monospace;
 }
 
@@ -170,6 +172,25 @@ body {
 
   .icon-fluid-sm { width: clamp(0.875rem, 2.5vw, 1rem); height: clamp(0.875rem, 2.5vw, 1rem); }
   .icon-fluid-base { width: clamp(1rem, 3vw, 1.125rem); height: clamp(1rem, 3vw, 1.125rem); }
+
+  /* Sidebar Nav Classes */
+  .sx-nav-item {
+    @apply hover:bg-bg-card-hover/70 hover:shadow-md transition-all duration-200;
+  }
+  html.light .sx-nav-item {
+    @apply hover:bg-emerald-50/70 hover:shadow-emerald-100/50;
+  }
+  .sx-nav-item:hover .icon-fluid-base {
+    @apply scale-105;
+  }
+
+  .sx-active-nav {
+    @apply bg-gradient-to-r from-emerald-500/20 to-green-500/20 text-emerald-400 shadow-emerald-500/20 ring-1 ring-emerald-500/30 backdrop-blur-sm font-semibold;
+  }
+  html.light .sx-active-nav {
+    @apply bg-gradient-to-r from-emerald-400/30 to-green-400/20 shadow-emerald-300/40 ring-emerald-400/40;
+  }
+
 
   /* ── Preview Scaling Framework ──────────────────────────── */
   /*

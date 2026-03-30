@@ -120,7 +120,7 @@ function DashboardLayout({ children, user, logout, token, requireAdmin }: Dashbo
       )}
 
       <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onClose={closeSidebar} />
-      <main className="flex-1 md:ml-[16rem] h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
+      <main className="flex-1 md:ml-[var(--sidebar-current-width)] h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
         <Suspense fallback={<LoadingSpinner />}>
           {children}
         </Suspense>

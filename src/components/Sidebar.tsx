@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { useTheme } from './ThemeProvider';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Trophy, Zap, Users, CreditCard,
+  LayoutDashboard, Trophy, Zap, CreditCard,
   Building2, UserPlus, User, Sun, Moon, LogOut,
   ChevronLeft, ChevronRight, Shield
 } from 'lucide-react';
+import type { AuthUser } from '../App';
+
 
 interface SidebarProps {
-  user: any;
+  user: AuthUser | null;
   logout: () => void;
   isOpen?: boolean;
   onClose?: () => void;
@@ -33,10 +35,15 @@ export default function Sidebar({
   onClose 
 }: SidebarProps) {
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
+const [collapsed, setCollapsed] = useState(false);
   const { isDark, toggleTheme } = useTheme();
 
-// Auto-collapse on mobile when menu closes
+  // Sync sidebar width var
+  useEffect(() => {
+    document.documentElement.style.setProperty('--sidebar-current-width', collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-width)');
+  }, [collapsed]);
+
+  // Auto-collapse on mobile when menu closes
   useEffect(() => {
     if (!isOpen) {
       setCollapsed(false);
@@ -50,7 +57,10 @@ export default function Sidebar({
 
   return (
 <aside
-className={`flex flex-col h-screen transition-all duration-200 gpu-accelerate flex-shrink-0 ${collapsed ? 'w-14 xs:w-16' : 'w-[clamp(14rem,22vw,16rem)]'}`}
+className={`flex flex-col h-screen transition-all duration-300 gpu-accelerate flex-shrink-0 
+        fixed md:relative z-40 transform ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} 
+        ${collapsed ? 'w-[var(--sidebar-collapsed)]' : 'w-[var(--sidebar-width)]'}`}
+
 
       style={{ background: 'var(--bg-secondary)', borderRight: '1px solid var(--border)' }}
     >
@@ -60,10 +70,9 @@ className={`flex flex-col h-screen transition-all duration-200 gpu-accelerate fl
         {isOpen && (
           <button 
             onClick={onClose}
-            className="p-1 -ml-1 rounded-lg hover:bg-slate-800/50 md:hidden transition-colors"
-            style={{ color: 'var(--text-muted)' }}
+            className="p-1 -ml-1 rounded-lg hover:bg-[#39ff14]/10 md:hidden transition-colors"
           >
-            <svg className="icon-fluid-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="icon-fluid-sm text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -91,17 +100,21 @@ className={`flex flex-col h-screen transition-all duration-200 gpu-accelerate fl
         
         {/* Desktop collapse button */}
         {!collapsed && !isOpen && (
-          <button onClick={() => setCollapsed(true)} className="p-1 rounded-lg transition-all hover:bg-green-500/10" style={{ color: 'var(--text-muted)' }}>
-            <ChevronLeft className="icon-fluid-xs" />
+          <button onClick={() => setCollapsed(true)} className="p-1 rounded-lg transition-all hover:bg-[#39ff14]/10 hidden md:block">
+            <ChevronLeft className="icon-fluid-xs text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.8)]" />
           </button>
         )}
       </div>
 
+      {/* Desktop expand button */}
       {collapsed && (
-        <button onClick={() => setCollapsed(false)} className="flex justify-center py-2 transition-all hover:bg-green-500/10" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
-          <ChevronRight className="icon-fluid-xs" />
+        <button onClick={() => setCollapsed(false)} className="hidden md:flex justify-center py-2 transition-all hover:bg-[#39ff14]/10 w-full" style={{ borderBottom: '1px solid var(--border)' }}>
+          <ChevronRight className="icon-fluid-xs text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.8)]" />
         </button>
       )}
+
+
+
 
       {/* User info */}
       {!collapsed && user && (
@@ -124,6 +137,7 @@ className={`flex flex-col h-screen transition-all duration-200 gpu-accelerate fl
           <NavLink
             key={item.label}
             to={item.path}
+            onClick={() => { if (isOpen) onClose?.(); }}
             title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 group ${isActive ? 'sx-active-nav' : 'sx-nav-item'}`
