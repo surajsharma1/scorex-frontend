@@ -94,7 +94,7 @@ function DashboardLayout({ children, user, logout, token, requireAdmin }: Dashbo
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[var(--bg-primary)]">
       
-      {/* FIXED: Hide this button completely when the sidebar is open */}
+{/* FIXED: Hide this button completely when the sidebar is open */}
       {!isSidebarOpen && (
         <button
           className="fixed top-4 left-4 z-50 p-2 rounded-xl md:hidden transition-transform hover:scale-105 active:scale-95 bg-transparent"
