@@ -93,8 +93,21 @@ body {
 .animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
 .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
 
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
 @layer utilities {
+  .gpu-accelerate {
+    transform: translateZ(0);
+    will-change: transform;
+  }
   .icon-fluid-xs { width: clamp(0.75rem, 2vw, 0.875rem); height: clamp(0.75rem, 2vw, 0.875rem); }
+
   .icon-fluid-sm { width: clamp(0.875rem, 2.5vw, 1rem); height: clamp(0.875rem, 2.5vw, 1rem); }
   .icon-fluid-base { width: clamp(1rem, 3vw, 1.125rem); height: clamp(1rem, 3vw, 1.125rem); }
 

@@ -54,7 +54,8 @@ export default function Sidebar({
 
   return (
 <aside
-      className={`flex flex-col h-screen transition-all duration-300 flex-shrink-0 ${collapsed ? 'w-14 xs:w-16' : 'w-[clamp(14rem,22vw,16rem)]'}`}
+className={`flex flex-col h-screen transition-all duration-200 gpu-accelerate flex-shrink-0 ${collapsed ? 'w-14 xs:w-16' : 'w-[clamp(14rem,22vw,16rem)]'}`}
+
       style={{ background: 'var(--bg-secondary)', borderRight: '1px solid var(--border)' }}
     >
       {/* Logo + Collapse / Mobile Close */}

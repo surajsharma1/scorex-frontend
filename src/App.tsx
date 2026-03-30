@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ThemeProvider from './components/ThemeProvider';
 import { useState, useEffect, createContext, useContext, lazy, Suspense } from 'react';
 import { ToastProvider } from './hooks/useToast';
@@ -152,12 +152,14 @@ export default function App() {
     }
   };
 
+  const navigate = useNavigate();
+
   const logout = () => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '/login';
+    navigate('/', { replace: true });
   };
 
   if (loading) return <LoadingSpinner />;

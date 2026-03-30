@@ -71,8 +71,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map(card => (
           <button key={card.label} onClick={card.action}
-            className="rounded-2xl p-5 text-left transition-all group hover:-translate-y-1 hover:scale-[1.02]"
-            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: `0 4px 24px ${card.glow}` }}>
+className="rounded-2xl p-5 text-left transition-all duration-200 gpu-accelerate group hover:-translate-y-1 hover:scale-102" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: `0 4px 24px ${card.glow}` }}>
             <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-3 shadow-lg`}>
               <card.icon className="w-5 h-5 text-white" />
             </div>
@@ -131,7 +130,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <button onClick={() => navigate(`/matches/${m._id}/score`)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600/90 to-orange-600/90 hover:from-red-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-red-500/30 transition-all duration-200 active:scale-95">
+className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600/90 to-orange-600/90 hover:from-red-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-red-500/30 transition-all duration-150 gpu-accelerate active:scale-98">
                   <Zap className="w-4 h-4" /> Live Score
                 </button>
               </div>

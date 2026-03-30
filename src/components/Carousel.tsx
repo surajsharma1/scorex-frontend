@@ -63,9 +63,10 @@ export default function Carousel() {
 
       {/* Scrolling Container */}
       <div className="overflow-hidden flex-1 ml-2">
-        <div className="animate-marquee flex items-center gap-8 whitespace-nowrap">
+        <div className="animate-marquee gpu-accelerate flex items-center gap-8 whitespace-nowrap">
           {/* Tripled list ensures seamless infinite scroll loop */}
           {[...items, ...items, ...items].map((t, i) => (
+
             <div key={`${t._id}-${i}`} className="flex items-center gap-2 text-xs font-medium">
               {t.status === 'ongoing' ? (
                 <span className="text-[10px] font-bold text-red-400">LIVE</span>
