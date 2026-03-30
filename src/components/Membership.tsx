@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useToast } from '../hooks/useToast';
 import { useAuth } from '../App';
 import FloatingOverlayPreview from './FloatingOverlayPreview';
 import { getBackendBaseUrl } from '../services/env';
@@ -97,7 +98,7 @@ const PLANS = [
 ] as const;
 
 export default function Membership() {
-  const { user } = useAuth();
+
   const [loading, setLoading] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<Duration>('1month');
   const [prices, setPrices] = useState(DEFAULT_PRICES);
@@ -183,8 +184,7 @@ export default function Membership() {
       };
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
-    } catch {
-      alert(`Razorpay integration — set your key.\nPlan: ${plan.name} | ${DURATION_LABELS[selectedDuration]} | ₹${prices[plan.level]?.[selectedDuration]}`);
+
     } finally { setLoading(null); }
   };
 
