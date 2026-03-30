@@ -98,7 +98,8 @@ const PLANS = [
 ] as const;
 
 export default function Membership() {
-
+  const { user } = useAuth();
+  const toast = useToast();
   const [loading, setLoading] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<Duration>('1month');
   const [prices, setPrices] = useState(DEFAULT_PRICES);
