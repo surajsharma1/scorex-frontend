@@ -89,36 +89,50 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
         borderRadius: '2rem 2rem 0 0',
         boxShadow: '0 8px 32px rgba(0,0,0,0.25)' 
       }}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={onBack} className="p-3 rounded-2xl hover:bg-[var(--bg-elevated)] transition-all shadow-md hover:shadow-lg" style={{ color: 'var(--text-primary)' }}>
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>{match.name}</h1>
-              <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {match.venue}</span>
-                <span className="flex items-center gap-1"><Shield className="w-4 h-4" /> {match.format}</span>
-              </div>
-            </div>
-          </div>
-          {openScoreboard ? (
-            <button onClick={openScoreboard}
-              className="flex items-center gap-2 px-6 py-3 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg"
-              style={{ 
-                background: 'linear-gradient(135deg, var(--success), #059669)', 
-                color: 'rgb(var(--text-primary))',
-                boxShadow: '0 4px 14px 0 rgba(34,197,94,0.4)'
-              }}>
-              <Zap className="w-4 h-4" /> Live Score
-            </button>
-          ) : (
-            <button onClick={() => setTab('scoreboard')}
-              className="flex items-center gap-2 px-6 py-3 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-gray-600 hover:bg-gray-500"
-              style={{ color: 'rgb(var(--text-primary))', boxShadow: '0 4px 14px 0 rgba(75,85,99,0.4)' }}>
-              <Zap className="w-4 h-4" /> View Scoreboard
-            </button>
-          )}
+<div className="flex flex-col gap-3">
+  <div className="flex items-center justify-between gap-2">
+    <div className="flex items-center gap-3 min-w-0">
+      <button onClick={onBack} className="p-2.5 rounded-2xl hover:bg-[var(--bg-elevated)] transition-all shrink-0" style={{ color: 'var(--text-primary)' }}>
+        <ArrowLeft className="w-5 h-5" />
+      </button>
+      <div className="min-w-0">
+        <h1 className="text-lg sm:text-2xl font-black truncate" style={{ color: 'var(--text-primary)' }}>{match.name}</h1>
+        <div className="flex items-center gap-3 text-xs sm:text-sm flex-wrap" style={{ color: 'var(--text-secondary)' }}>
+          {match.venue && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {match.venue}</span>}
+          <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5" /> {match.format}</span>
+        </div>
+      </div>
+    </div>
+{match.status === 'live' && isAuthorized ? (
+  <button
+    onClick={() => navigate(`/matches/${match._id}/score`)}
+    className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg text-sm"
+    style={{
+      background: 'linear-gradient(135deg, var(--success), #059669)',
+      color: '#000',
+      boxShadow: '0 4px 14px 0 rgba(34,197,94,0.4)'
+    }}>
+    <Zap className="w-4 h-4" /> Live Scoring
+  </button>
+) : match.status === 'live' ? (
+  <button
+    onClick={() => navigate(`/live/${match._id}`)}
+    className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg text-sm"
+    style={{
+      background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+      color: '#fff',
+      boxShadow: '0 4px 14px 0 rgba(239,68,68,0.4)'
+    }}>
+    <Zap className="w-4 h-4" /> Live Scoreboard
+  </button>
+) : (
+  <button
+    onClick={() => setTab('scoreboard')}
+    className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-slate-700 hover:bg-slate-600 text-sm"
+    style={{ color: 'var(--text-primary)' }}>
+    <Zap className="w-4 h-4" /> Scoreboard
+  </button>
+)}
           {isAuthorized && (
             <button
               onClick={handleDeleteMatch}
@@ -162,25 +176,31 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
         )}
 
         {/* Tabs */}
-        <div className="flex bg-[var(--bg-elevated)] border-t border-[var(--border)] px-6 py-3 -mx-6 mt-4">
-          {(['overview', 'scoreboard', 'players', 'leaderboard'] as const).map(t => {
-            const isActive = tab === t;
-            return (
-              <button key={t} onClick={() => setTab(t)}
-                className="flex-1 px-6 py-3 rounded-xl font-semibold transition-all relative"
-                style={isActive 
-                  ? { 
-                      background: 'linear-gradient(135deg, var(--accent), #059669)', 
-                      color: 'rgb(var(--text-primary))',
-                      boxShadow: '0 4px 12px rgba(34,197,94,0.3)'
-                    }
-                  : { color: 'var(--text-secondary)' }
-                }>
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            );
-          })}
-        </div>
+<div className="flex bg-[var(--bg-elevated)] border-t border-[var(--border)] px-2 py-2 -mx-6 mt-4 overflow-x-auto gap-1 scrollbar-none">
+  {(['overview', 'scoreboard', 'players', 'leaderboard'] as const).map(t => {
+    const isActive = tab === t;
+    const labels: Record<string, string> = {
+      overview: 'Overview',
+      scoreboard: 'Score',
+      players: 'Players',
+      leaderboard: 'Leaders',
+    };
+    return (
+      <button key={t} onClick={() => setTab(t)}
+        className="flex-shrink-0 flex-1 min-w-[70px] px-3 py-2.5 rounded-xl font-semibold transition-all text-sm whitespace-nowrap"
+        style={isActive
+          ? {
+              background: 'linear-gradient(135deg, var(--accent), #059669)',
+              color: '#000',
+              boxShadow: '0 4px 12px rgba(34,197,94,0.3)'
+            }
+          : { color: 'var(--text-secondary)' }
+        }>
+        {labels[t]}
+      </button>
+    );
+  })}
+</div>
       </div>
 
       {/* Scrollable Content */}
@@ -442,6 +462,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
         {/* LEADERBOARD */}
         {tab === 'leaderboard' && (
           <div className="space-y-6">
+
             {/* Batting */}
             <div className="rounded-2xl overflow-hidden" style={{ 
               background: 'var(--bg-card)', 
@@ -547,5 +568,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
         )}
       </div>
     </div>
+  </div>
   );
 }
+

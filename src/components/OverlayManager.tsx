@@ -93,20 +93,23 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   }, [tournamentId]);
 
   const fetchLiveMatches = async () => {
-    if (!tournamentId) return;
-    setMatchLoading(true);
-    try {
-      const res = await matchAPI.getMatches({ status: 'live', tournamentId });
-      setLiveMatches(res.data.data || res.data || []);
-      if ((res.data.data || res.data || []).length > 0 && !createForm.match) {
-        setCreateForm(prev => ({ ...prev, match: (res.data.data[0]._id || res.data[0]._id) }));
-      }
-    } catch (e) {
-      console.error('Failed to load live matches', e);
-    } finally {
-      setMatchLoading(false);
+  if (!tournamentId) return;
+  setMatchLoading(true);
+  try {
+    // Fetch ALL matches for this tournament (not just live), so scorer can pick any
+    const res = await matchAPI.getMatches({ tournamentId });
+    const all = res.data.data || res.data || [];
+    setLiveMatches(all);
+    const firstLive = all.find((m: any) => m.status === 'live');
+    if (firstLive && !createForm.match) {
+      setCreateForm(prev => ({ ...prev, match: firstLive._id }));
     }
-  };
+  } catch (e) {
+    console.error('Failed to load matches', e);
+  } finally {
+    setMatchLoading(false);
+  }
+};
 
   const loadData = async () => {
     setLoading(true);
@@ -241,14 +244,14 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
             </div>
             <div className="flex-1 w-full">
               <label className="block text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Live Match (for real scoreboard data)</label>
-              <select value={createForm.match} onChange={e=>setCreateForm({...createForm, match: e.target.value})} className="w-full p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-white outline-none focus:border-green-500 transition-colors appearance-none font-semibold">
-                <option value="">Auto-detect live match</option>
-                {liveMatches.map((m: any) => (
-                  <option key={m._id} value={m._id}>
-                    {m.name} ({m.status?.toUpperCase()})
-                  </option>
-                ))}
-              </select>
+<select value={createForm.match} onChange={e => setCreateForm({...createForm, match: e.target.value})} className="w-full p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-white outline-none focus:border-green-500 transition-colors appearance-none font-semibold">
+  <option value="">-- Select a match --</option>
+  {liveMatches.map((m: any) => (
+    <option key={m._id} value={m._id}>
+      {m.name || `${m.team1?.name} vs ${m.team2?.name}`} {m.status === 'live' ? '🔴 LIVE' : `(${m.status})`}
+    </option>
+  ))}
+</select>
             </div>
             <div className="flex-1 w-full">
               <label className="block text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Select Base Template</label>
