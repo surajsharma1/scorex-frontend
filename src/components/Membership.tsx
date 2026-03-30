@@ -179,15 +179,7 @@ export default function Membership() {
       const order = res.data;
       
       // Check Razorpay SDK & key
-      const Razorpay = (window as any).Razorpay;
-      const key = (window as any).__RAZORPAY_KEY__;
-
-      
-      if (!Razorpay) {        addToast({ type: 'error', message: '❌ Razorpay SDK not loaded. Refresh page.' });        return;      }
-      if (!key || key.length < 10) {
-        addToast({ type: 'error', message: '❌ Payment key invalid. Contact admin.' });
-        return;
-      }
+      const Razorpay = (window as any).Razorpay;\n      const key = (window as any).__RAZORPAY_KEY__;\n\n      \n      if (!Razorpay) {\n        addToast({ type: 'error', message: 'Error: Razorpay SDK not loaded. Refresh page.' });\n        return;\n      }\n      if (!key || key.length < 10) {\n        addToast({ type: 'error', message: 'Error: Payment key invalid. Contact admin.' });\n        return;\n      }
       
       addToast({ type: 'success', message: 'Opening payment gateway...' });
 
