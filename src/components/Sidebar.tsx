@@ -2,15 +2,13 @@ import { useState, useEffect } from 'react';
 import { useTheme } from './ThemeProvider';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Trophy, Zap, CreditCard,
+  LayoutDashboard, Trophy, Zap, Users, CreditCard,
   Building2, UserPlus, User, Sun, Moon, LogOut,
   ChevronLeft, ChevronRight, Shield
 } from 'lucide-react';
-import type { AuthUser } from '../App';
-
 
 interface SidebarProps {
-  user: AuthUser | null;
+  user: any;
   logout: () => void;
   isOpen?: boolean;
   onClose?: () => void;
@@ -20,10 +18,8 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard',    path: '/dashboard' },
   { icon: Trophy,          label: 'Tournament',   path: '/tournaments' },
   { icon: Zap,             label: 'Live Match',   path: '/live' },
-
   { icon: CreditCard,      label: 'Membership',   path: '/membership' },
-{ icon: Building2,       label: 'Clubs',        path: '/clubs' },
-
+  { icon: Building2,       label: 'Clubs',        path: '/clubs' },
   { icon: UserPlus,        label: 'Friends',      path: '/friends' },
   { icon: User,            label: 'Profile',      path: '/profile' },
 ];
@@ -35,52 +31,45 @@ export default function Sidebar({
   onClose 
 }: SidebarProps) {
   const navigate = useNavigate();
-const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const { isDark, toggleTheme } = useTheme();
 
-  // Sync sidebar width var
-  useEffect(() => {
-    document.documentElement.style.setProperty('--sidebar-current-width', collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-width)');
-  }, [collapsed]);
-
-  // Auto-collapse on mobile when menu closes
   useEffect(() => {
     if (!isOpen) {
       setCollapsed(false);
     }
   }, [isOpen]);
 
-
-
   const handleLogout = () => { logout(); };
   const isAdmin = user?.role === 'admin';
 
   return (
-<aside
-className={`flex flex-col h-screen transition-all duration-300 gpu-accelerate flex-shrink-0 
-        fixed md:relative z-40 transform ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} 
-        ${collapsed ? 'w-[var(--sidebar-collapsed)]' : 'w-[var(--sidebar-width)]'}`}
-
-
+    <aside
+      className={`flex flex-col h-full flex-shrink-0 transition-transform duration-300 z-40 
+        fixed inset-y-0 left-0 md:relative md:translate-x-0
+        ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+        ${collapsed ? 'w-[4.5rem]' : 'w-64 md:w-[clamp(14rem,22vw,16rem)]'}
+      `}
       style={{ background: 'var(--bg-secondary)', borderRight: '1px solid var(--border)' }}
     >
       {/* Logo + Collapse / Mobile Close */}
       <div className="flex items-center justify-between p-4 min-h-[64px]" style={{ borderBottom: '1px solid var(--border)' }}>
-        {/* Mobile close button */}
+        
+        {/* Mobile close button with Neon Glow */}
         {isOpen && (
           <button 
             onClick={onClose}
-            className="p-1 -ml-1 rounded-lg hover:bg-[#39ff14]/10 md:hidden transition-colors"
+            className="p-1 -ml-1 rounded-lg hover:bg-[#39ff14]/10 md:hidden transition-colors bg-transparent"
           >
-            <svg className="icon-fluid-sm text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="w-6 h-6 text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         )}
         
         {/* Logo */}
         {!collapsed && (
-<div className="flex items-center gap-1.5 xs:gap-2 group cursor-pointer" onClick={() => navigate('/dashboard')}>
+          <div className="flex items-center gap-1.5 xs:gap-2 group cursor-pointer" onClick={() => navigate('/dashboard')}>
             <div className="relative">
               <div className="w-[clamp(1.75rem,6vw,2.25rem)] h-[clamp(1.75rem,6vw,2.25rem)] bg-gradient-to-tr from-green-600 to-emerald-400 rounded-lg flex items-center justify-center font-black text-black text-[clamp(0.625rem,2vw,0.875rem)] shadow-lg shadow-green-500/20">
                 S
@@ -98,23 +87,20 @@ className={`flex flex-col h-screen transition-all duration-300 gpu-accelerate fl
           </div>
         )}
         
-        {/* Desktop collapse button */}
+        {/* Desktop collapse button with Neon Glow */}
         {!collapsed && !isOpen && (
-          <button onClick={() => setCollapsed(true)} className="p-1 rounded-lg transition-all hover:bg-[#39ff14]/10 hidden md:block">
+          <button onClick={() => setCollapsed(true)} className="p-1 rounded-lg transition-all hover:bg-[#39ff14]/10 hidden md:block bg-transparent">
             <ChevronLeft className="icon-fluid-xs text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.8)]" />
           </button>
         )}
       </div>
 
-      {/* Desktop expand button */}
+      {/* Desktop expand button with Neon Glow */}
       {collapsed && (
-        <button onClick={() => setCollapsed(false)} className="hidden md:flex justify-center py-2 transition-all hover:bg-[#39ff14]/10 w-full" style={{ borderBottom: '1px solid var(--border)' }}>
+        <button onClick={() => setCollapsed(false)} className="hidden md:flex justify-center py-2 transition-all hover:bg-[#39ff14]/10 w-full bg-transparent" style={{ borderBottom: '1px solid var(--border)' }}>
           <ChevronRight className="icon-fluid-xs text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.8)]" />
         </button>
       )}
-
-
-
 
       {/* User info */}
       {!collapsed && user && (
@@ -157,7 +143,7 @@ className={`flex flex-col h-screen transition-all duration-300 gpu-accelerate fl
           </NavLink>
         ))}
 
-        {/* Admin Panel — only for admin users */}
+        {/* Admin Panel */}
         {isAdmin && (
           <NavLink
             to="/admin"
@@ -172,7 +158,7 @@ className={`flex flex-col h-screen transition-all duration-300 gpu-accelerate fl
           >
             {({ isActive }) => (
               <>
-          <Shield className="icon-fluid-base flex-shrink-0" style={isActive ? { color: '#f87171' } : { color: '#f87171' }} />
+                <Shield className="icon-fluid-base flex-shrink-0" style={isActive ? { color: '#f87171' } : { color: '#f87171' }} />
                 {!collapsed && <span className="fluid-sm font-medium" style={{ color: '#f87171' }}>Admin Panel</span>}
                 {!collapsed && <span className="ml-auto px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">ADMIN</span>}
               </>
@@ -208,4 +194,3 @@ className={`flex flex-col h-screen transition-all duration-300 gpu-accelerate fl
     </aside>
   );
 }
-
