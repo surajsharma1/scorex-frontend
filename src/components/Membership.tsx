@@ -99,7 +99,9 @@ const PLANS = [
 
 export default function Membership() {
   const { user } = useAuth();
-  const toast = useToast();
+  const { addToast } = useToast();
+
+
   const [loading, setLoading] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<Duration>('1month');
   const [prices, setPrices] = useState(DEFAULT_PRICES);
@@ -164,30 +166,81 @@ export default function Membership() {
 
   const handleUpgrade = async (plan: typeof PLANS[number]) => {
     if (plan.level === 0) return;
-    setLoading(plan.name);
+    
+    setLoading('paying');
+    
     try {
+      addToast({ type: 'success', message: 'Creating secure payment order...' });
+
+
+      
       const amount = prices[plan.level][selectedDuration];
       const res = await paymentAPI.createRazorpayOrder(amount, plan.name);
       const order = res.data;
-      const options = {
-        key: (window as any).__RAZORPAY_KEY__ || '',
+      
+      // Check Razorpay SDK & key
+      const Razorpay = (window as any).Razorpay;
+      const key = (window as any).__RAZORPAY_KEY__;
+
+      
+      if (!Razorpay) {        addToast({ type: 'error', message: '❌ Razorpay SDK not loaded. Refresh page.' });        return;      }
+      if (!key || key.length < 10) {
+        addToast({ type: 'error', message: '❌ Payment key invalid. Contact admin.' });
+        return;
+      }
+      
+      addToast({ type: 'success', message: 'Opening payment gateway...' });
+
+      
+      const options: any = {
+        key,
         amount: order.amount,
         currency: 'INR',
-        name: 'ScoreX',
-        description: `${plan.name} — ${DURATION_LABELS[selectedDuration]}`,
+        name: 'ScoreX Pro',
+        description: `${plan.name} (${DURATION_LABELS[selectedDuration]})`,
         order_id: order.id,
         handler: async (response: any) => {
-          await paymentAPI.verifyRazorpayPayment({ ...response, plan: plan.name, duration: selectedDuration });
-          window.location.reload();
-        },
-        prefill: { name: user?.username, email: user?.email },
-        theme: { color: '#22c55e' },
-      };
-      const rzp = new (window as any).Razorpay(options);
-      rzp.open();
+            addToast({ type: 'success', message: 'Securing membership...' });
 
-    } finally { setLoading(null); }
+          try {
+            await paymentAPI.verifyRazorpayPayment({ 
+              ...response, 
+              plan: plan.name, 
+              duration: selectedDuration 
+            });
+            addToast({ type: 'success', message: '🎉 Membership activated! Refreshing...' });
+
+            setTimeout(() => window.location.reload(), 1200);
+          } catch (verifyErr) {
+            addToast({ type: 'error', message: 'Payment OK but membership sync failed' });
+
+            console.error(verifyErr);
+          }
+        },
+        prefill: { 
+          name: user?.username || user?.fullName || '',
+          email: user?.email || '',
+          contact: ''
+        },
+        theme: { color: '#22c55e' },
+        modal: {
+          ondismiss: function() {
+            addToast({ type: 'success', message: 'Payment dismissed. Try again anytime!' });
+          }
+        }
+      };
+      
+      const rzp = new Razorpay(options);
+      rzp.open();
+      
+    } catch (error: any) {
+      console.error('[Upgrade Error]', error);
+      addToast({ type: 'error', message: error.message || 'Payment setup failed. Try again.' });
+    } finally {
+      if (loading === 'paying') setLoading(null);
+    }
   };
+
 
   return (
     <div
@@ -395,7 +448,9 @@ export default function Membership() {
                   {/* CTA button */}
                   <button
                     onClick={() => handleUpgrade(plan)}
-                  disabled={loading === plan.name || isLower}
+                    disabled={!!loading || isLower}
+
+
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all disabled:cursor-not-allowed hover:scale-[1.02] hover:shadow-lg"
                     style={
                       isCurrent
@@ -415,9 +470,10 @@ export default function Membership() {
                     }
                   >
                     {loading === plan.name
-                      ? 'Processing…'
+                      ? (loading ? 'Processing...' : 'Extend Now')
                       : isCurrent
                       ? `Extend ${plan.name}`
+
                       : isLower
                       ? 'Downgrade'
                       : plan.level === 0
@@ -487,3 +543,5 @@ export default function Membership() {
     </div>
   );
 }
+
+
