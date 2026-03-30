@@ -49,7 +49,7 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBo
                 🏠 Go Home
               </a>
             </div>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="mt-8 p-4 bg-red-900/50 border border-red-500/50 rounded-xl text-sm">
                 <summary className="cursor-pointer font-medium mb-2">Error Details (Dev)</summary>
                 <pre className="text-red-200 whitespace-pre-wrap">{this.state.error?.stack}</pre>
@@ -65,5 +65,3 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBo
 }
 
 export default ErrorBoundary;
-</xai:function_call name="edit_file">
-<parameter name="path">scorex-frontend/scorex-frontend/src/App.tsx

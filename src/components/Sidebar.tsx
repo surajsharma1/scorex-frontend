@@ -90,7 +90,7 @@ className={`flex flex-col h-screen transition-all duration-200 gpu-accelerate fl
         )}
         
         {/* Desktop collapse button */}
-        {!collapsed && !isMobileMenuOpen && (
+        {!collapsed && !isOpen && (
           <button onClick={() => setCollapsed(true)} className="p-1 rounded-lg transition-all hover:bg-green-500/10" style={{ color: 'var(--text-muted)' }}>
             <ChevronLeft className="icon-fluid-xs" />
           </button>
