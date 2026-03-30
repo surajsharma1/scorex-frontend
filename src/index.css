@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+.sidebar-open {
+  overflow: hidden;
+}
+
+.sidebar-open html,
+.sidebar-open body {
+  overflow: hidden;
+}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; font-size: 16px; }
 @media (max-width: 640px) { html { font-size: 15px; } }
@@ -53,6 +62,30 @@ body {
   line-height: 1.6;
 }
 
+/* Mobile Sidebar Styles */
+@media (max-width: 767px) {
+  aside {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    w-full h-screen;
+  }
+
+  .sidebar-open aside {
+    transform: translateX(0);
+  }
+
+  .mobile-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+}
+
 /* Responsive padding utilities */
 .p-responsive { @apply p-2 xs:p-3 sm:p-4 lg:p-6 xl:p-8; }
 .px-responsive { @apply px-2 xs:px-3 sm:px-4 lg:px-6 xl:px-8; }
@@ -102,9 +135,21 @@ body {
 }
 
 @layer utilities {
-  .gpu-accelerate {
+.gpu-accelerate {
     transform: translateZ(0);
     will-change: transform;
+  }
+
+  /* Improved mobile hamburger button */
+  .mobile-hamburger {
+    @apply ring-2 ring-offset-2 ring-green-400/30 shadow-xl;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+  }
+
+  html.light .mobile-hamburger {
+    background: rgba(13, 26, 18, 0.95) !important;
+    ring-green-500/40;
   }
   .icon-fluid-xs { width: clamp(0.75rem, 2vw, 0.875rem); height: clamp(0.75rem, 2vw, 0.875rem); }
 

@@ -11,9 +11,7 @@ interface SidebarProps {
   user: any;
   logout: () => void;
   isOpen?: boolean;
-  onToggle?: () => void;
-  isMobileMenuOpen?: boolean;
-  toggleMobileMenu?: () => void;
+  onClose?: () => void;
 }
 
 const navItems = [
@@ -32,20 +30,18 @@ export default function Sidebar({
   user, 
   logout, 
   isOpen = false, 
-  onToggle, 
-  isMobileMenuOpen = false,
-  toggleMobileMenu 
+  onClose 
 }: SidebarProps) {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const { isDark, toggleTheme } = useTheme();
 
-  // Auto-collapse on mobile when menu closes
+// Auto-collapse on mobile when menu closes
   useEffect(() => {
-    if (!isMobileMenuOpen) {
+    if (!isOpen) {
       setCollapsed(false);
     }
-  }, [isMobileMenuOpen]);
+  }, [isOpen]);
 
 
 
@@ -61,9 +57,9 @@ className={`flex flex-col h-screen transition-all duration-200 gpu-accelerate fl
       {/* Logo + Collapse / Mobile Close */}
       <div className="flex items-center justify-between p-4 min-h-[64px]" style={{ borderBottom: '1px solid var(--border)' }}>
         {/* Mobile close button */}
-        {isMobileMenuOpen && (
+        {isOpen && (
           <button 
-            onClick={toggleMobileMenu}
+            onClick={onClose}
             className="p-1 -ml-1 rounded-lg hover:bg-slate-800/50 md:hidden transition-colors"
             style={{ color: 'var(--text-muted)' }}
           >

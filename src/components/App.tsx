@@ -41,6 +41,26 @@ function App() {
   const DashboardLayout = () => {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
 
+    const toggleSidebar = () => {
+      setSidebarOpen(prev => {
+        const willOpen = !prev;
+        if (willOpen) {
+          document.documentElement.classList.add('sidebar-open');
+          document.body.classList.add('sidebar-open');
+        } else {
+          document.documentElement.classList.remove('sidebar-open');
+          document.body.classList.remove('sidebar-open');
+        }
+        return willOpen;
+      });
+    };
+
+    const closeSidebar = () => {
+      setSidebarOpen(false);
+      document.documentElement.classList.remove('sidebar-open');
+      document.body.classList.remove('sidebar-open');
+    };
+
     const logout = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -48,15 +68,21 @@ function App() {
     };
 
     return (
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white overflow-hidden">
+      <div className={`flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white overflow-hidden ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+        {isSidebarOpen && (
+          <div 
+            className="mobile-sidebar-backdrop md:hidden fixed inset-0 z-30"
+            onClick={closeSidebar}
+          />
+        )}
         <button 
-          className="fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md md:hidden"
-          onClick={() => setSidebarOpen(!isSidebarOpen)}
+          className="mobile-hamburger fixed top-4 left-4 z-50 p-3 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 md:hidden transition-all hover:scale-105 active:scale-95"
+          onClick={toggleSidebar}
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-6 h-6 text-gray-800 dark:text-gray-200" />
         </button>
-        <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onToggle={() => setSidebarOpen(false)} />
-        <main className="flex-1 md:ml-64 h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
+        <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onClose={closeSidebar} />
+        <main className="flex-1 md:ml-[16rem] h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
           <Outlet />
         </main>
       </div>
