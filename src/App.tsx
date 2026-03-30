@@ -74,6 +74,61 @@ function ToastWrapper({ children }: { children: React.ReactNode }) {
   return <ToastProvider>{children}</ToastProvider>;
 }
 
+// New stable DashboardLayout component (moved outside App)
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  user: AuthUser | null;
+  logout: () => void;
+  token: string | null;
+  requireAdmin?: boolean;
+}
+
+function DashboardLayout({ children, user, logout, token, requireAdmin }: DashboardLayoutProps) {
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  if (!token) return <Navigate to="/login" replace />;
+  if (requireAdmin && user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
+
+  const toggleSidebar = () => {
+    setSidebarOpen(prev => {
+      const willOpen = !prev;
+      document.documentElement.classList.toggle('sidebar-open', willOpen);
+      document.body.classList.toggle('sidebar-open', willOpen);
+      return willOpen;
+    });
+  };
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+    document.documentElement.classList.remove('sidebar-open');
+    document.body.classList.remove('sidebar-open');
+  };
+
+  return (
+    <div className={`flex h-screen overflow-hidden bg-[var(--bg-primary)] ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+      <button
+        className="mobile-hamburger fixed top-4 left-4 z-50 p-3 rounded-xl shadow-2xl md:hidden transition-all hover:scale-105 active:scale-95"
+        onClick={toggleSidebar}
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      {isSidebarOpen && (
+        <div className="mobile-sidebar-backdrop md:hidden fixed inset-0 z-30" onClick={closeSidebar} />
+      )}
+
+      <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onClose={closeSidebar} />
+      <main className="flex-1 md:ml-[16rem] h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
+        <Suspense fallback={<LoadingSpinner />}>
+          {children}
+        </Suspense>
+      </main>
+    </div>
+  );
+}
+
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -181,117 +236,6 @@ export default function App() {
     return <>{children}</>;
   };
 
-  const AdminDashboardRoute = ({ children }: { children: React.ReactNode }) => {
-    if (!token) return <Navigate to="/login" replace />;
-    if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
-
-    const [isSidebarOpen, setSidebarOpen] = useState(false);
-
-    const toggleSidebar = () => {
-      setSidebarOpen(prev => {
-        const willOpen = !prev;
-        if (willOpen) {
-          document.documentElement.classList.add('sidebar-open');
-          document.body.classList.add('sidebar-open');
-        } else {
-          document.documentElement.classList.remove('sidebar-open');
-          document.body.classList.remove('sidebar-open');
-        }
-        return willOpen;
-      });
-    };
-
-    const closeSidebar = () => {
-      setSidebarOpen(false);
-      document.documentElement.classList.remove('sidebar-open');
-      document.body.classList.remove('sidebar-open');
-    };
-
-    return (
-      <div className={`flex h-screen overflow-hidden bg-[var(--bg-primary)] ${isSidebarOpen ? 'sidebar-open' : ''}`}>
-        {/* Mobile hamburger */}
-        <button
-          className="mobile-hamburger fixed top-4 left-4 z-50 p-3 rounded-xl shadow-2xl md:hidden transition-all hover:scale-105 active:scale-95"
-          onClick={toggleSidebar}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-
-        {/* Mobile backdrop */}
-        {isSidebarOpen && (
-          <div
-            className="mobile-sidebar-backdrop md:hidden fixed inset-0 z-30"
-            onClick={closeSidebar}
-          />
-        )}
-
-        <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onClose={closeSidebar} />
-        <main className="flex-1 md:ml-[16rem] h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
-          <Suspense fallback={<LoadingSpinner />}>
-            {children}
-          </Suspense>
-        </main>
-      </div>
-    );
-  };
-
-const ProtectedDashboardRoute = ({ children }: { children: React.ReactNode }) => {
-    if (!token) return <Navigate to="/login" replace />;
-
-    const [isSidebarOpen, setSidebarOpen] = useState(false);
-
-    const toggleSidebar = () => {
-      setSidebarOpen(prev => {
-        const willOpen = !prev;
-        if (willOpen) {
-          document.documentElement.classList.add('sidebar-open');
-          document.body.classList.add('sidebar-open');
-        } else {
-          document.documentElement.classList.remove('sidebar-open');
-          document.body.classList.remove('sidebar-open');
-        }
-        return willOpen;
-      });
-    };
-
-    const closeSidebar = () => {
-      setSidebarOpen(false);
-      document.documentElement.classList.remove('sidebar-open');
-      document.body.classList.remove('sidebar-open');
-    };
-
-    return (
-      <div className={`flex h-screen overflow-hidden bg-[var(--bg-primary)] ${isSidebarOpen ? 'sidebar-open' : ''}`}>
-        {/* Mobile hamburger */}
-        <button
-          className="mobile-hamburger fixed top-4 left-4 z-50 p-3 rounded-xl shadow-2xl md:hidden transition-all hover:scale-105 active:scale-95"
-          onClick={toggleSidebar}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-
-        {/* Mobile backdrop */}
-        {isSidebarOpen && (
-          <div
-            className="mobile-sidebar-backdrop md:hidden fixed inset-0 z-30"
-            onClick={closeSidebar}
-          />
-        )}
-
-        <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onClose={closeSidebar} />
-        <main className="flex-1 md:ml-[16rem] h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
-          <Suspense fallback={<LoadingSpinner />}>
-            {children}
-          </Suspense>
-        </main>
-      </div>
-    );
-  };
-
   return (
     <ErrorBoundary>
       <ThemeProvider>
@@ -306,27 +250,121 @@ const ProtectedDashboardRoute = ({ children }: { children: React.ReactNode }) =>
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
                 <Route path="/oauth/callback" element={<OAuthCallback />} />
-                <Route path="/dashboard" element={<ProtectedDashboardRoute><Dashboard /></ProtectedDashboardRoute>} />
 
-                <Route path="/live" element={<ProtectedDashboardRoute><LiveMatches /></ProtectedDashboardRoute>} />
-
-                <Route path="/profile" element={<ProtectedDashboardRoute><Profile /></ProtectedDashboardRoute>} />
-                
-                <Route path="/tournaments" element={<ProtectedDashboardRoute><TournamentList /></ProtectedDashboardRoute>} />
-                <Route path="/tournaments/create" element={<ProtectedDashboardRoute><TournamentForm /></ProtectedDashboardRoute>} />
-                <Route path="/tournaments/:id" element={<ProtectedDashboardRoute><TournamentView /></ProtectedDashboardRoute>} />
-                
-                <Route path="/membership" element={<ProtectedDashboardRoute><Membership /></ProtectedDashboardRoute>} />
-                <Route path="/clubs" element={<ProtectedDashboardRoute><ClubList /></ProtectedDashboardRoute>} />
-                <Route path="/clubs/create" element={<ProtectedDashboardRoute><CreateClubForm /></ProtectedDashboardRoute>} />
-                <Route path="/clubs/:id/manage" element={<ProtectedDashboardRoute><ClubManagement /></ProtectedDashboardRoute>} />
-                <Route path="/clubs/:id" element={<ProtectedDashboardRoute><ClubDetail /></ProtectedDashboardRoute>} />
-
-                <Route path="/friends" element={<ProtectedDashboardRoute><FriendList /></ProtectedDashboardRoute>} />
-                <Route path="/leaderboard" element={<ProtectedDashboardRoute><Leaderboard /></ProtectedDashboardRoute>} />
-                
+                {/* Protected Dashboard Routes */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <Dashboard />
+                    </DashboardLayout>
+                  }
+                />
+                <Route
+                  path="/live"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <LiveMatches />
+                    </DashboardLayout>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <Profile />
+                    </DashboardLayout>
+                  }
+                />
+                <Route
+                  path="/tournaments"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <TournamentList />
+                    </DashboardLayout>
+                  }
+                />
+                <Route
+                  path="/tournaments/create"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <TournamentForm />
+                    </DashboardLayout>
+                  }
+                />
+                <Route
+                  path="/tournaments/:id"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <TournamentView />
+                    </DashboardLayout>
+                  }
+                />
+                <Route
+                  path="/membership"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <Membership />
+                    </DashboardLayout>
+                  }
+                />
+                <Route
+                  path="/clubs"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <ClubList />
+                    </DashboardLayout>
+                  }
+                />
+                <Route
+                  path="/clubs/create"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <CreateClubForm />
+                    </DashboardLayout>
+                  }
+                />
+                <Route
+                  path="/clubs/:id/manage"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <ClubManagement />
+                    </DashboardLayout>
+                  }
+                />
+                <Route
+                  path="/clubs/:id"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <ClubDetail />
+                    </DashboardLayout>
+                  }
+                />
+                <Route
+                  path="/friends"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <FriendList />
+                    </DashboardLayout>
+                  }
+                />
+                <Route
+                  path="/leaderboard"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token}>
+                      <Leaderboard />
+                    </DashboardLayout>
+                  }
+                />
                 {/* Admin */}
-                <Route path="/admin" element={<AdminDashboardRoute><AdminPanel /></AdminDashboardRoute>} />
+                <Route
+                  path="/admin"
+                  element={
+                    <DashboardLayout user={user} logout={logout} token={token} requireAdmin>
+                      <AdminPanel />
+                    </DashboardLayout>
+                  }
+                />
 
                 {/* Live scoring (full screen, no sidebar) */}
                 <Route path="/matches/:id/score" element={
