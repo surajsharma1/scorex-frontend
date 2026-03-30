@@ -74,7 +74,7 @@ function ToastWrapper({ children }: { children: React.ReactNode }) {
   return <ToastProvider>{children}</ToastProvider>;
 }
 
-// New stable DashboardLayout component (moved outside App)
+// Fixed DashboardLayout component
 interface DashboardLayoutProps {
   children: React.ReactNode;
   user: AuthUser | null;
@@ -106,21 +106,26 @@ function DashboardLayout({ children, user, logout, token, requireAdmin }: Dashbo
 
   return (
     <div className={`flex h-screen overflow-hidden bg-[var(--bg-primary)] ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+      
+      {/* FIXED: Neon Green Mobile Hamburger Button */}
       <button
-        className="mobile-hamburger fixed top-4 left-4 z-50 p-3 rounded-xl shadow-2xl md:hidden transition-all hover:scale-105 active:scale-95"
+        className="mobile-hamburger fixed top-4 left-4 z-50 p-2 md:p-3 rounded-xl bg-gray-900/80 backdrop-blur-sm border border-[#39ff14]/30 shadow-[0_0_10px_rgba(57,255,20,0.15)] md:hidden transition-all hover:scale-105 active:scale-95"
         onClick={toggleSidebar}
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-6 h-6 text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
 
+      {/* FIXED: Added a slightly darker backdrop for mobile menu overlay */}
       {isSidebarOpen && (
-        <div className="mobile-sidebar-backdrop md:hidden fixed inset-0 z-30" onClick={closeSidebar} />
+        <div className="mobile-sidebar-backdrop md:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm" onClick={closeSidebar} />
       )}
 
       <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onClose={closeSidebar} />
-      <main className="flex-1 md:ml-[var(--sidebar-current-width)] h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
+      
+      {/* FIXED: Removed md:ml-[var(--sidebar-current-width)]. Flex-1 natively fills the space perfectly now. */}
+      <main className="flex-1 w-full h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-20 md:pt-8 relative z-10">
         <Suspense fallback={<LoadingSpinner />}>
           {children}
         </Suspense>
@@ -141,7 +146,6 @@ export default function App() {
     if (t) {
       setToken(t);
       
-      // Robust localStorage user parse
       if (u) {
         try {
           const userData = typeof u === 'string' ? JSON.parse(u) : u;
@@ -159,18 +163,14 @@ export default function App() {
               fullName: userData.fullName
             });
           } else {
-            console.warn('Invalid user data in localStorage:', userData);
             localStorage.removeItem('user');
           }
         } catch(e) {
-          console.error("Failed to parse user from localStorage, clearing:", e);
           localStorage.removeItem('user');
         }
       }
       
-      // Validate token before API call
       api.get('/auth/me').then(res => {
-        console.log('Auth/me success');
         const userData = res.data?.data;
         if (userData && (userData.username || userData.email)) {
           setUser({
@@ -188,7 +188,6 @@ export default function App() {
           localStorage.setItem('user', JSON.stringify(userData));
         }
       }).catch(err => {
-        console.error('Auth/me failed:', err.response?.status, err.message);
         setToken(null);
         setUser(null);
         localStorage.removeItem('token');
@@ -252,121 +251,24 @@ export default function App() {
                 <Route path="/oauth/callback" element={<OAuthCallback />} />
 
                 {/* Protected Dashboard Routes */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <Dashboard />
-                    </DashboardLayout>
-                  }
-                />
-                <Route
-                  path="/live"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <LiveMatches />
-                    </DashboardLayout>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <Profile />
-                    </DashboardLayout>
-                  }
-                />
-                <Route
-                  path="/tournaments"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <TournamentList />
-                    </DashboardLayout>
-                  }
-                />
-                <Route
-                  path="/tournaments/create"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <TournamentForm />
-                    </DashboardLayout>
-                  }
-                />
-                <Route
-                  path="/tournaments/:id"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <TournamentView />
-                    </DashboardLayout>
-                  }
-                />
-                <Route
-                  path="/membership"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <Membership />
-                    </DashboardLayout>
-                  }
-                />
-                <Route
-                  path="/clubs"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <ClubList />
-                    </DashboardLayout>
-                  }
-                />
-                <Route
-                  path="/clubs/create"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <CreateClubForm />
-                    </DashboardLayout>
-                  }
-                />
-                <Route
-                  path="/clubs/:id/manage"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <ClubManagement />
-                    </DashboardLayout>
-                  }
-                />
-                <Route
-                  path="/clubs/:id"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <ClubDetail />
-                    </DashboardLayout>
-                  }
-                />
-                <Route
-                  path="/friends"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <FriendList />
-                    </DashboardLayout>
-                  }
-                />
-                <Route
-                  path="/leaderboard"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token}>
-                      <Leaderboard />
-                    </DashboardLayout>
-                  }
-                />
+                <Route path="/dashboard" element={<DashboardLayout user={user} logout={logout} token={token}><Dashboard /></DashboardLayout>} />
+                <Route path="/live" element={<DashboardLayout user={user} logout={logout} token={token}><LiveMatches /></DashboardLayout>} />
+                <Route path="/profile" element={<DashboardLayout user={user} logout={logout} token={token}><Profile /></DashboardLayout>} />
+                <Route path="/tournaments" element={<DashboardLayout user={user} logout={logout} token={token}><TournamentList /></DashboardLayout>} />
+                <Route path="/tournaments/create" element={<DashboardLayout user={user} logout={logout} token={token}><TournamentForm /></DashboardLayout>} />
+                <Route path="/tournaments/:id" element={<DashboardLayout user={user} logout={logout} token={token}><TournamentView /></DashboardLayout>} />
+                <Route path="/membership" element={<DashboardLayout user={user} logout={logout} token={token}><Membership /></DashboardLayout>} />
+                <Route path="/clubs" element={<DashboardLayout user={user} logout={logout} token={token}><ClubList /></DashboardLayout>} />
+                <Route path="/clubs/create" element={<DashboardLayout user={user} logout={logout} token={token}><CreateClubForm /></DashboardLayout>} />
+                <Route path="/clubs/:id/manage" element={<DashboardLayout user={user} logout={logout} token={token}><ClubManagement /></DashboardLayout>} />
+                <Route path="/clubs/:id" element={<DashboardLayout user={user} logout={logout} token={token}><ClubDetail /></DashboardLayout>} />
+                <Route path="/friends" element={<DashboardLayout user={user} logout={logout} token={token}><FriendList /></DashboardLayout>} />
+                <Route path="/leaderboard" element={<DashboardLayout user={user} logout={logout} token={token}><Leaderboard /></DashboardLayout>} />
+                
                 {/* Admin */}
-                <Route
-                  path="/admin"
-                  element={
-                    <DashboardLayout user={user} logout={logout} token={token} requireAdmin>
-                      <AdminPanel />
-                    </DashboardLayout>
-                  }
-                />
+                <Route path="/admin" element={<DashboardLayout user={user} logout={logout} token={token} requireAdmin><AdminPanel /></DashboardLayout>} />
 
-                {/* Live scoring (full screen, no sidebar) */}
+                {/* Live scoring */}
                 <Route path="/matches/:id/score" element={
                   <ProtectedRoute>
                     <Suspense fallback={<LoadingSpinner />}>

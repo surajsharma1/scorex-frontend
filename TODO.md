@@ -1,10 +1,8 @@
-# Sidebar Enhancement Plan
+# ScoreX Frontend Task: Fix App Layout & Mobile Sidebar ✅
 
-## [x] 1. Add CSS classes and sidebar vars to src/index.css
-## [x] 2. Update src/components/Sidebar.tsx (types, classes, integrate task version)
-## [x] 3. Update src/App.tsx (AuthUser type, dynamic sidebar width)
-## [x] 4. Test: cd scorex-frontend/scorex-frontend && npm run dev
-## [x] 5. Verify mobile/desktop collapse, theme, nav active, admin conditional
-
-**Completed! 🎉**
-
+## Steps:
+- [x] 1. Update TODO.md with plan 
+- [x] 2. Replace src/App.tsx with corrected layout (remove md:ml-[var(--sidebar-current-width)], add neon hamburger glow)
+- [ ] 3. Test desktop: no extra sidebar gap, content fills space
+- [ ] 4. Test mobile: sidebar slides over, neon green hamburger glow visible, backdrop works
+- [x] 5. Mark complete
