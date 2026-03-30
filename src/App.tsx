@@ -85,42 +85,55 @@ export default function App() {
     
     if (t) {
       setToken(t);
+      
+      // Robust localStorage user parse
       if (u) {
         try {
-          const userData = JSON.parse(u);
+          const userData = typeof u === 'string' ? JSON.parse(u) : u;
+          if (userData && (userData.username || userData.email)) {
+            setUser({
+              _id: userData._id || userData.id || '',
+              id: userData._id || userData.id || '',
+              username: userData.username || '',
+              email: userData.email || '',
+              role: userData.role || 'user',
+              membershipLevel: userData.membership?.level || userData.membershipLevel || 0,
+              membershipExpiry: userData.membership?.expires || userData.membershipExpiresAt || null,
+              membershipPurchasedAt: userData.membershipStartedAt || null,
+              membershipDuration: null,
+              fullName: userData.fullName
+            });
+          } else {
+            console.warn('Invalid user data in localStorage:', userData);
+            localStorage.removeItem('user');
+          }
+        } catch(e) {
+          console.error("Failed to parse user from localStorage, clearing:", e);
+          localStorage.removeItem('user');
+        }
+      }
+      
+      // Validate token before API call
+      api.get('/auth/me').then(res => {
+        console.log('Auth/me success');
+        const userData = res.data?.data;
+        if (userData && (userData.username || userData.email)) {
           setUser({
-            _id: userData._id || userData.id,
-            id: userData._id || userData.id,
-            username: userData.username,
-            email: userData.email,
-            role: userData.role,
+            _id: userData._id || userData.id || '',
+            id: userData._id || userData.id || '',
+            username: userData.username || '',
+            email: userData.email || '',
+            role: userData.role || 'user',
             membershipLevel: userData.membership?.level || userData.membershipLevel || 0,
             membershipExpiry: userData.membership?.expires || userData.membershipExpiresAt || null,
             membershipPurchasedAt: userData.membershipStartedAt || null,
             membershipDuration: null,
             fullName: userData.fullName
           });
-        } catch(e) {
-          console.error("Failed to parse user from local storage");
+          localStorage.setItem('user', JSON.stringify(userData));
         }
-      }
-      
-      api.get('/auth/me').then(res => {
-        const u = res.data.data;
-        setUser({
-          _id: u._id || u.id,
-          id: u._id || u.id,
-          username: u.username,
-          email: u.email,
-          role: u.role,
-          membershipLevel: u.membership?.level || u.membershipLevel || 0,
-          membershipExpiry: u.membership?.expires || u.membershipExpiresAt || null,
-          membershipPurchasedAt: u.membershipStartedAt || null,
-          membershipDuration: null,
-          fullName: u.fullName
-        });
-        localStorage.setItem('user', JSON.stringify(u));
-      }).catch(() => {
+      }).catch(err => {
+        console.error('Auth/me failed:', err.response?.status, err.message);
         setToken(null);
         setUser(null);
         localStorage.removeItem('token');

@@ -17,23 +17,30 @@ export default function Dashboard() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [tRes, mRes, lRes] = await Promise.all([
-          tournamentAPI.getMyTournaments(),
-          matchAPI.getMatches({ limit: 5 }),
-          matchAPI.getLiveMatches()
-        ]);
-        const tournaments = tRes.data.data || [];
-        const matches = mRes.data.data || [];
-        const live = lRes.data.data || [];
-        const topTournaments = tournaments.slice(0, 3);
-        const teamPromises = topTournaments.map(t => 
-          teamAPI.getTeams(t._id).catch(() => ({ data: { data: [] } }))
-        );
-        const teamResponses = await Promise.all(teamPromises);
+        const tournamentsRes = await tournamentAPI.getMyTournaments().catch(e => { console.error('Tournaments fetch failed:', e); return { data: { data: [] } }; });
+        const matchesRes = await matchAPI.getMatches({ limit: 5 }).catch(e => { console.error('Matches fetch failed:', e); return { data: { data: [] } }; });
+        const liveRes = await matchAPI.getLiveMatches().catch(e => { console.error('Live matches fetch failed:', e); return { data: { data: [] } }; });
+        
+        const tournaments = tournamentsRes.data.data || [];
+        const matches = matchesRes.data.data || [];
+        const live = liveRes.data.data || [];
+        
+        // Safe teams count - sequential with guards
         let teamsCount = 0;
-        teamResponses.forEach(tRes2 => {
-          teamsCount += (tRes2.data?.data || []).length;
-        });
+        const topTournaments = tournaments.slice(0, 3);
+        for (const t of topTournaments) {
+          if (!t?._id) {
+            console.warn('Skipping tournament without _id:', t);
+            continue;
+          }
+          try {
+            const teamRes = await teamAPI.getTeams(t._id);
+            teamsCount += (teamRes.data?.data || []).length;
+          } catch (e) {
+            console.error(`Teams fetch failed for tournament ${t._id}:`, e);
+          }
+        }
+        
         setStats({ tournaments: tournaments.length, matches: matches.length, teams: teamsCount, live: live.length });
         setLiveMatches(live.slice(0, 3));
       } catch (e) { console.error(e); }
