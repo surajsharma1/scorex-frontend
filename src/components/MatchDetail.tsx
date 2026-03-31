@@ -72,7 +72,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
     try {
       await matchAPI.deleteMatch(matchId);
       addToast({ type: 'success', title: 'Match Deleted', message: 'Match has been deleted successfully.' });
-      onBack();
+      onBack?.();
     } catch (error: any) {
       addToast({ type: 'error', title: 'Error', message: error.response?.data?.message || 'Failed to delete match' });
     }
@@ -106,9 +106,9 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
 {isAuthorized ? (
   <button
     onClick={() => navigate(`/live-scoring/${matchId}`)}
-    className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-green-600 hover:bg-green-500 text-white text-sm"
+className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-slate-700 hover:bg-slate-600 text-sm" style={{ color: 'var(--text-primary)' }}
   >
-    <Activity className="w-4 h-4" /> Live Scoring
+<Zap className="w-4 h-4" /> Live Scoring
   </button>
 ) : match.status === 'live' ? (
   <button
@@ -128,7 +128,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
           {isAuthorized && (
             <button
               onClick={handleDeleteMatch}
-              className="p-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-200 transition-all shadow-md hover:shadow-lg ml-2"
+className="p-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-200 transition-all shadow-md hover:shadow-lg"
               title="Delete Match"
             >
               <Trash2 className="w-5 h-5" />
