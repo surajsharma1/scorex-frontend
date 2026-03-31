@@ -38,6 +38,21 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    // If it's already loaded, resolve immediately
+    if ((window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 const PLANS = [
   {
     name: 'Free',
@@ -169,17 +184,22 @@ export default function Membership() {
     setLoading('paying');
     
     try {
+      addToast({ type: 'success', message: 'Preparing payment gateway...' });
+
+      // 1. LOAD THE SCRIPT FIRST
+      const isScriptLoaded = await loadRazorpayScript();
+      if (!isScriptLoaded || !(window as any).Razorpay) {
+        addToast({ type: 'error', message: 'Razorpay SDK failed to load. Check your internet.' });
+        setLoading(null);
+        return;
+      }
+
       addToast({ type: 'success', message: 'Creating secure payment order...' });
 
+      // 2. NOW CREATE THE ORDER
       const amount = prices[plan.level][selectedDuration];
       const res = await paymentAPI.createRazorpayOrder(amount, plan.name);
       const order = res.data.data;
-      
-      // Check Razorpay SDK & key
-      if (!(window as any).Razorpay) {
-        addToast({ type: 'error', message: 'Razorpay SDK failed to load.' });
-        return;
-      }
       
       addToast({ type: 'success', message: 'Opening payment gateway...' });
 
