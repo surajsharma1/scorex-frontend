@@ -42,7 +42,7 @@ export default defineConfig({
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://scorex-backend.onrender.com https://cdn.jsdelivr.net https://fonts.googleapis.com; connect-src 'self' https://scorex-backend.onrender.com wss://scorex-backend.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; frame-src 'self' https://www.youtube.com https://player.twitch.tv;"
+connect-src 'self' https://scorex-backend.onrender.com https://lumberjack.razorpay.com wss://scorex-backend.onrender.com;
           }
         ]
       }

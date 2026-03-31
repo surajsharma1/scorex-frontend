@@ -187,40 +187,63 @@ const htmlCache = new Map<string, { html: string; timestamp: number }>();
 
 // Fetch overlay HTML for preview (cached, timeout/retry)
 export async function fetchOverlayHTML(baseUrl: string, template: string): Promise<string> {
+  const fullUrl = `${baseUrl}/overlays/${template}?preview=true`;
   const cacheKey = `${baseUrl}-${template}`;
   const cached = htmlCache.get(cacheKey);
   const now = Date.now();
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   if (cached && (now - cached.timestamp) < CACHE_TTL) {
+    console.log('[PREVIEW-CACHE] HIT:', template);
     return cached.html;
   }
 
+  console.log('[PREVIEW-FETCH]', fullUrl);
+  
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout for prod backend
 
   try {
-    const response = await fetch(`${baseUrl}/overlays/${template}?preview=true`, {
+    const response = await fetch(fullUrl, {
       headers: { 'Accept': 'text/html' },
       signal: controller.signal
     });
     clearTimeout(timeoutId);
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${template} not found`);
+    console.log('[PREVIEW-FETCH] Status:', response.status, template);
+    
+    if (!response.ok) {
+      const err = new Error(`HTTP ${response.status}: ${template} (${fullUrl})`);
+      console.error('[PREVIEW-ERROR]', err);
+      throw err;
+    }
     
     const html = await response.text();
     htmlCache.set(cacheKey, { html, timestamp: now });
+    console.log('[PREVIEW-SUCCESS]', template);
     return html;
   } catch (error) {
     clearTimeout(timeoutId);
-    console.warn('Preview HTML fetch failed:', error);
+    console.error('[PREVIEW-FETCH-FAILED]', {
+      url: fullUrl,
+      template,
+      baseUrl,
+      error: error instanceof Error ? error.message : String(error),
+    });
     
-    // Fallback with better UX
+    // Fallback with better UX + debug info
     return `<div style="padding:3rem;text-align:center;color:#888;background:linear-gradient(135deg,#1e293b,#334155);border-radius:1.5rem;font-family:system-ui;border:2px dashed #64748b">
-      <h3 style="color:#f1f5f9;margin-bottom:1rem;font-size:1.4rem">📺 Preview: ${template}</h3>
-      <p style="font-size:1.1rem;margin-bottom:0.5rem">Template loading from backend...</p>
-      <p style="font-size:0.9rem;color:#94a3b8">Live data updates work via demo mode</p>
-      <p style="font-size:0.8rem;color:#64748b;margin-top:1rem">Try 4️⃣ 6️⃣ OUT buttons!</p>
+      <h3 style="color:#f1f5f9;margin-bottom:1rem;font-size:1.4rem">📺 Preview Failed: ${template}</h3>
+      <p style="font-size:1.1rem;margin-bottom:0.5rem">Backend fetch error</p>
+      <details style="color:#94a3b8;font-size:0.85rem;text-align:left;margin-top:1rem">
+        <summary>Debug (check Console for details)</summary>
+        <pre style="background:#1e1e1e;padding:1rem;border-radius:0.5rem;font-family:monospace;font-size:0.8rem;overflow:auto;max-height:200px">
+BaseURL: ${baseUrl}
+Template: ${template}
+Full URL: ${fullUrl}
+        </pre>
+      </details>
+      <p style="font-size:0.8rem;color:#64748b;margin-top:1rem">4️⃣ 6️⃣ OUT still work with demo data</p>
     </div>`;
   }
 }
