@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, ZoomIn, ZoomOut, RotateCcw, Monitor, Smartphone, Tablet, Eye, RefreshCw, AlertCircle } from 'lucide-react';
+import { X, ZoomIn, ZoomOut, RotateCcw, Monitor, Smartphone, Tablet, Eye, RefreshCw, AlertCircle, Activity } from 'lucide-react';
 import { useValueDebounce } from '../hooks/useValueDebounce';
 import OverlayPreviewRenderer from './OverlayPreviewRenderer';
 import { getBackendBaseUrl } from '../services/env';
@@ -339,12 +339,12 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
         </div>
 
         {/* Animation Trigger Controls */}
-        <div className="p-3 border-t flex flex-wrap gap-2 justify-center" style={{ background: 'var(--bg-elevated)', borderTopColor: 'var(--border)' }}>
-          <span className="text-xs font-bold flex items-center mr-2 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Trigger Animations:</span>
-          <button onClick={() => triggerAnimation('FOUR')} className="px-3 py-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded text-xs font-bold hover:bg-blue-500/30 transition-colors">FOUR</button>
-          <button onClick={() => triggerAnimation('SIX')} className="px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded text-xs font-bold hover:bg-green-500/30 transition-colors">SIX</button>
-          <button onClick={() => triggerAnimation('WICKET')} className="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/30 rounded text-xs font-bold hover:bg-red-500/30 transition-colors">WICKET</button>
-          <button onClick={() => triggerAnimation('DECISION_PENDING')} className="px-3 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-xs font-bold hover:bg-amber-500/30 transition-colors">DECISION PENDING</button>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-3 p-4 bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border)] shadow-inner mx-5 mb-5">
+           <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mr-2 sm:mr-4 flex items-center gap-2"><Activity className="w-4 h-4 text-blue-500"/> Triggers:</span>
+           <button onClick={() => pushAnimationEvent('FOUR')} className="flex-1 sm:flex-none px-6 py-3 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-sm">FOUR (4)</button>
+           <button onClick={() => pushAnimationEvent('SIX')} className="flex-1 sm:flex-none px-6 py-3 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">SIX (6)</button>
+           <button onClick={() => pushAnimationEvent('WICKET')} className="flex-1 sm:flex-none px-6 py-3 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">OUT (W)</button>
+           <button onClick={() => triggerAnimation('DECISION_PENDING')} className="w-full sm:w-auto px-6 py-3 bg-amber-500/10 text-amber-500 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-black transition-all tracking-wide shadow-sm">DECISION PENDING (DP)</button>
         </div>
 
         {/* ── Footer ── */}

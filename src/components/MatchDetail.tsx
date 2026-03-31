@@ -103,7 +103,14 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
         </div>
       </div>
     </div>
-{match.status === 'live' ? (
+{isAuthorized ? (
+  <button
+    onClick={() => navigate(`/live-scoring/${matchId}`)}
+    className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-green-600 hover:bg-green-500 text-white text-sm"
+  >
+    <Activity className="w-4 h-4" /> Live Scoring
+  </button>
+) : match.status === 'live' ? (
   <button
     onClick={() => navigate(`/live/${matchId}`)}
     className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-slate-700 hover:bg-slate-600 text-sm"
