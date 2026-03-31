@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
 import OverlayPreviewContainer from './OverlayPreviewContainer';
 import { 
   Eye, Save, Trash2, Copy, RefreshCw, X, PlaySquare, 
@@ -59,13 +58,10 @@ const CountdownBadge = ({ expiresAt, overlayId, onExpire }: { expiresAt: string,
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────
 export default function OverlayManager({ tournamentId }: { tournamentId?: string, matches?: any[] }) {
-  const { id: paramTournamentId } = useParams<{ id: string }>();
-  const effectiveTournamentId = tournamentId || paramTournamentId;
   const { user } = useAuth();
   const { addToast } = useToast();
   const baseUrl = getBackendBaseUrl();
   const apiBaseUrl = getApiBaseUrl(); 
-  
   
   const [liveMatches, setLiveMatches] = useState([]);
   const [matchLoading, setMatchLoading] = useState(false);
@@ -91,17 +87,17 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   }, []);
 
   useEffect(() => {
-    if (effectiveTournamentId) {
+    if (tournamentId) {
       fetchLiveMatches();
     }
-  }, [effectiveTournamentId]);
+  }, [tournamentId]);
 
   const fetchLiveMatches = async () => {
-  if (!effectiveTournamentId) return;
+  if (!tournamentId) return;
   setMatchLoading(true);
   try {
     // Fetch ALL matches for this tournament (not just live), so scorer can pick any
-    const res = await matchAPI.getMatches({ tournamentId: effectiveTournamentId });
+    const res = await matchAPI.getMatches({ tournamentId });
     const all = res.data.data || res.data || [];
     setLiveMatches(all);
     const firstLive = all.find((m: any) => m.status === 'live');
