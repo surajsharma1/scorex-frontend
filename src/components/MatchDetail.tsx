@@ -72,7 +72,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
     try {
       await matchAPI.deleteMatch(matchId);
       addToast({ type: 'success', title: 'Match Deleted', message: 'Match has been deleted successfully.' });
-      onBack?.();
+      if (onBack) onBack();
     } catch (error: any) {
       addToast({ type: 'error', title: 'Error', message: error.response?.data?.message || 'Failed to delete match' });
     }
@@ -89,52 +89,40 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
         borderRadius: '2rem 2rem 0 0',
         boxShadow: '0 8px 32px rgba(0,0,0,0.25)' 
       }}>
-<div className="flex flex-col gap-3">
-  <div className="flex items-center justify-between gap-2">
-    <div className="flex items-center gap-3 min-w-0">
-      <button onClick={onBack} className="p-2.5 rounded-2xl hover:bg-[var(--bg-elevated)] transition-all shrink-0" style={{ color: 'var(--text-primary)' }}>
-        <ArrowLeft className="w-5 h-5" />
-      </button>
-      <div className="min-w-0">
-        <h1 className="text-lg sm:text-2xl font-black truncate" style={{ color: 'var(--text-primary)' }}>{match.name}</h1>
-        <div className="flex items-center gap-3 text-xs sm:text-sm flex-wrap" style={{ color: 'var(--text-secondary)' }}>
-          {match.venue && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {match.venue}</span>}
-          <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5" /> {match.format}</span>
-        </div>
-      </div>
-    </div>
-{isAuthorized ? (
-  <button
-    onClick={() => navigate(`/live-scoring/${matchId}`)}
-className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-slate-700 hover:bg-slate-600 text-sm" style={{ color: 'var(--text-primary)' }}
-  >
-<Zap className="w-4 h-4" /> Live Scoring
-  </button>
-) : match.status === 'live' ? (
-  <button
-    onClick={() => navigate(`/live/${matchId}`)}
-    className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-slate-700 hover:bg-slate-600 text-sm"
-    style={{ color: 'var(--text-primary)' }}>
-    <Zap className="w-4 h-4" /> Live Scoreboard
-  </button>
-) : (
-  <button
-    onClick={() => setTab('scoreboard')}
-    className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-slate-700 hover:bg-slate-600 text-sm"
-    style={{ color: 'var(--text-primary)' }}>
-    <Zap className="w-4 h-4" /> Scoreboard
-  </button>
-)}
-          {isAuthorized && (
-            <button
-              onClick={handleDeleteMatch}
-className="p-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-200 transition-all shadow-md hover:shadow-lg"
-              title="Delete Match"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
-          )}
-        </div>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <button onClick={onBack} className="p-2.5 rounded-2xl hover:bg-[var(--bg-elevated)] transition-all shrink-0" style={{ color: 'var(--text-primary)' }}>
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-black truncate" style={{ color: 'var(--text-primary)' }}>{match.name}</h1>
+                <div className="flex items-center gap-3 text-xs sm:text-sm flex-wrap" style={{ color: 'var(--text-secondary)' }}>
+                  {match.venue && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {match.venue}</span>}
+                  <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5" /> {match.format}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate(`/live-scoring/${matchId}`)}
+                className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-emerald-600 hover:bg-emerald-500 text-black text-sm"
+              >
+                <Zap className="w-4 h-4" /> Live Scoring
+              </button>
+
+              {isAuthorized && (
+                <button
+                  onClick={handleDeleteMatch}
+                  className="p-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-200 transition-all shadow-md hover:shadow-lg ml-2"
+                  title="Delete Match"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+          </div>
 
         {/* Score summary */}
         <div className="flex items-center gap-8 mt-6 p-6 rounded-2xl" style={{ 
@@ -168,31 +156,31 @@ className="p-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:
         )}
 
         {/* Tabs */}
-<div className="flex bg-[var(--bg-elevated)] border-t border-[var(--border)] px-2 py-2 -mx-6 mt-4 overflow-x-auto gap-1 scrollbar-none">
-  {(['overview', 'scoreboard', 'players', 'leaderboard'] as const).map(t => {
-    const isActive = tab === t;
-    const labels: Record<string, string> = {
-      overview: 'Overview',
-      scoreboard: 'Score',
-      players: 'Players',
-      leaderboard: 'Leaders',
-    };
-    return (
-      <button key={t} onClick={() => setTab(t)}
-        className="flex-shrink-0 flex-1 min-w-[70px] px-3 py-2.5 rounded-xl font-semibold transition-all text-sm whitespace-nowrap"
-        style={isActive
-          ? {
-              background: 'linear-gradient(135deg, var(--accent), #059669)',
-              color: '#000',
-              boxShadow: '0 4px 12px rgba(34,197,94,0.3)'
-            }
-          : { color: 'var(--text-secondary)' }
-        }>
-        {labels[t]}
-      </button>
-    );
-  })}
-</div>
+        <div className="flex bg-[var(--bg-elevated)] border-t border-[var(--border)] px-2 py-2 -mx-6 mt-4 overflow-x-auto gap-1 scrollbar-none">
+          {(['overview', 'scoreboard', 'players', 'leaderboard'] as const).map(t => {
+            const isActive = tab === t;
+            const labels: Record<string, string> = {
+              overview: 'Overview',
+              scoreboard: 'Score',
+              players: 'Players',
+              leaderboard: 'Leaders',
+            };  
+            return (
+              <button key={t} onClick={() => setTab(t)}
+                className="flex-shrink-0 flex-1 min-w-[70px] px-3 py-2.5 rounded-xl font-semibold transition-all text-sm whitespace-nowrap"
+                style={isActive
+                  ? {
+                      background: 'linear-gradient(135deg, var(--accent), #059669)',
+                      color: '#000',
+                      boxShadow: '0 4px 12px rgba(34,197,94,0.3)'
+                    }
+                  : { color: 'var(--text-secondary)' }
+                }>
+                {labels[t]}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Scrollable Content */}
@@ -360,7 +348,7 @@ className="p-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:
                 )}
 
                 {/* Fall of wickets */}
-{inn.fallOfWickets?.length > 0 && (
+                {inn.fallOfWickets?.length > 0 && (
                   <div className="px-6 py-4 border-t" style={{ borderColor: 'var(--border)', background: 'var(--bg-elevated)' }}>
                     <p className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>Fall of Wickets</p>
                     <p style={{ color: 'var(--text-secondary)' }}>
@@ -419,7 +407,6 @@ className="p-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:
                 }}>
                   <h3 className="text-2xl font-black mb-1" style={{ color: 'rgb(var(--text-primary))' }}>{side.name}</h3>
                   <p className="text-lg" style={{ color: 'rgb(var(--accent))' }}>{side.players.length} Players</p>
-                </div>
                 <div className="divide-y divide-[var(--border)] max-h-96 overflow-y-auto">
                   {side.players.length === 0 ? (
                     <div className="p-12 text-center" style={{ color: 'var(--text-muted)' }}>
@@ -560,7 +547,5 @@ className="p-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:
         )}
       </div>
     </div>
-  </div>
   );
 }
-
