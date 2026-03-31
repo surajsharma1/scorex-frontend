@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AlertTriangle, Trash2 } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Trash2 } from 'lucide-react';
 import { socket } from '../services/socket';
 import { useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
@@ -79,6 +79,8 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
   };
 
   const isAuthorized = currentUser && (currentUser.role === 'admin' || currentUser._id === match.tournament?.createdBy?._id);
+  const [isScorerAssigned, setIsScorerAssigned] = useState(match.scorerId === currentUser?._id);
+  const [assigningScorer, setAssigningScorer] = useState(false);
 
   return (
     <div className="min-h-[90vh] max-h-[90vh] overflow-hidden flex flex-col rounded-2xl" style={{ background: 'var(--bg-primary)' }}>
@@ -113,13 +115,42 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
               </button>
 
               {isAuthorized && (
-                <button
-                  onClick={handleDeleteMatch}
-                  className="p-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-200 transition-all shadow-md hover:shadow-lg ml-2"
-                  title="Delete Match"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+                <>
+                  {!isScorerAssigned ? (
+                    <button
+                      onClick={async () => {
+                        setAssigningScorer(true);
+                        try {
+                          await matchAPI.updateMatch(matchId, { scorerId: currentUser!._id });
+                          setIsScorerAssigned(true);
+                          addToast({ type: 'success', title: 'Success', message: 'You are now assigned as scorer!' });
+                        } catch (e: any) {
+                          addToast({ type: 'error', title: 'Error', message: e.response?.data?.message || 'Failed to assign scorer' });
+                        } finally {
+                          setAssigningScorer(false);
+                        }
+                      }}
+                      disabled={assigningScorer}
+                      className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-all shadow-md hover:shadow-lg ml-2 disabled:opacity-50"
+                      title="Assign as Scorer"
+                    >
+                      {assigningScorer ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
+                      Scorer
+                    </button>
+                  ) : (
+                    <span className="px-3 py-2 bg-green-500/20 text-green-400 text-xs font-bold rounded-xl ml-2 border border-green-500/30 flex items-center gap-1">
+                      <Shield className="w-3 h-3" />
+                      Scorer ✓
+                    </span>
+                  )}
+                  <button
+                    onClick={handleDeleteMatch}
+                    className="p-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-200 transition-all shadow-md hover:shadow-lg"
+                    title="Delete Match"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </>
               )}
             </div>
           </div>

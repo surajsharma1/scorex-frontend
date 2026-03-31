@@ -150,6 +150,8 @@ export default function LiveScoring() {
   const [submitting, setSubmitting] = useState(false);
   const [lastBall, setLastBall] = useState<string>('');
   const [error, setError] = useState('');
+  const [isScorer, setIsScorer] = useState(false);
+  const [scorerError, setScorerError] = useState('');
   const [tossData, setTossData] = useState<any>(null);
   
   // Decision Pending State
@@ -178,6 +180,19 @@ export default function LiveScoring() {
       const res = await matchAPI.getMatch(id);
       const m = res.data.data || res.data;
       setMatch(m);
+      
+      // Check scorer authorization
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setIsScorer(m.scorerId === user._id || m.tournament?.createdBy?._id === user._id || user.role === 'admin');
+        if (!isScorer && m.scorerId) {
+          setScorerError('Only assigned scorer or tournament organizer can score');
+        } else {
+          setScorerError('');
+        }
+      }
+      
       if (m.status === 'completed') setStep('done');
       else if (m.status === 'live') {
         const innings = m.innings?.[m.currentInnings - 1];
@@ -225,7 +240,10 @@ export default function LiveScoring() {
   };
 
   const submitBall = async (data: BallData) => {
-    if (!id || isActionDisabled) return; 
+    if (!id || isActionDisabled || !isScorer) {
+      setScorerError('Scorer authorization required');
+      return; 
+    }
     setSubmitting(true); 
     setError('');
     try {
@@ -236,7 +254,13 @@ export default function LiveScoring() {
       if (res.data.data?.matchEnded) setStep('done');
       else if (res.data.data?.inningsEnded) setStep('inningsBreak');
       else if (res.data.data?.needPlayerSelection) setStep('playerSelect');
-    } catch (e: any) { setError(e.response?.data?.message || 'Failed to record ball'); } finally { setSubmitting(false); }
+    } catch (e: any) { 
+      if (e.response?.status === 403) {
+        setScorerError('Scoring permission denied. Assign scorer or contact organizer.');
+      } else {
+        setError(e.response?.data?.message || 'Failed to record ball');
+      }
+    } finally { setSubmitting(false); }
   };
 
   const handleStrikeChange = async () => {
