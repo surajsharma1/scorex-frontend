@@ -98,7 +98,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   setMatchLoading(true);
   try {
     // Fetch ALL matches for this tournament (not just live), so scorer can pick any
-    const res = await matchAPI.getMatches({ tournamentId });
+    const res = await matchAPI.getMatches({ tournament: tournamentId });
     const all = res.data.data || res.data || [];
     setLiveMatches(all);
     const firstLive = all.find((m: any) => m.status === 'live');

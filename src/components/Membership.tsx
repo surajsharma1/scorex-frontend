@@ -437,6 +437,7 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
                   {plan.level > 0 && (
                     <button
 onClick={() => {
+                        setSelectedFloatingOverlay(''); // reset selection when switching plan
                         setPreviewLevel(plan.level);
                       }}
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] mb-3"
@@ -538,10 +539,10 @@ onClick={() => {
 
       {/* Floating overlay preview modal */}
       <FloatingOverlayPreview
-isOpen={previewLevel !== null}
-          onClose={() => setPreviewLevel(null)}
-          level={previewLevel!}
-templates={templates.filter((t: any) => t.level === previewLevel)}
+        isOpen={previewLevel !== null}
+        onClose={() => { setPreviewLevel(null); setSelectedFloatingOverlay(''); }}
+        level={previewLevel!}
+        templates={templates}  // pass ALL templates, let FloatingOverlayPreview filter by level itself
         selectedOverlay={selectedFloatingOverlay}
         onOverlaySelect={setSelectedFloatingOverlay}
       />
