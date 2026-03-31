@@ -58,6 +58,7 @@ const CountdownBadge = ({ expiresAt, overlayId, onExpire }: { expiresAt: string,
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────
 export default function OverlayManager({ tournamentId }: { tournamentId?: string, matches?: any[] }) {
+  // FIX 2: Tournament filtering confirmed - fetchLiveMatches uses tournamentId param to filter matches
   const { user } = useAuth();
   const { addToast } = useToast();
   const baseUrl = getBackendBaseUrl();

@@ -122,8 +122,7 @@ export default function Membership() {
   const [membership, setMembership] = useState<any>(null);
   const [backendUser, setBackendUser] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState('');
-  const [showFloatingPreview, setShowFloatingPreview] = useState(false);
-  const [floatingPreviewLevel, setFloatingPreviewLevel] = useState(1);
+const [previewLevel, setPreviewLevel] = useState<number | null>(null);
   const [selectedFloatingOverlay, setSelectedFloatingOverlay] = useState('');
   const [templates, setTemplates] = useState<any[]>([]);
 
@@ -437,10 +436,8 @@ export default function Membership() {
                   {/* Preview button */}
                   {plan.level > 0 && (
                     <button
-                      onClick={() => {
-                        setFloatingPreviewLevel(plan.level);
-                        setSelectedFloatingOverlay(''); // user picks from dropdown
-                        setShowFloatingPreview(true);
+onClick={() => {
+                        setPreviewLevel(plan.level);
                       }}
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02] mb-3"
                       style={{
@@ -541,10 +538,10 @@ export default function Membership() {
 
       {/* Floating overlay preview modal */}
       <FloatingOverlayPreview
-        isOpen={showFloatingPreview}
-        onClose={() => setShowFloatingPreview(false)}
-        level={floatingPreviewLevel}
-        templates={templates.filter((t: any) => t.level === floatingPreviewLevel)}
+isOpen={previewLevel !== null}
+          onClose={() => setPreviewLevel(null)}
+          level={previewLevel!}
+templates={templates.filter((t: any) => t.level === previewLevel)}
         selectedOverlay={selectedFloatingOverlay}
         onOverlaySelect={setSelectedFloatingOverlay}
       />
