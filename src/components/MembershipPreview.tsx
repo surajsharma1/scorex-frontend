@@ -1,6 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useValueDebounce } from '../hooks/useValueDebounce';
 import OverlayPreviewRenderer from './OverlayPreviewRenderer';
+import { getDemoData } from '../utils/overlayPreview';
+import { getBackendBaseUrl } from '../services/env';
 
 import { Eye, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCcw, Activity } from 'lucide-react';
 
@@ -10,7 +12,6 @@ interface MembershipPreviewProps {
   baseUrl: string;
 }
 
-
 const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, planName, baseUrl }) => {
   const [progress, setProgress] = useState(50);
   const debouncedProgress = useValueDebounce(progress, 300);
@@ -19,20 +20,36 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
   const [error, setError] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const demoScoreRef = useRef({ score: 124, wickets: 4 });
 
   const clamp = (v: number) => Math.max(0.1, Math.min(3, v));
 
+  // Master Scoreboard-style Push Animation Method
+  const pushAnimationEvent = (type: 'FOUR' | 'SIX' | 'WICKET' | 'DECISION PENDING') => {
+    const cur = demoScoreRef.current;
+    let newScore   = cur.score;
+    let newWickets = cur.wickets;
+    if (type === 'FOUR')   newScore   += 4;
+    if (type === 'SIX')    newScore   += 6;
+    if (type === 'WICKET') newWickets += 1;
+    demoScoreRef.current = { score: newScore, wickets: newWickets };
 
-  const triggerAnimation = (eventType: string) => {
-    window.postMessage({
-      type: 'OVERLAY_ACTION',
-      payload: { event: eventType }
-    }, '*');
+    const base = getDemoData(0.69);
+    const payload = {
+      ...base,
+      team1Score:    newScore,
+      team1Wickets:  newWickets,
+      lastBall:      type,
+      lastBallRuns:  type === 'FOUR' ? 4 : type === 'SIX' ? 6 : 0,
+      wicket:        type === 'WICKET',
+      decisionPending: type === 'DECISION PENDING',
+    };
+
+    window.postMessage({ type: 'UPDATE_SCORE', data: payload }, '*');
+    window.dispatchEvent(new CustomEvent('scorex:update', { detail: payload }));
   };
 
-  // Add these above your return statement
   const handleLoad = React.useCallback(() => setLoading(false), []);
-  
   const handleError = React.useCallback((err: string) => {
     setError(err);
     setLoading(false);
@@ -73,7 +90,6 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
           </span>
         </div>
 
-
         <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: 'var(--bg-card)' }}>
           <button onClick={() => setZoom(z => clamp(z * 0.8))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom Out" disabled={loading}>
             <ZoomOut className="w-3.5 h-3.5" />
@@ -87,7 +103,7 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
 
           <button onClick={() => setZoom(1)} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Reset">
             <RotateCcw className="w-3.5 h-3.5" />
-            </button>
+          </button>
         </div>
       </div>
 
@@ -99,7 +115,7 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
       >
         <OverlayPreviewRenderer 
           template={overlayFile}
-          progress={progress}
+          progress={debouncedProgress}
           baseUrl={baseUrl}
           zoom={zoom}
           onLoad={handleLoad}
@@ -129,16 +145,13 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         )}
       </div>
 
-
-
-
       {/* Animation Trigger Controls */}
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3 p-4 bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border)] shadow-inner">
          <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mr-2 sm:mr-4 flex items-center gap-2"><Activity className="w-4 h-4 text-blue-500"/> Triggers:</span>
-         <button onClick={() => triggerAnimation('FOUR')} className="flex-1 sm:flex-none px-6 py-3 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-sm">FOUR (4)</button>
-         <button onClick={() => triggerAnimation('SIX')} className="flex-1 sm:flex-none px-6 py-3 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">SIX (6)</button>
-         <button onClick={() => triggerAnimation('WICKET')} className="flex-1 sm:flex-none px-6 py-3 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">OUT (W)</button>
-         <button onClick={() => triggerAnimation('DECISION PENDING')} className="w-full sm:w-auto px-6 py-3 bg-amber-500/10 text-amber-500 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-black transition-all tracking-wide shadow-sm">DECISION PENDING (DP)</button>
+         <button onClick={() => pushAnimationEvent('FOUR')} className="flex-1 sm:flex-none px-6 py-3 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-sm">FOUR (4)</button>
+         <button onClick={() => pushAnimationEvent('SIX')} className="flex-1 sm:flex-none px-6 py-3 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">SIX (6)</button>
+         <button onClick={() => pushAnimationEvent('WICKET')} className="flex-1 sm:flex-none px-6 py-3 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">OUT (W)</button>
+         <button onClick={() => pushAnimationEvent('DECISION PENDING')} className="w-full sm:w-auto px-6 py-3 bg-amber-500/10 text-amber-500 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-black transition-all tracking-wide shadow-sm">DECISION PENDING (DP)</button>
       </div>
     </div>
   );

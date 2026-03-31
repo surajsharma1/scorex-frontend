@@ -60,17 +60,10 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
     setLoading(false);
   }, []);
 
-  const triggerAnimation = (eventType: string) => {
-    window.postMessage({
-      type: 'OVERLAY_ACTION',
-      payload: { event: eventType }
-    }, '*');
-  };
-
-  // Always load from public static file — no auth filter, always shows all designs
+  // Fetch bypassing cache to ensure new names and designs are ALWAYS loaded
   useEffect(() => {
     if (!isOpen) return;
-    fetch('/templates.json')
+    fetch(`/templates.json?t=${Date.now()}`)
       .then(r => r.json())
       .then((data: Array<{ id: string; name: string; file: string; category: string; color: string }>) => {
         setLocalTemplates(data.map(t => ({
@@ -86,11 +79,10 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
 
   const baseUrl = getBackendBaseUrl();
 
-  // Use prop templates if populated, else fall back to locally-loaded static list
-  const propLevelTemplates = templates.filter(t => t.level === level);
-  const allLevelTemplates = propLevelTemplates.length > 0
-    ? propLevelTemplates
-    : localTemplates.filter(t => t.level === level);
+  // Prioritize freshly fetched local templates to bypass any caching from parent props
+  const allLevelTemplates = localTemplates.length > 0
+    ? localTemplates.filter(t => t.level === level)
+    : templates.filter(t => t.level === level);
 
   const count = allLevelTemplates.length;
   const planName = level === 1 ? 'Premium' : 'Enterprise';
@@ -106,8 +98,8 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
   // Auto-select first if nothing selected yet
   const resolvedSelected = selectedOverlay || (allLevelTemplates[0] ? templateFilename(allLevelTemplates[0]) : '');
 
-  // Push score update with delta so overlays detect 4/6/wicket via their built-in logic
-  const pushAnimationEvent = (type: 'FOUR' | 'SIX' | 'WICKET') => {
+  // Master Scoreboard-style Push Animation Method
+  const pushAnimationEvent = (type: 'FOUR' | 'SIX' | 'WICKET' | 'DECISION PENDING') => {
     const cur = demoScoreRef.current;
     let newScore   = cur.score;
     let newWickets = cur.wickets;
@@ -124,17 +116,17 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
       lastBall:      type,
       lastBallRuns:  type === 'FOUR' ? 4 : type === 'SIX' ? 6 : 0,
       wicket:        type === 'WICKET',
+      decisionPending: type === 'DECISION PENDING',
     };
 
-    // UPDATE_SCORE is what all overlay HTML files listen for
     window.postMessage({ type: 'UPDATE_SCORE', data: payload }, '*');
-    // scorex:update for the renderer's own DOM updater
     window.dispatchEvent(new CustomEvent('scorex:update', { detail: payload }));
   };
 
   return (
     <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-6"
+      // Added md:pl-[16rem] to account for the sidebar so it centers perfectly on desktop
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-6 md:pl-[16rem]"
       style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
@@ -173,7 +165,6 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
         <div className="flex flex-wrap items-center gap-3 px-5 py-3 flex-shrink-0"
           style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}>
 
-          {/* Overlay selector */}
           <select
             value={resolvedSelected}
             onChange={e => onOverlaySelect(e.target.value)}
@@ -196,7 +187,6 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
             }
           </select>
 
-          {/* Screen presets */}
           <div className="flex gap-1 rounded-xl p-1" style={{ background: 'var(--bg-elevated)' }}>
             {SCREEN_PRESETS.map((p, i) => {
               const Icon = p.icon;
@@ -210,7 +200,6 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
             })}
           </div>
 
-          {/* Zoom controls */}
           <div className="flex items-center gap-1 rounded-xl p-1" style={{ background: 'var(--bg-elevated)' }}>
             <button onClick={zoomOut} className="p-2 rounded-lg transition-all" style={{ color: 'var(--text-muted)' }} title="Zoom Out">
               <ZoomOut className="w-4 h-4" />
@@ -226,14 +215,6 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
             </button>
           </div>
 
-          {/* Zoom slider */}
-          <input type="range" min={25} max={200} step={5}
-            value={Math.round(zoom * 100)}
-            onChange={e => setZoom(parseInt(e.target.value) / 100)}
-            className="w-28 hidden sm:block"
-            style={{ accentColor }} />
-
-          {/* Progress slider */}
           <div className="flex items-center gap-2">
             <label className="text-xs" style={{ color: 'var(--text-muted)' }}>Progress:</label>
             <input
@@ -249,29 +230,6 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
             <span className="text-xs font-bold tabular-nums w-8" style={{ color: 'var(--accent)' }}>
               {progress}%
             </span>
-          </div>
-
-          {/* ── Animation push buttons ── */}
-          <div className="flex items-center gap-1.5 ml-auto">
-            <span className="text-xs font-semibold hidden sm:block" style={{ color: 'var(--text-muted)' }}>Push:</span>
-            <button onClick={() => pushAnimationEvent('FOUR')}
-              className="px-3 py-1.5 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95"
-              style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}
-              title="Simulate a FOUR — triggers animation on overlays that support it">
-              4️⃣ FOUR
-            </button>
-            <button onClick={() => pushAnimationEvent('SIX')}
-              className="px-3 py-1.5 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95"
-              style={{ background: 'rgba(168,85,247,0.15)', color: '#c084fc', border: '1px solid rgba(168,85,247,0.3)' }}
-              title="Simulate a SIX — triggers animation on overlays that support it">
-              6️⃣ SIX
-            </button>
-            <button onClick={() => pushAnimationEvent('WICKET')}
-              className="px-3 py-1.5 rounded-lg text-xs font-black transition-all hover:scale-105 active:scale-95"
-              style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}
-              title="Simulate a WICKET — triggers animation on overlays that support it">
-              🎯 OUT
-            </button>
           </div>
         </div>
 
@@ -323,7 +281,7 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
               )}
             </div>
           ) : (
-            <div className="text-center p-12">
+             <div className="text-center p-12">
               <div className="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center"
                 style={{ background: 'var(--bg-elevated)' }}>
                 <Monitor className="w-8 h-8" style={{ color: 'var(--text-muted)' }} />
@@ -343,10 +301,10 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
            <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mr-2 sm:mr-4 flex items-center gap-2">
              <Activity className="w-4 h-4 text-blue-500"/> Triggers:
            </span>
-           <button onClick={() => triggerAnimation('FOUR')} className="flex-1 sm:flex-none px-6 py-3 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-sm">FOUR (4)</button>
-           <button onClick={() => triggerAnimation('SIX')} className="flex-1 sm:flex-none px-6 py-3 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">SIX (6)</button>
-           <button onClick={() => triggerAnimation('WICKET')} className="flex-1 sm:flex-none px-6 py-3 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">OUT (W)</button>
-           <button onClick={() => triggerAnimation('DECISION PENDING')} className="w-full sm:w-auto px-6 py-3 bg-amber-500/10 text-amber-500 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-black transition-all tracking-wide shadow-sm">DECISION PENDING (DP)</button>
+           <button onClick={() => pushAnimationEvent('FOUR')} className="flex-1 sm:flex-none px-6 py-3 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-sm">FOUR (4)</button>
+           <button onClick={() => pushAnimationEvent('SIX')} className="flex-1 sm:flex-none px-6 py-3 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">SIX (6)</button>
+           <button onClick={() => pushAnimationEvent('WICKET')} className="flex-1 sm:flex-none px-6 py-3 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">OUT (W)</button>
+           <button onClick={() => pushAnimationEvent('DECISION PENDING')} className="w-full sm:w-auto px-6 py-3 bg-amber-500/10 text-amber-500 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-black transition-all tracking-wide shadow-sm">DECISION PENDING (DP)</button>
         </div>
 
         {/* ── Footer ── */}
