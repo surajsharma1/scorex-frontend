@@ -157,4 +157,3 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
 };
 
 export default MembershipPreview;
-
