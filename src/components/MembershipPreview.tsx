@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { useValueDebounce } from '../hooks/useValueDebounce';
 import OverlayPreviewRenderer from './OverlayPreviewRenderer';
 import { getDemoData } from '../utils/overlayPreview';
-import { getBackendBaseUrl } from '../services/env';
 
 import { Eye, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCcw, Activity } from 'lucide-react';
 
