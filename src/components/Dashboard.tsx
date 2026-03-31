@@ -136,8 +136,8 @@ className="rounded-2xl p-5 text-left transition-all duration-200 gpu-accelerate 
                     </span>
                   </div>
                 </div>
-                <button onClick={() => navigate(`/matches/${m._id}/score`)}
-className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600/90 to-orange-600/90 hover:from-red-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-red-500/30 transition-all duration-150 gpu-accelerate active:scale-98">
+                <button onClick={() => navigate(`/live/${m._id}`)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600/90 to-orange-600/90 hover:from-red-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-red-500/30 transition-all duration-150 gpu-accelerate active:scale-98">
                   <Zap className="w-4 h-4" /> Live Score
                 </button>
               </div>
