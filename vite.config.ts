@@ -7,7 +7,7 @@ export default defineConfig({
   esbuild: {
     target: 'es2022'
   },
-    server: {
+  server: {
     headers: [{
       key: 'Content-Security-Policy',
       value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://scorex-backend.onrender.com https://cdn.jsdelivr.net https://fonts.googleapis.com http://localhost:5000; connect-src 'self' https://scorex-backend.onrender.com wss://scorex-backend.onrender.com http://localhost:5000 ws://localhost:5000; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; frame-src 'self' https://www.youtube.com https://player.twitch.tv;"
@@ -34,19 +34,6 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 800
-  },
-  vercel: {
-    headers: [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-connect-src 'self' https://scorex-backend.onrender.com https://lumberjack.razorpay.com wss://scorex-backend.onrender.com;
-          }
-        ]
-      }
-    ]
   }
+  // vercel CSP headers moved to vercel.json for prod if needed
 })
-
