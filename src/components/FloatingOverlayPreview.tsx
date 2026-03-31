@@ -3,7 +3,6 @@ import { X, ZoomIn, ZoomOut, RotateCcw, Monitor, Smartphone, Tablet, Eye, Refres
 import { useValueDebounce } from '../hooks/useValueDebounce';
 import OverlayPreviewRenderer from './OverlayPreviewRenderer';
 import { getBackendBaseUrl } from '../services/env';
-import { getDemoData } from '../utils/overlayPreview';
 
 interface TemplateItem {
   id: string;
@@ -52,9 +51,24 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const demoScoreRef = useRef({ score: 124, wickets: 4 });
 
-  const handleLoad = useCallback(() => setLoading(false), []);
+  const handleLoad = useCallback(() => {
+    setLoading(false);
+    // Attempt to hide any built-in dev controls inside the HTML iframe
+    try {
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach(iframe => {
+        if (iframe.contentDocument) {
+          const style = iframe.contentDocument.createElement('style');
+          style.innerHTML = '.dev-controls, #dev-controls, .controls-container, button { display: none !important; }';
+          iframe.contentDocument.head.appendChild(style);
+        }
+      });
+    } catch (err) {
+      // Ignore cross-origin errors
+    }
+  }, []);
+
   const handleError = useCallback((err: string) => {
     setError(err);
     setLoading(false);
@@ -98,35 +112,20 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
   // Auto-select first if nothing selected yet
   const resolvedSelected = selectedOverlay || (allLevelTemplates[0] ? templateFilename(allLevelTemplates[0]) : '');
 
-  // Master Scoreboard-style Push Animation Method
-  const pushAnimationEvent = (type: 'FOUR' | 'SIX' | 'WICKET' | 'DECISION PENDING') => {
-    const cur = demoScoreRef.current;
-    let newScore   = cur.score;
-    let newWickets = cur.wickets;
-    if (type === 'FOUR')   newScore   += 4;
-    if (type === 'SIX')    newScore   += 6;
-    if (type === 'WICKET') newWickets += 1;
-    demoScoreRef.current = { score: newScore, wickets: newWickets };
-
-    const base = getDemoData(0.69);
-    const payload = {
-      ...base,
-      team1Score:    newScore,
-      team1Wickets:  newWickets,
-      lastBall:      type,
-      lastBallRuns:  type === 'FOUR' ? 4 : type === 'SIX' ? 6 : 0,
-      wicket:        type === 'WICKET',
-      decisionPending: type === 'DECISION PENDING',
-    };
-
-    window.postMessage({ type: 'UPDATE_SCORE', data: payload }, '*');
-    window.dispatchEvent(new CustomEvent('scorex:update', { detail: payload }));
+  // Master Scoreboard-style trigger method (Purely triggers animations)
+  const triggerAnimation = (eventType: string) => {
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach(iframe => {
+      iframe.contentWindow?.postMessage({
+        type: 'OVERLAY_ACTION',
+        payload: { event: eventType }
+      }, '*');
+    });
   };
 
   return (
     <div
-      // Added md:pl-[16rem] to account for the sidebar so it centers perfectly on desktop
-      className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-6 md:pl-[16rem]"
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-6"
       style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
@@ -301,10 +300,10 @@ const FloatingOverlayPreview: React.FC<FloatingOverlayPreviewProps> = ({
            <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mr-2 sm:mr-4 flex items-center gap-2">
              <Activity className="w-4 h-4 text-blue-500"/> Triggers:
            </span>
-           <button onClick={() => pushAnimationEvent('FOUR')} className="flex-1 sm:flex-none px-6 py-3 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-sm">FOUR (4)</button>
-           <button onClick={() => pushAnimationEvent('SIX')} className="flex-1 sm:flex-none px-6 py-3 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">SIX (6)</button>
-           <button onClick={() => pushAnimationEvent('WICKET')} className="flex-1 sm:flex-none px-6 py-3 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">OUT (W)</button>
-           <button onClick={() => pushAnimationEvent('DECISION PENDING')} className="w-full sm:w-auto px-6 py-3 bg-amber-500/10 text-amber-500 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-black transition-all tracking-wide shadow-sm">DECISION PENDING (DP)</button>
+           <button onClick={() => triggerAnimation('FOUR')} className="flex-1 sm:flex-none px-6 py-3 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-sm">FOUR (4)</button>
+           <button onClick={() => triggerAnimation('SIX')} className="flex-1 sm:flex-none px-6 py-3 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">SIX (6)</button>
+           <button onClick={() => triggerAnimation('WICKET')} className="flex-1 sm:flex-none px-6 py-3 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">OUT (W)</button>
+           <button onClick={() => triggerAnimation('DECISION_PENDING')} className="w-full sm:w-auto px-6 py-3 bg-amber-500/10 text-amber-500 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-black transition-all tracking-wide shadow-sm">DECISION PENDING (DP)</button>
         </div>
 
         {/* ── Footer ── */}
