@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ThemeProvider from './components/ThemeProvider';
 import { useState, useEffect, createContext, useContext, lazy, Suspense } from 'react';
 import { ToastProvider } from './hooks/useToast';
@@ -32,6 +32,7 @@ const LiveScoreboardPreview = lazy(() => import('./components/LiveScoreboardPrev
 const FriendList = lazy(() => import('./components/FriendList'));
 const Leaderboard = lazy(() => import('./components/Leaderboard'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
+const InteractivePreviewStudio = lazy(() => import('./components/InteractivePreviewStudio'));
 
 export interface AuthUser {
   _id: string;
@@ -41,8 +42,8 @@ export interface AuthUser {
   role: string;
   membershipLevel: number;
   membershipExpiry: string | null;
-  membershipPurchasedAt: string | null;
-  membershipDuration: string | null;
+membershipPurchasedAt: string | null;
+  membershipDuration: number | null;
   fullName?: string;
 }
 
@@ -56,10 +57,10 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
-  token: null,
+token: null,
   login: () => {},
   logout: () => {},
-  loading: true
+  loading: true,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -95,15 +96,14 @@ function DashboardLayout({ children, user, logout, token, requireAdmin }: Dashbo
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[var(--bg-primary)]">
-      
-{/* FIXED: Hide this button completely when the sidebar is open */}
+      {/* Hide this button completely when the sidebar is open */}
       {!isSidebarOpen && (
         <button
           className="fixed top-4 left-4 z-50 p-2 rounded-xl md:hidden transition-transform hover:scale-105 active:scale-95 bg-transparent"
           onClick={toggleSidebar}
         >
           <svg className="w-7 h-7 text-[#39ff14] drop-shadow-[0_0_8px_rgba(57,255,20,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
+"M4 6h16M4 12h16M4 18h16"
           </svg>
         </button>
       )}
@@ -118,15 +118,15 @@ function DashboardLayout({ children, user, logout, token, requireAdmin }: Dashbo
       )}
 
       <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onClose={closeSidebar} />
-      
-      <main className="flex-1 w-full h-full overflow-y-auto relative z-10 p-4 md:p-8 pt-20 md:pt-8">
+
+      <main className="relative z-10 p-4 md:p-8 pt-20 md:pt-8">
         <Suspense fallback={<LoadingSpinner />}>
           {children}
         </Suspense>
       </main>
     </div>
   );
-} 
+}
 
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -135,9 +135,9 @@ export default function App() {
 
   useEffect(() => {
     const t = localStorage.getItem('token');
-    const u = localStorage.getItem('user');
+const u = localStorage.getItem('user');
     
-    if (t) {
+    if (t && u) {
       setToken(t);
       if (u) {
         try {
@@ -165,9 +165,9 @@ export default function App() {
       
       api.get('/auth/me').then(res => {
         const userData = res.data?.data;
-        if (userData && (userData.username || userData.email)) {
+if (userData && (userData.username || userData.email)) {
           setUser({
-            _id: userData._id || userData.id || '',
+_id: userData._id || userData.id || '',
             id: userData._id || userData.id || '',
             username: userData.username || '',
             email: userData.email || '',
@@ -191,7 +191,7 @@ export default function App() {
     }
   }, []);
 
-  const login = (data: { token: string; user?: any; data?: any }) => {
+  const login = (data: { token: string; user: any; data?: any }) => {
     const t = data.token || data.data?.token;
     const u = data.user || data.data?.user;
     if (t && u) {
@@ -201,7 +201,7 @@ export default function App() {
         id: u._id || u.id,
         username: u.username,
         email: u.email,
-        role: u.role,
+role: u.role,
         membershipLevel: u.membership?.level || u.membershipLevel || 0,
         membershipExpiry: u.membership?.expires || u.membershipExpiresAt || null,
         membershipPurchasedAt: u.membershipStartedAt || null,
@@ -236,11 +236,22 @@ export default function App() {
             <Router>
               <Routes>
                 <Route path="/" element={<Frontpage />} />
-                <Route path="/login" element={!token ? <Login /> : <Navigate to="/dashboard" />} />
-                <Route path="/register" element={!token ? <Register /> : <Navigate to="/dashboard" />} />
+                <Route path="/login" element={!token ? <Login /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/register" element={!token ? <Register /> : <Navigate to="/dashboard" replace />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
                 <Route path="/oauth/callback" element={<OAuthCallback />} />
+
+                <Route path="/studio/:id" element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <InteractivePreviewStudio />
+                  </Suspense>
+                } />
+                <Route path="/studio/preview" element={
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <InteractivePreviewStudio />
+                  </Suspense>
+                } />
 
                 <Route path="/dashboard" element={<DashboardLayout user={user} logout={logout} token={token}><Dashboard /></DashboardLayout>} />
                 <Route path="/live" element={<DashboardLayout user={user} logout={logout} token={token}><LiveMatches /></DashboardLayout>} />
@@ -253,12 +264,12 @@ export default function App() {
                 } />
                 <Route path="/profile" element={<DashboardLayout user={user} logout={logout} token={token}><Profile /></DashboardLayout>} />
                 <Route path="/tournaments" element={<DashboardLayout user={user} logout={logout} token={token}><TournamentList /></DashboardLayout>} />
-                <Route path="/tournaments/create" element={<DashboardLayout user={user} logout={logout} token={token}><TournamentForm /></DashboardLayout>} />
+        <Route path="/tournaments/create" element={<DashboardLayout user={user} logout={logout} token={token}><TournamentForm /></DashboardLayout>} />
                 <Route path="/tournaments/:id" element={<DashboardLayout user={user} logout={logout} token={token}><TournamentView /></DashboardLayout>} />
                 <Route path="/membership" element={<DashboardLayout user={user} logout={logout} token={token}><Membership /></DashboardLayout>} />
                 <Route path="/clubs" element={<DashboardLayout user={user} logout={logout} token={token}><ClubList /></DashboardLayout>} />
                 <Route path="/clubs/create" element={<DashboardLayout user={user} logout={logout} token={token}><CreateClubForm /></DashboardLayout>} />
-                <Route path="/clubs/:id/manage" element={<DashboardLayout user={user} logout={logout} token={token}><ClubManagement /></DashboardLayout>} />
+                <Route path="/clubs/:id/manage" element={<DashboardLayout  user={user} logout={logout} token={token}><ClubManagement /></DashboardLayout>} />
                 <Route path="/clubs/:id" element={<DashboardLayout user={user} logout={logout} token={token}><ClubDetail /></DashboardLayout>} />
                 <Route path="/friends" element={<DashboardLayout user={user} logout={logout} token={token}><FriendList /></DashboardLayout>} />
                 <Route path="/leaderboard" element={<DashboardLayout user={user} logout={logout} token={token}><Leaderboard /></DashboardLayout>} />
@@ -275,3 +286,4 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+

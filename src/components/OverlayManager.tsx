@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useNavigate } from 'react';
+
 // import OverlayPreviewContainer from './OverlayPreviewContainer';
 
-import InteractivePreviewStudio from './InteractivePreviewStudio';
 import { 
   Eye, Save, Trash2, Copy, RefreshCw, X, PlaySquare, Settings, 
   Target, ShieldAlert, Timer, Maximize2, Smartphone, ZoomIn, Activity 
@@ -63,10 +63,12 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   // FIX 2: Tournament filtering confirmed - fetchLiveMatches uses tournamentId param to filter matches
   const { user } = useAuth();
   const { addToast } = useToast();
+  const navigate = useNavigate();
   const baseUrl = getBackendBaseUrl();
   const apiBaseUrl = getApiBaseUrl(); 
   
   const [liveMatches, setLiveMatches] = useState([]);
+
   const [matchLoading, setMatchLoading] = useState(false);
   const [createdOverlays, setCreatedOverlays] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
@@ -402,14 +404,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
       </div>
 
       {/* Interactive Preview Studio */}
-      {studioOverlay && (
-        <InteractivePreviewStudio
-          isOpen={!!studioOverlay}
-          onClose={() => setStudioOverlay(null)}
-          overlayUrl={`${baseUrl}/api/v1/overlays/public/${studioOverlay._id}`}
-          overlayName={studioOverlay.name}
-        />
-      )}
+
 
       {/* ─── MOBILE FULLSCREEN MODAL WITH ZOOM ─── */}
       {isMobileFullscreen && activePreview && (
