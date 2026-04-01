@@ -92,7 +92,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
   const isAuthorized = currentUser && (currentUser.role === 'admin' || currentUser._id === match.tournament?.createdBy?._id);
 
   return (
-    <div className="min-h-[90vh] max-h-[90vh] overflow-hidden flex flex-col rounded-2xl" style={{ background: 'var(--bg-primary)' }}>
+    <div className="flex flex-col rounded-2xl" style={{ background: 'var(--bg-primary)' }}>
       {/* Header */}
       <div className="shrink-0 p-6" style={{ 
         background: 'var(--bg-elevated)', 
@@ -117,7 +117,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
             
             <div className="flex items-center gap-2">
               <button
-onClick={() => navigate(`/matches/${matchId}/score`)}
+                onClick={() => navigate(`/live-scoring/${matchId}`)}
                 className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-emerald-600 hover:bg-emerald-500 text-black text-sm"
               >
                 <Zap className="w-4 h-4" /> Live Scoring
@@ -223,8 +223,10 @@ onClick={() => navigate(`/matches/${matchId}/score`)}
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-[var(--border)] scrollbar-track-[var(--bg-elevated)]">
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="p-6 space-y-6">
           {/* OVERVIEW */}
           {tab === 'overview' && (
             <div className="space-y-6">
@@ -589,7 +591,6 @@ onClick={() => navigate(`/matches/${matchId}/score`)}
               </div>
             </div>
           )}
-        </div>
       </div>
     </div>
   );
