@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '../hooks/useToast';
 import { useAuth } from '../App';
-import FloatingOverlayPreview from './FloatingOverlayPreview';
+// import FloatingOverlayPreview from './FloatingOverlayPreview';
 import { getBackendBaseUrl } from '../services/env';
+
+
 import { overlayAPI, paymentAPI } from '../services/api';
 import api from '../services/api';
 import {
@@ -538,14 +540,15 @@ onClick={() => {
       </div>
 
       {/* Floating overlay preview modal */}
-      <FloatingOverlayPreview
+      {/* <FloatingOverlayPreview
         isOpen={previewLevel !== null}
         onClose={() => { setPreviewLevel(null); setSelectedFloatingOverlay(''); }}
         level={previewLevel!}
         templates={templates}  // pass ALL templates, let FloatingOverlayPreview filter by level itself
         selectedOverlay={selectedFloatingOverlay}
         onOverlaySelect={setSelectedFloatingOverlay}
-      />
+      /> */}
+
     </div>
   );
 }

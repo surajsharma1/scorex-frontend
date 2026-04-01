@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useValueDebounce } from '../hooks/useValueDebounce';
-import OverlayPreviewRenderer from './OverlayPreviewRenderer';
+import InteractivePreviewStudio from './InteractivePreviewStudio';
+import { MonitorPlay } from 'lucide-react';
 
 import { Eye, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCcw, Activity } from 'lucide-react';
 
@@ -16,6 +17,7 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
   const [zoom, setZoom] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isStudioOpen, setIsStudioOpen] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -71,10 +73,13 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
     }
   }, []);
 
-  const handleError = React.useCallback((err: string) => {
-    setError(err);
+  const handleError = React.useCallback((e: React.SyntheticEvent<HTMLIFrameElement>) => {
+    console.error('Iframe load error:', e);
+    setError('Failed to load preview. Try refreshing.');
     setLoading(false);
   }, []);
+
+
 
   return (
     <div
@@ -87,7 +92,12 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)' }}
       >
         <div className="flex items-center gap-2 flex-1 min-w-[160px]">
-          <Eye className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--accent)' }} />
+          <div className="flex items-center gap-1">
+            <Eye className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--accent)' }} />
+            <button onClick={() => setIsStudioOpen(true)} title="Interactive Studio" className="p-1 hover:bg-[var(--bg-elevated)] rounded transition-colors">
+              <MonitorPlay className="w-3 h-3 text-blue-400" />
+            </button>
+          </div>
           <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
             {planName} Preview
           </span>
@@ -134,11 +144,10 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         className="relative overflow-hidden"
         style={{ width: '100%', aspectRatio: '16/9', background: '#000' }}
       >
-        <OverlayPreviewRenderer 
-          template={overlayFile}
-          progress={debouncedProgress}
-          baseUrl={baseUrl}
-          zoom={zoom}
+        <iframe
+          src={`${baseUrl}/overlays/${overlayFile}`}
+          className="w-full h-full border-none"
+          style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}
           onLoad={handleLoad}
           onError={handleError}
         />
@@ -188,6 +197,16 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
               <button onClick={() => triggerAnimation('SHOW_SCOREBOARD')} className="col-span-2 p-3 bg-slate-500/10 text-slate-400 font-bold border border-slate-500/30 rounded-xl hover:bg-slate-500 hover:text-white transition-all text-xs">Restore Scoreboard</button>
             </div>
          </div>
+
+      {/* Interactive Preview Studio */}
+      {isStudioOpen && (
+        <InteractivePreviewStudio
+          isOpen={isStudioOpen}
+          onClose={() => setIsStudioOpen(false)}
+          overlayUrl={`${baseUrl}/overlays/${overlayFile}?preview=true`}
+          overlayName={`${planName} Studio`}
+        />
+      )}
     </div>
   );
 };
