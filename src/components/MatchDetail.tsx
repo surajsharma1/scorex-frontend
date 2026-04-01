@@ -20,6 +20,8 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'overview' | 'scoreboard' | 'players' | 'leaderboard'>('overview');
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isScorerAssigned, setIsScorerAssigned] = useState(false);
+  const [assigningScorer, setAssigningScorer] = useState(false);
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -42,6 +44,12 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (match && currentUser) {
+      setIsScorerAssigned(match.scorerId === currentUser._id);
+    }
+  }, [match, currentUser]);
 
   if (loading) return (
     <div className="min-h-[90vh] flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
@@ -82,8 +90,6 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
   };
 
   const isAuthorized = currentUser && (currentUser.role === 'admin' || currentUser._id === match.tournament?.createdBy?._id);
-  const [isScorerAssigned, setIsScorerAssigned] = useState(match.scorerId === currentUser?._id);
-  const [assigningScorer, setAssigningScorer] = useState(false);
 
   return (
     <div className="min-h-[90vh] max-h-[90vh] overflow-hidden flex flex-col rounded-2xl" style={{ background: 'var(--bg-primary)' }}>
