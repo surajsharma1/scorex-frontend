@@ -117,7 +117,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
             
             <div className="flex items-center gap-2">
               <button
-                onClick={() => navigate(`/live-scoring/${matchId}`)}
+onClick={() => navigate(`/matches/${matchId}/score`)}
                 className="flex items-center gap-2 px-4 py-2.5 font-bold rounded-2xl transition-all hover:scale-105 shadow-lg bg-emerald-600 hover:bg-emerald-500 text-black text-sm"
               >
                 <Zap className="w-4 h-4" /> Live Scoring
