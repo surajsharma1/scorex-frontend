@@ -24,10 +24,32 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
   // Master Scoreboard-style trigger method (Purely triggers animations)
   const triggerAnimation = (eventType: string) => {
     const iframes = document.querySelectorAll('iframe');
+    
+    let payload = { type: eventType, duration: 8, data: {} };
+
+    // Inject mock data for the advanced panels so you can see them work
+    if (eventType === 'SHOW_SQUADS') {
+      payload.data = {
+        team1Name: "INDIA", team2Name: "AUSTRALIA",
+        team1Players: [{name: 'R. Sharma', role: 'BAT'}, {name: 'V. Kohli', role: 'BAT'}, {name: 'J. Bumrah', role: 'BOWL'}],
+        team2Players: [{name: 'T. Head', role: 'BAT'}, {name: 'P. Cummins', role: 'BOWL'}, {name: 'M. Starc', role: 'BOWL'}]
+      };
+    } else if (eventType === 'SHOW_TOSS') {
+      payload.data = { text: "INDIA WON THE TOSS AND CHOSE TO BAT" };
+    } else if (eventType === 'WICKET') {
+      payload.data = { playerName: "V. Kohli", matches: 280, runs: 12500, sr: 138.5 };
+    } else if (eventType === 'BATSMAN_CARD') {
+      payload.data = { playerName: "R. Sharma", stat1: "45", stat2: "28", stat3: "4/2" };
+    } else if (eventType === 'BOWLER_CARD') {
+      payload.data = { playerName: "M. Starc", stat1: "3.0", stat2: "2", stat3: "6.5" };
+    } else if (eventType === 'MANHATTAN') {
+      payload.data = { runsPerOver: [5, 12, 4, 8, 16, 2, 7, 14] };
+    }
+
     iframes.forEach(iframe => {
       iframe.contentWindow?.postMessage({
-        type: 'OVERLAY_ACTION',
-        payload: { event: eventType }
+        type: 'OVERLAY_TRIGGER',
+        payload: payload
       }, '*');
     });
   };
@@ -144,14 +166,28 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         )}
       </div>
 
-      {/* Animation Trigger Controls */}
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-3 p-4 bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border)] shadow-inner">
-         <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mr-2 sm:mr-4 flex items-center gap-2"><Activity className="w-4 h-4 text-blue-500"/> Triggers:</span>
-         <button onClick={() => triggerAnimation('FOUR')} className="flex-1 sm:flex-none px-6 py-3 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl hover:bg-blue-500 hover:text-white transition-all shadow-sm">FOUR (4)</button>
-         <button onClick={() => triggerAnimation('SIX')} className="flex-1 sm:flex-none px-6 py-3 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-sm">SIX (6)</button>
-         <button onClick={() => triggerAnimation('WICKET')} className="flex-1 sm:flex-none px-6 py-3 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm">OUT (W)</button>
-         <button onClick={() => triggerAnimation('DECISION_PENDING')} className="w-full sm:w-auto px-6 py-3 bg-amber-500/10 text-amber-500 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-black transition-all tracking-wide shadow-sm">DECISION PENDING (DP)</button>
-      </div>
+         <div className="mt-6 p-4 bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border)] shadow-inner">
+            <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3 flex items-center gap-2"><Activity className="w-4 h-4 text-blue-500"/> Advanced Triggers:</span>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {/* Full Screen Triggers */}
+              <button onClick={() => triggerAnimation('SHOW_SQUADS')} className="p-3 bg-purple-500/10 text-purple-400 font-bold border border-purple-500/30 rounded-xl hover:bg-purple-500 hover:text-white transition-all text-xs">Full Squads</button>
+              <button onClick={() => triggerAnimation('SHOW_TOSS')} className="p-3 bg-purple-500/10 text-purple-400 font-bold border border-purple-500/30 rounded-xl hover:bg-purple-500 hover:text-white transition-all text-xs">Toss Result</button>
+              
+              {/* Micro Triggers */}
+              <button onClick={() => triggerAnimation('FOUR')} className="p-3 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl hover:bg-green-500 hover:text-white transition-all text-xs">FOUR (4)</button>
+              <button onClick={() => triggerAnimation('SIX')} className="p-3 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl hover:bg-blue-500 hover:text-white transition-all text-xs">SIX (6)</button>
+              
+              {/* Advanced Panel Triggers */}
+              <button onClick={() => triggerAnimation('WICKET')} className="p-3 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all text-xs">Wicket & Career</button>
+              <button onClick={() => triggerAnimation('BATSMAN_CARD')} className="p-3 bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-white transition-all text-xs">Batsman Summary</button>
+              <button onClick={() => triggerAnimation('BOWLER_CARD')} className="p-3 bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-white transition-all text-xs">Bowler Summary</button>
+              <button onClick={() => triggerAnimation('MANHATTAN')} className="p-3 bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/30 rounded-xl hover:bg-indigo-500 hover:text-white transition-all text-xs">Manhattan Graph</button>
+              
+              <button onClick={() => triggerAnimation('DECISION_PENDING')} className="col-span-2 p-3 bg-yellow-500/10 text-yellow-400 font-bold border border-yellow-500/30 rounded-xl hover:bg-yellow-500 hover:text-white transition-all text-xs">Decision Pending</button>
+              <button onClick={() => triggerAnimation('SHOW_SCOREBOARD')} className="col-span-2 p-3 bg-slate-500/10 text-slate-400 font-bold border border-slate-500/30 rounded-xl hover:bg-slate-500 hover:text-white transition-all text-xs">Restore Scoreboard</button>
+            </div>
+         </div>
     </div>
   );
 };

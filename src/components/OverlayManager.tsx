@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import OverlayPreviewContainer from './OverlayPreviewContainer';
 import { 
-  Eye, Save, Trash2, Copy, RefreshCw, X, PlaySquare, 
+  Eye, Save, Trash2, Copy, RefreshCw, X, PlaySquare, Settings, 
   Target, ShieldAlert, Timer, Maximize2, Smartphone, ZoomIn, Activity 
 } from 'lucide-react';
 import { overlayAPI, matchAPI } from '../services/api';
@@ -71,7 +71,21 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   const [loading, setLoading] = useState(true);
   
   const [activePreview, setActivePreview] = useState<any | null>(null);
+  const [configuringOverlay, setConfiguringOverlay] = useState<any | null>(null);
+
+  const saveOverlayConfig = async (overlayId: string, newConfig: any) => {
+    try {
+      await overlayAPI.update(overlayId, { config: newConfig });
+      addToast({ type: 'success', message: 'Overlay config saved!' });
+      setConfiguringOverlay(null);
+      loadData(); // Refresh overlays
+    } catch (e: any) {
+      addToast({ type: 'error', message: e.response?.data?.message || 'Save failed' });
+    }
+  };
+
   const [showCreate, setShowCreate] = useState(false);
+
   const [createForm, setCreateForm] = useState({ name: '', template: '', match: '' });
   
   // Mobile Fullscreen Modal State & Stable Refs

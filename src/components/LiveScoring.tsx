@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import { socket } from '../services/socket';
-import { RotateCcw, LogOut, ChevronRight, Zap, AlertTriangle, X, RefreshCw, Users } from 'lucide-react';
+import { RotateCcw, LogOut, ChevronRight, Zap, AlertTriangle, X, RefreshCw, Users, MonitorPlay, Layers, TrendingUp, XCircle } from 'lucide-react';
 
 interface BallData { runs?: number; wide?: boolean; noBall?: boolean; bye?: number; legBye?: number; wicket?: boolean; outType?: string; outBatsmanName?: string; outFielder?: string; retired?: boolean; penalty?: number; }
 type ScoringPanel = 'main' | 'wide' | 'noBall' | 'bye' | 'legBye' | 'wicket' | 'others';
@@ -139,6 +139,67 @@ function InningsBreak({ match, onContinue }: { match: any; onContinue: () => voi
     </div>
   );
 }
+
+// --- NEW BROADCAST DIRECTOR PANEL ---
+const BroadcastDirectorPanel = ({ matchId, socket }: { matchId: string, socket: any }) => {
+  
+  const fireManualTrigger = (type: string, data: any = {}) => {
+    if (socket) {
+      socket.emit('manualOverlayTrigger', {
+        matchId,
+        trigger: { type, duration: 15, data }
+      });
+    }
+  };
+
+  return (
+    <div className="mt-4 bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-lg">
+      <div className="bg-slate-800 px-4 py-2 border-b border-slate-700 flex items-center justify-between">
+        <h3 className="font-bold text-slate-200 flex items-center gap-2 uppercase tracking-wider text-sm">
+          <MonitorPlay className="w-4 h-4 text-blue-400" /> Broadcast Director
+        </h3>
+        <span className="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded animate-pulse font-bold">LIVE</span>
+      </div>
+      
+      <div className="p-3 grid grid-cols-2 md:grid-cols-4 gap-2">
+        <button onClick={() => fireManualTrigger('SHOW_SQUADS')} className="flex flex-col items-center justify-center p-3 bg-purple-900/30 hover:bg-purple-800/50 border border-purple-700/50 rounded-lg transition-colors text-purple-300">
+          <Users className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-bold uppercase">Playing XI</span>
+        </button>
+
+        <button onClick={() => fireManualTrigger('SHOW_TOSS')} className="flex flex-col items-center justify-center p-3 bg-purple-900/30 hover:bg-purple-800/50 border border-purple-700/50 rounded-lg transition-colors text-purple-300">
+          <div className="w-5 h-5 mb-1 rounded-full border-2 border-current flex items-center justify-center text-[10px] font-black">T</div>
+          <span className="text-[10px] font-bold uppercase">Toss Result</span>
+        </button>
+
+        <button onClick={() => fireManualTrigger('BATTING_CARD')} className="flex flex-col items-center justify-center p-3 bg-blue-900/30 hover:bg-blue-800/50 border border-blue-700/50 rounded-lg transition-colors text-blue-300">
+          <Layers className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-bold uppercase">Batting Card</span>
+        </button>
+
+        <button onClick={() => fireManualTrigger('BOWLING_CARD')} className="flex flex-col items-center justify-center p-3 bg-blue-900/30 hover:bg-blue-800/50 border border-blue-700/50 rounded-lg transition-colors text-blue-300">
+          <Layers className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-bold uppercase">Bowling Card</span>
+        </button>
+
+        <button onClick={() => fireManualTrigger('BOTH_CARDS')} className="flex flex-col items-center justify-center p-3 bg-indigo-900/30 hover:bg-indigo-800/50 border border-indigo-700/50 rounded-lg transition-colors text-indigo-300">
+          <TrendingUp className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-bold uppercase text-center">Match Summary<br/>(Both Cards)</span>
+        </button>
+
+        <button onClick={() => fireManualTrigger('DECISION_PENDING')} className="flex flex-col items-center justify-center p-3 bg-yellow-900/30 hover:bg-yellow-800/50 border border-yellow-700/50 rounded-lg transition-colors text-yellow-300">
+          <AlertTriangle className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-bold uppercase">3rd Umpire</span>
+        </button>
+
+        <button onClick={() => fireManualTrigger('RESTORE')} className="col-span-2 flex items-center justify-center gap-2 p-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg transition-colors text-slate-300">
+          <XCircle className="w-4 h-4" />
+          <span className="text-xs font-bold uppercase">Clear Graphics (Restore Live Score)</span>
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export default function LiveScoring() {
   const { id } = useParams<{ id: string }>();
@@ -573,6 +634,8 @@ export default function LiveScoring() {
           </div>
         )}
       </div>
+
+      <BroadcastDirectorPanel matchId={match._id} socket={socket} />
 
       <div className="bg-slate-900 border-t border-slate-800 px-4 py-3 grid grid-cols-2 gap-3">
         <button onClick={handleEndInnings} disabled={isActionDisabled} className="py-3 rounded-xl font-semibold text-sm bg-orange-900/30 hover:bg-orange-700/40 border border-orange-700/40 text-orange-300 flex justify-center items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"><RefreshCw className="w-4 h-4" /> Change Inning</button>

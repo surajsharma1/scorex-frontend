@@ -94,8 +94,10 @@ export const overlayAPI = {
   getOverlay: (id: string) => api.get(`/overlays/${id}`),
   deleteOverlay: (id: string) => api.delete(`/overlays/${id}`),
   regenerateOverlay: (id: string) => api.post(`/overlays/${id}/regenerate-url`),  
+  update: (id: string, data: any) => api.put(`/overlays/${id}`, data),
   updateOverlay: (id: string, data: any) => api.put(`/overlays/${id}`, data),     
 };
+
 
 // ─── Club API ─────────────────────────────────────────────────────────────────
 export const clubAPI = {
