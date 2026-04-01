@@ -25,7 +25,10 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
   useEffect(() => {
     matchAPI.getMatch(matchId)
       .then(r => setMatch(r.data.data))
-      .catch(e => console.error(e))
+      .catch(e => {
+        console.error(e);
+        setMatch(null);
+      })
       .finally(() => setLoading(false));
   }, [matchId]);
 
@@ -65,7 +68,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
       allBowlers.push({ ...b, team: inn.teamName });
     });
   });
-  allBatsmen.sort((a, b) => b.runs - a.runs);
+  allBatsmen.sort((a, b) => (b.runs ?? 0) - (a.runs ?? 0));
 
   const handleDeleteMatch = async () => {
     if (!confirm(`Delete "${match.name}" match? This action cannot be undone.`)) return;
@@ -164,13 +167,13 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
             <div className="flex-1 text-center">
               <p className="text-sm uppercase tracking-wide font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>{match.team1Name}</p>
               <p className="text-4xl font-black mb-1" style={{ color: 'var(--text-primary)' }}>{match.team1Score}/{match.team1Wickets}</p>
-              <p style={{ color: 'var(--text-secondary)' }}>({Number(match.team1Overs || 0).toFixed(1)} ov)</p>
+              <p style={{ color: 'var(--text-secondary)' }}>({Number(match.team1Overs ?? 0).toFixed(1)} ov)</p>
             </div>
             <div className="text-2xl font-black uppercase tracking-wider" style={{ color: 'rgb(var(--success))' }}>VS</div>
             <div className="flex-1 text-center">
               <p className="text-sm uppercase tracking-wide font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>{match.team2Name}</p>
               <p className="text-4xl font-black mb-1" style={{ color: 'var(--text-primary)' }}>{match.team2Score}/{match.team2Wickets}</p>
-              <p style={{ color: 'var(--text-secondary)' }}>({Number(match.team2Overs || 0).toFixed(1)} ov)</p>
+              <p style={{ color: 'var(--text-secondary)' }}>({Number(match.team2Overs ?? 0).toFixed(1)} ov)</p>
             </div>
           </div>
           
@@ -229,7 +232,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
                   <p style={{ color: 'var(--text-primary)' }}>{match.tossWinnerName} won the toss and chose to {match.tossDecision}</p>
                 </div>
               )}
-              {[innings1, innings2].filter(Boolean).map((inn: any, i: number) => (
+{[innings1, innings2].filter(Boolean).map((inn: any, i: number) => (
                 <div key={i} className="p-6 rounded-2xl" style={{ 
                   background: 'var(--bg-card)', 
                   border: '1px solid var(--border)',
@@ -244,7 +247,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
                     </div>
                     <div className="text-right">
                       <p className="text-4xl font-black" style={{ color: 'var(--text-primary)' }}>{inn.score}/{inn.wickets}</p>
-                      <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>RR: {inn.runRate?.toFixed(2)}</p>
+                      <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>RR: {inn.runRate?.toFixed(2) ?? '0.00'}</p>
                     </div>
                   </div>
                   {inn.targetScore && (
@@ -299,44 +302,44 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
                   </div>
 
                   {/* Batting */}
-                  {inn.batsmen?.length > 0 && (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b" style={{ borderColor: 'var(--border)', background: 'var(--bg-elevated)' }}>
-                            <th className="text-left py-4 px-6 font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>Batsman</th>
-                            <th className="text-center py-4 px-4 font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>R</th>
-                            <th className="text-center py-4 px-4 font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>B</th>
-                            <th className="text-center py-4 px-4 font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>4s</th>
-                            <th className="text-center py-4 px-4 font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>6s</th>
-                            <th className="text-center py-4 px-4 font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>SR</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {inn.batsmen.map((b: any, j: number) => (
-                            <tr key={j} className="border-b hover:bg-[var(--bg-elevated)] transition-colors" style={{ borderColor: 'rgba(var(--border),0.5)' }}>
-                              <td className="py-4 px-6">
-                                <div className="flex items-center gap-2">
-                                  <div>
-                                    <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{b.name}</span>
-                                    {b.isStriker && !b.isOut && <span className="ml-2 px-2 py-1 rounded-full text-xs font-bold bg-[var(--accent)] text-black">Striker</span>}
-                                    {!b.isOut && !b.isStriker && <span className="ml-2 px-2 py-1 rounded-full text-xs font-bold bg-[var(--text-muted)] text-black">Non-Striker</span>}
-                                    {b.isOut && <div className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{b.outType?.replace('_', ' ')} b {b.outTo}</div>}
-                                    {!b.isOut && <div className="text-sm mt-1 font-bold" style={{ color: 'rgb(var(--success))' }}>not out</div>}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="py-4 px-4 text-center font-bold text-2xl" style={{ color: 'var(--text-primary)' }}>{b.runs}</td>
-                              <td className="py-4 px-4 text-center" style={{ color: 'var(--text-secondary)' }}>{b.balls}</td>
-                              <td className="py-4 px-4 text-center font-bold" style={{ color: 'rgb(var(--accent))' }}>{b.fours}</td>
-                              <td className="py-4 px-4 text-center font-bold" style={{ color: '#a855f7' }}>{b.sixes}</td>
-                              <td className="py-4 px-4 text-center" style={{ color: 'var(--text-secondary)' }}>{b.strikeRate?.toFixed(1)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+  {inn?.batsmen?.length > 0 && (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b" style={{ borderColor: 'var(--border)', background: 'var(--bg-elevated)' }}>
+            <th className="text-left py-4 px-6 font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>Batsman</th>
+            <th className="text-center py-4 px-4 font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>R</th>
+            <th className="text-center py-4 px-4 font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>B</th>
+            <th className="text-center py-4 px-4 font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>4s</th>
+            <th className="text-center py-4 px-4 font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>6s</th>
+            <th className="text-center py-4 px-4 font-semibold text-sm" style={{ color: 'var(--text-secondary)' }}>SR</th>
+          </tr>
+        </thead>
+        <tbody>
+          {inn.batsmen.map((b: any, j: number) => (
+            <tr key={j} className="border-b hover:bg-[var(--bg-elevated)] transition-colors" style={{ borderColor: 'rgba(var(--border),0.5)' }}>
+              <td className="py-4 px-6">
+                <div className="flex items-center gap-2">
+                  <div>
+                    <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{b.name}</span>
+                    {b.isStriker && !b.isOut && <span className="ml-2 px-2 py-1 rounded-full text-xs font-bold bg-[var(--accent)] text-black">Striker</span>}
+                    {!b.isOut && !b.isStriker && <span className="ml-2 px-2 py-1 rounded-full text-xs font-bold bg-[var(--text-muted)] text-black">Non-Striker</span>}
+                    {b.isOut && <div className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{String(b.outType ?? '').replace('_', ' ')} b {b.outTo ?? ''}</div>}
+                    {!b.isOut && <div className="text-sm mt-1 font-bold" style={{ color: 'rgb(var(--success))' }}>not out</div>}
+                  </div>
+                </div>
+              </td>
+              <td className="py-4 px-4 text-center font-bold text-2xl" style={{ color: 'var(--text-primary)' }}>{b.runs ?? 0}</td>
+              <td className="py-4 px-4 text-center" style={{ color: 'var(--text-secondary)' }}>{b.balls ?? 0}</td>
+              <td className="py-4 px-4 text-center font-bold" style={{ color: 'rgb(var(--accent))' }}>{b.fours ?? 0}</td>
+              <td className="py-4 px-4 text-center font-bold" style={{ color: '#a855f7' }}>{b.sixes ?? 0}</td>
+              <td className="py-4 px-4 text-center" style={{ color: 'var(--text-secondary)' }}>{b.strikeRate?.toFixed(1) ?? '0.0'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
 
                   {/* Extras */}
                   {inn.extras && (
@@ -363,16 +366,16 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
                           </tr>
                         </thead>
                         <tbody>
-                          {inn.bowlers.map((b: any, j: number) => (
+                          {inn?.bowlers?.map((b: any, j: number) => (
                             <tr key={j} className="border-b hover:bg-[var(--bg-elevated)] transition-colors" style={{ borderColor: 'rgba(var(--border),0.5)' }}>
                               <td className="py-4 px-6 font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{b.name}</td>
-                              <td className="py-4 px-4 text-center" style={{ color: 'var(--text-secondary)' }}>{b.overs || 0}.{b.balls ? b.balls % 6 : 0}</td>
-                              <td className="py-4 px-4 text-center" style={{ color: 'var(--text-secondary)' }}>{b.maidens}</td>
-                              <td className="py-4 px-4 text-center" style={{ color: 'var(--text-secondary)' }}>{b.runs}</td>
-                              <td className="py-4 px-4 text-center font-bold text-xl" style={{ color: 'rgb(var(--danger))' }}>{b.wickets}</td>
-                              <td className="py-4 px-4 text-center" style={{ color: 'var(--text-secondary)' }}>{b.economy?.toFixed(2)}</td>
+                              <td className="py-4 px-4 text-center" style={{ color: 'var(--text-secondary)' }}>{Math.floor(b.overs ?? 0)}.{(b.balls ?? 0) % 6}</td>
+                              <td className="py-4 px-4 text-center" style={{ color: 'var(--text-secondary)' }}>{b.maidens ?? 0}</td>
+                              <td className="py-4 px-4 text-center" style={{ color: 'var(--text-secondary)' }}>{b.runs ?? 0}</td>
+                              <td className="py-4 px-4 text-center font-bold text-xl" style={{ color: 'rgb(var(--danger))' }}>{b.wickets ?? 0}</td>
+                              <td className="py-4 px-4 text-center" style={{ color: 'var(--text-secondary)' }}>{b.economy?.toFixed(2) ?? '0.00'}</td>
                             </tr>
-                          ))}
+                          )) ?? []}
                         </tbody>
                       </table>
                     </div>
@@ -500,7 +503,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
                       </tr>
                     </thead>
                     <tbody>
-                      {allBatsmen.slice(0, 10).map((b, i) => (
+{allBatsmen.slice(0, 10).map((b, i) => (
                         <tr key={i} className="border-b hover:bg-[var(--bg-elevated)] transition-colors" style={{ borderColor: 'rgba(var(--border),0.5)' }}>
                           <td className="py-4 px-6">
                             <div className="flex items-center gap-3">
@@ -514,11 +517,11 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
                               </div>
                             </div>
                           </td>
-                          <td className="py-4 px-4 text-center font-black text-3xl" style={{ color: 'var(--text-primary)' }}>{b.runs}</td>
-                          <td className="py-4 px-4 text-center font-mono" style={{ color: 'var(--text-secondary)' }}>{b.balls}</td>
-                          <td className="py-4 px-4 text-center font-bold text-xl" style={{ color: 'rgb(var(--accent))' }}>{b.fours}</td>
-                          <td className="py-4 px-4 text-center font-bold text-xl" style={{ color: '#a855f7' }}>{b.sixes}</td>
-                          <td className="py-4 px-4 text-center font-mono" style={{ color: 'var(--text-secondary)' }}>{b.strikeRate?.toFixed(1)}</td>
+                          <td className="py-4 px-4 text-center font-black text-3xl" style={{ color: 'var(--text-primary)' }}>{b.runs ?? 0}</td>
+                          <td className="py-4 px-4 text-center font-mono" style={{ color: 'var(--text-secondary)' }}>{b.balls ?? 0}</td>
+                          <td className="py-4 px-4 text-center font-bold text-xl" style={{ color: 'rgb(var(--accent))' }}>{b.fours ?? 0}</td>
+                          <td className="py-4 px-4 text-center font-bold text-xl" style={{ color: '#a855f7' }}>{b.sixes ?? 0}</td>
+                          <td className="py-4 px-4 text-center font-mono" style={{ color: 'var(--text-secondary)' }}>{b.strikeRate?.toFixed(1) ?? '0.0'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -551,7 +554,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
                       </tr>
                     </thead>
                     <tbody>
-                      {allBowlers.sort((a, b) => b.wickets - a.wickets).slice(0, 10).map((b, i) => (
+                      {allBowlers.sort((a, b) => (b.wickets ?? 0) - (a.wickets ?? 0)).slice(0, 10).map((b, i) => (
                         <tr key={i} className="border-b hover:bg-[var(--bg-elevated)] transition-colors" style={{ borderColor: 'rgba(var(--border),0.5)' }}>
                           <td className="py-4 px-6">
                             <div className="flex items-center gap-3">
@@ -565,12 +568,15 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
                               </div>
                             </div>
                           </td>
-                          <td className="py-4 px-4 text-center font-mono" style={{ color: 'var(--text-secondary)' }}>{b.overs || 0}.{b.balls ? b.balls % 6 : 0}</td>
-                          <td className="py-4 px-4 text-center font-mono" style={{ color: 'var(--text-secondary)' }}>{b.runs}</td>
-                          <td className="py-4 px-4 text-center font-black text-3xl" style={{ color: 'rgb(var(--danger))' }}>{b.wickets}</td>
-                          <td className="py-4 px-4 text-center font-mono" style={{ color: 'var(--text-secondary)' }}>{b.economy?.toFixed(2)}</td>
+                          <td className="py-4 px-4 text-center font-mono" style={{ color: 'var(--text-secondary)' }}>{Math.floor(b.overs ?? 0)}.{(b.balls ?? 0) % 6}</td>
+
+
+<td className="py-4 px-4 text-center font-mono" style={{ color: 'var(--text-secondary)' }}>{b.runs ?? 0}</td>
+                          <td className="py-4 px-4 text-center font-black text-3xl" style={{ color: 'rgb(var(--danger))' }}>{b.wickets ?? 0}</td>
+                          <td className="py-4 px-4 text-center font-mono" style={{ color: 'var(--text-secondary)' }}>{b.economy?.toFixed(2) ?? '0.00'}</td>
                         </tr>
                       ))}
+
                     </tbody>
                   </table>
                 </div>
