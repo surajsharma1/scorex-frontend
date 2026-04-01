@@ -1,9 +1,23 @@
 User-agent: *
 Allow: /
+Allow: /tournaments
+Allow: /live
 
-# Block access to sensitive areas
+# Block auth and private pages — no SEO value, keep crawl budget clean
+Disallow: /admin
 Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password/
+Disallow: /oauth/
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /membership
+Disallow: /matches/*/score
+
+# Block API routes
 Disallow: /api/
 
 # Sitemap
-Sitemap: https://scorex-frontend-p26uq51uk-suraj-sharmas-projects-3413126b.vercel.app/sitemap.xml
+Sitemap: https://scorex-live.vercel.app/sitemap.xml

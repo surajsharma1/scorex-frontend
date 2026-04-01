@@ -2,15 +2,95 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ScoreX - Cricket Tournament Platform</title>
-    <!-- Razorpay Checkout SDK -->
+
+    <!-- ── Favicon ──────────────────────────────────────────────── -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#22c55e" />
+
+    <!-- ── Primary SEO ──────────────────────────────────────────── -->
+    <title>ScoreX – Live Cricket Scoring & Tournament Management Platform</title>
+    <meta name="description" content="ScoreX is a free live cricket scoring platform for clubs, tournaments, and academies. Score matches in real-time, manage tournaments, broadcast overlays, and track player stats online." />
+    <meta name="keywords" content="live cricket scoring, cricket tournament management, cricket scoreboard online, cricket overlay, cricket score app, cricket stats tracker, cricket club management" />
+    <meta name="author" content="ScoreX" />
+    <link rel="canonical" href="https://scorex-live.vercel.app/" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+
+    <!-- ── Open Graph (Facebook, WhatsApp, LinkedIn) ────────────── -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ScoreX" />
+    <meta property="og:title" content="ScoreX – Live Cricket Scoring & Tournament Management" />
+    <meta property="og:description" content="Score cricket matches in real-time, manage tournaments, broadcast live overlays, and track player performance — all in one platform." />
+    <meta property="og:url" content="https://scorex-live.vercel.app/" />
+    <meta property="og:image" content="https://scorex-live.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ScoreX live cricket scoring dashboard" />
+    <meta property="og:locale" content="en_IN" />
+
+    <!-- ── Twitter Card ─────────────────────────────────────────── -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ScoreX – Live Cricket Scoring & Tournament Management" />
+    <meta name="twitter:description" content="Score cricket matches in real-time, manage tournaments, broadcast live overlays, and track player performance." />
+    <meta name="twitter:image" content="https://scorex-live.vercel.app/og-image.png" />
+    <meta name="twitter:image:alt" content="ScoreX live cricket scoring dashboard" />
+
+    <!-- ── Structured Data: WebSite ─────────────────────────────── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "ScoreX",
+      "url": "https://scorex-live.vercel.app/",
+      "description": "Live cricket scoring and tournament management platform for clubs, academies, and organizers.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://scorex-live.vercel.app/tournaments?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- ── Structured Data: SoftwareApplication ─────────────────── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "ScoreX",
+      "applicationCategory": "SportsApplication",
+      "operatingSystem": "Web",
+      "url": "https://scorex-live.vercel.app/",
+      "description": "Real-time cricket scoring, tournament bracket management, live broadcast overlays, and player statistics tracking.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "INR"
+      },
+      "featureList": [
+        "Live cricket scoring",
+        "Tournament management",
+        "Broadcast overlays",
+        "Player statistics",
+        "Club management",
+        "Leaderboards"
+      ]
+    }
+    </script>
+
+    <!-- ── Preconnect for performance ───────────────────────────── -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://scorex-backend.onrender.com" />
+
+    <!-- ── Razorpay ──────────────────────────────────────────────── -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <!-- FIXED: Razorpay Key - Use TEST key for local/dev. For Vercel PROD: Set env VITE_RAZORPAY_KEY_PUBLIC=rzp_live_... -->
     <script>
       window.__RAZORPAY_KEY__ = 'rzp_test_4d0ab562f3d928';
-      console.log('[Razorpay] Key loaded:', window.__RAZORPAY_KEY__);
     </script>
   </head>
   <body>
