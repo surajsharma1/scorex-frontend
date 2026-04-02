@@ -94,9 +94,17 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         <div className="flex items-center gap-2 flex-1 min-w-[160px]">
           <div className="flex items-center gap-1">
             <Eye className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--accent)' }} />
-            <button onClick={() => setIsStudioOpen(true)} title="Interactive Studio" className="p-1 hover:bg-[var(--bg-elevated)] rounded transition-colors">
-              <MonitorPlay className="w-3 h-3 text-blue-400" />
-            </button>
+<button 
+  onClick={() => {
+    // Determine level from the planName or overlayFile string
+    const level = planName.toLowerCase().includes('pro') || overlayFile.includes('lvl2') ? '2' : '1';
+    window.open(`/studio?level=${level}`, '_blank');
+  }} 
+  className="flex-1 sm:flex-none px-6 py-3 bg-blue-500 text-white font-bold rounded-xl transition-colors" 
+  title="Launch Interactive Preview"
+>
+  <MonitorPlay className="w-4 h-4" /> Launch Interactive Preview
+</button>
           </div>
           <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
             {planName} Preview

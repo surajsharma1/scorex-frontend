@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 // import OverlayPreviewContainer from './OverlayPreviewContainer';
 
 import { 
-  Eye, Save, Trash2, Copy, RefreshCw, X, PlaySquare, Settings, 
+  Eye, MonitorPlay, Save, Trash2, Copy, RefreshCw, X, PlaySquare, Settings, 
   Target, ShieldAlert, Timer, Maximize2, Smartphone, ZoomIn, Activity 
 } from 'lucide-react';
 import { overlayAPI, matchAPI } from '../services/api';
@@ -267,15 +267,25 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
             <div className="flex-1 w-full">
 
               <label className="block text-xs font-bold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">Select Base Template</label>
-              <select required value={createForm.template} onChange={e=>setCreateForm({...createForm, template: e.target.value})} className="w-full p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-white outline-none focus:border-green-500 transition-colors appearance-none font-semibold">
-                <option value="">-- Choose Template --</option>
-                {templates.map(t => (
-
-                  <option key={t.id || t.name} value={getTemplateFilename(t)}>
-                    {t.name} (Lvl {t.level || 1})
-                  </option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select required value={createForm.template} onChange={e=>setCreateForm({...createForm, template: e.target.value})} className="flex-1 p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-white outline-none focus:border-green-500 transition-colors appearance-none font-semibold">
+                  <option value="">-- Choose Template --</option>
+                  {templates.map(t => (
+                    <option key={t.id || t.name} value={getTemplateFilename(t)}>
+                      {t.name} (Lvl {t.level || 1})
+                    </option>
+                  ))}
+                </select>
+                {createForm.template && (
+                  <button
+                    type="button"
+                    onClick={() => window.open(`/studio?template=${createForm.template}`, '_blank')}
+                    className="px-4 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold flex items-center gap-2 whitespace-nowrap"
+                  >
+                    <MonitorPlay className="w-4 h-4" /> Preview
+                  </button>
+                )}
+              </div>
             </div>
             <button type="submit" className="w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black rounded-xl hover:scale-105 transition-transform shadow-lg">Create Live Overlay</button>
           </form>
@@ -313,6 +323,13 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
                   <button onClick={(e) => { e.stopPropagation(); handleRegenerate(overlay._id); }} 
                     className="flex-1 py-2.5 bg-[var(--bg-primary)] rounded-xl border border-[var(--border)] text-xs font-bold text-[var(--text-secondary)] hover:text-blue-400 transition-colors flex items-center justify-center gap-2">
                     <RefreshCw className="w-3.5 h-3.5"/> Regenerate
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); window.open(`/studio?overlayId=${overlay._id}`, '_blank'); }} 
+                    className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors" 
+                    title="Test in Broadcast Studio"
+                  >
+                    <Eye className="w-4 h-4" />
                   </button>
                   <button onClick={(e) => { e.stopPropagation(); handleDelete(overlay._id); }} 
                     className="p-2.5 bg-[var(--bg-primary)] rounded-xl border border-[var(--border)] text-[var(--text-secondary)] hover:text-red-400 transition-colors">
