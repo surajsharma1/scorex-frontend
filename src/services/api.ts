@@ -140,8 +140,14 @@ export const membershipAPI = {
 };
 
 // ─── Admin API ────────────────────────────────────────────────────────────────
+export { clubAPI } from './clubAPI';
+export { friendAPI } from './friendAPI';
+
 export const adminAPI = {
   getStats: () => api.get('/stats/admin'),
+
+// ─── Club API ────────────────────────────────────────────────────────────────
+
   getUsers: (page = 1, limit = 50) => api.get('/admin/users', { params: { page, limit } }),
   updateUserRole: (id: string, role: string) => api.patch(`/admin/users/${id}/role`, { role }),
   getPayments: () => api.get('/admin/payments'),
