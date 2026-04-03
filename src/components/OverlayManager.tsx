@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Eye, MonitorPlay, Save, Trash2, Copy, RefreshCw, X, PlaySquare, Settings, 
-  Target, ShieldAlert, Timer, Maximize2, Smartphone, ZoomIn, Activity, Sliders
+  Target, ShieldAlert, Timer, Maximize2, Smartphone, ZoomIn, Activity, Layout, Sliders
+
 } from 'lucide-react';
 import { overlayAPI, matchAPI } from '../services/api';
 import { getBackendBaseUrl, getApiBaseUrl } from '../services/env';
@@ -159,10 +160,19 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   const triggerAnim = (eventType: string, targetId: string = 'main-preview') => {
     const iframe = document.getElementById(targetId) as HTMLIFrameElement;
     if (iframe?.contentWindow) {
-      // Sends standard broadcast message expected by your overlays
+      // Matches the OVERLAY_TRIGGER payload expected by engine.js and the Level 2 HTML files
+      const payload = { 
+        type: 'OVERLAY_TRIGGER', 
+        payload: { type: eventType, duration: 8 } 
+      };
+      
+      iframe.contentWindow.postMessage(payload, '*');
+      
+      // Also send direct fallback format just in case engine.js is bypassed
       iframe.contentWindow.postMessage({ type: eventType, duration: 8 }, '*');
     }
   };
+
 
   const generateSecureUrl = (overlay: any) => {
     const filename = getTemplateFilename(overlay);
@@ -184,22 +194,22 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   return (
     <div className="space-y-8 mt-4 mx-2">
       
-      {/* ─── CONFIGURATION MODAL ─── */}
+{/* ─── CONFIGURATION MODAL (BROADCAST DIRECTOR) ─── */}
       {configuringOverlay && (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-[#0a0a0f] border border-gray-800 rounded-2xl w-full max-w-5xl flex flex-col shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-[#0a0a0f] border border-gray-800 rounded-2xl w-full max-w-6xl flex flex-col shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-800 bg-[#0d0d14]">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <Settings className="w-5 h-5 text-blue-500" /> Configure: {configuringOverlay.name}
+              <h3 className="text-xl font-black text-white flex items-center gap-2 tracking-wide">
+                <Settings className="w-5 h-5 text-blue-500" /> BROADCAST DIRECTOR: <span className="text-blue-400">{configuringOverlay.name}</span>
               </h3>
-              <button onClick={() => setConfiguringOverlay(null)} className="p-2 text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-all"><X className="w-5 h-5" /></button>
+              <button onClick={() => setConfiguringOverlay(null)} className="p-2 text-gray-400 hover:text-red-400 bg-gray-800 hover:bg-red-500/10 rounded-lg transition-all"><X className="w-5 h-5" /></button>
             </div>
             
-            <div className="flex flex-col lg:flex-row h-full max-h-[80vh]">
+            <div className="flex flex-col lg:flex-row h-full max-h-[85vh]">
               {/* Left Side: Preview Engine for Config */}
               <div className="flex-1 p-6 flex flex-col items-center justify-center bg-black relative" style={{ backgroundImage: 'radial-gradient(#1a1a24 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
-                <div className="w-full aspect-video relative overflow-hidden bg-transparent border border-gray-800 rounded-xl">
+                <div className="w-full aspect-video relative overflow-hidden bg-transparent border border-gray-800 rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.8)]">
                   <iframe
                     id="config-preview"
                     src={generateSecureUrl(configuringOverlay)}
@@ -213,35 +223,71 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
                 </div>
               </div>
 
-              {/* Right Side: Config Controls & Triggers */}
-              <div className="w-full lg:w-80 bg-[#0d0d14] border-l border-gray-800 p-6 overflow-y-auto">
-                <h4 className="text-sm font-black text-gray-500 uppercase tracking-widest mb-4">Animation Triggers</h4>
-                <div className="grid grid-cols-2 gap-2 mb-8">
-                  <button onClick={() => triggerAnim('FOUR', 'config-preview')} className="py-3 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl hover:bg-blue-500 hover:text-white transition-all text-sm">FOUR (4)</button>
-                  <button onClick={() => triggerAnim('SIX', 'config-preview')} className="py-3 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl hover:bg-green-500 hover:text-white transition-all text-sm">SIX (6)</button>
-                  <button onClick={() => triggerAnim('WICKET', 'config-preview')} className="py-3 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all text-sm">OUT (W)</button>
-                  <button onClick={() => triggerAnim('RESTORE', 'config-preview')} className="py-3 bg-gray-800 text-gray-300 font-bold border border-gray-700 rounded-xl hover:bg-gray-700 hover:text-white transition-all text-sm">CLEAR</button>
-                </div>
+              {/* Right Side: Level 2 Overlay Triggers & Settings */}
+              <div className="w-full lg:w-96 bg-[#0d0d14] border-l border-gray-800 flex flex-col">
+                
+                {/* TRIGGERS SECTION */}
+                <div className="p-5 border-b border-gray-800 overflow-y-auto custom-scrollbar">
+                  <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-emerald-500" /> Live Action Triggers
+                  </h4>
+                  <div className="grid grid-cols-3 gap-2 mb-6">
+                    <button onClick={() => triggerAnim('FOUR', 'config-preview')} className="py-2.5 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-lg hover:bg-blue-500 hover:text-white transition-all text-xs">FOUR (4)</button>
+                    <button onClick={() => triggerAnim('SIX', 'config-preview')} className="py-2.5 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-lg hover:bg-green-500 hover:text-white transition-all text-xs">SIX (6)</button>
+                    <button onClick={() => triggerAnim('WICKET', 'config-preview')} className="py-2.5 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-lg hover:bg-red-500 hover:text-white transition-all text-xs">OUT (W)</button>
+                  </div>
 
-                <h4 className="text-sm font-black text-gray-500 uppercase tracking-widest mb-4">Overlay Settings</h4>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-400 mb-2">Display Name</label>
-                    <input type="text" defaultValue={configuringOverlay.name} className="w-full p-3 rounded-xl bg-gray-900 border border-gray-800 text-white focus:border-blue-500 outline-none" />
+                  <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <Layout className="w-4 h-4 text-purple-500" /> Full-Screen Graphics (Level 2)
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2 mb-6">
+                    <button onClick={() => triggerAnim('BATTING_CARD', 'config-preview')} className="py-3 bg-purple-500/10 text-purple-400 font-bold border border-purple-500/30 rounded-lg hover:bg-purple-500 hover:text-white transition-all text-xs">Batting Summary</button>
+                    <button onClick={() => triggerAnim('BOWLING_CARD', 'config-preview')} className="py-3 bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/30 rounded-lg hover:bg-indigo-500 hover:text-white transition-all text-xs">Bowling Summary</button>
+                    <button onClick={() => triggerAnim('BOTH_CARDS', 'config-preview')} className="col-span-2 py-3 bg-fuchsia-500/10 text-fuchsia-400 font-bold border border-fuchsia-500/30 rounded-lg hover:bg-fuchsia-500 hover:text-white transition-all text-xs">Full Match Stats (Both)</button>
+                    <button onClick={() => triggerAnim('MATCH_END', 'config-preview')} className="col-span-2 py-3 bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30 rounded-lg hover:bg-amber-500 hover:text-white transition-all text-xs">End Match Rotation</button>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-400 mb-2">Primary Color Hex</label>
-                    <input type="color" defaultValue="#3b82f6" className="w-full h-12 rounded-xl bg-gray-900 border border-gray-800 cursor-pointer" />
-                  </div>
-                  <button className="w-full mt-4 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all">
-                    <Save className="w-4 h-4" /> Save Configuration
+
+                  {/* RESTORE COMMAND */}
+                  <button onClick={() => triggerAnim('RESTORE', 'config-preview')} className="w-full py-3 bg-slate-800 text-slate-300 font-black tracking-widest border border-slate-700 rounded-xl hover:bg-slate-700 hover:text-white transition-all text-sm shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+                    RESTORE LIVE SCOREBOARD
                   </button>
                 </div>
+
+                {/* SETTINGS SECTION */}
+                <div className="p-5 flex-1 bg-[#0a0a0f]">
+                  <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-gray-400" /> Engine Settings
+                  </h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 mb-2">Display Name</label>
+                      <input type="text" defaultValue={configuringOverlay.name} className="w-full p-2.5 rounded-lg bg-gray-900 border border-gray-800 text-white focus:border-blue-500 outline-none text-sm font-semibold" />
+                    </div>
+                    
+                    {/* Maps to engine.js startupSequence settings */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 mb-2">VS Screen (sec)</label>
+                        <input type="number" defaultValue={8} className="w-full p-2.5 rounded-lg bg-gray-900 border border-gray-800 text-white focus:border-blue-500 outline-none text-sm text-center font-mono" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 mb-2">Toss Screen (sec)</label>
+                        <input type="number" defaultValue={6} className="w-full p-2.5 rounded-lg bg-gray-900 border border-gray-800 text-white focus:border-blue-500 outline-none text-sm text-center font-mono" />
+                      </div>
+                    </div>
+
+                    <button className="w-full mt-2 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95">
+                      <Save className="w-4 h-4" /> Save Configuration
+                    </button>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
         </div>
       )}
+
 
       {/* ─── CREATED OVERLAYS SECTION ─── */}
       <div className="bg-[var(--bg-card)] rounded-3xl p-6 border border-[var(--border)] shadow-lg">
