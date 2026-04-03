@@ -22,15 +22,8 @@ const LiveMatches = lazy(() => import('./components/LiveMatches'));
 const LiveMatchPage = lazy(() => import('./components/LiveMatchPage'));
 const Profile = lazy(() => import('./components/Profile'));
 const Membership = lazy(() => import('./components/Membership'));
-const ClubList = lazy(() => import('./components/ClubList'));
-const ClubDetail = lazy(() => import('./components/ClubDetail'));
-const CreateClubForm = lazy(() => import('./components/CreateClubForm'));
-const ClubManagement = lazy(() => import('./components/ClubManagement'));
-
 const LiveScoreboardPreview = lazy(() => import('./components/LiveScoreboardPreview'));
-
-const FriendList = lazy(() => import('./components/FriendList'));
-const Leaderboard = lazy(() => import('./components/Leaderboard'));
+const Leaderboard = lazy(() => import('./components/Leaderboard'))
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
 const InteractivePreviewStudio = lazy(() => import('./components/PreviewStudio'));
 
@@ -267,15 +260,8 @@ role: u.role,
         <Route path="/tournaments/create" element={<DashboardLayout user={user} logout={logout} token={token}><TournamentForm /></DashboardLayout>} />
                 <Route path="/tournaments/:id" element={<DashboardLayout user={user} logout={logout} token={token}><TournamentView /></DashboardLayout>} />
                 <Route path="/membership" element={<DashboardLayout user={user} logout={logout} token={token}><Membership /></DashboardLayout>} />
-                <Route path="/clubs" element={<DashboardLayout user={user} logout={logout} token={token}><ClubList /></DashboardLayout>} />
-                <Route path="/clubs/create" element={<DashboardLayout user={user} logout={logout} token={token}><CreateClubForm /></DashboardLayout>} />
-                <Route path="/clubs/:id/manage" element={<DashboardLayout  user={user} logout={logout} token={token}><ClubManagement /></DashboardLayout>} />
-                <Route path="/clubs/:id" element={<DashboardLayout user={user} logout={logout} token={token}><ClubDetail /></DashboardLayout>} />
-                <Route path="/friends" element={<DashboardLayout user={user} logout={logout} token={token}><FriendList /></DashboardLayout>} />
                 <Route path="/leaderboard" element={<DashboardLayout user={user} logout={logout} token={token}><Leaderboard /></DashboardLayout>} />
-                
                 <Route path="/admin" element={<DashboardLayout user={user} logout={logout} token={token} requireAdmin><AdminPanel /></DashboardLayout>} />
-
                 <Route path="/matches/:id/score" element={<ProtectedRoute><Suspense fallback={<LoadingSpinner />}><LiveScoring /></Suspense></ProtectedRoute>} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>

@@ -19,8 +19,8 @@ const navItems = [
   { icon: Trophy,          label: 'Tournament',   path: '/tournaments' },
   { icon: Zap,             label: 'Live Match',   path: '/live' },
   { icon: CreditCard,      label: 'Membership',   path: '/membership' },
-  { icon: Building2,       label: 'Clubs',        path: '/clubs' },
-  { icon: UserPlus,        label: 'Friends',      path: '/friends' },
+
+
   { icon: User,            label: 'Profile',      path: '/profile' },
 ];
 

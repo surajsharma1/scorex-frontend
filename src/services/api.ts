@@ -99,47 +99,6 @@ export const overlayAPI = {
   updateOverlay: (id: string, data: any) => api.put(`/overlays/${id}`, data),     
 };
 
-
-// ─── Club API ─────────────────────────────────────────────────────────────────
-export const clubAPI = {
-  getClubs: (params?: { search?: string; type?: string; page?: number; limit?: number }) => api.get('/clubs', { params }),
-  getClub: (id: string) => api.get(`/clubs/${id}`),
-  getMyClubs: (params?: { search?: string; page?: number; limit?: number }) => api.get('/clubs/my', { params }),
-  createClub: (data: any) => api.post('/clubs', data),
-  updateClub: (id: string, data: any) => api.put(`/clubs/${id}`, data),
-  deleteClub: (id: string) => api.delete(`/clubs/${id}`),
-  joinClub: (id: string) => api.post(`/clubs/${id}/join`),
-  leaveClub: (id: string) => api.post(`/clubs/${id}/leave`),
-  approveJoinRequest: (clubId: string, userId: string) => api.post(`/clubs/${clubId}/approve/${userId}`),
-  addViceLeader: (clubId: string, userId: string) => api.post(`/clubs/${clubId}/vice-leader/${userId}`),
-  removeMember: (clubId: string, userId: string) => api.delete(`/clubs/${clubId}/members/${userId}`),
-  uploadLogo: (clubId: string, file: File) => {
-    const formData = new FormData();
-    formData.append('logo', file);
-    return api.post(`/clubs/${clubId}/upload-logo`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-  },
-  uploadBanner: (clubId: string, file: File) => {
-    const formData = new FormData();
-    formData.append('banner', file);
-    return api.post(`/clubs/${clubId}/upload-banner`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-  },
-};
-
-
-// ─── Friend API ───────────────────────────────────────────────────────────────
-export const friendAPI = {
-  getFriends: () => api.get('/friends'),
-  getPendingRequests: () => api.get('/friends/requests'),
-  sendRequest: (userId: string) => api.post(`/friends/${userId}/request`),
-  acceptRequest: (requestId: string) => api.put(`/friends/request/${requestId}/accept`),
-  rejectRequest: (requestId: string) => api.delete(`/friends/request/${requestId}/reject`),
-  removeFriend: (friendId: string) => api.delete(`/friends/${friendId}`),
-};
-
 // ─── Message API ──────────────────────────────────────────────────────────────
 export const messageAPI = {
   getMessages: (params: { recipientId: string } | string, limit: number = 50) => {
@@ -197,6 +156,4 @@ export const adminAPI = {
   exportPayments: () => api.get('/admin/export/payments', { responseType: 'blob' }),
   exportTournaments: () => api.get('/admin/export/tournaments', { responseType: 'blob' }),
 };
-
-
 
