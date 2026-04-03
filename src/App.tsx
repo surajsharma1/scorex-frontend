@@ -32,7 +32,7 @@ const LiveScoreboardPreview = lazy(() => import('./components/LiveScoreboardPrev
 const FriendList = lazy(() => import('./components/FriendList'));
 const Leaderboard = lazy(() => import('./components/Leaderboard'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
-const InteractivePreviewStudio = lazy(() => import('./components/InteractivePreviewStudio'));
+const InteractivePreviewStudio = lazy(() => import('./components/PreviewStudio'));
 
 export interface AuthUser {
   _id: string;

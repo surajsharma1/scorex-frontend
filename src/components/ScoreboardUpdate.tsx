@@ -149,7 +149,7 @@ export default function ScoreboardUpdate({ tournament, matchId, onUpdate }: Scor
     isSavingRef.current = true;
     try {
       if (matchId) await matchAPI.updateMatch(matchId, scores);
-      else await tournamentAPI.updateTournament(tournament._id, { liveScores: scores });
+else await tournamentAPI.updateTournament(tournament._id, { liveScores: scores });
       setLastSaved(new Date());
       onUpdate();
     } catch (err) { console.error('Auto-save failed:', err); }

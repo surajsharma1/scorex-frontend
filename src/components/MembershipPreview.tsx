@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useValueDebounce } from '../hooks/useValueDebounce';
-import InteractivePreviewStudio from './InteractivePreviewStudio';
+import InteractivePreviewStudio from './PreviewStudio';
 import { MonitorPlay } from 'lucide-react';
 
 import { Eye, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCcw, Activity } from 'lucide-react';
@@ -205,16 +205,6 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
               <button onClick={() => triggerAnimation('SHOW_SCOREBOARD')} className="col-span-2 p-3 bg-slate-500/10 text-slate-400 font-bold border border-slate-500/30 rounded-xl hover:bg-slate-500 hover:text-white transition-all text-xs">Restore Scoreboard</button>
             </div>
          </div>
-
-      {/* Interactive Preview Studio */}
-      {isStudioOpen && (
-        <InteractivePreviewStudio
-          isOpen={isStudioOpen}
-          onClose={() => setIsStudioOpen(false)}
-          overlayUrl={`${baseUrl}/overlays/${overlayFile}?preview=true`}
-          overlayName={`${planName} Studio`}
-        />
-      )}
     </div>
   );
 };

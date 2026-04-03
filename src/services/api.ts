@@ -33,6 +33,7 @@ export const tournamentAPI = {
   getTournament: (id: string) => api.get(`/tournaments/${id}`),
   createTournament: (data: any) => api.post('/tournaments', data),
   updateTournament: (id: string, data: any) => api.put(`/tournaments/${id}`, data),
+
   deleteTournament: (id: string) => api.delete(`/tournaments/${id}`),
   generateBracket: (id: string) => api.post(`/tournaments/${id}/bracket`),
   startTournament: (id: string) => api.post(`/tournaments/${id}/start`),

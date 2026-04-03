@@ -46,8 +46,12 @@ export interface Tournament {
   teams: Team[];
   matches: Match[];
   startDate: string;
+  endDate?: string;
   venue?: string;
   description?: string;
+  prizePool?: number;
+  rules?: string;
+  sponsors?: string[];
   liveScores?: LiveScores;
   bracket?: any[];
   pointsTable?: any[];

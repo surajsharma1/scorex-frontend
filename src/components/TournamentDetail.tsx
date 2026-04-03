@@ -66,7 +66,7 @@ export default function TournamentDetail() {
     e.preventDefault();
     setSavingEdit(true);
     try {
-      await tournamentAPI.updateTournament(id!, editForm);
+await tournamentAPI.updateTournament(id!, editForm);
       addToast({ type: 'success', message: 'Tournament settings saved successfully' });
       const res = await tournamentAPI.getTournament(id!);
       setTournament(res.data);
