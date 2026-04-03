@@ -436,7 +436,7 @@ export default function TournamentView() {
 
         {activeTab === 'teams' && <TeamManagement tournamentId={id!} onTeamsChange={loadData} />}
         {activeTab === 'points' && <PointsTable tournamentId={id!} />}
-        {activeTab === 'overlays' && <OverlayManager tournamentId={id!} matches={matches} />}
+        {activeTab === 'overlays' && <OverlayManager tournamentId={id!} />}
       </div>
 
       {/* Floating Match Modal */}
