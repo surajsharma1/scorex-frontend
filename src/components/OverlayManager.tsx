@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Eye, Save, Trash2, Copy, RefreshCw, X, PlaySquare, Settings, 
-  Target, ShieldAlert, Timer, Activity, Layout, Globe
+  Target, ShieldAlert, Timer, Activity, Layout, Globe, Maximize2
 } from 'lucide-react';
 import { overlayAPI, matchAPI } from '../services/api';
 import { getBackendBaseUrl, getApiBaseUrl } from '../services/env';
@@ -50,10 +50,11 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   const [activePreview, setActivePreview] = useState<any | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
   const [createForm, setCreateForm] = useState({ name: '', template: '', match: '' });
   
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { idealScale } = usePreviewScale({ containerRef });
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  const { idealScale } = usePreviewScale({ containerRef: previewContainerRef });
 
   // --- GLOBAL OVERLAY CONFIGURATION ---
   const [globalConfig, setGlobalConfig] = useState(() => {
@@ -92,11 +93,19 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isEligible) return addToast({ type: 'error', message: 'Membership required to deploy broadcast overlays.' });
+    if (!createForm.name) return addToast({ type: 'error', message: 'Please provide an overlay name.' });
+    if (!createForm.template) return addToast({ type: 'error', message: 'Please select a base template.' });
+    
     try {
       await overlayAPI.createOverlay({ ...createForm, tournamentId });
-      addToast({ type: 'success', message: 'Overlay deployed successfully.' });
-      setShowCreate(false); loadData();
-    } catch (err: any) { addToast({ type: 'error', message: 'Creation failed' }); }
+      addToast({ type: 'success', message: 'Overlay deployed successfully!' });
+      setShowCreate(false);
+      setCreateForm({ name: '', template: '', match: '' });
+      loadData();
+    } catch (err: any) {
+      addToast({ type: 'error', message: err.response?.data?.message || 'Creation failed' });
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -129,18 +138,35 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
     return `${baseUrl}/overlays/${filename}?tournament=${tournamentId || overlay.tournamentId}&exp=${expTime}&preview=true&cfg=${cfgString}`;
   };
 
+  // Deep animation trigger that targets the active iframe with rich mock data
   const triggerAnim = (eventType: string, targetId: string = 'main-preview') => {
     const iframe = document.getElementById(targetId) as HTMLIFrameElement;
     if (iframe?.contentWindow) {
-      // Inject Mock Data so the previews show something
+      
       let mockData: any = {};
+
+      // Inject data based on the Level 2 requirement
       if (['BATTING_CARD', 'BOWLING_CARD', 'BOTH_CARDS', 'MATCH_END'].includes(eventType)) {
         mockData = {
           team1: {
             name: "RCB",
-            batsmen: [{ name: 'V. Kohli', runs: 82, balls: 53, fours: 6, sixes: 4, sr: 154.7 }],
-            bowlers: [{ name: 'M. Siraj', overs: '4.0', maidens: 0, runs: 28, wickets: 2, econ: 7.0 }]
+            batsmen: [
+              { name: 'V. Kohli', runs: 82, balls: 53, fours: 6, sixes: 4, sr: 154.7 },
+              { name: 'F. du Plessis', runs: 45, balls: 31, fours: 4, sixes: 2, sr: 145.1 }
+            ],
+            bowlers: [
+              { name: 'M. Siraj', overs: '4.0', maidens: 0, runs: 28, wickets: 2, econ: 7.0 }
+            ]
           }
+        };
+      } else if (eventType === 'BATSMAN_PROFILE') {
+        mockData = {
+          title: "PLAYER PROFILE",
+          stats: [
+            { label: 'RUNS', value: '114' },
+            { label: 'MATCHES', value: '12' },
+            { label: 'STRIKE RATE', value: '165.4' }
+          ]
         };
       } else if (eventType === 'SHOW_SQUADS') {
         mockData = {
@@ -148,8 +174,21 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
           team1Players: [{ name: 'V. Kohli', role: 'BAT' }, { name: 'G. Maxwell', role: 'ALL' }],
           team2Players: [{ name: 'M. Dhoni', role: 'WK' }, { name: 'R. Jadeja', role: 'ALL' }]
         };
+      } else if (eventType === 'WICKET_SWITCH' || eventType === 'BATSMAN_CHANGE') {
+        mockData = {
+          outName: 'V. Kohli', outScore: '82 (53)', inName: 'G. Maxwell'
+        };
+      } else if (eventType === 'INNINGS_BREAK') {
+        mockData = { chasingTeam: 'CSK', target: 214 };
       }
-      iframe.contentWindow.postMessage({ type: 'OVERLAY_TRIGGER', payload: { type: eventType, duration: 8, data: mockData } }, '*');
+
+      // Matches the OVERLAY_TRIGGER payload expected by engine.js and your HTML files
+      const payload = { 
+        type: 'OVERLAY_TRIGGER', 
+        payload: { type: eventType, duration: 8, data: mockData } 
+      };
+      
+      iframe.contentWindow.postMessage(payload, '*');
     }
   };
 
@@ -213,11 +252,34 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
           </div>
           
           {/* Iframe Scaling Bug Fix -> Exact bounds, no double iframes */}
-          <div ref={containerRef} className="flex-1 w-full bg-black border-x border-gray-800 relative overflow-hidden" style={{ backgroundImage: 'radial-gradient(#1a1a24 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
-            <div style={{ width: '1920px', height: '1080px', transform: `scale(${idealScale})`, transformOrigin: 'top left', position: 'absolute', top: 0, left: 0 }}>
-              <iframe id="main-preview" src={generateSecureUrl(activePreview)} className="w-full h-full border-none pointer-events-none" />
+            <div className="w-full aspect-video bg-[#000] rounded-2xl overflow-hidden border border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.1)] relative group flex items-center justify-center">
+              
+              {/* RESTORED: Auto-Scaling 3D Broadcast Engine */}
+              <div ref={previewContainerRef} className="absolute inset-0 flex items-center justify-center overflow-hidden">
+                <iframe
+                  id="main-preview"
+                  src={generateSecureUrl(activePreview)}
+                  style={{
+                    width: '1920px',
+                    height: '1080px',
+                    transform: `scale(${idealScale})`,
+                    transformOrigin: 'center center',
+                    border: 'none',
+                    position: 'absolute'
+                  }}
+                  sandbox="allow-scripts allow-same-origin"
+                />
+              </div>
+
+              {/* Expand Button for Small Screens */}
+              <button 
+                onClick={() => setIsMobileFullscreen(true)}
+                className="md:hidden absolute top-4 right-4 p-3 bg-black/80 backdrop-blur-md text-white rounded-xl border border-white/20 shadow-2xl flex items-center gap-2 active:scale-95 transition-all z-10"
+              >
+                <Maximize2 className="w-5 h-5 text-blue-400" />
+                <span className="text-xs font-black uppercase tracking-wider text-blue-400">Full Screen</span>
+              </button>
             </div>
-          </div>
 
           <div className="bg-[#0d0d14] border border-gray-800 rounded-b-2xl p-4 flex gap-2 overflow-x-auto shrink-0">
              <button onClick={() => triggerAnim('SHOW_VS_SCREEN')} className="px-4 py-2 bg-slate-800 text-white text-xs font-bold rounded">VS</button>

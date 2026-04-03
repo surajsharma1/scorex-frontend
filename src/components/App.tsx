@@ -42,7 +42,7 @@ function App() {
   }
 
   const DashboardLayout = () => {
-    const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
     const toggleSidebar = () => {
       setSidebarOpen(prev => {
@@ -52,6 +52,13 @@ function App() {
         return willBeOpen;
       });
     };
+
+    const closeSidebar = () => {
+      setSidebarOpen(false);
+      document.body.classList.remove('sidebar-open');
+    };
+
+    const logout = () => { localStorage.clear(); window.location.href = '/login'; };
 
     return (
       <div className="flex h-screen overflow-hidden bg-[var(--bg-secondary)]">
@@ -72,7 +79,8 @@ function App() {
             }} 
           />
         </div>
-        <main className="flex-1 overflow-y-auto relative custom-scrollbar">
+        {/* FIX: Added h-full p-4 md:p-8 pt-20 md:pt-8 z-10 to restore website scrolling */}
+        <main className="flex-1 h-full overflow-y-auto relative z-10 p-4 md:p-8 pt-20 md:pt-8 custom-scrollbar">
           <div className="lg:hidden p-4 sticky top-0 z-30 bg-[var(--bg-secondary)] border-b border-[var(--border)] flex items-center justify-between">
             <h1 className="font-orbitron font-black text-xl text-green-500 tracking-wider">SCORE<span className="text-white">X</span></h1>
             <button onClick={toggleSidebar} className="p-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-white">
