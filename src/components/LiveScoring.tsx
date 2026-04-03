@@ -286,6 +286,10 @@ export default function LiveScoring() {
     };
   }, [id, fetchMatch]);
 
+
+
+
+  
   const handleTossDone = (data: any) => { setTossData(data); setStep('players'); };
 
   const handlePlayersDone = async (players: { striker?: string; nonStriker?: string; bowler?: string }) => {
@@ -366,9 +370,48 @@ export default function LiveScoring() {
   const innings = match?.innings?.[match?.currentInnings - 1] || {};
   const safeBatsmen = Array.isArray(innings?.batsmen) ? innings.batsmen : [];
   const safeBowlers = Array.isArray(innings?.bowlers) ? innings.bowlers : [];
+
+  // Derived matchState for socket broadcasting (syncs with overlays)
+  const matchState = match ? {
+    teamScore: innings?.score || 0,
+    teamWickets: innings?.wickets || 0,
+    totalValidBalls: innings?.balls || 0,
+    striker: match.strikerName || '',
+    nonStriker: match.nonStrikerName || '',
+    bowler: match.currentBowlerName || ''
+  } : null;
+
+
+  // --- REAL-TIME OVERLAY SYNC ---
+  // Broadcast scoring events to the backend securely so 3D Overlays can listen
+  useEffect(() => {
+    if (match && matchState) {
+      const livePayload = {
+        matchId: match._id,
+        match: {
+          ...match,
+          team1Score: matchState.teamScore,
+          team1Wickets: matchState.teamWickets,
+          overs: `${Math.floor(matchState.totalValidBalls / 6)}.${matchState.totalValidBalls % 6}`,
+          striker: matchState.striker,
+          nonStriker: matchState.nonStriker,
+          currentBowler: matchState.bowler
+        }
+      };
+
+      // Push to main room
+      socket.emit('updateScore', livePayload);
+      // Push directly for overlay engines expecting 'match_updated'
+      socket.emit('match_updated', livePayload.match);
+    }
+  }, [matchState, match]);
+  // -------------------------------
+
+
   
-  const score = innings?.score || 0; 
-  const wickets = innings?.wickets || 0;
+  const score = innings.score || 0; 
+  const wickets = innings.wickets || 0;
+
   const oversDisplay = `${innings?.overs || 0}.${innings?.balls ? innings.balls % 6 : 0}`;
   const runRate = innings?.runRate?.toFixed(2) || '0.00';
   const target = innings?.targetScore; 

@@ -20,6 +20,9 @@ import ClubManagement from './ClubManagement';
 import Membership from './Membership';
 import Profile from './Profile';
 import AdminPanel from './AdminPanel';
+import PreviewStudio from './PreviewStudio'; // ADDED
+import OverlayManager from './OverlayManager'; // ADDED
+import MembershipPreview from './MembershipPreview'; // ADDED
 import { Menu } from 'lucide-react';
 
 function App() {
@@ -43,46 +46,39 @@ function App() {
 
     const toggleSidebar = () => {
       setSidebarOpen(prev => {
-        const willOpen = !prev;
-        if (willOpen) {
-          document.documentElement.classList.add('sidebar-open');
-          document.body.classList.add('sidebar-open');
-        } else {
-          document.documentElement.classList.remove('sidebar-open');
-          document.body.classList.remove('sidebar-open');
-        }
-        return willOpen;
+        const willBeOpen = !prev;
+        if (willBeOpen) document.body.classList.add('sidebar-open');
+        else document.body.classList.remove('sidebar-open');
+        return willBeOpen;
       });
     };
 
-    const closeSidebar = () => {
-      setSidebarOpen(false);
-      document.documentElement.classList.remove('sidebar-open');
-      document.body.classList.remove('sidebar-open');
-    };
-
-    const logout = () => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.reload();
-    };
-
     return (
-      <div className={`flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white overflow-hidden ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+      <div className="flex h-screen overflow-hidden bg-[var(--bg-secondary)]">
         {isSidebarOpen && (
           <div 
-            className="mobile-sidebar-backdrop md:hidden fixed inset-0 z-30"
-            onClick={closeSidebar}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            onClick={toggleSidebar}
           />
         )}
-        <button 
-          className="mobile-hamburger fixed top-4 left-4 z-50 p-3 rounded-xl shadow-2xl md:hidden transition-all hover:scale-105 active:scale-95"
-          onClick={toggleSidebar}
-        >
-          <Menu className="w-6 h-6 text-white drop-shadow-md" />
-        </button>
-        <Sidebar user={user} logout={logout} isOpen={isSidebarOpen} onClose={closeSidebar} />
-        <main className="flex-1 md:ml-[16rem] h-full overflow-y-auto transition-all duration-300 p-4 md:p-8 pt-16 md:pt-8">
+        <div className={`fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 lg:relative lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <Sidebar 
+            user={user} 
+            logout={() => { localStorage.clear(); window.location.href = '/login'; }} 
+            isOpen={isSidebarOpen} 
+            onClose={() => {
+              setSidebarOpen(false);
+              document.body.classList.remove('sidebar-open');
+            }} 
+          />
+        </div>
+        <main className="flex-1 overflow-y-auto relative custom-scrollbar">
+          <div className="lg:hidden p-4 sticky top-0 z-30 bg-[var(--bg-secondary)] border-b border-[var(--border)] flex items-center justify-between">
+            <h1 className="font-orbitron font-black text-xl text-green-500 tracking-wider">SCORE<span className="text-white">X</span></h1>
+            <button onClick={toggleSidebar} className="p-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-white">
+              <Menu className="w-5 h-5" />
+            </button>
+          </div>
           <Outlet />
         </main>
       </div>
@@ -91,7 +87,6 @@ function App() {
 
   return (
     <Routes>
-      {/* --- PUBLIC ROUTES --- */}
       <Route path="/" element={<Frontpage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -106,9 +101,14 @@ function App() {
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/tournaments/create" element={<TournamentForm />} />
         
-        {/* Routed to TournamentView for the fully-featured match center */}
-        <Route path="/tournaments/:id" element={<TournamentView />} />
+        {/* FIX: ADDED PREVIEW ROUTES HERE SO THEY DON'T REDIRECT TO HOME */}
+        <Route path="/preview-studio" element={<PreviewStudio />} />
+        <Route path="/overlay-manager/:tournamentId?" element={<OverlayManager />} />
+        
+        {/* Note: If MembershipPreview requires props natively, you wrap it here, or use URL params */}
+        <Route path="/membership-preview" element={<MembershipPreview overlayFile="default" planName="Preview" baseUrl="/" />} />
 
+        <Route path="/tournaments/:id" element={<TournamentView />} />
         <Route path="/friends" element={<FriendList />} />
         <Route path="/clubs" element={<ClubManagement />} />
         <Route path="/membership" element={<Membership />} />
@@ -121,6 +121,7 @@ function App() {
           </div>
         } />
       </Route>
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }
