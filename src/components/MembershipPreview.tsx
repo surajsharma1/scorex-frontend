@@ -94,16 +94,15 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         <div className="flex items-center gap-2 flex-1 min-w-[160px]">
           <div className="flex items-center gap-1">
             <Eye className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--accent)' }} />
-<button 
+        <button 
   onClick={() => {
-    // Determine level from the planName or overlayFile string
-    const level = planName.toLowerCase().includes('pro') || overlayFile.includes('lvl2') ? '2' : '1';
-    window.open(`/studio?level=${level}`, '_blank');
+    const level = overlayFile.includes('lvl2') ? '2' : '1';
+    window.open(`/studio?level=${level}&template=/overlays/${overlayFile}`, '_blank');
   }} 
-  className="flex-1 sm:flex-none px-6 py-3 bg-blue-500 text-white font-bold rounded-xl transition-colors" 
+  className="flex items-center gap-2 flex-1 sm:flex-none px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl transition-colors text-sm" 
   title="Launch Interactive Preview"
 >
-  <MonitorPlay className="w-4 h-4" /> Launch Interactive Preview
+  <MonitorPlay className="w-4 h-4" /> Full Studio
 </button>
           </div>
           <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
@@ -153,7 +152,7 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         style={{ width: '100%', aspectRatio: '16/9', background: '#000' }}
       >
         <iframe
-          src={`${baseUrl}/overlays/${overlayFile}`}
+          src={`/overlays/${overlayFile}?preview=true`}
           className="w-full h-full border-none"
           style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}
           onLoad={handleLoad}
