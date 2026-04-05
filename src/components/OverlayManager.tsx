@@ -4,7 +4,7 @@ import {
   Eye, Trash2, Copy, X, Settings,
   Timer, Maximize2, Plus, Sparkles, Tag,
   ChevronRight, Star, ImageOff, Building2, Check,
-  Monitor, ZoomIn, ZoomOut, RotateCcw
+  Monitor, ZoomIn, ZoomOut, RotateCcw, MonitorPlay, Activity
 } from 'lucide-react';
 import { overlayAPI, matchAPI } from '../services/api';
 import { useAuth } from '../App';
@@ -252,6 +252,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   const [showSettings, setShowSettings] = useState(false);
   const [createForm, setCreateForm] = useState({ name: '', template: '', match: '' });
   const [previewZoom, setPreviewZoom] = useState(1);
+  const [previewProgress, setPreviewProgress] = useState(50);
 
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const { idealScale } = usePreviewScale({ containerRef: previewContainerRef });
