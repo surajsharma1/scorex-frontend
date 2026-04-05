@@ -356,7 +356,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
     const backendUrl = getBackendBaseUrl();
     const previewId = activePreview.publicId || activePreview._id;
     if (previewId) {
-      const url = `${backendUrl}/overlays/public/${previewId}?template=${getTemplateFilename(activePreview)}&preview=true&progress=${previewProgress}%`;
+      const url = `${backendUrl}/api/v1/overlays/public/${previewId}?template=${getTemplateFilename(activePreview)}&preview=true&progress=${previewProgress}%`;
       try {
         new URL(url);
       } catch (e) {
