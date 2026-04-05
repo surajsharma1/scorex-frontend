@@ -97,7 +97,7 @@ export default function AdminTournamentsTable() {
       <div className="overflow-x-auto rounded-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200">
+            <tr className="border-b">
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Tournament</th>
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Status</th>
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Start Date</th>
@@ -106,7 +106,7 @@ export default function AdminTournamentsTable() {
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y">
             {loading ? (
               <tr>
                 <td colSpan={6} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
@@ -121,15 +121,15 @@ export default function AdminTournamentsTable() {
               </tr>
             ) : (
               filteredTournaments.map((tournament) => (
-                <tr key={tournament._id} className="hover:bg-gray-50">
+                <tr key={tournament._id} className="transition-colors" style={{ color: "var(--text-primary)" }}>
                   <td className="px-6 py-4">
                     <div className="font-bold" style={{ color: 'var(--text-primary)' }}>{tournament.name}</div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${
-                      tournament.status === 'ongoing' ? 'bg-emerald-100 text-emerald-800' :
-                      tournament.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                      'bg-blue-100 text-blue-800'
+                      tournament.status === 'ongoing' ? 'bg-emerald-900/40 text-emerald-300' :
+                      tournament.status === 'completed' ? 'bg-gray-800 text-gray-300' :
+                      'bg-blue-900/40 text-blue-300'
                     }`}>
                       {tournament.status}
                     </span>
