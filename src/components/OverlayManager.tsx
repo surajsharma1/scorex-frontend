@@ -406,79 +406,66 @@ const generatePreviewUrl = (overlay: any) => {
     const templateFilename = getTemplateFilename(activePreview);
     const level = templateFilename.startsWith('lvl2') ? '2' : '1';
 
+    // Use the actual studio URL generation to ensure 100% accurate rendering for ALL overlays
+    const iframeSrc = generateOverlayUrl(activePreview);
+
     return createPortal(
       <div className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex flex-col">
         {/* Top bar */}
-        <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-gray-800 bg-[#0a0a0f] shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-gray-800 bg-[#0a0a0f] shrink-0">
+          
           {/* Left: title */}
-          <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
-            <span className="text-xs font-black text-white uppercase tracking-widest whitespace-nowrap">Preview Director</span>
-            <span className="text-xs text-gray-600 font-mono truncate">— {activePreview.name}</span>
+            <span className="text-xs font-black text-white uppercase tracking-widest whitespace-nowrap">Live Overlay Preview</span>
+            <span className="text-xs text-gray-600 font-mono truncate hidden sm:inline">— {activePreview.name}</span>
           </div>
 
           {/* Right: controls */}
-          <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
-            {/* Progress */}
-            <div className="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-lg px-2 py-1.5">
-              <label className="text-[10px] text-gray-500 font-bold whitespace-nowrap">Progress:</label>
-              <input type="range" min="0" max="100" step="4" value={previewProgress}
-                onChange={e => setPreviewProgress(Number(e.target.value))}
-                className="w-20 h-1.5 accent-green-500 bg-gray-700 rounded-lg appearance-none cursor-pointer" />
-              <span className="text-xs font-bold text-green-400 w-8 text-right tabular-nums">{previewProgress}%</span>
-            </div>
-
-            {/* Zoom */}
+          <div className="flex flex-wrap items-center gap-3 flex-shrink-0">
+            
+            {/* Zoom Controls */}
             <div className="flex items-center gap-1.5 bg-gray-900 border border-gray-800 rounded-lg px-2 py-1.5">
-              <button onClick={() => setPreviewZoom(z => Math.max(0.1, z * 0.8))} className="p-1 hover:text-white text-gray-500 rounded"><ZoomOut className="w-3.5 h-3.5" /></button>
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mr-1">Zoom:</span>
+              <button onClick={() => setPreviewZoom(z => Math.max(0.1, z * 0.8))} className="p-1 hover:text-white text-gray-500 rounded transition-colors"><ZoomOut className="w-3.5 h-3.5" /></button>
               <span className="text-xs font-bold text-gray-400 w-9 text-center tabular-nums">{Math.round(previewZoom * 100)}%</span>
-              <button onClick={() => setPreviewZoom(z => Math.min(3, z * 1.25))} className="p-1 hover:text-white text-gray-500 rounded"><ZoomIn className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setPreviewZoom(1)} className="p-1 hover:text-white text-gray-500 rounded"><RotateCcw className="w-3.5 h-3.5" /></button>
+              <button onClick={() => setPreviewZoom(z => Math.min(3, z * 1.25))} className="p-1 hover:text-white text-gray-500 rounded transition-colors"><ZoomIn className="w-3.5 h-3.5" /></button>
+              <button onClick={() => setPreviewZoom(1)} className="p-1 hover:text-white text-gray-500 rounded border-l border-gray-700 ml-1 pl-2 transition-colors"><RotateCcw className="w-3 h-3" /></button>
             </div>
 
             {/* Full Studio */}
             <button
               onClick={() => window.open(`/studio?level=${level}&template=/overlays/${templateFilename}`, '_blank')}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl transition-colors text-sm"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg text-xs uppercase tracking-wider"
             >
-              <MonitorPlay className="w-4 h-4" /> Full Studio
-            </button>
-
-            {/* Copy OBS URL */}
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(generateOverlayUrl(activePreview));
-                addToast({ type: 'success', message: 'OBS URL Copied!' });
-              }}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-800 text-gray-300 hover:text-white rounded-xl text-xs font-bold transition-all"
-            >
-              <Copy className="w-3.5 h-3.5" /> Copy OBS URL
+              <MonitorPlay className="w-4 h-4" /> Open Full Studio
             </button>
 
             {/* Close */}
-            <button onClick={() => { setActivePreview(null); setPreviewZoom(1); setPreviewProgress(50); }}
-              className="p-2 rounded-xl bg-gray-800 hover:bg-red-500/20 hover:text-red-400 text-gray-400 transition-all">
+            <button onClick={() => { setActivePreview(null); setPreviewZoom(1); }}
+              className="p-2.5 rounded-xl bg-gray-800 hover:bg-red-500 hover:text-white text-gray-400 transition-all shadow-md">
               <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Canvas — aspect-ratio based, mobile-safe */}
-        <div className="flex-1 bg-[#030305] flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+        {/* Canvas */}
+        <div className="flex-1 bg-[#030305] flex items-center justify-center p-3 sm:p-4 overflow-hidden relative">
           <div
             ref={previewContainerRef}
-            className="relative w-full border border-gray-800 bg-black rounded-2xl shadow-2xl overflow-hidden"
-            style={{ aspectRatio: '16/9', maxHeight: 'calc(100vh - 220px)' }}
+            className="relative w-full border border-gray-800 bg-transparent rounded-2xl overflow-hidden"
+            style={{ aspectRatio: '16/9', maxHeight: 'calc(100vh - 180px)' }}
           >
             <iframe
               id="main-preview"
-              key={`${activePreview._id}-${previewProgress}`}
-              src={generatePreviewUrl(activePreview)}
+              key={activePreview._id}
+              src={iframeSrc}
               style={{
                 width: '1920px', height: '1080px',
                 transform: `scale(${effectiveScale})`,
                 transformOrigin: 'top left',
                 border: 'none', position: 'absolute', top: 0, left: 0,
+                pointerEvents: 'none' // Prevents iframe from stealing scroll/clicks
               }}
               sandbox="allow-scripts allow-same-origin"
             />
@@ -486,23 +473,21 @@ const generatePreviewUrl = (overlay: any) => {
         </div>
 
         {/* Advanced Triggers */}
-        <div className="shrink-0 px-4 pb-4 pt-2 overflow-x-auto">
-          <div className="p-4 bg-gray-900/80 rounded-2xl border border-gray-800 shadow-inner min-w-[360px]">
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-blue-500" /> Advanced Triggers:
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <button onClick={() => triggerAnimation('SHOW_SQUADS')} className="p-3 bg-purple-500/10 text-purple-400 font-bold border border-purple-500/30 rounded-xl hover:bg-purple-500 hover:text-white transition-all text-xs">Full Squads</button>
-              <button onClick={() => triggerAnimation('SHOW_TOSS')} className="p-3 bg-purple-500/10 text-purple-400 font-bold border border-purple-500/30 rounded-xl hover:bg-purple-500 hover:text-white transition-all text-xs">Toss Result</button>
-              <button onClick={() => triggerAnimation('FOUR')} className="p-3 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-xl hover:bg-green-500 hover:text-white transition-all text-xs">FOUR (4)</button>
-              <button onClick={() => triggerAnimation('SIX')} className="p-3 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-xl hover:bg-blue-500 hover:text-white transition-all text-xs">SIX (6)</button>
-              <button onClick={() => triggerAnimation('WICKET')} className="p-3 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all text-xs">Wicket & Career</button>
-              <button onClick={() => triggerAnimation('BATSMAN_CARD')} className="p-3 bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-white transition-all text-xs">Batsman Summary</button>
-              <button onClick={() => triggerAnimation('BOWLER_CARD')} className="p-3 bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30 rounded-xl hover:bg-amber-500 hover:text-white transition-all text-xs">Bowler Summary</button>
-              <button onClick={() => triggerAnimation('MANHATTAN')} className="p-3 bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/30 rounded-xl hover:bg-indigo-500 hover:text-white transition-all text-xs">Manhattan Graph</button>
-              <button onClick={() => triggerAnimation('DECISION_PENDING')} className="col-span-2 p-3 bg-yellow-500/10 text-yellow-400 font-bold border border-yellow-500/30 rounded-xl hover:bg-yellow-500 hover:text-white transition-all text-xs">Decision Pending</button>
-              <button onClick={() => triggerAnimation('SHOW_SCOREBOARD')} className="col-span-2 p-3 bg-slate-500/10 text-slate-400 font-bold border border-slate-500/30 rounded-xl hover:bg-slate-500 hover:text-white transition-all text-xs">Restore Scoreboard</button>
-            </div>
+        <div className="shrink-0 px-4 pb-4 pt-3 overflow-x-auto border-t border-gray-800 bg-[#0a0a0f]">
+          <div className="flex items-center gap-2 min-w-[600px]">
+             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5 shrink-0 bg-gray-900 px-3 py-2 rounded-lg border border-gray-800">
+               <Activity className="w-3.5 h-3.5 text-blue-500" /> Triggers
+             </span>
+             <div className="flex gap-2">
+                <button onClick={() => triggerAnimation('SHOW_SQUADS')} className="px-4 py-2 bg-purple-500/10 text-purple-400 font-bold border border-purple-500/30 rounded-lg hover:bg-purple-500 hover:text-white transition-all text-xs whitespace-nowrap">Squads</button>
+                <button onClick={() => triggerAnimation('SHOW_TOSS')} className="px-4 py-2 bg-purple-500/10 text-purple-400 font-bold border border-purple-500/30 rounded-lg hover:bg-purple-500 hover:text-white transition-all text-xs whitespace-nowrap">Toss</button>
+                <button onClick={() => triggerAnimation('FOUR')} className="px-4 py-2 bg-green-500/10 text-green-400 font-bold border border-green-500/30 rounded-lg hover:bg-green-500 hover:text-white transition-all text-xs whitespace-nowrap">FOUR</button>
+                <button onClick={() => triggerAnimation('SIX')} className="px-4 py-2 bg-blue-500/10 text-blue-400 font-bold border border-blue-500/30 rounded-lg hover:bg-blue-500 hover:text-white transition-all text-xs whitespace-nowrap">SIX</button>
+                <button onClick={() => triggerAnimation('WICKET')} className="px-4 py-2 bg-red-500/10 text-red-400 font-bold border border-red-500/30 rounded-lg hover:bg-red-500 hover:text-white transition-all text-xs whitespace-nowrap">Wicket</button>
+                <button onClick={() => triggerAnimation('BATSMAN_CARD')} className="px-4 py-2 bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30 rounded-lg hover:bg-amber-500 hover:text-white transition-all text-xs whitespace-nowrap">Batsman</button>
+                <button onClick={() => triggerAnimation('BOWLER_CARD')} className="px-4 py-2 bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30 rounded-lg hover:bg-amber-500 hover:text-white transition-all text-xs whitespace-nowrap">Bowler</button>
+                <button onClick={() => triggerAnimation('SHOW_SCOREBOARD')} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold border border-slate-700 rounded-lg hover:bg-slate-700 hover:text-white transition-all text-xs whitespace-nowrap">Restore Score</button>
+             </div>
           </div>
         </div>
       </div>,
@@ -511,6 +496,7 @@ const generatePreviewUrl = (overlay: any) => {
   };
 
   return (
+
     <div className="space-y-5">
       {showSettings && (
         <SettingsModal

@@ -21,6 +21,8 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const level = overlayFile.includes('lvl2') ? '2' : '1';
+
   const clamp = (v: number) => Math.max(0.1, Math.min(3, v));
 
   // Master Scoreboard-style trigger method (Purely triggers animations)
@@ -152,12 +154,14 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
         style={{ width: '100%', aspectRatio: '16/9', background: '#000' }}
       >
         <iframe
-          src={`/overlays/${overlayFile}?preview=true`}
+          src={`/studio?level=${level}&template=/overlays/${overlayFile}&preview=true`}
           className="w-full h-full border-none"
           style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}
           onLoad={handleLoad}
           onError={handleError}
         />
+
+
 
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-20">
