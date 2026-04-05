@@ -332,10 +332,11 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   };
 
   // ✅ generateOverlayUrl: NO preview=true — real overlays must fetch live data
-  const generateOverlayUrl = (overlay: any) => {
+const generateOverlayUrl = (overlay: any) => {
     const filename = getTemplateFilename(overlay);
+    const baseUrl = BACKEND_URL.endsWith('/api/v1') ? BACKEND_URL.replace('/api/v1', '') : BACKEND_URL;
     const cfg = encodeURIComponent(JSON.stringify({ ...globalConfig, sponsors: sponsorConfig.sponsors }));
-    let url = `${BACKEND_URL}/overlays/public/${overlay.publicId}?template=${filename}&cfg=${cfg}`;
+    let url = `${baseUrl}/api/v1/overlays/o/pub/${overlay.publicId}?template=${filename}&cfg=${cfg}`;
     if (overlay.match) {
       const matchId = typeof overlay.match === 'string' ? overlay.match : overlay.match._id;
       url += `&matchId=${matchId}`;
@@ -347,15 +348,15 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   };
 
   // ✅ Preview URL: goes through backend with preview=true so it gets injected demo data
-  const generatePreviewUrl = (overlay: any) => {
+const generatePreviewUrl = (overlay: any) => {
     const filename = getTemplateFilename(overlay);
-    return `${BACKEND_URL}/overlays/public/${overlay.publicId}?template=${filename}&preview=true&progress=${previewProgress}`;
+    const baseUrl = BACKEND_URL.endsWith('/api/v1') ? BACKEND_URL.replace('/api/v1', '') : BACKEND_URL;
+    return `${baseUrl}/api/v1/overlays/o/pub/${overlay.publicId}?template=${filename}&preview=true&progress=${previewProgress}`;
   };
 
-  // ✅ OBS URL: real URL with no preview flag — this is what goes into OBS browser source
+  // ✅ OBS URL: full backend URL for direct iframe embedding in OBS
   const generateObsUrl = (overlay: any) => {
-    return window.location.origin.replace('vercel.app', 'vercel.app') + '/' + generateOverlayUrl(overlay).replace(/^https?:\/\/[^/]+\//, '');
-    // Actually just return the backend URL directly since OBS hits backend directly:
+    return generateOverlayUrl(overlay);
   };
 
   // ─── Trigger animation in preview iframe ──────────────────────────────────
