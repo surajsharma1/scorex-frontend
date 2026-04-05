@@ -51,7 +51,7 @@ export const getBackendBaseUrl = (): string => {
 
   // 3. Priority 3: Production fallback (real Render URL)
   if (isProduction()) {
-    const renderUrl = 'https://scorex-backend.onrender.com';
+    const renderUrl = 'https://scorex-backend.onrender.com/api/v1';
     console.log('[ENV] Production fallback Render URL:', renderUrl);
     return renderUrl;
   }

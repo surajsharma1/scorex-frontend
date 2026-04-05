@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { getBackendBaseUrl } from '../services/env';
 import { createPortal } from 'react-dom';
 import {
   Eye, Trash2, Copy, X, Settings,
@@ -324,17 +325,26 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   };
 
   const generateOverlayUrl = (overlay: any) => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://scorex-backend.onrender.com/api/v1';
+    const backendUrl = getBackendBaseUrl();
     const filename = getTemplateFilename(overlay);
     const expTime = overlay.urlExpiresAt ? new Date(overlay.urlExpiresAt).getTime() : Date.now() + 86400000;
     const cfg = encodeURIComponent(JSON.stringify({ ...globalConfig, sponsors: sponsorConfig.sponsors }));
     
-    let url = `${apiUrl}/overlays/serve/${overlay._id || overlay.publicId}?template=${filename}&expires=${expTime}&config=${cfg}`;
+    let url = `${backendUrl}/api/v1/overlays/public/${overlay.publicId}?template=${filename}`;
+
     
     // Explicitly append matchId if the overlay has one
     if (overlay.match) {
         const matchId = typeof overlay.match === 'string' ? overlay.match : overlay.match?._id;
         url += `&matchId=${matchId}`;
+    }
+
+    // Validate URL
+    try {
+      new URL(url);
+    } catch (e) {
+      console.error('[OverlayManager] Invalid URL generated:', url, e);
+      return '#';
     }
     
     return url;
@@ -343,10 +353,17 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   // Fix previewSrc scope issue - define in component scope as string
   const previewSrc = (() => {
     if (!activePreview) return '';
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://scorex-backend.onrender.com/api/v1';
+    const backendUrl = getBackendBaseUrl();
     const previewId = activePreview.publicId || activePreview._id;
     if (previewId) {
-      return `${apiUrl}/overlays/public/${previewId}?template=${getTemplateFilename(activePreview)}&preview=true&progress=${previewProgress}%`;
+      const url = `${backendUrl}/overlays/public/${previewId}?template=${getTemplateFilename(activePreview)}&preview=true&progress=${previewProgress}%`;
+      try {
+        new URL(url);
+      } catch (e) {
+        console.error('[OverlayManager] Invalid preview URL:', url, e);
+        return '';
+      }
+      return url;
     }
     return generateOverlayUrl(activePreview) + `&preview=true&progress=${previewProgress}%`;
   })();
