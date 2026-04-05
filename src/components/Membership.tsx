@@ -1,16 +1,213 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '../hooks/useToast';
 import { useAuth } from '../App';
-// import FloatingOverlayPreview from './FloatingOverlayPreview';
-import { getBackendBaseUrl } from '../services/env';
-
-
 import { overlayAPI, paymentAPI } from '../services/api';
 import api from '../services/api';
 import {
   Check, Zap, Crown, Star, Clock, Calendar,
-  AlertCircle, Eye, ChevronRight, Shield, Sparkles
+  AlertCircle, Eye, ChevronRight, Shield, Sparkles,
+  X, Monitor, Activity, ExternalLink, ChevronLeft
 } from 'lucide-react';
+
+// ── Inline overlay preview modal ─────────────────────────────────────────────
+interface OverlayPreviewModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  level: number;
+  templates: Array<{ id: string; name: string; file: string; url: string; level: number; color: string }>;
+}
+
+function OverlayPreviewModal({ isOpen, onClose, level, templates }: OverlayPreviewModalProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.1);
+  const levelTemplates = templates.filter(t => t.level === level);
+  const [selected, setSelected] = useState(levelTemplates[0] || null);
+  const [iframeKey, setIframeKey] = useState(0);
+
+  // Recompute scale whenever the container resizes (works after modal mounts)
+  useEffect(() => {
+    if (!isOpen) return;
+    const computeScale = () => {
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        if (width > 0 && height > 0) {
+          setScale(Math.min(width / 1920, height / 1080));
+        }
+      }
+    };
+    // Wait one frame for the modal DOM to settle
+    const raf = requestAnimationFrame(() => {
+      computeScale();
+      const ro = new ResizeObserver(computeScale);
+      if (containerRef.current) ro.observe(containerRef.current);
+      // store ro on window so we can disconnect in cleanup
+      (containerRef.current as any).__ro = ro;
+    });
+    return () => {
+      cancelAnimationFrame(raf);
+      if (containerRef.current) {
+        (containerRef.current as any).__ro?.disconnect();
+      }
+    };
+  }, [isOpen]);
+
+  // Reset selection when level changes
+  useEffect(() => {
+    const first = templates.filter(t => t.level === level)[0];
+    setSelected(first || null);
+    setIframeKey(k => k + 1);
+  }, [level, templates]);
+
+  // Push mock score data after iframe loads
+  const handleIframeLoad = () => {
+    const iframe = document.getElementById('membership-preview-frame') as HTMLIFrameElement;
+    if (!iframe?.contentWindow) return;
+    setTimeout(() => {
+      iframe.contentWindow?.postMessage({
+        type: 'UPDATE_SCORE',
+        data: {
+          team1Name: 'MI', team2Name: 'CSK',
+          team1Score: 187, team1Wickets: 4, team1Overs: '16.3',
+          strikerName: 'R. Sharma', strikerRuns: 72, strikerBalls: 41,
+          nonStrikerName: 'H. Pandya', nonStrikerRuns: 18, nonStrikerBalls: 9,
+          bowlerName: 'P. Cummins', bowlerRuns: 28, bowlerWickets: 1, bowlerOvers: '3.1',
+          thisOver: ['1', '4', '•', '6', '1'],
+          totalFours: 9, totalSixes: 4,
+          sponsors: ['TATA', 'DREAM11', 'CEAT'],
+        },
+        raw: {},
+      }, '*');
+    }, 500);
+  };
+
+  const fireTrigger = (type: string) => {
+    const iframe = document.getElementById('membership-preview-frame') as HTMLIFrameElement;
+    if (iframe?.contentWindow) {
+      iframe.contentWindow.postMessage({ type: 'OVERLAY_TRIGGER', payload: { type, duration: 8, data: {} } }, '*');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="relative w-full max-w-5xl rounded-2xl overflow-hidden flex flex-col"
+        style={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.08)', maxHeight: '90vh' }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800 shrink-0">
+          <div className="flex items-center gap-3">
+            <Monitor className="w-5 h-5 text-blue-400" />
+            <div>
+              <h3 className="font-black text-white text-base">
+                {level === 1 ? 'Premium' : 'Enterprise'} Overlays Preview
+              </h3>
+              <p className="text-xs text-gray-500">{levelTemplates.length} broadcast templates</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => window.open(`/studio?level=${level}`, '_blank')}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all"
+              style={{ background: level === 2 ? 'linear-gradient(135deg,#a855f7,#7c3aed)' : 'linear-gradient(135deg,#22c55e,#10b981)', color: '#000' }}
+            >
+              <ExternalLink className="w-3.5 h-3.5" /> Full Studio
+            </button>
+            <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white transition-all">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0">
+          {/* Template list */}
+          <div className="lg:w-52 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-800 overflow-y-auto p-3">
+            <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2 px-1">Templates</p>
+            <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible">
+              {levelTemplates.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => { setSelected(t); setIframeKey(k => k + 1); }}
+                  className={`shrink-0 text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all border whitespace-nowrap lg:whitespace-normal ${
+                    selected?.id === t.id
+                      ? level === 2
+                        ? 'bg-purple-500/10 border-purple-500/40 text-purple-300'
+                        : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
+                      : 'bg-gray-900 border-gray-800 text-gray-400 hover:bg-gray-800 hover:text-white'
+                  }`}
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Preview canvas */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 p-4 flex items-center justify-center bg-[#030305] overflow-hidden">
+              <div
+                ref={containerRef}
+                className="relative bg-black rounded-xl overflow-hidden w-full aspect-video"
+                style={{ border: '1px solid rgba(255,255,255,0.05)' }}
+              >
+                {selected ? (
+                  <iframe
+                    id="membership-preview-frame"
+                    key={iframeKey}
+                    src={`${selected.url}?preview=true`}
+                    onLoad={handleIframeLoad}
+                    style={{
+                      width: '1920px',
+                      height: '1080px',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: `translate(-50%, -50%) scale(${scale})`,
+                      transformOrigin: 'center center',
+                      border: 'none',
+                      pointerEvents: 'none',
+                    }}
+                    sandbox="allow-scripts allow-same-origin"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">No template selected</div>
+                )}
+              </div>
+            </div>
+
+            {/* Triggers */}
+            <div className="shrink-0 bg-[#0a0a0f] border-t border-gray-800 px-4 py-3 flex items-center gap-2 overflow-x-auto">
+              <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest shrink-0 flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-emerald-500" /> Triggers
+              </span>
+              {[
+                { label: 'FOUR (4)', type: 'FOUR', color: 'blue' },
+                { label: 'SIX (6)', type: 'SIX', color: 'green' },
+                { label: 'OUT (W)', type: 'WICKET', color: 'red' },
+                { label: 'Toss', type: 'SHOW_TOSS', color: 'yellow' },
+                { label: 'Squads', type: 'SHOW_SQUADS', color: 'purple' },
+              ].map(btn => (
+                <button
+                  key={btn.type}
+                  onClick={() => fireTrigger(btn.type)}
+                  className={`px-3 py-1.5 bg-${btn.color}-500/10 border border-${btn.color}-500/30 text-${btn.color}-400 rounded-lg font-bold text-xs shrink-0 hover:bg-${btn.color}-500 hover:text-white transition-all`}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 type Duration = '1day' | '1week' | '1month';
 
@@ -539,15 +736,13 @@ onClick={() => {
         </div>
       </div>
 
-      {/* Floating overlay preview modal */}
-      {/* <FloatingOverlayPreview
+      {/* Overlay preview modal */}
+      <OverlayPreviewModal
         isOpen={previewLevel !== null}
         onClose={() => { setPreviewLevel(null); setSelectedFloatingOverlay(''); }}
-        level={previewLevel!}
-        templates={templates}  // pass ALL templates, let FloatingOverlayPreview filter by level itself
-        selectedOverlay={selectedFloatingOverlay}
-        onOverlaySelect={setSelectedFloatingOverlay}
-      /> */}
+        level={previewLevel ?? 1}
+        templates={templates}
+      />
 
     </div>
   );
