@@ -503,10 +503,28 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
           </h4>
           <form onSubmit={handleCreate} className="flex flex-col sm:flex-row gap-3">
             <input type="text" placeholder="Overlay name (e.g. Main Scoreboard)" value={createForm.name} onChange={e => setCreateForm({ ...createForm, name: e.target.value })} className="flex-1 p-3 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] rounded-xl text-sm outline-none focus:border-green-500/50 transition-all placeholder:text-[var(--text-muted)]" />
-            <select value={createForm.template} onChange={e => setCreateForm({ ...createForm, template: e.target.value })} className="flex-1 p-3 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] rounded-xl text-sm outline-none focus:border-green-500/50 transition-all">
+            {/* Template select with level badges */}
+            <select 
+              value={createForm.template} 
+onChange={e => setCreateForm({ ...createForm, template: e.target.value })}
+              className="flex-1 p-3 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] rounded-xl text-sm outline-none focus:border-green-500/50 transition-all"
+            >
               <option value="">Select template...</option>
-              {templates.map(t => <option key={t.id || t.file} value={t.file || t.id}>{t.name}</option>)}
+              {templates.map(t => {
+                const lvl = (t.id || t.file || '').startsWith('lvl2') ? 2 : 1;
+                const allowed = isAdmin || lvl <= userLevel;
+                return (
+                  <option 
+                    key={t.id || t.file} 
+                    value={t.file || t.id}
+                    disabled={!allowed}
+                  >
+                    {allowed ? '' : '🔒 '}{t.name} {lvl === 2 ? '[Enterprise]' : '[Premium]'}
+                  </option>
+                );
+              })}
             </select>
+
             <select value={createForm.match} onChange={e => setCreateForm({ ...createForm, match: e.target.value })} className="flex-1 p-3 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] rounded-xl text-sm outline-none focus:border-green-500/50 transition-all">
               <option value="">Select Match (Optional)</option>
               {matches.map(m => <option key={m._id} value={m._id}>{m.team1Name} vs {m.team2Name}</option>)}
