@@ -292,12 +292,24 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isEligible) return addToast({ type: 'error', message: 'Membership required to deploy overlays.' });
     if (!createForm.name || !createForm.template) return addToast({ type: 'error', message: 'Name and template required.' });
+
+    // ✅ Block level 1 users from deploying level 2 templates
+    const selectedTemplate = templates.find(t => (t.file || t.id) === createForm.template);
+    if (selectedTemplate && selectedTemplate.level > userLevel && !isAdmin) {
+      return addToast({ type: 'error', message: `This template requires Enterprise membership (Level ${selectedTemplate.level}). You are on Level ${userLevel}.` });
+    }
+
     try {
-      await overlayAPI.createOverlay({ ...createForm, tournamentId, config: globalConfig });
+      await overlayAPI.createOverlay({ 
+        ...createForm, 
+        tournamentId, 
+        config: globalConfig,
+        requiredMembershipLevel: selectedTemplate?.level ?? 1   // ✅ Send level to backend
+      });
       addToast({ type: 'success', message: 'Overlay deployed!' });
       setShowCreate(false);
       setCreateForm({ name: '', template: '', match: '' });
@@ -306,6 +318,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
       addToast({ type: 'error', message: err.response?.data?.message || 'Creation failed' });
     }
   };
+
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this overlay permanently?')) return;
