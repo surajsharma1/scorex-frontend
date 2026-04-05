@@ -145,9 +145,15 @@
   }
 
   function init() {
-    const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
-    if (isPreview) { safeUpdateState(getDemoData()); return; }
-    safeFetchMatchData(); safeConnectSocket();
+    const params = new URLSearchParams(window.location.search);
+    const isPreview = params.get('preview') === 'true';
+    const hasMatchId = !!config.matchId;  // OVERLAY_CONFIG is injected by backend
+    if (isPreview && !hasMatchId) { 
+      safeUpdateState(getDemoData()); 
+      return; 
+    }
+    safeFetchMatchData(); 
+    safeConnectSocket();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

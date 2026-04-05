@@ -324,19 +324,35 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
   };
 
   const generateOverlayUrl = (overlay: any) => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://scorex-backend.onrender.com/api/v1';
     const filename = getTemplateFilename(overlay);
     const expTime = overlay.urlExpiresAt ? new Date(overlay.urlExpiresAt).getTime() : Date.now() + 86400000;
     const cfg = encodeURIComponent(JSON.stringify({ ...globalConfig, sponsors: sponsorConfig.sponsors }));
     
+    let url = `${apiUrl}/overlays/serve/${overlay._id || overlay.publicId}?template=${filename}&expires=${expTime}&config=${cfg}`;
+    
     // Explicitly append matchId if the overlay has one
-    let url = `/overlays/${filename}?tournament=${tournamentId || overlay.tournamentId}&exp=${expTime}&preview=true&cfg=${cfg}`;
     if (overlay.match) {
-        const matchId = typeof overlay.match === 'string' ? overlay.match : overlay.match._id;
+        const matchId = typeof overlay.match === 'string' ? overlay.match : overlay.match?._id;
         url += `&matchId=${matchId}`;
     }
     
     return url;
   };
+
+  // Fix previewSrc scope issue - define in component scope as string
+  const previewSrc = (() => {
+    if (!activePreview) return '';
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://scorex-backend.onrender.com/api/v1';
+    const previewId = activePreview.publicId || activePreview._id;
+    if (previewId) {
+      return `${apiUrl}/overlays/public/${previewId}?template=${getTemplateFilename(activePreview)}&preview=true&progress=${previewProgress}%`;
+    }
+    return generateOverlayUrl(activePreview) + `&preview=true&progress=${previewProgress}%`;
+  })();
+
+  // Memoized version for debug display
+  const previewSrcDisplay = previewSrc.slice(0, 80) + (previewSrc.length > 80 ? '...' : '');
 
   if (!isEligible) return (
     <div className="py-16 text-center">
@@ -399,11 +415,16 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
           <div ref={previewContainerRef} className="relative w-full h-full max-w-6xl flex items-center justify-center overflow-hidden border border-gray-800 bg-black rounded-2xl shadow-2xl">
             <iframe
               id="main-preview"
-              src={generateOverlayUrl(activePreview)}
+              src={previewSrc}
               style={{ width: '1920px', height: '1080px', transform: `scale(${effectiveScale})`, transformOrigin: 'center center', border: 'none', position: 'absolute' }}
               sandbox="allow-scripts allow-same-origin"
             />
           </div>
+        </div>
+
+        {/* Debug: previewSrc (remove after testing) */}
+        <div className="p-2 text-xs bg-gray-900 text-gray-400 border-t border-gray-800">
+          Preview URL: {previewSrcDisplay}
         </div>
       </div>,
       document.body
