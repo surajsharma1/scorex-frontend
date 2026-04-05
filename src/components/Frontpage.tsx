@@ -8,8 +8,10 @@ import {
   MonitorPlay, ExternalLink, Eye
 } from 'lucide-react';
 import { matchAPI } from '../services/api';
+import Carousel from './Carousel'; // ADDED CAROUSEL IMPORT
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ... (Sub-components: NavLink, StatCard, SectionHeader, FeatureCard, TestimonialCard, PricingCard, SocialLink, OverlayCard, LiveMatchCard remain exactly the same) ...
+
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <a href={href} className="text-sm font-medium text-gray-300 hover:text-white transition relative group">
@@ -103,7 +105,6 @@ function SocialLink({ icon }: { icon: React.ReactNode }) {
   );
 }
 
-// ─── Overlay preview card that opens studio ────────────────────────────────
 function OverlayCard({ name, category, level, url, gradient }: { name: string; category: string; level: 1 | 2; url: string; gradient: string }) {
   return (
     <div className="group relative rounded-2xl overflow-hidden bg-gray-900 border border-white/5 hover:border-white/20 transition cursor-pointer">
@@ -133,7 +134,6 @@ function OverlayCard({ name, category, level, url, gradient }: { name: string; c
   );
 }
 
-// ─── Live Match Card ──────────────────────────────────────────────────────────
 function LiveMatchCard({ match }: { match: any }) {
   const innings = match.innings?.[match.currentInnings - 1] || {};
   return (
@@ -222,13 +222,20 @@ export default function Frontpage() {
         </div>
       </nav>
 
+      {/* ── RESTORED CAROUSEL (Sits directly beneath the nav bar seamlessly) ── */}
+      <div className={`fixed top-16 left-0 right-0 z-40 h-8 transition-all duration-500 ${scrollY > 50 ? 'bg-black/95 backdrop-blur-xl border-b border-white/5' : 'bg-black/60 backdrop-blur-sm border-b border-white/5'}`}>
+        <div className="container mx-auto h-full px-4 lg:px-6">
+          <Carousel />
+        </div>
+      </div>
+
       {/* ── Hero ── */}
       <div className="relative pt-24 pb-32 px-6 flex flex-col justify-center overflow-hidden min-h-screen">
         <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='g' width='40' height='40' patternUnits='userSpaceOnUse'%3E%3Cpath d='M0 40L40 0M0 0L40 40' fill='none' stroke='rgba(255,255,255,0.03)' stroke-width='1'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3C/svg%3E\")" }} />
         <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-green-600/15 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-cyan-600/10 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="container mx-auto text-center relative z-10 max-w-5xl">
+        <div className="container mx-auto text-center relative z-10 max-w-5xl pt-8">
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/5 border border-white/10 text-green-400 text-xs font-bold uppercase tracking-widest mb-8 hover:bg-white/10 transition cursor-pointer group">
             <Zap className="w-3 h-3" /> The Future of Cricket Broadcasting <Sparkles className="w-3 h-3 opacity-50" />
           </div>
@@ -392,7 +399,7 @@ export default function Frontpage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-tr from-green-600 to-emerald-500 rounded-lg flex items-center justify-center font-black text-black">S</div>
+                <div className="w-8 h-8 bg-gradient-to-tr from-green-600 to-emerald-500 rounded-lg flex items-center justify-center font-bold text-black">S</div>
                 <span className="font-black text-xl" style={{ fontFamily: 'var(--font-orbitron, monospace)' }}>SCOREX</span>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">
@@ -439,3 +446,4 @@ export default function Frontpage() {
     </div>
   );
 }
+

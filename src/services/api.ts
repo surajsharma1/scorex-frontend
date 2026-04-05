@@ -50,6 +50,7 @@ export const matchAPI = {
   updateMatch: (id: string, data: any) => api.put(`/matches/${id}`, data),
   deleteMatch: (id: string) => api.delete(`/matches/${id}`),
   getLiveMatches: () => api.get('/matches/live'),
+  getMatchesByTournament: (tournamentId: string) => api.get('/matches', { params: { tournament: tournamentId } }),
   // Scoring
   startMatch: (id: string, data: any) => api.post(`/matches/${id}/start`, data),
   selectPlayers: (id: string, data: any) => api.post(`/matches/${id}/select-players`, data),
