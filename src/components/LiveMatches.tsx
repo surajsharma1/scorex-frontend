@@ -9,13 +9,20 @@ export default function LiveMatches() {
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadLive = async () => {
-    try {
-      const res = await matchAPI.getLiveMatches();
-      setMatches(res.data.data || []);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  };
+ // In LiveMatches.tsx, change loadLive to filter orphaned matches:
+const loadLive = async () => {
+  try {
+    const res = await matchAPI.getLiveMatches();
+    const all = res.data.data || [];
+    // Filter out matches whose tournament was deleted (tournamentId is null after populate)
+    const valid = all.filter((m: any) => {
+      if (!m.tournamentId) return true; // standalone match, show it
+      return typeof m.tournamentId === 'object' && m.tournamentId !== null && m.tournamentId._id;
+    });
+    setMatches(valid);
+  } catch (e) { console.error(e); }
+  finally { setLoading(false); }
+};
 
   useEffect(() => {
     loadLive();
