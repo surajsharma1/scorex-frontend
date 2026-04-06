@@ -301,10 +301,11 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
     return url;
   };
 
-  const generatePreviewUrl = (overlay: any) => {
-    const filename = getTemplateFilename(overlay);
-    return `${getBaseUrl()}/api/v1/overlays/public/${overlay.publicId}?template=${filename}&preview=true&progress=${previewProgress}`;
-  };
+// ✅ Fix — loads static file directly from Vercel, always instant
+const generatePreviewUrl = (overlay: any) => {
+  const filename = getTemplateFilename(overlay);
+  return `/overlays/${filename}?preview=true&progress=${previewProgress}`;
+};
 
   const triggerAnimation = (eventType: string) => {
     const iframe = document.getElementById('main-preview') as HTMLIFrameElement | null;
