@@ -91,7 +91,7 @@ export const userAPI = {
 
 // ─── Overlay API ──────────────────────────────────────────────────────────────
 export const overlayAPI = {
-  getOverlays: (tournamentId: string) => api.get('/overlays'),
+  getOverlays: (tournamentId?: string) => api.get('/overlays', { params: tournamentId ? { tournamentId } : {} }),
   getOverlayTemplates: () => api.get('/overlays/templates'),
   createOverlay: (data: any) => api.post('/overlays', data),
   getOverlay: (id: string) => api.get(`/overlays/${id}`),
