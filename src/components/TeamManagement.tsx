@@ -162,7 +162,7 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
                           <p className="text-[10px] uppercase tracking-wider text-green-400 font-semibold">{p.role}</p>
                         </div>
                       </div>
-                      <button onClick={() => handleRemovePlayer(team._id, p._id)} className="p-1.5 opacity-0 group-hover:opacity-100 text-red-400 hover:bg-red-500/20 rounded transition-all"><Trash2 className="w-4 h-4"/></button>
+<button onClick={() => handleRemovePlayer(team._id, p._id)} className="p-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-red-400 hover:bg-red-500/20 rounded-lg transition-all flex-shrink-0"><Trash2 className="w-3.5 h-3.5"/></button>
                     </div>
                   ))}
                   {(!team.players || team.players.length === 0) && <div className="col-span-full text-center text-sm py-4 text-[var(--text-muted)]">No players added to this squad yet.</div>}
@@ -190,16 +190,20 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
                       </div>
 
                       {/* Manual Custom Player */}
-                      <div className="bg-[var(--bg-elevated)] p-4 rounded-xl border border-[var(--border)] flex flex-col sm:flex-row gap-3">
-                        <input type="text" placeholder="Full Name" value={newPlayerForm.name} onChange={e=>setNewPlayerForm({...newPlayerForm, name: e.target.value})} className="flex-1 p-2.5 rounded bg-[var(--bg-primary)] border border-[var(--border)] text-white text-sm outline-none" />
-                        <select value={newPlayerForm.role} onChange={e=>setNewPlayerForm({...newPlayerForm, role: e.target.value})} className="p-2.5 rounded bg-[var(--bg-primary)] border border-[var(--border)] text-white text-sm outline-none">
-                          <option value="batsman">Batsman</option>
-                          <option value="bowler">Bowler</option>
-                          <option value="all-rounder">All-Rounder</option>
-                          <option value="wicket-keeper">Wicket Keeper</option>
-                        </select>
-                        <input type="text" placeholder="Jersey #" value={newPlayerForm.jerseyNumber} onChange={e=>setNewPlayerForm({...newPlayerForm, jerseyNumber: e.target.value})} className="w-20 p-2.5 rounded bg-[var(--bg-primary)] border border-[var(--border)] text-white text-sm outline-none text-center" />
-                        <button onClick={() => handleAddPlayer(team._id)} disabled={!newPlayerForm.name} className="px-4 py-2.5 bg-green-500 hover:bg-green-600 text-black font-bold rounded disabled:opacity-50 transition-colors">Add</button>
+                      <div className="bg-[var(--bg-elevated)] p-4 rounded-xl border border-[var(--border)] space-y-3">
+                        <div className="grid grid-cols-3 gap-2">
+                          <input type="text" placeholder="Full Name" value={newPlayerForm.name} onChange={e=>setNewPlayerForm({...newPlayerForm, name: e.target.value})} className="col-span-2 p-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-white text-sm outline-none focus:border-green-500" />
+                          <input type="text" placeholder="#" value={newPlayerForm.jerseyNumber} onChange={e=>setNewPlayerForm({...newPlayerForm, jerseyNumber: e.target.value})} className="p-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-white text-sm outline-none focus:border-green-500 text-center font-bold" />
+                        </div>
+                        <div className="flex gap-2">
+                          <select value={newPlayerForm.role} onChange={e=>setNewPlayerForm({...newPlayerForm, role: e.target.value})} className="flex-1 p-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-white text-sm outline-none">
+                            <option value="batsman">Batsman</option>
+                            <option value="bowler">Bowler</option>
+                            <option value="all-rounder">All-Rounder</option>
+                            <option value="wicket-keeper">Wicket Keeper</option>
+                          </select>
+                          <button onClick={() => handleAddPlayer(team._id)} disabled={!newPlayerForm.name} className="px-5 py-2.5 bg-green-500 hover:bg-green-600 text-black font-bold rounded-xl disabled:opacity-50 transition-colors shrink-0">Add</button>
+                        </div>
                       </div>
                     </div>
                   ) : (
