@@ -32,7 +32,8 @@ export default function Sidebar({
 }: SidebarProps) {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
-  const { isDark, toggleTheme } = useTheme();
+  // Theme hook removed
+
 
   useEffect(() => {
     if (!isOpen) {
@@ -170,19 +171,8 @@ export default function Sidebar({
       {/* Bottom: theme + logout */}
       <div className="p-2 space-y-1" style={{ borderTop: '1px solid var(--border)' }}>
         <button
-          onClick={toggleTheme}
-          title={isDark ? 'Switch to Light' : 'Switch to Dark'}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all hover:bg-green-500/10"
-          style={{ color: 'var(--text-secondary)' }}
-        >
-          {isDark
-            ? <Sun className="icon-fluid-base flex-shrink-0 text-amber-400" />
-            : <Moon className="icon-fluid-base flex-shrink-0 text-blue-400" />
-          }
-          {!collapsed && <span className="fluid-sm font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
-        </button>
-        <button
           onClick={handleLogout}
+
           title="Logout"
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all hover:bg-red-500/10"
           style={{ color: 'var(--text-secondary)' }}
