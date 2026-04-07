@@ -193,7 +193,10 @@ export default function Frontpage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3 group cursor-pointer shrink-0">
               <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-tr from-green-600 to-emerald-400 rounded-xl flex items-center justify-center font-black text-black text-lg shadow-lg shadow-green-500/20 group-hover:shadow-green-500/40 transition-all">S</div>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20 group-hover:shadow-green-500/40 transition-all" style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)' }}>
+                  <Zap className="w-6 h-6 text-black" fill="currentColor" />
+                </div>
+
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
               </div>
               <div className="flex flex-col">
@@ -412,7 +415,10 @@ export default function Frontpage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-tr from-green-600 to-emerald-500 rounded-lg flex items-center justify-center font-bold text-black">S</div>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold" style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)' }}>
+                  <Zap className="w-5 h-5 text-black" fill="currentColor" />
+                </div>
+
                 <span className="font-black text-xl" style={{ fontFamily: 'var(--font-orbitron, monospace)' }}>SCOREX</span>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed">

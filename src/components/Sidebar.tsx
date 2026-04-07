@@ -72,9 +72,10 @@ export default function Sidebar({
         {!collapsed && (
           <div className="flex items-center gap-1.5 xs:gap-2 group cursor-pointer" onClick={() => navigate('/dashboard')}>
             <div className="relative">
-              <div className="w-[clamp(1.75rem,6vw,2.25rem)] h-[clamp(1.75rem,6vw,2.25rem)] bg-gradient-to-tr from-green-600 to-emerald-400 rounded-lg flex items-center justify-center font-black text-black text-[clamp(0.625rem,2vw,0.875rem)] shadow-lg shadow-green-500/20">
-                S
+              <div className="w-[clamp(1.75rem,6vw,2.25rem)] h-[clamp(1.75rem,6vw,2.25rem)] rounded-lg flex items-center justify-center shadow-lg shadow-green-500/20" style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)' }}>
+                <Zap className="w-4 h-4 text-black" fill="currentColor" />
               </div>
+
               <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             </div>
             <span className="font-black text-lg tracking-tight" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-orbitron, sans-serif)' }}>
@@ -83,9 +84,10 @@ export default function Sidebar({
           </div>
         )}
         {collapsed && (
-          <div className="w-8 h-8 bg-gradient-to-tr from-green-600 to-emerald-400 rounded-lg flex items-center justify-center font-black text-black text-sm mx-auto cursor-pointer shadow-lg shadow-green-500/20" onClick={() => navigate('/dashboard')}>
-            S
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto cursor-pointer shadow-lg shadow-green-500/20" onClick={() => navigate('/dashboard')} style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)' }}>
+            <Zap className="w-4 h-4 text-black" fill="currentColor" />
           </div>
+
         )}
         
         {/* Desktop collapse button with Neon Glow */}
