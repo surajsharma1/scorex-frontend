@@ -240,6 +240,19 @@ export default function Frontpage() {
             <Zap className="w-3 h-3" /> The Future of Cricket Broadcasting <Sparkles className="w-3 h-3 opacity-50" />
           </div>
 
+          {/* Logo from Login - small version */}
+          <div className="text-center mb-8">
+            <div className="relative inline-flex mb-4 mx-auto">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl"
+                style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', boxShadow: '0 0 40px rgba(34,197,94,0.35)' }}>
+                <Zap className="w-7 h-7 text-black" fill="currentColor" />
+              </div>
+              {/* Pulse ring */}
+              <div className="absolute inset-0 rounded-2xl animate-ping opacity-20"
+                style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)' }} />
+            </div>
+          </div>
+
           <h1 className="text-6xl md:text-9xl font-black mb-6 leading-[0.9] tracking-tight" style={{ fontFamily: 'var(--font-orbitron, monospace)' }}>
             <span>NEXT</span><br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-cyan-400">GEN</span><br />
