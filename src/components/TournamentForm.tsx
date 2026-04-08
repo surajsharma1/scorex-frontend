@@ -101,7 +101,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold mb-2 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+              <label className="block text-sm font-bold mb-2 flex items-center gap-2" style={{ color: 'white' }}>
                 <Calendar className="w-4 h-4" /> Start Date
               </label>
               <input type="date" required value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})}
@@ -110,7 +110,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold mb-2 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+              <label className="block text-sm font-bold mb-2 flex items-center gap-2" style={{ color: 'white' }}>
                 <Calendar className="w-4 h-4" /> End Date
               </label>
               <input type="date" required value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})}
