@@ -240,9 +240,10 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
     try {
       const [tRes, oRes, mRes] = await Promise.all([
         overlayAPI.getOverlayTemplates(),
-        overlayAPI.getOverlays(tournamentId!),
+        overlayAPI.getOverlays(tournamentId),
         tournamentId ? matchAPI.getMatchesByTournament(tournamentId) : matchAPI.getMatches()
       ]);
+      console.log('loadData overlays response:', oRes.data, 'tournamentId:', tournamentId);
       setTemplates(Array.isArray(tRes.data) ? tRes.data : (tRes.data?.data || []));
       setCreatedOverlays(oRes.data?.data || oRes.data || []);
       setMatches(mRes.data?.data || mRes.data || []);
@@ -263,10 +264,27 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
       return addToast({ type: 'error', message: `Enterprise membership (Level ${templateLevel}) required. You are on Level ${userLevel}.` });
     }
     try {
-      await overlayAPI.createOverlay({ name: createForm.name.trim(), template: createForm.template, match: createForm.match || undefined, tournamentId, config: globalConfig, requiredMembershipLevel: templateLevel });
+      const response = await overlayAPI.createOverlay({ name: createForm.name.trim(), template: createForm.template, match: createForm.match || undefined, tournamentId, config: globalConfig, requiredMembershipLevel: templateLevel });
+      console.log('Create overlay response:', response.data);
+      
+      // Optimistic update
+      const newOverlay = {
+        _id: response.data._id || 'temp-' + Date.now(),
+        name: createForm.name.trim(),
+        template: createForm.template,
+        publicId: response.data.publicId,
+        level: templateLevel,
+        match: createForm.match ? { _id: createForm.match, team1Name: '', team2Name: '' } : null,
+        tournamentId,
+        urlExpiresAt: response.data.urlExpiresAt || new Date(Date.now() + 24*60*60*1000).toISOString(),
+        createdAt: new Date().toISOString()
+      };
+      setCreatedOverlays(prev => [newOverlay, ...prev]);
+      
       addToast({ type: 'success', message: 'Overlay deployed!' });
       setShowCreate(false);
       setCreateForm({ name: '', template: '', match: '' });
+      // Still refresh to sync
       loadData();
     } catch (err: any) {
       addToast({ type: 'error', message: err.response?.data?.message || 'Creation failed' });

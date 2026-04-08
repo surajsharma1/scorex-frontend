@@ -34,7 +34,6 @@
       <div class="control-group" style="max-width: 300px;">
         <div class="section-title">Design Theme</div>
         <select id="theme-selector" onchange="document.getElementById('overlay-frame').src = this.value; setTimeout(()=>pushScore(false), 500);">
-          <option value="lvl2-2024-dynamic.html">1. Lvl 2: 2024 3D Light</option>
           <option value="lvl2-broadcast-pro.html">2. Lvl 2: Broadcast Pro (IPL Navy/Gold)</option>
           <option value="lvl2-cyber-glitch.html">3. Lvl 2: Cyber Glitch</option>
           <option value="lvl2-flame-thrower.html">4. Lvl 2: Flame Thrower</option>
@@ -47,7 +46,7 @@
           <option value="lvl2-water-flow.html">11. Lvl 2: Water Flow</option>
           <option value="lvl2-particle-storm.html">12. Lvl 2: Particle Storm</option>
           <option value="lvl2-rgb-split.html">13. Lvl 2: RGB Split</option>
-
+          <option value="lvl1-yellow-impact.html">14 yellow impact</option>
         </select>
         <button class="bg-green" style="width: 100%; margin-top:10px;" onclick="pushScore(false)">Push Live Data</button>
       </div>
@@ -101,7 +100,7 @@
   </div>
 
   <div id="canvas-container">
-    <iframe id="overlay-frame" src="lvl2-water-flow.html"></iframe>
+    <iframe id="overlay-frame" src="lvl2-broadcast-pro.html"></iframe>
   </div>
 
   <script>
