@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/copy-overlays.js",
+    "prebuild": "echo 'Prebuild skipped - Vite handles public/ assets'",
     "build": "npm run prebuild && tsc && vite build",
     "preview": "vite preview"
   },
@@ -34,3 +34,4 @@
     "vite": "^5.0.10"
   }
 }
+
