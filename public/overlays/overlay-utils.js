@@ -76,8 +76,7 @@ window.normalizeScoreData = function(data) {
     return {
         matchName: computedMatchName,
         tournamentName: safeTournamentName,
-        team1Name: data.battingTeamName || data.team1Name || data.team1?.name || 'Team 1',
-        team1Score: t1Score,
+        team1Name: data.battingTeamName || data.team1Name || data.team1?.name || 'Team 1',\n        \n        // --- ADD THESE 3 NEW DATA POINTS ---\n        team1ShortName: data.team1ShortName || data.team1?.shortName || '',\n        team2ShortName: data.team2ShortName || data.team2?.shortName || '',\n        thisOver: data.thisOver || [],\n        // -----------------------------------\n\n        team1Score: t1Score,
         team1Wickets: t1Wickets,
         team1Overs: t1Overs,
         strikerName: data.strikerName || '',

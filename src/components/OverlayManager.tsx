@@ -310,12 +310,30 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
 
   const getBaseUrl = () => BACKEND_URL.endsWith('/api/v1') ? BACKEND_URL.replace('/api/v1', '') : BACKEND_URL;
 
-  const generateOverlayUrl = (overlay: any) => {
+const generateOverlayUrl = (overlay: any) => {
     const filename = getTemplateFilename(overlay);
-    const cfg = encodeURIComponent(JSON.stringify({ ...globalConfig, sponsors: sponsorConfig.sponsors }));
+    
+    // Translate React config state into the exact keys engine.js expects
+    const engineConfig = {
+      tossDuration: globalConfig.tossDuration,
+      squadDuration: globalConfig.squadDuration,
+      introDuration: globalConfig.introDuration,
+      autoStatsOvers: globalConfig.autoBattingOvers, // Mapped
+      autoStatsType: globalConfig.autoStatsStyle === 'TOGETHER' ? 'BOTH_CARDS' : 'SEQUENTIAL', // Mapped
+      autoStatsDuration: globalConfig.autoStatsDuration,
+      sponsors: sponsorConfig.sponsors
+    };
+
+    const cfg = encodeURIComponent(JSON.stringify(engineConfig));
     let url = `${getBaseUrl()}/api/v1/overlays/public/${overlay.publicId}?template=${filename}&cfg=${cfg}`;
-    if (overlay.match) { const matchId = typeof overlay.match === 'string' ? overlay.match : overlay.match._id; url += `&matchId=${matchId}`; }
-    if (tournamentId || overlay.tournamentId) url += `&tournamentId=${tournamentId || overlay.tournamentId}`;
+    
+    if (overlay.match) { 
+      const matchId = typeof overlay.match === 'string' ? overlay.match : overlay.match._id; 
+      url += `&matchId=${matchId}`; 
+    }
+    if (tournamentId || overlay.tournamentId) {
+      url += `&tournamentId=${tournamentId || overlay.tournamentId}`;
+    }
     return url;
   };
 
@@ -333,6 +351,11 @@ const generatePreviewUrl = (overlay: any) => {
     else if (eventType === 'WICKET') payload.data = { playerName: 'V. Kohli', matches: 280, runs: 12500, sr: 138.5 };
     else if (eventType === 'BATSMAN_CARD') payload.data = { playerName: 'R. Sharma', stat1: '45', stat2: '28', stat3: '4/2' };
     else if (eventType === 'BOWLER_CARD') payload.data = { playerName: 'M. Starc', stat1: '3.0', stat2: '2', stat3: '6.5' };
+    // --- NEW: Fix the Restore trigger ---
+    else if (eventType === 'RESTORE') {
+      payload = { type: 'RESTORE' };
+    }
+    
     iframe?.contentWindow?.postMessage({ type: 'OVERLAY_TRIGGER', payload }, '*');
   };
 
@@ -435,7 +458,7 @@ const generatePreviewUrl = (overlay: any) => {
                   </button>
                 );
               })}
-              <button onClick={() => triggerAnimation('SHOW_SCOREBOARD')} className="px-3 py-1.5 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg font-bold text-[11px] transition-all hover:bg-gray-700 hover:text-white whitespace-nowrap ml-2">
+              <button onClick={() => triggerAnimation('RESTORE')} className="px-3 py-1.5 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg font-bold text-[11px] transition-all hover:bg-gray-700 hover:text-white whitespace-nowrap ml-2">
                 ↩ Restore Score
               </button>
               <button onClick={() => { navigator.clipboard.writeText(generateOverlayUrl(activePreview)); addToast({ type: 'success', message: 'OBS URL Copied!' }); }} className="px-3 py-1.5 bg-gray-900 text-gray-400 border border-gray-800 rounded-lg font-bold text-[11px] transition-all hover:text-white whitespace-nowrap flex items-center gap-1">

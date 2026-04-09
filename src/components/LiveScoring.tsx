@@ -354,19 +354,30 @@ export default function LiveScoring() {
   let defStriker = activeStriker?.name || ''; let defNonStriker = activeNonStriker?.name || ''; let defBowler = match?.currentBowlerName || '';
   if (step === 'players') { defStriker = ''; defNonStriker = ''; defBowler = ''; }
 
-  // ── Real-time overlay sync ────────────────────────────────────────────────
+// ── Real-time overlay sync (REPAIRED) ────────────────────────────────────────────────
   useEffect(() => {
     if (!match) return;
+
+    // Map the complex history objects into a clean, lightweight array for the overlays
+    const currentOverHistory = thisOverBalls.map((b: any) => ({
+      runs: b.runs || 0,
+      wicket: b.wicket || false,
+      isWide: b.extras === 'wide' || b.wide || false,
+      isNoBall: b.extras === 'nb' || b.noBall || b.extras === 'noBall' || false,
+      isBoundary: b.runs === 4 || b.runs === 6
+    }));
+
     socket.emit('updateScore', {
       matchId: match._id,
       match: {
         ...match,
         team1Score: score, team1Wickets: wickets,
         overs: oversDisplay,
-        striker: match.strikerName, nonStriker: match.nonStrikerName, currentBowler: match.currentBowlerName
+        striker: match.strikerName, nonStriker: match.nonStrikerName, currentBowler: match.currentBowlerName,
+        thisOver: currentOverHistory // <-- THE MISSING LINK ADDED HERE
       }
     });
-  }, [match]);
+  }, [match, score, wickets, oversDisplay, thisOverBalls]);
 
   // ── Early returns ─────────────────────────────────────────────────────────
   if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
