@@ -342,10 +342,17 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
     return url;
   };
 
-// ✅ Fix — loads static file directly from Vercel, always instant
 const generatePreviewUrl = (overlay: any) => {
   const filename = getTemplateFilename(overlay);
-  return `/overlays/${filename}?preview=true&progress=${previewProgress}`;
+  let url = `/overlays/${filename}?preview=true&progress=${previewProgress}`;
+  
+  // If this overlay is linked to a match, append it to the preview URL
+  if (overlay.match) {
+    const matchId = typeof overlay.match === 'string' ? overlay.match : overlay.match._id;
+    url += `&matchId=${matchId}`;
+  }
+  
+  return url;
 };
 
   const triggerAnimation = (eventType: string) => {
