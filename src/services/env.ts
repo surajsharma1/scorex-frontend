@@ -14,22 +14,23 @@ export const getProtocol = () => {
 };
 
 export const getApiBaseUrl = (): string => {
-  // 1. Priority 1: Explicit env var (Vercel/Production)
-  const explicitApiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+  // 1. Priority 1: Explicit env var (Vercel/Production) - ensure /api/v1 suffix
+  const explicitApiUrl = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
   if (explicitApiUrl) {
-    console.log('[ENV] Using explicit VITE_API_URL:', explicitApiUrl);
-    return explicitApiUrl;
+    const fixedUrl = explicitApiUrl.endsWith('/api/v1') ? explicitApiUrl : `${explicitApiUrl}/api/v1`;
+    console.log('[ENV] Using explicit VITE_API_URL (fixed):', fixedUrl);
+    return fixedUrl;
   }
 
-  // 2. Priority 2: Full backend URL for preview iframe (allows cross-origin)
+  // 2. Priority 2: Full backend URL for production
   if (isProduction()) {
     const fullBackendUrl = 'https://scorex-backend.onrender.com/api/v1';
-    console.log('[ENV] Production: Full backend URL for API/preview');
+    console.log('[ENV] Production: Full backend URL for API:', fullBackendUrl);
     return fullBackendUrl;
   }
 
   // 3. Priority 3: Local dev fallback (Vite proxy)
-  console.log('[ENV] Dev mode - using localhost:5000 (Vite proxy)');
+  console.log('[ENV] Dev mode - using localhost:5000/api/v1 (Vite proxy)');
   return 'http://localhost:5000/api/v1';
 };
 
