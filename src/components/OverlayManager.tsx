@@ -310,18 +310,23 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
 
   const getBaseUrl = () => BACKEND_URL.endsWith('/api/v1') ? BACKEND_URL.replace('/api/v1', '') : BACKEND_URL;
 
-const generateOverlayUrl = (overlay: any) => {
+  const generateOverlayUrl = (overlay: any) => {
     const filename = getTemplateFilename(overlay);
     
+    // Check if the template is a Level 2 design
+    const isLevel2 = overlay.level === 2 || filename.startsWith('lvl2');
+
     // Translate React config state into the exact keys engine.js expects
     const engineConfig = {
       tossDuration: globalConfig.tossDuration,
       squadDuration: globalConfig.squadDuration,
       introDuration: globalConfig.introDuration,
-      autoStatsOvers: globalConfig.autoBattingOvers, // Mapped
-      autoStatsType: globalConfig.autoStatsStyle === 'TOGETHER' ? 'BOTH_CARDS' : 'SEQUENTIAL', // Mapped
+      autoStatsOvers: globalConfig.autoBattingOvers,
+      autoStatsType: globalConfig.autoStatsStyle === 'TOGETHER' ? 'BOTH_CARDS' : 'SEQUENTIAL',
       autoStatsDuration: globalConfig.autoStatsDuration,
-      sponsors: sponsorConfig.sponsors
+      
+      // 🔥 THE FIX: Only attach sponsors if it is a Level 2 template
+      sponsors: isLevel2 ? sponsorConfig.sponsors : [] 
     };
 
     const cfg = encodeURIComponent(JSON.stringify(engineConfig));
