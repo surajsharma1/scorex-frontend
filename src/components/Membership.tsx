@@ -3,10 +3,11 @@ import { useToast } from '../hooks/useToast';
 import { useAuth } from '../App';
 import { overlayAPI, paymentAPI } from '../services/api';
 import api from '../services/api';
+import { getApiBaseUrl } from '../services/env';
 import {
   Check, Zap, Crown, Star, Clock, Calendar,
   AlertCircle, Eye, ChevronRight, Shield, Sparkles,
-  X, Monitor, Activity, ExternalLink, ChevronLeft
+  X, Monitor, ExternalLink, ChevronLeft
 } from 'lucide-react';
 
 // ── Inline overlay preview modal ─────────────────────────────────────────────
@@ -78,13 +79,6 @@ function OverlayPreviewModal({ isOpen, onClose, level, templates }: OverlayPrevi
         raw: {},
       }, '*');
     }, 500);
-  };
-
-  const fireTrigger = (type: string) => {
-    const iframe = document.getElementById('membership-preview-frame') as HTMLIFrameElement;
-    if (iframe?.contentWindow) {
-      iframe.contentWindow.postMessage({ type: 'OVERLAY_TRIGGER', payload: { type, duration: 8, data: {} } }, '*');
-    }
   };
 
   if (!isOpen) return null;
@@ -159,7 +153,7 @@ function OverlayPreviewModal({ isOpen, onClose, level, templates }: OverlayPrevi
                   <iframe
                     id="membership-preview-frame"
                     key={iframeKey}
-                    src={`${selected.url}?preview=true`}
+                    src={`${getApiBaseUrl()}/overlays/preview?template=${(selected.file || selected.id || '').replace(/\.html$/, '')}`}
                     onLoad={handleIframeLoad}
                     style={{
                       width: '1920px',
@@ -180,27 +174,6 @@ function OverlayPreviewModal({ isOpen, onClose, level, templates }: OverlayPrevi
               </div>
             </div>
 
-            {/* Triggers */}
-            <div className="shrink-0 bg-[#0a0a0f] border-t border-gray-800 px-4 py-3 flex items-center gap-2 overflow-x-auto">
-              <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest shrink-0 flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-emerald-500" /> Triggers
-              </span>
-              {[
-                { label: 'FOUR (4)', type: 'FOUR', color: 'blue' },
-                { label: 'SIX (6)', type: 'SIX', color: 'green' },
-                { label: 'OUT (W)', type: 'WICKET', color: 'red' },
-                { label: 'Toss', type: 'SHOW_TOSS', color: 'yellow' },
-                { label: 'Squads', type: 'SHOW_SQUADS', color: 'purple' },
-              ].map(btn => (
-                <button
-                  key={btn.type}
-                  onClick={() => fireTrigger(btn.type)}
-                  className={`px-3 py-1.5 bg-${btn.color}-500/10 border border-${btn.color}-500/30 text-${btn.color}-400 rounded-lg font-bold text-xs shrink-0 hover:bg-${btn.color}-500 hover:text-white transition-all`}
-                >
-                  {btn.label}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       </div>

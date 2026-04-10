@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { DollarSign, Download, Search, Calendar, User } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { DollarSign, Download, Search, RefreshCw, TrendingUp } from 'lucide-react';
 import { adminAPI } from '../services/api';
 
 interface Payment {
@@ -18,150 +18,149 @@ export default function AdminPaymentsTable() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
+  const loadPayments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await adminAPI.getPayments();
+      setPayments(res.data.data || []);
+    } catch { console.error('Failed to load payments'); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { loadPayments(); }, [loadPayments]);
+
   const handleExport = () => {
-    adminAPI.exportPayments().then((response) => {
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'payments.csv');
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
+    adminAPI.exportPayments().then(res => {
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url; a.download = 'scorex-payments.csv';
+      document.body.appendChild(a); a.click(); a.remove();
       window.URL.revokeObjectURL(url);
     }).catch(() => alert('Export failed'));
   };
 
-  useEffect(() => {
-    loadPayments();
-  }, []);
-
-  const loadPayments = async () => {
-    try {
-      const res = await adminAPI.getPayments();
-      setPayments(res.data.data);
-    } catch (err) {
-      console.error('Failed to load payments');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredPayments = payments.filter(p => 
-    (p?.username || '').toLowerCase().includes(search.toLowerCase()) ||
-    (p?.email || '').toLowerCase().includes(search.toLowerCase()) ||
-    (p?.level || '').toLowerCase().includes(search.toLowerCase())
+  const filtered = payments.filter(p =>
+    (p.username || '').toLowerCase().includes(search.toLowerCase()) ||
+    (p.email || '').toLowerCase().includes(search.toLowerCase()) ||
+    (p.level || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalRevenue = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
+  const totalRevenue = filtered.reduce((s, p) => s + (p.amount || 0), 0);
+
+  const levelStyle = (level: string) => ({
+    bg: level?.toLowerCase().includes('enterprise') ? 'rgba(168,85,247,0.15)' : 'rgba(34,197,94,0.15)',
+    color: level?.toLowerCase().includes('enterprise') ? '#a855f7' : '#22c55e',
+    border: level?.toLowerCase().includes('enterprise') ? 'rgba(168,85,247,0.3)' : 'rgba(34,197,94,0.3)',
+  });
+
+  const statusStyle = (status: string) => ({
+    bg: status === 'completed' ? 'rgba(34,197,94,0.15)' : status === 'failed' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
+    color: status === 'completed' ? '#22c55e' : status === 'failed' ? '#f87171' : '#f59e0b',
+    border: status === 'completed' ? 'rgba(34,197,94,0.3)' : status === 'failed' ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)',
+  });
+
+  const inp = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' };
 
   return (
     <div className="space-y-4">
+      {/* Revenue summary */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {[
+          { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: '#22c55e' },
+          { label: 'Transactions', value: filtered.length, icon: DollarSign, color: '#3b82f6' },
+          { label: 'Avg. Value', value: filtered.length ? `₹${Math.round(totalRevenue / filtered.length).toLocaleString()}` : '₹0', icon: TrendingUp, color: '#a855f7' },
+        ].map(card => {
+          const Icon = card.icon;
+          return (
+            <div key={card.label} className="rounded-xl p-4" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+              <Icon className="w-4 h-4 mb-2" style={{ color: card.color }} />
+              <p className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>{card.value}</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{card.label}</p>
+            </div>
+          );
+        })}
+      </div>
+
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl flex items-center justify-center">
-            <DollarSign className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>Payment Reports</h2>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              {filteredPayments.length} payments • ₹{totalRevenue.toLocaleString()}
-            </p>
-          </div>
-        </div>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{filtered.length} transactions</p>
         <div className="flex gap-2">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
-            <input
-              placeholder="Search payments..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 rounded-xl text-sm w-64 focus:outline-none"
-              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-            />
+            <input placeholder="Search payments…" value={search} onChange={e => setSearch(e.target.value)}
+              className="pl-10 pr-4 py-2 rounded-xl text-sm w-52 focus:outline-none transition-all" style={inp}
+              onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
+              onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
           </div>
-          <button 
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg hover:scale-105"
-          >
-            <Download className="w-4 h-4" />
-            Export CSV
+          <button onClick={loadPayments} className="p-2.5 rounded-xl transition-all hover:scale-105"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+            <RefreshCw className="w-4 h-4" />
+          </button>
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm text-white transition-all hover:scale-105"
+            style={{ background: 'linear-gradient(135deg,#22c55e,#10b981)' }}>
+            <Download className="w-4 h-4" /> Export
           </button>
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl hover:bg-gray-800/20" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+      <div className="overflow-x-auto rounded-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200">
-              <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">User</th>
-              <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Plan</th>
-              <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-500">Amount</th>
-              <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Date</th>
-              <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Status</th>
+            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+              {['User', 'Plan', 'Amount', 'Date', 'Status'].map(h => (
+                <th key={h} className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{h}</th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
-                  Loading payments...
-                </td>
-              </tr>
-            ) : filteredPayments.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
-                  No payments found
-                </td>
-              </tr>
-            ) : (
-              filteredPayments.map((payment, index) => (
-  <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
-                  <td className="px-6 py-4">
-
+              <tr><td colSpan={5} className="px-6 py-16 text-center">
+                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" style={{ color: 'var(--accent)' }} />
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading payments…</p>
+              </td></tr>
+            ) : filtered.length === 0 ? (
+              <tr><td colSpan={5} className="px-6 py-16 text-center">
+                <DollarSign className="w-10 h-10 mx-auto mb-2 opacity-30" style={{ color: 'var(--text-muted)' }} />
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No payments found</p>
+              </td></tr>
+            ) : filtered.map((p, i) => {
+              const lv = levelStyle(p.level);
+              const st = statusStyle(p.status);
+              return (
+                <tr key={i} className="transition-colors" style={{ borderBottom: '1px solid var(--border)' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                  <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                        {payment.username.charAt(0).toUpperCase()}
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
+                        style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+                        {(p.username || '?').charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>{payment.username}</div>
-                        <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{payment.email}</div>
+                        <div className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{p.username}</div>
+                        <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{p.email}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-bold capitalize ${
-                      payment.level === 'premium' ? 'bg-emerald-100 text-emerald-800' :
-                      payment.level === 'enterprise' ? 'bg-purple-100 text-purple-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {payment.level}
-                    </span>
+                  <td className="px-5 py-4">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-bold capitalize"
+                      style={{ background: lv.bg, color: lv.color, border: `1px solid ${lv.border}` }}>{p.level}</span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
-                      ₹{payment.amount.toLocaleString()}
-                    </div>
+                  <td className="px-5 py-4 font-black text-base" style={{ color: 'var(--text-primary)' }}>
+                    ₹{(p.amount || 0).toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
-                    <div>{payment.date ? new Date(payment.date).toLocaleDateString() : 'N/A'}</div>
-                    <div className="text-xs">{payment.date ? new Date(payment.date).toLocaleTimeString() : ''}</div>
+                  <td className="px-5 py-4 text-xs" style={{ color: 'var(--text-muted)' }}>
+                    {p.date ? new Date(p.date).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                   </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                      payment.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      payment.status === 'failed' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {payment.status}
-                    </span>
+                  <td className="px-5 py-4">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-bold capitalize"
+                      style={{ background: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{p.status}</span>
                   </td>
                 </tr>
-              ))
-            )}
+              );
+            })}
           </tbody>
         </table>
       </div>
     </div>
   );
 }
-
