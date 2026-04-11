@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../App';
+import { useTheme } from './ThemeProvider';
 import { authAPI } from '../services/api';
 import { getApiBaseUrl } from '../services/env';
-import { Mail, Lock, AlertTriangle, Activity, Eye, EyeOff, Zap } from 'lucide-react';
+import { Mail, Lock, AlertTriangle, Eye, EyeOff, Zap, Sun, Moon } from 'lucide-react';
 
 export default function Login() {
   const { login } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -33,17 +35,38 @@ export default function Login() {
     window.location.href = `${getApiBaseUrl()}/auth/google?state=${state}`;
   };
 
+  const inp = {
+    background: 'var(--bg-elevated)',
+    border: '1px solid var(--border)',
+    color: 'var(--text-primary)',
+  };
+
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{ background: 'var(--bg-primary)' }}
     >
+      {/* Theme toggle — top right corner */}
+      <button
+        onClick={toggleTheme}
+        title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        className="fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 shadow-lg"
+        style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
+          color: 'var(--text-secondary)',
+        }}
+      >
+        {isDark
+          ? <><Sun className="w-3.5 h-3.5 text-amber-400" /><span>Light</span></>
+          : <><Moon className="w-3.5 h-3.5 text-indigo-400" /><span>Dark</span></>}
+      </button>
+
       {/* Background glows */}
       <div className="absolute top-0 right-0 w-[40vw] h-[40vw] max-w-96 max-h-96 rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%)' }} />
       <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 70%)' }} />
-      {/* Decorative grid */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.015]"
         style={{ backgroundImage: 'linear-gradient(var(--text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--text-primary) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
 
@@ -55,7 +78,6 @@ export default function Login() {
               style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', boxShadow: '0 0 40px rgba(34,197,94,0.35)' }}>
               <Zap className="w-8 h-8 text-black" fill="currentColor" />
             </div>
-            {/* Pulse ring */}
             <div className="absolute inset-0 rounded-2xl animate-ping opacity-20"
               style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)' }} />
           </div>
@@ -68,23 +90,14 @@ export default function Login() {
         </div>
 
         {/* Card */}
-        <div
-          className="rounded-2xl p-6 relative overflow-hidden"
-          style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            boxShadow: '0 24px 48px rgba(0,0,0,0.3)',
-          }}
-        >
-          {/* Card top accent line */}
+        <div className="rounded-2xl p-6 relative overflow-hidden"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}>
           <div className="absolute top-0 left-6 right-6 h-px rounded-full"
             style={{ background: 'linear-gradient(90deg, transparent, rgba(34,197,94,0.4), transparent)' }} />
 
           {error && (
-            <div
-              className="mb-5 p-3 rounded-xl flex items-center gap-2.5 text-sm"
-              style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}
-            >
+            <div className="mb-5 p-3 rounded-xl flex items-center gap-2.5 text-sm"
+              style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}>
               <AlertTriangle className="w-4 h-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -93,78 +106,49 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div>
-              <label className="text-xs font-bold mb-1.5 block uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                Email
-              </label>
+              <label className="text-xs font-bold mb-1.5 block uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Email</label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                <input
-                  type="email" value={form.email}
+                <input type="email" value={form.email}
                   onChange={e => setForm({ ...form, email: e.target.value })}
                   placeholder="you@example.com" required
                   className="w-full pl-10 pr-4 py-3 rounded-xl text-sm transition-all outline-none"
-                  style={{
-                    background: 'var(--bg-elevated)',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text-primary)',
-                  }}
-                  onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-                  onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                />
+                  style={inp}
+                  onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
+                  onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
               </div>
             </div>
 
             {/* Password */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                  Password
-                </label>
-                <Link to="/forgot-password" className="text-xs font-semibold transition-colors hover:opacity-80"
-                  style={{ color: 'var(--accent)' }}>
+                <label className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Password</label>
+                <Link to="/forgot-password" className="text-xs font-semibold transition-colors hover:opacity-80" style={{ color: 'var(--accent)' }}>
                   Forgot?
                 </Link>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                <input
-                  type={showPassword ? 'text' : 'password'}
+                <input type={showPassword ? 'text' : 'password'}
                   value={form.password}
                   onChange={e => setForm({ ...form, password: e.target.value })}
                   placeholder="••••••••" required
                   className="w-full pl-10 pr-12 py-3 rounded-xl text-sm transition-all outline-none"
-                  style={{
-                    background: 'var(--bg-elevated)',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text-primary)',
-                  }}
-                  onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-                  onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                />
-                <button
-                  type="button"
+                  style={inp}
+                  onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
+                  onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
+                <button type="button" tabIndex={-1}
                   onClick={() => setShowPassword(v => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-all"
-                  style={{ color: 'var(--text-muted)' }}
-                  tabIndex={-1}
-                >
-                  {showPassword
-                    ? <EyeOff className="w-4 h-4" />
-                    : <Eye className="w-4 h-4" />
-                  }
+                  style={{ color: 'var(--text-muted)' }}>
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            <button
-              type="submit" disabled={loading}
+            <button type="submit" disabled={loading}
               className="w-full py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-50 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] mt-1"
-              style={{
-                background: 'linear-gradient(135deg, #22c55e, #10b981)',
-                color: '#000',
-                boxShadow: '0 0 24px rgba(34,197,94,0.3)',
-              }}
-            >
+              style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 24px rgba(34,197,94,0.3)' }}>
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
@@ -180,15 +164,9 @@ export default function Login() {
             <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
           </div>
 
-          <button
-            onClick={handleGoogle} disabled={googleLoading || loading}
+          <button onClick={handleGoogle} disabled={googleLoading || loading}
             className="w-full flex items-center justify-center gap-3 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
-            style={{
-              background: 'var(--bg-elevated)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-primary)',
-            }}
-          >
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
