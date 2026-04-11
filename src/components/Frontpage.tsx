@@ -107,12 +107,47 @@ function SocialLink({ icon }: { icon: React.ReactNode }) {
 
 function OverlayCard({ name, category, level, url, gradient }: { name: string; category: string; level: 1 | 2; url: string; gradient: string }) {
   const [loaded, setLoaded] = useState(false);
-  // Build backend preview URL so mock data is injected
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Use the static overlay URL directly with ?preview=true
+  // engine.js detects preview=true and loads demo data immediately
   const backendBase = (import.meta.env.VITE_API_URL || '').replace('/api/v1', '');
-  const templateName = url.split('/').pop()?.replace('.html', '') || '';
   const previewSrc = backendBase
-    ? `${backendBase}/api/v1/overlays/preview?template=${templateName}`
-    : url;
+    ? `${backendBase}${url}?preview=true`
+    : `${url}?preview=true`;
+
+  const handleLoad = () => {
+    setLoaded(true);
+    // Push rich mock score data after iframe loads so balls/players render
+    setTimeout(() => {
+      if (!iframeRef.current?.contentWindow) return;
+      const MOCK_SCORE = {
+        team1Name: 'MI', team1ShortName: 'MI',
+        team2Name: 'CSK', team2ShortName: 'CSK',
+        team1Score: 187, team1Wickets: 4, team1Overs: '18.2',
+        teamName: 'MI', teamScore: 187, teamWickets: 4, teamOvers: '18.2',
+        // lvl2 IDs
+        score: 187, wickets: 4, overs: '18.2',
+        strikerName: 'R. Sharma', strikerRuns: 72, strikerBalls: 41,
+        nonStrikerName: 'H. Pandya', nonStrikerRuns: 18, nonStrikerBalls: 9,
+        bowlerName: 'P. Cummins', bowlerRuns: 28, bowlerWickets: 1, bowlerOvers: '3.1',
+        // lvl2 IDs
+        striker: 'R. Sharma', 's-runs': 72, 's-balls': 41,
+        nonstriker: 'H. Pandya', 'ns-runs': 18, 'ns-balls': 9,
+        bowler: 'P. Cummins', 'b-wkts': 1, 'b-runs': 28, 'b-ov': '3.1',
+        'bat-team': 'MI', 'bowl-team': 'CSK',
+        thisOver: [
+          { raw: '1',  runs: 1, isWicket: false, isWide: false, isNoBall: false, isFour: false, isSix: false },
+          { raw: '4',  runs: 4, isWicket: false, isWide: false, isNoBall: false, isFour: true,  isSix: false },
+          { raw: 'W',  runs: 0, isWicket: true,  isWide: false, isNoBall: false, isFour: false, isSix: false },
+          { raw: '\u2022', runs: 0, isWicket: false, isWide: false, isNoBall: false, isFour: false, isSix: false },
+          { raw: '6',  runs: 6, isWicket: false, isWide: false, isNoBall: false, isFour: false, isSix: true  },
+          { raw: '1',  runs: 1, isWicket: false, isWide: false, isNoBall: false, isFour: false, isSix: false },
+        ],
+      };
+      iframeRef.current.contentWindow.postMessage({ type: 'UPDATE_SCORE', data: MOCK_SCORE, raw: MOCK_SCORE }, '*');
+    }, 800);
+  };
 
   return (
     <div className="group relative rounded-2xl overflow-hidden bg-gray-900 border border-white/5 hover:border-white/20 transition cursor-pointer">
@@ -125,6 +160,7 @@ function OverlayCard({ name, category, level, url, gradient }: { name: string; c
           </div>
         )}
         <iframe
+          ref={iframeRef}
           src={previewSrc}
           className="border-none pointer-events-none"
           style={{
@@ -136,7 +172,7 @@ function OverlayCard({ name, category, level, url, gradient }: { name: string; c
             top: 0,
             left: 0,
           }}
-          onLoad={() => setLoaded(true)}
+          onLoad={handleLoad}
           title={name}
         />
         {/* Plan badge */}

@@ -30,7 +30,14 @@ const MOCK_SCORE = {
   target: 214, requiredRuns: 1, remainingBalls: 2,
   tournamentName: 'IPL 2025',
   matchDisplayName: 'MI vs CSK',
-  thisOver: ['1', 'W', '4', '6', '•', '1'],
+  thisOver: [
+    { raw: '1',  runs: 1, isWicket: false, isWide: false, isNoBall: false, isFour: false, isSix: false },
+    { raw: 'W',  runs: 0, isWicket: true,  isWide: false, isNoBall: false, isFour: false, isSix: false },
+    { raw: '4',  runs: 4, isWicket: false, isWide: false, isNoBall: false, isFour: true,  isSix: false },
+    { raw: '6',  runs: 6, isWicket: false, isWide: false, isNoBall: false, isFour: false, isSix: true  },
+    { raw: '\u2022', runs: 0, isWicket: false, isWide: false, isNoBall: false, isFour: false, isSix: false },
+    { raw: '1',  runs: 1, isWicket: false, isWide: false, isNoBall: false, isFour: false, isSix: false },
+  ],
   sponsors: [{ name: 'TATA', tagline: 'Power of We' }, { name: 'DREAM11', tagline: '' }],
 };
 
