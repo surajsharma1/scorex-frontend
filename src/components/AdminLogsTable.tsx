@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { FileText, Download, Search, RefreshCw, AlertCircle, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, Download, Search, RefreshCw, AlertCircle } from 'lucide-react';
+
 import { adminAPI } from '../services/api';
 
 interface Log {
@@ -11,70 +12,79 @@ interface Log {
 export default function AdminLogsTable() {
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const loadLogs = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
-    else setRefreshing(true);
+
+  useEffect(() => {
+    loadLogs();
+  }, []);
+
+  const loadLogs = async () => {
     try {
       setError(null);
       const res = await adminAPI.getLogs();
-      // Backend may return plain string[] or {name,size,mtime}[]
-      const raw: any[] = res.data.data || [];
-      const normalized: Log[] = raw.map(item =>
-        typeof item === 'string'
-          ? { name: item, size: 0, mtime: '' }
-          : { name: item.name || item, size: item.size || 0, mtime: item.mtime || item.modified || '' }
-      );
-      setLogs(normalized);
+      const logData = res.data.data || [];
+      setLogs(logData);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch logs. Check backend server.');
+      console.error('Failed to load logs:', err);
+      setError('Failed to fetch logs. Check backend server.');
       setLogs([]);
-    } finally { setLoading(false); setRefreshing(false); }
-  }, []);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(() => { loadLogs(); }, [loadLogs]);
 
-  const filteredLogs = logs.filter(l => l.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredLogs = logs.filter(l => 
+    l.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   const downloadLog = async (filename: string) => {
     try {
       const res = await adminAPI.downloadLog(filename);
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
-      link.href = url; link.download = `scorex-${filename}`;
-      document.body.appendChild(link); link.click(); link.remove();
+      link.href = url;
+      link.setAttribute('download', `scorex-${filename}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
       window.URL.revokeObjectURL(url);
-    } catch { setError('Download failed.'); }
-  };
-
-  const inp = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' };
-
-  const formatSize = (bytes: number) => {
-    if (!bytes) return '—';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+    } catch (err) {
+      console.error('Download failed:', err);
+      setError('Download failed. Check console.');
+    }
   };
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{filteredLogs.length} log files</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-gray-500 to-gray-600 rounded-2xl flex items-center justify-center">
+            <FileText className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>System Logs</h2>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{filteredLogs.length} log files</p>
+          </div>
+        </div>
         <div className="flex gap-2">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
-            <input placeholder="Search logs…" value={search} onChange={e => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 rounded-xl text-sm w-52 focus:outline-none transition-all" style={inp}
-              onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
-              onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
+            <input
+              placeholder="Search logs..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 pr-4 py-2 rounded-xl text-sm w-64 focus:outline-none"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+            />
           </div>
-          <button onClick={() => loadLogs(true)} disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm text-white transition-all hover:scale-105 disabled:opacity-60"
-            style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)' }}>
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          <button 
+            onClick={loadLogs}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm bg-blue-500 text-white shadow-lg hover:scale-105"
+          >
+            <RefreshCw className="w-4 h-4 animate-spin" />
             Refresh
           </button>
         </div>
@@ -83,70 +93,84 @@ export default function AdminLogsTable() {
       <div className="overflow-x-auto rounded-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
         <table className="w-full">
           <thead>
-            <tr style={{ borderBottom: '1px solid var(--border)' }}>
-              {['Filename', 'Size', 'Last Modified', 'Actions'].map(h => (
-                <th key={h} className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{h}</th>
-              ))}
+            <tr className="border-b border-gray-200">
+              <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Filename</th>
+              <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Size</th>
+              <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Modified</th>
+              <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200">
             {loading ? (
-              <tr><td colSpan={4} className="px-6 py-16 text-center">
-                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" style={{ color: 'var(--accent)' }} />
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading logs…</p>
-              </td></tr>
-            ) : error ? (
-              <tr><td colSpan={4} className="px-6 py-16 text-center">
-                <div className="flex flex-col items-center gap-3 max-w-xs mx-auto">
-                  <AlertCircle className="w-10 h-10 text-red-400" />
-                  <p className="font-bold text-sm text-red-400">Load Error</p>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{error}</p>
-                  <button onClick={() => loadLogs()} className="px-4 py-2 rounded-xl font-bold text-sm text-white"
-                    style={{ background: 'var(--accent)' }}>Retry</button>
-                </div>
-              </td></tr>
-            ) : filteredLogs.length === 0 ? (
-              <tr><td colSpan={4} className="px-6 py-16 text-center">
-                <FileText className="w-10 h-10 mx-auto mb-2 opacity-30" style={{ color: 'var(--text-muted)' }} />
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                  {search ? `No logs matching "${search}"` : 'No log files found'}
-                </p>
-              </td></tr>
-            ) : filteredLogs.map((log, i) => (
-              <tr key={i} className="transition-colors" style={{ borderBottom: '1px solid var(--border)' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
-                    <span className="font-mono text-sm" style={{ color: 'var(--text-primary)' }}>{log.name}</span>
+              <tr>
+                <td colSpan={4} className="px-6 py-20 text-center">
+                  <div className="flex flex-col items-center gap-4 p-8 rounded-2xl" style={{ background: 'var(--bg-elevated)' }}>
+                    <RefreshCw className="w-12 h-12 animate-spin" style={{ color: 'var(--accent)' }} />
+                    <div style={{ color: 'var(--text-muted)' }}>
+                      <p className="text-lg font-bold">Loading logs...</p>
+                      <p className="text-sm">Fetching from server...</p>
+                    </div>
                   </div>
                 </td>
-
-                <td className="px-5 py-4 text-sm" style={{ color: 'var(--text-muted)' }}>{formatSize(log.size)}</td>
-
-                <td className="px-5 py-4">
-                  {log.mtime ? (
-                    <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-                      <Clock className="w-3.5 h-3.5" />
-                      {new Date(log.mtime).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan={4} className="px-6 py-20 text-center">
+                  <div className="flex flex-col items-center gap-4 p-8 rounded-2xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                    <AlertCircle className="w-12 h-12" style={{ color: '#ef4444' }} />
+                    <div>
+                      <p className="text-lg font-bold text-red-400">Load Error</p>
+                      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{error}</p>
+                      <button onClick={loadLogs} className="mt-4 px-4 py-2 rounded-xl font-bold" style={{ background: 'var(--accent)', color: 'white' }}>
+                        Retry
+                      </button>
                     </div>
-                  ) : <span className="text-xs" style={{ color: 'var(--text-muted)' }}>—</span>}
-                </td>
-
-                <td className="px-5 py-4">
-                  <button onClick={() => downloadLog(log.name)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105"
-                    style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}>
-                    <Download className="w-3.5 h-3.5" /> Download
-                  </button>
+                  </div>
                 </td>
               </tr>
-            ))}
+            ) : filteredLogs.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-6 py-20 text-center">
+                  <div className="flex flex-col items-center gap-4 p-8 rounded-2xl" style={{ background: 'var(--bg-elevated)' }}>
+                    <FileText className="w-12 h-12 opacity-40" style={{ color: 'var(--text-muted)' }} />
+                    <div style={{ color: 'var(--text-muted)' }}>
+                      <p className="text-lg font-bold">No logs found</p>
+                      <p className="text-sm">{search ? `No matching "${search}"` : 'Server logs directory empty'}</p>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+
+              filteredLogs.map((log, index) => (
+                <tr key={index} className="hover:bg-[var(--bg-hover)] transition-colors group">
+                  <td className="px-6 py-4 font-mono text-sm truncate max-w-xs group-hover:font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {log.name}
+                  </td>
+                  <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
+                    {(log.size / 1024).toFixed(1)} KB
+                  </td>
+                  <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
+                    {log.mtime ? new Date(log.mtime).toLocaleString() : 'N/A'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button 
+                      onClick={() => downloadLog(log.name)}
+                      className="p-2 rounded-xl hover:bg-[var(--accent)/0.1] group-hover:scale-105 transition-all text-blue-400 hover:text-blue-500"
+                      title="Download Log (Backend endpoint needed)"
+                      disabled={!log.name.includes('.log')}
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+
+              ))
+            )}
           </tbody>
         </table>
       </div>
     </div>
   );
 }
+

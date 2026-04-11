@@ -486,21 +486,39 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
                   <div className="p-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>No players added yet</div>
                 ) : (
                   <div>
-                    {side.players.map((p: any, j: number) => (
-                      <div key={j} className="flex items-center gap-3 px-4 py-3 sm:px-6 transition-colors"
-                        style={{ borderBottom: '1px solid var(--border)', background: 'transparent' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                        <div className="w-8 h-8 shrink-0 flex items-center justify-center rounded-xl text-xs font-black"
-                          style={{ background: 'var(--bg-elevated)', color: 'var(--accent)', border: '1px solid var(--border)' }}>
-                          {j + 1}
+                    {side.players.map((p: any, j: number) => {
+                      const roleMeta: Record<string, { label: string; color: string; bg: string }> = {
+                        batsman:     { label: 'BAT',  color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
+                        bowler:      { label: 'BOWL', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
+                        allrounder:  { label: 'ALL',  color: '#a855f7', bg: 'rgba(168,85,247,0.12)' },
+                        'all-rounder': { label: 'ALL', color: '#a855f7', bg: 'rgba(168,85,247,0.12)' },
+                        wicketkeeper:{ label: 'WK',   color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' },
+                        wk:          { label: 'WK',   color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' },
+                      };
+                      const roleLower = (p.role || '').toLowerCase();
+                      const rm = roleMeta[roleLower] || { label: (p.role || 'PLAYER').toUpperCase().slice(0, 4), color: 'var(--text-muted)', bg: 'var(--bg-elevated)' };
+                      const jersey = p.jerseyNumber ?? p.jersey ?? (j + 1);
+                      return (
+                        <div key={j} className="flex items-center gap-3 px-4 py-3 sm:px-6 transition-colors"
+                          style={{ borderBottom: '1px solid var(--border)', background: 'transparent' }}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-elevated)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                          {/* Jersey number */}
+                          <div className="w-9 h-9 shrink-0 flex items-center justify-center rounded-xl text-sm font-black"
+                            style={{ background: 'var(--bg-elevated)', color: 'var(--accent)', border: '1px solid var(--border)' }}>
+                            #{jersey}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{p.name}</p>
+                          </div>
+                          {/* Role badge */}
+                          <span className="shrink-0 px-2 py-0.5 rounded-lg text-[10px] font-black tracking-wide"
+                            style={{ background: rm.bg, color: rm.color, border: `1px solid ${rm.color}30` }}>
+                            {rm.label}
+                          </span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{p.name}</p>
-                          <p className="text-xs capitalize mt-0.5" style={{ color: 'var(--text-muted)' }}>{p.role}</p>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

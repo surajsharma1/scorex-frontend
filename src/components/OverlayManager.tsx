@@ -424,60 +424,13 @@ const generatePreviewUrl = (overlay: any) => {
           </div>
         </div>
 
-        {/* ✅ Triggers — scrollable, animation triggers on top row, action triggers below */}
-        <div className="shrink-0 border-t border-gray-800 bg-[#0a0a0f]">
-          {/* Row 1: Animation / sequence triggers */}
-          <div className="px-3 pt-2.5 pb-1 overflow-x-auto">
-            <div className="flex items-center gap-1.5 min-w-max">
-              <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest shrink-0 mr-1">Sequence:</span>
-              {[
-                { label: 'VS Screen', type: 'SHOW_VS_SCREEN', color: 'blue' },
-                { label: 'Toss', type: 'SHOW_TOSS', color: 'blue' },
-                { label: 'Squads XI', type: 'SHOW_SQUADS', color: 'purple' },
-                { label: 'Innings Break', type: 'INNINGS_BREAK', color: 'purple' },
-                { label: 'Match End', type: 'MATCH_END', color: 'purple' },
-              ].map(t => (
-                <button key={t.type} onClick={() => triggerAnimation(t.type)}
-                  className={`px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all active:scale-95 whitespace-nowrap ${t.color === 'blue' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 hover:bg-blue-500 hover:text-white' : 'bg-purple-500/10 text-purple-400 border border-purple-500/30 hover:bg-purple-500 hover:text-white'}`}>
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Row 2: Live action triggers + Restore */}
-          <div className="px-3 pt-1 pb-2.5 overflow-x-auto">
-            <div className="flex items-center gap-1.5 min-w-max">
-              <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest shrink-0 mr-1">Live:</span>
-              {[
-                { label: 'FOUR', type: 'FOUR', color: 'green' },
-                { label: 'SIX', type: 'SIX', color: 'blue' },
-                { label: 'Wicket', type: 'WICKET', color: 'red' },
-                { label: 'Batsman Card', type: 'BATSMAN_CARD', color: 'amber' },
-                { label: 'Bowler Card', type: 'BOWLER_CARD', color: 'amber' },
-                { label: '3rd Umpire', type: 'DECISION_PENDING', color: 'yellow' },
-              ].map(t => {
-                const cls: Record<string, string> = {
-                  green: 'bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500 hover:text-white',
-                  blue: 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500 hover:text-white',
-                  red: 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500 hover:text-white',
-                  amber: 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500 hover:text-white',
-                  yellow: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500 hover:text-white',
-                };
-                return (
-                  <button key={t.type} onClick={() => triggerAnimation(t.type)}
-                    className={`px-3 py-1.5 border rounded-lg font-bold text-[11px] transition-all active:scale-95 whitespace-nowrap ${cls[t.color]}`}>
-                    {t.label}
-                  </button>
-                );
-              })}
-              <button onClick={() => triggerAnimation('RESTORE')} className="px-3 py-1.5 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg font-bold text-[11px] transition-all hover:bg-gray-700 hover:text-white whitespace-nowrap ml-2">
-                ↩ Restore Score
-              </button>
-              <button onClick={() => { navigator.clipboard.writeText(generateOverlayUrl(activePreview)); addToast({ type: 'success', message: 'OBS URL Copied!' }); }} className="px-3 py-1.5 bg-gray-900 text-gray-400 border border-gray-800 rounded-lg font-bold text-[11px] transition-all hover:text-white whitespace-nowrap flex items-center gap-1">
-                <Copy className="w-3 h-3" /> OBS URL
-              </button>
-            </div>
-          </div>
+        {/* Bottom bar — OBS URL copy only. Animation triggers are in Full Studio only. */}
+        <div className="shrink-0 border-t border-gray-800 bg-[#0a0a0f] px-4 py-2.5 flex items-center gap-2">
+          <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">OBS Source URL:</span>
+          <button onClick={() => { navigator.clipboard.writeText(generateOverlayUrl(activePreview)); addToast({ type: 'success', message: 'OBS URL Copied!' }); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-gray-400 border border-gray-800 rounded-lg font-bold text-[11px] transition-all hover:text-white hover:border-gray-600 whitespace-nowrap">
+            <Copy className="w-3 h-3" /> Copy OBS URL
+          </button>
+          <span className="text-[10px] text-gray-700 ml-2">Use Full Studio for animation triggers</span>
         </div>
       </div>,
       document.body

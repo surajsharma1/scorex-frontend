@@ -191,8 +191,13 @@ function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournam
     if (form.team1 === form.team2) return addToast({ type: 'error', message: 'Teams must be different' });
     setLoading(true);
     try {
-      const matchName = form.name || `${form.matchPhase}: Team 1 vs Team 2`;
-      await matchAPI.createMatch({ ...form, tournamentId, name: matchName });
+      // Resolve actual team names from selected IDs so match name is meaningful
+      const team1Doc = teams.find(t => t._id === form.team1);
+      const team2Doc = teams.find(t => t._id === form.team2);
+      const t1Name = team1Doc?.name || 'Team 1';
+      const t2Name = team2Doc?.name || 'Team 2';
+      const matchName = form.name || `${form.matchPhase}: ${t1Name} vs ${t2Name}`;
+      await matchAPI.createMatch({ ...form, tournamentId, name: matchName, maxOvers: form.overs });
       addToast({ type: 'success', message: 'Match scheduled' });
       onCreated();
     } catch (err: any) {

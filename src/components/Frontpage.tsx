@@ -106,28 +106,54 @@ function SocialLink({ icon }: { icon: React.ReactNode }) {
 }
 
 function OverlayCard({ name, category, level, url, gradient }: { name: string; category: string; level: 1 | 2; url: string; gradient: string }) {
+  const [loaded, setLoaded] = useState(false);
+  // Build backend preview URL so mock data is injected
+  const backendBase = (import.meta.env.VITE_API_URL || '').replace('/api/v1', '');
+  const templateName = url.split('/').pop()?.replace('.html', '') || '';
+  const previewSrc = backendBase
+    ? `${backendBase}/api/v1/overlays/preview?template=${templateName}`
+    : url;
+
   return (
     <div className="group relative rounded-2xl overflow-hidden bg-gray-900 border border-white/5 hover:border-white/20 transition cursor-pointer">
-      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-20 group-hover:opacity-30 transition`} />
-      <div className="aspect-video relative flex items-center justify-center">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-14 h-14 rounded-full bg-black/60 border border-white/20 flex items-center justify-center group-hover:scale-110 transition">
-            <Eye className="w-5 h-5 text-white" />
+      {/* Iframe preview */}
+      <div className="aspect-video relative bg-black overflow-hidden">
+        {/* Gradient overlay shows until iframe loads */}
+        {!loaded && (
+          <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-30 flex items-center justify-center`}>
+            <Eye className="w-8 h-8 text-white/60 animate-pulse" />
           </div>
-        </div>
-        <div className="absolute top-3 right-3">
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${level === 2 ? 'bg-purple-500/80 text-white' : 'bg-emerald-500/80 text-white'}`}>
+        )}
+        <iframe
+          src={previewSrc}
+          className="border-none pointer-events-none"
+          style={{
+            width: '1920px',
+            height: '1080px',
+            transform: 'scale(0.208333)',
+            transformOrigin: 'top left',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          }}
+          onLoad={() => setLoaded(true)}
+          title={name}
+        />
+        {/* Plan badge */}
+        <div className="absolute top-2 right-2 z-10">
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black backdrop-blur-sm ${level === 2 ? 'bg-purple-500/80 text-white' : 'bg-emerald-500/80 text-white'}`}>
             {category}
           </span>
         </div>
       </div>
-      <div className="p-4 border-t border-white/5">
-        <h4 className="font-bold text-white text-sm mb-2">{name}</h4>
+
+      <div className="p-4 border-t border-white/5 flex items-center justify-between gap-2">
+        <h4 className="font-bold text-white text-sm truncate">{name}</h4>
         <Link
           to={`/studio?template=${url}`}
-          className="flex items-center gap-1.5 text-xs text-green-400 hover:text-green-300 font-bold transition"
+          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/40 text-xs font-bold transition"
         >
-          <MonitorPlay className="w-3.5 h-3.5" /> Open in Studio
+          <MonitorPlay className="w-3 h-3" /> Studio
         </Link>
       </div>
     </div>

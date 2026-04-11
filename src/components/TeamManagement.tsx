@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { teamAPI } from '../services/api';
-import { Plus, Trash2, Users, X, Edit3, Save, Search, UserPlus } from 'lucide-react';
-import PlayerSearch from './PlayerSearch';
+import { Plus, Trash2, Users, X, Edit3, Save, UserPlus } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 
 interface Props {
@@ -177,19 +176,7 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
                         <button onClick={() => setAddingPlayerTo(null)} className="text-[var(--text-muted)] hover:text-white"><X className="w-5 h-5"/></button>
                       </div>
                       
-                      {/* Search By User Option */}
-                      <div className="bg-[var(--bg-elevated)] p-4 rounded-xl border border-[var(--border)]">
-                        <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-2">Search Registered User (Friends/Global)</label>
-                        <PlayerSearch onSelect={(user) => handleAddPlayer(team._id, user)} placeholder="Search by username or email..." excludeIds={team.players?.map((p:any)=>p._id)} />
-                      </div>
-
-                      <div className="flex items-center gap-4 py-2">
-                        <div className="flex-1 h-px bg-[var(--border)]"></div>
-                        <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-bold">OR CUSTOM PLAYER</span>
-                        <div className="flex-1 h-px bg-[var(--border)]"></div>
-                      </div>
-
-                      {/* Manual Custom Player */}
+                      {/* Manual Player Entry */}
                       <div className="bg-[var(--bg-elevated)] p-4 rounded-xl border border-[var(--border)] space-y-3">
                         <div className="grid grid-cols-3 gap-2">
                           <input type="text" placeholder="Full Name" value={newPlayerForm.name} onChange={e=>setNewPlayerForm({...newPlayerForm, name: e.target.value})} className="col-span-2 p-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border)] text-white text-sm outline-none focus:border-green-500" />

@@ -33,29 +33,28 @@ html { scroll-behavior: smooth; font-size: 16px; }
   --accent-dim:    rgba(34,197,94,0.15);
   --accent-glow:   rgba(34,197,94,0.3);
   --scrollbar-thumb: #1e293b;
-  --scrollbar-hover: #334155;
+--scrollbar-hover: #334155;
   --sidebar-width: 16rem;
   --sidebar-collapsed: 4rem;
   --font-orbitron: 'Orbitron', monospace;
 }
 
-/* ── Light Theme — clean white/slate palette, no green tints ── */
 html.light {
-  --bg-primary:    #f8fafc;
-  --bg-secondary:  #f1f5f9;
+  --bg-primary:    #f0faf4;
+  --bg-secondary:  #e8f5ed;
   --bg-card:       #ffffff;
-  --bg-card-hover: #f8fafc;
-  --bg-elevated:   #f1f5f9;
-  --border:        rgba(148,163,184,0.25);
-  --border-hover:  rgba(100,116,139,0.4);
-  --text-primary:  #0f172a;
-  --text-secondary:#334155;
-  --text-muted:    #64748b;
+  --bg-card-hover: #f7fdf9;
+  --bg-elevated:   #ecf8f0;
+  --border:        rgba(34,197,94,0.15);
+  --border-hover:  rgba(34,197,94,0.3);
+  --text-primary:  #0d1a12;
+  --text-secondary:#374151;
+  --text-muted:    #6b7280;
   --accent:        #16a34a;
   --accent-dim:    rgba(22,163,74,0.1);
   --accent-glow:   rgba(22,163,74,0.2);
-  --scrollbar-thumb: #cbd5e1;
-  --scrollbar-hover: #94a3b8;
+  --scrollbar-thumb: #bbf7d0;
+  --scrollbar-hover: #86efac;
 }
 
 body {
@@ -138,18 +137,18 @@ body {
 }
 
 @layer utilities {
-  .gpu-accelerate {
+.gpu-accelerate {
     transform: translateZ(0);
     will-change: transform;
   }
 
-  /* Neon Green Mobile Hamburger Button */
+  /* Neon Green Mobile Hamburger Button - Pops on Dark Blue BG */
   .mobile-hamburger {
     @apply ring-4 ring-green-400/50 ring-offset-2 ring-offset-transparent shadow-2xl shadow-green-500/25;
     background: linear-gradient(145deg, rgba(34,197,94,0.95), rgba(16,185,129,0.9)) !important;
     backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(34,197,94,0.6);
-    box-shadow:
+    box-shadow: 
       0 0 0 1px rgba(34,197,94,0.5),
       0 0 20px rgba(34,197,94,0.4),
       0 0 40px rgba(34,197,94,0.25),
@@ -163,14 +162,14 @@ body {
 
   .mobile-hamburger:hover {
     @apply scale-105;
-    box-shadow:
+    box-shadow: 
       0 0 0 1px rgba(34,197,94,0.6),
       0 0 30px rgba(34,197,94,0.5),
       0 0 60px rgba(34,197,94,0.3),
       0 12px 40px rgba(0,0,0,0.5);
   }
-
   .icon-fluid-xs { width: clamp(0.75rem, 2vw, 0.875rem); height: clamp(0.75rem, 2vw, 0.875rem); }
+
   .icon-fluid-sm { width: clamp(0.875rem, 2.5vw, 1rem); height: clamp(0.875rem, 2.5vw, 1rem); }
   .icon-fluid-base { width: clamp(1rem, 3vw, 1.125rem); height: clamp(1rem, 3vw, 1.125rem); }
 
@@ -179,7 +178,7 @@ body {
     @apply hover:bg-slate-800/50 hover:shadow-md transition-all duration-200;
   }
   html.light .sx-nav-item {
-    @apply hover:bg-slate-100 hover:shadow-slate-100/50;
+    @apply hover:bg-emerald-50/70 hover:shadow-emerald-100/50;
   }
   .sx-nav-item:hover .icon-fluid-base {
     @apply scale-105;
@@ -189,8 +188,19 @@ body {
     @apply bg-gradient-to-r from-emerald-500/20 to-green-500/20 text-emerald-400 shadow-emerald-500/20 ring-1 ring-emerald-500/30 backdrop-blur-sm font-semibold;
   }
   html.light .sx-active-nav {
-    @apply bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-700 shadow-emerald-200/40 ring-emerald-300/50;
+    @apply bg-gradient-to-r from-emerald-400/30 to-green-400/20 shadow-emerald-300/40 ring-emerald-400/40;
   }
+
+
+  /* ── Preview Scaling Framework ──────────────────────────── */
+  /*
+   * The overlay is always 1920×1080.
+   * OverlayPreviewRenderer measures its own container via ResizeObserver
+   * and applies:   transform: scale(containerW/1920 * userZoom)
+   * with transform-origin: top left.
+   * The outer wrapper has overflow:hidden so nothing bleeds out.
+   * These legacy classes are kept for backward compat in OverlayManager.
+   */
 
   .preview-container {
     width: 100%;
@@ -221,6 +231,8 @@ body {
   }
 }
 
+ /* ── Dynamic Screen Aspect Ratio Constraints ── */
+
 .adaptive-screen-container {
   width: 100%;
   position: relative;
@@ -232,27 +244,43 @@ body {
   border-radius: 1rem;
 }
 
+/* Default to 16:9 for Laptops/Desktops */
 @media (min-width: 1025px) {
-  .adaptive-screen-container { aspect-ratio: 16 / 9; }
+  .adaptive-screen-container {
+    aspect-ratio: 16 / 9;
+  }
 }
+
+/* Tablet Landscape (16:10 or 3:2) */
 @media (min-width: 769px) and (max-width: 1024px) {
-  .adaptive-screen-container { aspect-ratio: 16 / 10; }
+  .adaptive-screen-container {
+    aspect-ratio: 16 / 10; 
+  }
 }
+
+/* Tablet Portrait (4:3) */
 @media (min-width: 641px) and (max-width: 768px) {
-  .adaptive-screen-container { aspect-ratio: 4 / 3; }
+  .adaptive-screen-container {
+    aspect-ratio: 4 / 3;
+  }
 }
+
+/* Mobile Devices (9:16 Portrait Lock) */
 @media (max-width: 640px) {
   .adaptive-screen-container {
     aspect-ratio: 9 / 16;
     height: auto;
-    max-height: 85vh;
+    max-height: 85vh; /* Prevent it from taking over the whole screen */
   }
+  
+  /* Force internal iframes/overlays to scale down elegantly */
   .adaptive-screen-container iframe {
-    transform: scale(0.45);
+    transform: scale(0.45); /* Scales the 1920x1080 overlay down for mobile */
     transform-origin: top center;
   }
 }
 
+/* Ensure the iframe itself is always perfectly filling the calculated box */
 .adaptive-screen-container > iframe {
   width: 100%;
   height: 100%;

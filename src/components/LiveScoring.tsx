@@ -354,33 +354,65 @@ export default function LiveScoring() {
   let defStriker = activeStriker?.name || ''; let defNonStriker = activeNonStriker?.name || ''; let defBowler = match?.currentBowlerName || '';
   if (step === 'players') { defStriker = ''; defNonStriker = ''; defBowler = ''; }
 
-// ── Real-time overlay sync (REPAIRED) ────────────────────────────────────────────────
+// ── Real-time overlay sync ───────────────────────────────────────────────────
   useEffect(() => {
     if (!match) return;
 
-    // Map the complex history objects into a clean, lightweight array for the overlays
     const currentOverHistory = thisOverBalls.map((b: any) => ({
       runs: b.runs || 0,
       wicket: b.wicket || false,
       isWide: b.extras === 'wide' || b.wide || false,
       isNoBall: b.extras === 'nb' || b.noBall || b.extras === 'noBall' || false,
-      isBoundary: b.runs === 4 || b.runs === 6
+      isBoundary: b.runs === 4 || b.runs === 6,
     }));
 
-    socket.emit('updateScore', {
+    // Build the full payload the overlay HTML listens for
+    const overlayData = {
       matchId: match._id,
-      match: {
-        ...match,
-        team1Score: score, team1Wickets: wickets,
-        overs: oversDisplay,
-        striker: match.strikerName, nonStriker: match.nonStrikerName, currentBowler: match.currentBowlerName,
-        thisOver: currentOverHistory // <-- THE MISSING LINK ADDED HERE
-      }
-    });
-  }, [match, score, wickets, oversDisplay, thisOverBalls]);
+      matchName: match.name,
+      tournamentName: match.tournamentId?.name || '',
+      team1Name: match.team1Name || match.team1?.name || '',
+      team2Name: match.team2Name || match.team2?.name || '',
+      team1Score: score,
+      team1Wickets: wickets,
+      team1Overs: oversDisplay,
+      team2Score: match.innings?.[1]?.score ?? 0,
+      team2Wickets: match.innings?.[1]?.wickets ?? 0,
+      team2Overs: (() => {
+        const i2 = match.innings?.[1]; if (!i2) return '0.0';
+        return `${Math.floor((i2.balls||0)/6)}.${(i2.balls||0)%6}`;
+      })(),
+      strikerName: match.strikerName || '',
+      strikerRuns: activeStriker?.runs ?? 0,
+      strikerBalls: activeStriker?.balls ?? 0,
+      strikerFours: activeStriker?.fours ?? 0,
+      strikerSixes: activeStriker?.sixes ?? 0,
+      nonStrikerName: match.nonStrikerName || '',
+      nonStrikerRuns: activeNonStriker?.runs ?? 0,
+      nonStrikerBalls: activeNonStriker?.balls ?? 0,
+      bowlerName: match.currentBowlerName || '',
+      bowlerOvers: currentBowler ? `${Math.floor((currentBowler.balls||0)/6)}.${(currentBowler.balls||0)%6}` : '0.0',
+      bowlerRuns: currentBowler?.runs ?? 0,
+      bowlerWickets: currentBowler?.wickets ?? 0,
+      bowlerEconomy: currentBowler?.economy ?? 0,
+      thisOver: currentOverHistory,
+      runRate: parseFloat(runRate) || 0,
+      target: target || null,
+      requiredRuns: requiredRuns || null,
+      requiredRunRate: rrr ? parseFloat(rrr) : null,
+      totalFours: innings?.fours ?? 0,
+      totalSixes: innings?.sixes ?? 0,
+      extras: innings?.extras?.total ?? 0,
+      sponsors: match.tournamentId?.sponsors || match.sponsors || [],
+      status: match.status,
+      currentInnings: match.currentInnings || 1,
+    };
+
+    socket.emit('updateScore', { matchId: match._id, match: { ...match, ...overlayData } });
+  }, [match, score, wickets, oversDisplay, thisOverBalls, runRate, target, requiredRuns, rrr, innings, activeStriker, activeNonStriker, currentBowler]);
 
   // ── Early returns ─────────────────────────────────────────────────────────
-  if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-primary)" }}><div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} /></div>;
   if (!match) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><p className="text-red-400 text-xl">Match not found</p></div>;
   if (step === 'done') return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
@@ -570,6 +602,9 @@ export default function LiveScoring() {
 
         {panel === 'main' && (
           <div className="space-y-4">
+
+            {/* ── Animation Triggers (above run buttons) ── */}
+            <BroadcastDirectorPanel matchId={match._id} />
 
             {/* ── Run Buttons: 0 1 2 3 4 6 + Decision Pending ── */}
             <div>
@@ -766,11 +801,6 @@ export default function LiveScoring() {
           </div>
         )}
       </div>
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          ANIMATION TRIGGERS (collapsible panel)
-      ══════════════════════════════════════════════════════════════════════ */}
-      <BroadcastDirectorPanel matchId={match._id} />
 
       {/* ══════════════════════════════════════════════════════════════════════
           BOTTOM ACTION BAR
