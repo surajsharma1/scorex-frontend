@@ -61,7 +61,8 @@ export default function AdminPaymentsTable() {
   const statusMeta = (status: string) => {
     switch (status) {
       case 'completed': return { icon: CheckCircle, label: 'Paid', bg: 'rgba(34,197,94,0.12)', color: '#22c55e', border: 'rgba(34,197,94,0.3)' };
-      case 'created':   return { icon: Clock,       label: 'Pending', bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: 'rgba(245,158,11,0.3)' };
+      // --- FIX: Relabel abandoned sessions ---
+      case 'created':   return { icon: XCircle,     label: 'Closed/Failed', bg: 'rgba(239,68,68,0.12)', color: '#f87171', border: 'rgba(239,68,68,0.3)' };
       case 'failed':    return { icon: XCircle,      label: 'Failed', bg: 'rgba(239,68,68,0.12)', color: '#f87171', border: 'rgba(239,68,68,0.3)' };
       default:          return { icon: AlertCircle,  label: status,   bg: 'var(--bg-elevated)', color: 'var(--text-muted)', border: 'var(--border)' };
     }

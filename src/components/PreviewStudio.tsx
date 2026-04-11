@@ -206,10 +206,13 @@ export default function PreviewStudio() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#030305] text-white overflow-hidden">
+    <div className="flex flex-col h-screen" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
 
-      {/* ── TOP NAVBAR ── */}
-      <div className="h-14 shrink-0 bg-[#0a0a0f] border-b border-gray-800 flex items-center justify-between px-3 gap-2">
+
+      {/* ── TOP NAV ── */}
+      <div className="h-14 flex items-center justify-between px-2 sm:px-4 shrink-0 shadow-md relative z-10"
+        style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
+
         <div className="flex items-center gap-2 min-w-0">
           {/* ✅ Mobile hamburger to open sidebar */}
           <button
@@ -268,11 +271,12 @@ export default function PreviewStudio() {
 
         {/* ── LEFT SIDEBAR ── */}
         <div className={`
-          w-52 shrink-0 bg-[#0a0a0f] border-r border-gray-800 flex flex-col overflow-hidden
+          w-52 shrink-0 flex flex-col overflow-hidden border-r
           md:relative md:translate-x-0 md:z-auto
           fixed inset-y-0 left-0 z-50 transition-transform duration-300
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        `} style={{ top: '56px' }}>
+        `} style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', top: '56px' }}>
+
           <div className="p-3 border-b border-gray-800 shrink-0">
             <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
               <Layout className="w-3.5 h-3.5 text-blue-500" /> Templates
@@ -314,8 +318,13 @@ export default function PreviewStudio() {
         </div>
 
         {/* ── CENTER: canvas + triggers ── */}
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0"
-          style={{ backgroundImage: 'radial-gradient(#1a1a24 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+          <div className="flex-1 flex flex-col overflow-hidden min-w-0" 
+               style={{ 
+                 backgroundImage: 'radial-gradient(var(--border) 1px, transparent 1px)', 
+                 backgroundSize: '20px 20px', 
+                 backgroundColor: 'var(--bg-elevated)' 
+               }}>
+
 
           {/* Canvas */}
           <div
@@ -345,7 +354,8 @@ export default function PreviewStudio() {
           </div>
 
           {/* ── TRIGGER GROUPS — scrollable, mobile friendly ── */}
-          <div className="shrink-0 bg-[#0a0a0f] border-t border-gray-800 overflow-y-auto" style={{ maxHeight: '45vh' }}>
+          <div className="shrink-0 border-t overflow-y-auto" style={{ maxHeight: '45vh', backgroundColor: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+
             {TRIGGER_GROUPS.map(group => (
               <div key={group.label}>
                 <button
