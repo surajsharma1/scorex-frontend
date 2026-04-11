@@ -63,18 +63,16 @@ export const getBackendBaseUrl = (): string => {
 };
 
 export const getSocketUrl = (): string => {
-  // 1. Priority 1: Relative path (Vercel proxy) - BEST for production
   if (isProduction()) {
-    console.log('[ENV] Production: Using relative /socket.io/ (Vercel proxy)');
-    return '/socket.io/';
+    // Explicitly point to your Render backend, do NOT use relative paths on Vercel
+    console.log('[ENV] Production: Connecting directly to Render WebSockets');
+    return 'https://scorex-backend.onrender.com';
   }
 
-  // 2. Dev: Use proper WS protocol
+  // Local Dev fallback
   const backendBase = getBackendBaseUrl();
   const protocol = getProtocol().replace('http', 'ws');
-  const url = `${protocol}://${backendBase}/socket.io/`;
-  console.log(`[ENV] Dev Socket URL: ${url}`);
-  return url;
+  return `${protocol}://${backendBase}/socket.io/`;
 };
 
 // Export for debugging
