@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   BarChart3, ShieldCheck, Play, ArrowRight,
   Activity, Video, Trophy, Users, Zap,
