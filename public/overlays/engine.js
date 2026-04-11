@@ -11,7 +11,7 @@
     const result = rawDoc.result || {};
     
     // 1. Determine which team is actively batting based on the Toss
-let isTeam1Batting = true;\n    if (match.tossWinnerName === match.team1Name && match.tossDecision === "bowl") isTeam1Batting = false;\n    if (match.tossWinnerName === match.team2Name && match.tossDecision === "bat") isTeam1Batting = false;\n    \n    let battingTeam = isTeam1Batting ? match.team1 : match.team2;
+let isTeam1Batting = true;   if (match.tossWinnerName === match.team1Name && match.tossDecision === "bowl") isTeam1Batting = false;    if (match.tossWinnerName === match.team2Name && match.tossDecision === "bat") isTeam1Batting = false;   let battingTeam = isTeam1Batting ? match.team1 : match.team2;
     let battingTeamName = isTeam1Batting ? match.team1Name : match.team2Name;
     
     // 2. Extract live scores (Prioritize the \'result\' object, fallback to \'match\' object)
