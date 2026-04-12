@@ -44,7 +44,7 @@ export default function LiveScoreboardPreview() {
     <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
       <div className="text-center">
         <p className="text-lg mb-4" style={{ color: 'var(--text-muted)' }}>Match not found.</p>
-        <button onClick={() => navigate('/live')} className="px-4 py-2 bg-slate-700 rounded-xl text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+        <button onClick={() => navigate('/live')} className="px-4 py-2 rounded-xl text-sm font-semibold" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
           Back to Live Matches
         </button>
       </div>
@@ -193,7 +193,7 @@ export default function LiveScoreboardPreview() {
                               <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{b.name}</span>
                               {(b.isStriker || b.name === match.strikerName)
                                 ? <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs font-bold bg-yellow-400/20 text-yellow-400">* Striker</span>
-                                : <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs bg-slate-600/40 text-slate-400">Non-Striker</span>
+                                : <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs font-medium" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>Non-Striker</span>
                               }
                               <div className="text-xs font-bold mt-0.5 text-green-400">not out</div>
                             </div>
@@ -218,7 +218,7 @@ export default function LiveScoreboardPreview() {
                           <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{b.name}</span>
                           {(b.isStriker || b.name === match.strikerName)
                             ? <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs font-bold bg-yellow-400/20 text-yellow-400">* Striker</span>
-                            : <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs bg-slate-600/40 text-slate-400">Non-Striker</span>
+                            : <span className="ml-2 px-1.5 py-0.5 rounded-full text-xs font-medium" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}>Non-Striker</span>
                           }
                         </div>
                         <span className="text-xs font-bold text-green-400">not out</span>

@@ -27,7 +27,7 @@ function RunButtons({ onSelect, disabled = false, extraLabel = '' }: { onSelect:
       {[0, 1, 2, 3, 4, 5, 6].map(r => (
         <button
           key={r} disabled={disabled} onClick={() => onSelect(r)}
-          className="py-4 rounded-xl font-bold text-lg bg-slate-700 hover:bg-slate-600 text-white transition-all active:scale-95 disabled:opacity-40 shadow-md"
+          className="py-4 rounded-xl font-bold text-lg transition-all active:scale-95 disabled:opacity-40 shadow-md" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
         >
           {extraLabel ? `${extraLabel}+${r}` : (r === 0 ? '•' : r)}
         </button>
@@ -49,23 +49,23 @@ function TossModal({ match, onDone }: { match: any; onDone: (data: any) => void 
   };
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md">
-        <h2 className="text-2xl font-black text-white mb-6 text-center">🪙 Toss</h2>
+      <div className="rounded-2xl p-6 w-full max-w-md" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <h2 className="text-2xl font-black mb-6 text-center" style={{ color: 'var(--text-primary)' }}>🪙 Toss</h2>
         <div className="space-y-5">
           <div>
-            <label className="text-slate-400 text-sm font-semibold mb-2 block">Who won the toss?</label>
+            <label className="text-sm font-semibold mb-2 block" style={{ color: 'var(--text-muted)' }}>Who won the toss?</label>
             <div className="grid grid-cols-2 gap-3">
               {[match.team1, match.team2].map(team => {
                 const id = team?._id || team; const name = team?.name || `Team`;
-                return <button key={id} onClick={() => setTossWinner(id)} className={`py-3 px-4 rounded-xl font-bold text-sm border-2 ${tossWinner === id ? 'border-blue-500 bg-blue-500/20 text-white' : 'border-slate-700 text-slate-400'}`}>{name}</button>;
+                return <button key={id} onClick={() => setTossWinner(id)} className={`py-3 px-4 rounded-xl font-bold text-sm border-2 ${tossWinner === id ? 'border-blue-500 bg-blue-500/20 text-white' : 'text-muted'}`} style={tossWinner === id ? {} : { borderColor: 'var(--border)', color: 'var(--text-muted)', background: 'var(--bg-elevated)' }}>{name}</button>;
               })}
             </div>
           </div>
           <div>
-            <label className="text-slate-400 text-sm font-semibold mb-2 block">Decision</label>
+            <label className="text-sm font-semibold mb-2 block" style={{ color: 'var(--text-muted)' }}>Decision</label>
             <div className="grid grid-cols-2 gap-3">
               {(['bat', 'bowl'] as const).map(d => (
-                <button key={d} onClick={() => setDecision(d)} className={`py-3 px-4 rounded-xl font-bold text-sm border-2 capitalize ${decision === d ? 'border-green-500 bg-green-500/20 text-white' : 'border-slate-700 text-slate-400'}`}>{d === 'bat' ? '🏏 Bat' : '🎳 Bowl'}</button>
+                <button key={d} onClick={() => setDecision(d)} className={`py-3 px-4 rounded-xl font-bold text-sm border-2 capitalize ${decision === d ? 'border-green-500 bg-green-500/20 text-white' : 'border-var text-var' style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}}`}>{d === 'bat' ? '🏏 Bat' : '🎳 Bowl'}</button>
               ))}
             </div>
           </div>
@@ -95,10 +95,10 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-lg my-4 relative">
-        {onClose && <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-white"><X className="w-5 h-5" /></button>}
-        <h2 className="text-xl font-black text-white mb-2 flex items-center gap-2"><Users className="w-5 h-5 text-blue-400" /> {title}</h2>
-        <p className="text-slate-500 text-xs mb-1">Innings {inningsNum} | {battingTeam?.name || 'Batting'} vs {bowlingTeam?.name || 'Bowling'}</p>
+      <div className="rounded-2xl p-6 w-full max-w-lg my-4 relative" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        {onClose && <button onClick={onClose} className="absolute top-4 right-4 transition-colors" style={{ color: 'var(--text-muted)' }}><X className="w-5 h-5" /></button>}
+        <h2 className="text-xl font-black mb-2 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}><Users className="w-5 h-5 text-blue-400" /> {title}</h2>
+        <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Innings {inningsNum} | {battingTeam?.name || 'Batting'} vs {bowlingTeam?.name || 'Bowling'}</p>
         {outPlayerNames.size > 0 && <p className="text-amber-500/70 text-xs mb-4">⚠ {outPlayerNames.size} dismissed player{outPlayerNames.size > 1 ? 's' : ''} hidden</p>}
         <div className="space-y-4">
           {[{ label: '🏏 Striker', value: striker, set: setStriker, opts: availableBatsmen, filter: (p: any) => true },
@@ -106,8 +106,8 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
             { label: '🎳 Bowler', value: bowler, set: setBowler, opts: bowlPlayers, filter: (p: any) => true },
           ].map(({ label, value, set, opts, filter }) => (
             <div key={label}>
-              <label className="text-slate-400 text-sm font-semibold mb-1.5 block">{label}</label>
-              <select value={value} onChange={e => set(e.target.value)} className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm">
+              <label className="text-sm font-semibold mb-1.5 block" style={{ color: 'var(--text-muted)' }}>{label}</label>
+              <select value={value} onChange={e => set(e.target.value)} className="w-full rounded-xl px-3 py-2.5 text-sm" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
                 <option value="">-- Select --</option>
                 {opts.filter(filter).map((p: any) => <option key={p._id || p.name} value={p.name}>{p.name}</option>)}
               </select>
@@ -125,14 +125,14 @@ function InningsBreak({ match, onContinue }: { match: any; onContinue: () => voi
   const innings1 = match.innings?.[0];
   const target = (innings1?.score || 0) + 1;
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 border border-blue-500/30 rounded-2xl p-8 w-full max-w-sm text-center">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <div className="rounded-2xl p-8 w-full max-w-sm text-center" style={{ background: 'var(--bg-card)', border: '1px solid rgba(59,130,246,0.3)' }}>
         <div className="text-5xl mb-4">🏏</div>
-        <h2 className="text-2xl font-black text-white mb-2">Innings Break</h2>
-        <div className="bg-slate-800 rounded-xl p-4 mb-4">
-          <p className="text-slate-400 text-sm">{innings1?.teamName || 'Team 1'} scored</p>
-          <p className="text-4xl font-black text-white">{innings1?.score}/{innings1?.wickets}</p>
-          <p className="text-slate-400 text-sm mt-1">{innings1?.overs?.toFixed ? innings1.overs.toFixed(1) : 0} overs</p>
+        <h2 className="text-2xl font-black mb-2" style={{ color: 'var(--text-primary)' }}>Innings Break</h2>
+        <div className="rounded-xl p-4 mb-4" style={{ background: 'var(--bg-elevated)' }}>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{innings1?.teamName || 'Team 1'} scored</p>
+          <p className="text-4xl font-black" style={{ color: 'var(--text-primary)' }}>{innings1?.score}/{innings1?.wickets}</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{innings1?.overs?.toFixed ? innings1.overs.toFixed(1) : 0} overs</p>
         </div>
         <div className="bg-blue-900/40 border border-blue-500/30 rounded-xl p-4 mb-6">
           <p className="text-blue-400 font-bold text-lg">Target: {target}</p>
@@ -150,7 +150,15 @@ function BroadcastDirectorPanel({ matchId }: { matchId: string }) {
   const [open, setOpen] = useState(false);
 
   const fire = (type: string, data: any = {}) => {
+    // 1. Fire via socket so live overlays connected via OBS receive it
     socket.emit('manualOverlayTrigger', { matchId, trigger: { type, duration: 15, data } });
+    // 2. Also postMessage to any preview iframes open in the same page
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach(iframe => {
+      try {
+        iframe.contentWindow?.postMessage({ type: 'OVERLAY_TRIGGER', payload: { type, data } }, '*');
+      } catch (_) {}
+    });
   };
 
   const triggers = [
@@ -159,27 +167,27 @@ function BroadcastDirectorPanel({ matchId }: { matchId: string }) {
     { label: '🏏 Batting Card', type: 'BATTING_CARD',    color: 'bg-blue-900/40 border-blue-700/40 text-blue-300 hover:bg-blue-700/60' },
     { label: '🎳 Bowling Card', type: 'BOWLING_CARD',    color: 'bg-indigo-900/40 border-indigo-700/40 text-indigo-300 hover:bg-indigo-700/60' },
     { label: '📊 Both Cards',   type: 'BOTH_CARDS',      color: 'bg-fuchsia-900/40 border-fuchsia-700/40 text-fuchsia-300 hover:bg-fuchsia-700/60' },
-    { label: '🔄 Restore Live', type: 'RESTORE',         color: 'bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700' },
+    { label: '🔄 Restore Live', type: 'RESTORE',         color: 'border' + `" style="background:var(--bg-elevated);border-color:var(--border);color:var(--text-secondary)` },
   ];
 
   return (
-    <div className="border-t border-slate-800 bg-slate-900">
+    <div className="border-t" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
       {/* Toggle bar */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-slate-300 hover:bg-slate-800 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-bold transition-colors" style={{ color: 'var(--text-secondary)' }}
       >
         <div className="flex items-center gap-2">
           <MonitorPlay className="w-4 h-4 text-blue-400" />
           <span className="uppercase tracking-wider text-xs">Animation Triggers</span>
           <span className="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-bold animate-pulse">LIVE</span>
         </div>
-        {open ? <ChevronDown className="w-4 h-4 text-slate-500" /> : <ChevronUp className="w-4 h-4 text-slate-500" />}
+        {open ? <ChevronDown className="w-4 h-4" style={{ color: 'var(--text-muted)' }} /> : <ChevronUp className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />}
       </button>
 
       {open && (
         <div className="px-4 pb-4">
-          <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-3">Tap to broadcast to overlay</p>
+          <p className="text-[10px] uppercase tracking-wider mb-3" style={{ color: 'var(--text-muted)' }}>Tap to broadcast to overlay</p>
           <div className="grid grid-cols-2 gap-2">
             {triggers.map(t => (
               <button
@@ -317,7 +325,15 @@ export default function LiveScoring() {
   const toggleDecisionPending = () => {
     const next = !isDecisionPending;
     setIsDecisionPending(next);
-    socket.emit('updateMatchState', { match, decisionPending: next });
+    // Fire to live overlays via socket
+    socket.emit('manualOverlayTrigger', { matchId: match._id, trigger: { type: 'DECISION_PENDING', duration: 0, data: {} } });
+    // Also postMessage to any open preview iframes
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach(iframe => {
+      try {
+        iframe.contentWindow?.postMessage({ type: 'OVERLAY_TRIGGER', payload: { type: 'DECISION_PENDING', data: {} } }, '*');
+      } catch (_) {}
+    });
   };
 
   const openWicketModal = (baseData: BallData = {}) => { setSelectedWicketType(''); setWicketModal({ open: true, baseData }); setOutBatsman('striker'); };
@@ -413,21 +429,21 @@ export default function LiveScoring() {
 
   // ── Early returns ─────────────────────────────────────────────────────────
   if (loading) return <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-primary)" }}><div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} /></div>;
-  if (!match) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><p className="text-red-400 text-xl">Match not found</p></div>;
+  if (!match) return <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}><p className="text-red-400 text-xl">Match not found</p></div>;
   if (step === 'done') return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl p-8 text-center max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--bg-primary)' }}>
+      <div className="rounded-2xl p-8 text-center max-w-md w-full" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
         <div className="text-5xl mb-4">🏆</div>
-        <h2 className="text-2xl font-black text-white mb-2">Match Completed</h2>
+        <h2 className="text-2xl font-black mb-2" style={{ color: 'var(--text-primary)' }}>Match Completed</h2>
         {match.winnerName && <p className="text-green-400 font-semibold mb-2">{match.winnerName} won!</p>}
-        {match.resultSummary && <p className="text-slate-400 mb-6">{match.resultSummary}</p>}
+        {match.resultSummary && <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>{match.resultSummary}</p>}
         <button onClick={() => navigate(-1)} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl">Back to Match</button>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
       {/* ── Modals ── */}
       {step === 'toss' && <TossModal match={match} onDone={handleTossDone} />}
       {(step === 'players' || step === 'playerSelect') && (
@@ -445,38 +461,38 @@ export default function LiveScoring() {
       {/* ── Wicket Modal ── */}
       {wicketModal.open && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-sm">
+          <div className="rounded-2xl p-6 w-full max-w-sm" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">Wicket Details</h3>
-              <button onClick={() => setWicketModal({ open: false, baseData: {} })} className="text-slate-500 hover:text-white"><X className="w-5 h-5" /></button>
+              <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Wicket Details</h3>
+              <button onClick={() => setWicketModal({ open: false, baseData: {} })} className="transition-colors" style={{ color: 'var(--text-muted)' }}><X className="w-5 h-5" /></button>
             </div>
-            <label className="text-slate-400 text-sm font-semibold mb-2 block">How out?</label>
+            <label className="text-sm font-semibold mb-2 block" style={{ color: 'var(--text-muted)' }}>How out?</label>
             <div className="grid grid-cols-2 gap-2 mb-4">
               {WICKET_TYPES.map(wt => (
                 <button key={wt.id} onClick={() => setSelectedWicketType(wt.id)}
-                  className={`py-2.5 px-3 rounded-xl text-sm font-semibold border transition-colors ${selectedWicketType === wt.id ? 'bg-red-600 border-red-500 text-white' : 'bg-red-900/40 hover:bg-red-700/60 border-red-700/40 text-red-200'}`}>
+                  className={`py-2.5 px-3 rounded-xl text-sm font-semibold border transition-colors ${selectedWicketType === wt.id ? 'bg-red-600 border-red-500 text-white' : 'bg-red-900/30 hover:bg-red-700/50 border-red-800/40 text-red-300'}`}>
                   {wt.label}
                 </button>
               ))}
             </div>
             {selectedWicketType && (
-              <div className="pt-3 border-t border-slate-700">
-                <label className="text-slate-400 text-sm font-semibold mb-2 block">Who is out?</label>
+              <div className="pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
+                <label className="text-sm font-semibold mb-2 block" style={{ color: 'var(--text-muted)' }}>Who is out?</label>
                 <div className="flex gap-2 mb-4">
                   {(['striker', 'nonStriker'] as const).map(role => (
                     <button key={role} onClick={() => setOutBatsman(role)}
-                      className={`flex-1 py-2 rounded-xl text-sm font-bold border ${outBatsman === role ? 'bg-red-600/20 border-red-500 text-red-400' : 'border-slate-700 text-slate-400'}`}>
+                      className={`flex-1 py-2 rounded-xl text-sm font-bold border ${outBatsman === role ? 'bg-red-600/20 border-red-500 text-red-400' : 'border-var text-var' style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}}`}>
                       {role === 'striker' ? `Striker (${activeStriker?.name || '?'})` : `Non-Striker (${activeNonStriker?.name || '?'})`}
                     </button>
                   ))}
                 </div>
                 {selectedWicketType === 'run_out' ? (
                   <>
-                    <label className="text-slate-400 text-sm font-semibold mb-2 block">Runs before run out?</label>
+                    <label className="text-sm font-semibold mb-2 block" style={{ color: 'var(--text-muted)' }}>Runs before run out?</label>
                     <div className="grid grid-cols-4 gap-2">
                       {[0, 1, 2, 3].map(r => (
                         <button key={r} onClick={() => { setWicketModal({ open: false, baseData: {} }); submitBall({ ...wicketModal.baseData, runs: r, wicket: true, outType: 'run_out', outBatsmanName: outBatsman === 'striker' ? activeStriker?.name : activeNonStriker?.name }); }}
-                          className="py-3 rounded-xl text-sm font-bold bg-slate-700 hover:bg-slate-600 text-white">{r}</button>
+                          className="py-3 rounded-xl text-sm font-bold" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>{r}</button>
                       ))}
                     </div>
                   </>
@@ -493,18 +509,18 @@ export default function LiveScoring() {
       {/* ══════════════════════════════════════════════════════════════════════
           HEADER BAR
       ══════════════════════════════════════════════════════════════════════ */}
-      <div className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between shrink-0">
+      <div className="px-4 py-3 flex items-center justify-between shrink-0 border-b" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <div>
-          <h1 className="font-bold text-white text-sm">{match.name}</h1>
-          <p className="text-slate-500 text-xs">{match.venue} · {match.format}</p>
+          <h1 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{match.name}</h1>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{match.venue} · {match.format}</p>
         </div>
         <div className="flex gap-2">
           <button onClick={handleUndo} disabled={isActionDisabled}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-600/20 text-amber-400 text-xs font-semibold disabled:opacity-40">
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-40" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' }}>
             <RotateCcw className="w-3.5 h-3.5" /> Undo
           </button>
           <button onClick={() => navigate(-1)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-semibold">
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
             <LogOut className="w-3.5 h-3.5" /> Leave
           </button>
         </div>
@@ -513,26 +529,26 @@ export default function LiveScoring() {
       {/* ══════════════════════════════════════════════════════════════════════
           SCOREBOARD
       ══════════════════════════════════════════════════════════════════════ */}
-      <div className="bg-gradient-to-b from-slate-900 to-slate-950 px-4 py-4 shrink-0">
+      <div className="px-4 py-4 shrink-0" style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
 
         {/* Score + Run Rate row */}
         <div className="flex items-start justify-between mb-3">
           <div>
-            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-0.5">
+            <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>
               {innings?.teamName || match.team1Name} · Inn {match.currentInnings}
             </p>
             <div className="flex items-end gap-2">
               <span className="text-5xl font-black text-white leading-none">{score}/{wickets}</span>
-              <span className="text-slate-400 text-lg mb-0.5">({oversDisplay} ov)</span>
+              <span className="text-lg mb-0.5" style={{ color: 'var(--text-secondary)' }}>({oversDisplay} ov)</span>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-slate-500 text-xs mb-0.5">Run Rate</div>
+            <div className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>Run Rate</div>
             <div className="text-2xl font-black text-green-400">{runRate}</div>
             {target && (
               <div className="mt-1 text-right">
                 <div className="text-xs text-blue-400 font-semibold">Target {target}</div>
-                <div className="text-xs text-slate-400">Need {requiredRuns} @ {rrr}</div>
+                <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>Need {requiredRuns} @ {rrr}</div>
               </div>
             )}
           </div>
@@ -540,7 +556,7 @@ export default function LiveScoring() {
 
         {/* This over balls */}
         <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1">
-          <span className="text-slate-600 text-xs mr-1 font-semibold shrink-0">Over:</span>
+          <span className="text-xs mr-1 font-semibold shrink-0" style={{ color: 'var(--text-muted)' }}>Over:</span>
           {thisOverBalls.map((b: any, i: number) => {
             const isWide = b.extras === 'wide' || b.wide;
             const isNoBall = b.extras === 'nb' || b.noBall || b.extras === 'noBall';
@@ -550,40 +566,40 @@ export default function LiveScoring() {
                 (isWide || isNoBall) ? 'bg-amber-500 text-white' :
                 b.runs === 4 ? 'bg-blue-600 text-white' :
                 b.runs === 6 ? 'bg-purple-600 text-white' :
-                'bg-slate-700 text-slate-200'
+                '' style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
               }`}>
                 {b.wicket ? 'W' : isWide ? 'Wd' : isNoBall ? 'Nb' : (b.runs || '•')}
               </span>
             );
           })}
           {Array(Math.max(0, 6 - validBallsInOver)).fill(0).map((_, i) => (
-            <span key={`e-${i}`} className="min-w-[1.75rem] h-7 flex shrink-0 items-center justify-center rounded-full bg-slate-800/50 border border-slate-700/50 text-slate-600 text-xs">·</span>
+            <span key={`e-${i}`} className="min-w-[1.75rem] h-7 flex shrink-0 items-center justify-center rounded-full text-xs" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}">·</span>
           ))}
         </div>
 
         {/* Players row — Striker | Non-Striker | Bowler */}
         <div className="grid grid-cols-3 gap-2 text-xs">
-          <div className="bg-slate-800/70 rounded-xl p-2.5">
-            <div className="text-slate-500 mb-0.5 text-[11px]">🏏 Striker</div>
-            <div className="text-white font-bold truncate">{activeStriker?.name || match.strikerName || '–'}</div>
-            {activeStriker && <div className="text-slate-400 mt-0.5 text-[11px]">{activeStriker.runs}({activeStriker.balls}) SR:{activeStriker.strikeRate?.toFixed(0) ?? '–'}</div>}
+          <div className="rounded-xl p-2.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+            <div className="mb-0.5 text-[11px]" style={{ color: 'var(--text-muted)' }}>🏏 Striker</div>
+            <div className="font-bold truncate" style={{ color: 'var(--text-primary)' }}>{activeStriker?.name || match.strikerName || '–'}</div>
+            {activeStriker && <div className="mt-0.5 text-[11px]" style={{ color: 'var(--text-secondary)' }}>{activeStriker.runs}({activeStriker.balls}) SR:{activeStriker.strikeRate?.toFixed(0) ?? '–'}</div>}
           </div>
-          <div className="bg-slate-800/70 rounded-xl p-2.5">
-            <div className="text-slate-500 mb-0.5 text-[11px]">⬤ Non-Striker</div>
-            <div className="text-white font-bold truncate">{activeNonStriker?.name || match.nonStrikerName || '–'}</div>
-            {activeNonStriker && <div className="text-slate-400 mt-0.5 text-[11px]">{activeNonStriker.runs}({activeNonStriker.balls})</div>}
+          <div className="rounded-xl p-2.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+            <div className="mb-0.5 text-[11px]" style={{ color: 'var(--text-muted)' }}>⬤ Non-Striker</div>
+            <div className="font-bold truncate" style={{ color: 'var(--text-primary)' }}>{activeNonStriker?.name || match.nonStrikerName || '–'}</div>
+            {activeNonStriker && <div className="mt-0.5 text-[11px]" style={{ color: 'var(--text-secondary)' }}>{activeNonStriker.runs}({activeNonStriker.balls})</div>}
           </div>
-          <div className="bg-slate-800/70 rounded-xl p-2.5">
-            <div className="text-slate-500 mb-0.5 text-[11px]">🎳 Bowler</div>
-            <div className="text-white font-bold truncate">{match.currentBowlerName || '–'}</div>
-            {currentBowler && <div className="text-slate-400 mt-0.5 text-[11px]">{Math.floor(currentBowler.balls / 6)}.{currentBowler.balls % 6}ov {currentBowler.runs}R {currentBowler.wickets}W</div>}
+          <div className="rounded-xl p-2.5" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+            <div className="mb-0.5 text-[11px]" style={{ color: 'var(--text-muted)' }}>🎳 Bowler</div>
+            <div className="font-bold truncate" style={{ color: 'var(--text-primary)' }}>{match.currentBowlerName || '–'}</div>
+            {currentBowler && <div className="mt-0.5 text-[11px]" style={{ color: 'var(--text-secondary)' }}>{Math.floor(currentBowler.balls / 6)}.{currentBowler.balls % 6}ov {currentBowler.runs}R {currentBowler.wickets}W</div>}
           </div>
         </div>
 
         {/* Last ball + scorer error */}
         {lastBall && (
           <div className="mt-2.5 text-center">
-            <span className="text-xs bg-slate-800 border border-slate-700 rounded-full px-3 py-1 text-slate-300">Last: {lastBall}</span>
+            <span className="text-xs rounded-full px-3 py-1" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>Last: {lastBall}</span>
           </div>
         )}
         {(error || scorerError) && (
@@ -598,7 +614,7 @@ export default function LiveScoring() {
       {/* ══════════════════════════════════════════════════════════════════════
           SCORING PANELS
       ══════════════════════════════════════════════════════════════════════ */}
-      <div className="flex-1 bg-slate-950 px-4 py-4 overflow-y-auto">
+      <div className="flex-1 px-4 py-4 overflow-y-auto" style={{ background: 'var(--bg-secondary)' }}>
 
         {panel === 'main' && (
           <div className="space-y-4">
@@ -608,7 +624,7 @@ export default function LiveScoring() {
 
             {/* ── Run Buttons: 0 1 2 3 4 6 + Decision Pending ── */}
             <div>
-              <p className="text-slate-600 text-xs font-semibold uppercase tracking-wider mb-2">Runs</p>
+              <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Runs</p>
               {/* 3 cols: 0 1 2 / 3 4 6 — then Decision Pending in the empty 7th slot */}
               <div className="grid grid-cols-3 gap-3 mb-3">
                 {[0, 1, 2, 3, 4, 6].map(r => (
@@ -618,8 +634,8 @@ export default function LiveScoring() {
                     className={`py-5 rounded-2xl font-black text-2xl transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg ${
                       r === 4 ? 'bg-blue-600 shadow-blue-600/30' :
                       r === 6 ? 'bg-purple-600 shadow-purple-600/30' :
-                      r === 0 ? 'bg-slate-800 text-slate-300' :
-                      'bg-slate-700'
+                      r === 0 ? 'border' :
+                      '' style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
                     }`}
                   >
                     {r === 0 ? '•' : r}
@@ -631,7 +647,7 @@ export default function LiveScoring() {
                   className={`py-3 rounded-2xl font-black text-xs transition-all flex flex-col items-center justify-center gap-1 ${
                     isDecisionPending
                       ? 'bg-amber-500 text-black shadow-[0_0_20px_rgba(245,158,11,0.5)] animate-pulse'
-                      : 'bg-slate-800 text-amber-400 border border-amber-600/30 hover:bg-slate-700'
+                      : '' style={{ background: 'var(--bg-elevated)', border: '1px solid rgba(217,119,6,0.3)', color: '#f59e0b' }}
                   }`}
                 >
                   <AlertTriangle className="w-5 h-5" />
@@ -642,7 +658,7 @@ export default function LiveScoring() {
 
             {/* ── Extras & Wickets ── */}
             <div>
-              <p className="text-slate-600 text-xs font-semibold uppercase tracking-wider mb-2">Extras & Wickets</p>
+              <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Extras & Wickets</p>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { label: 'Wide', icon: '↔', panel: 'wide' as ScoringPanel, color: 'bg-amber-600/20 border-amber-600/40 text-amber-300' },
@@ -665,7 +681,7 @@ export default function LiveScoring() {
                 OUT! 🎯
               </button>
               <button disabled={isActionDisabled} onClick={() => setPanel('others')}
-                className="py-4 rounded-2xl font-bold text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 disabled:opacity-40">
+                className="py-4 rounded-2xl font-bold text-sm disabled:opacity-40" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
                 Others…
               </button>
             </div>
@@ -676,11 +692,11 @@ export default function LiveScoring() {
         {panel === 'wide' && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
-              <h3 className="text-white font-bold">Wide Ball</h3>
+              <button onClick={() => setPanel('main')} style={{ color: 'var(--text-muted)' }}><X className="w-5 h-5" /></button>
+              <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>Wide Ball</h3>
             </div>
             <RunButtons onSelect={r => submitBall({ wide: true, runs: r })} disabled={isActionDisabled} extraLabel="Wd" />
-            <div className="border-t border-slate-800 pt-4">
+            <div className="border-t pt-4" style={{ borderColor: 'var(--border)' }}>
               <button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ wide: true }); }}
                 className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">
                 Wicket (Off Wide)
@@ -693,11 +709,11 @@ export default function LiveScoring() {
         {panel === 'noBall' && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
-              <h3 className="text-white font-bold">No Ball</h3>
+              <button onClick={() => setPanel('main')} style={{ color: 'var(--text-muted)' }}><X className="w-5 h-5" /></button>
+              <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>No Ball</h3>
             </div>
             <RunButtons onSelect={r => submitBall({ noBall: true, runs: r })} disabled={isActionDisabled} extraLabel="NB" />
-            <div className="border-t border-slate-800 pt-4">
+            <div className="border-t pt-4" style={{ borderColor: 'var(--border)' }}>
               <button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ noBall: true }); }}
                 className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">
                 Run Out (Off No Ball)
@@ -710,8 +726,8 @@ export default function LiveScoring() {
         {panel === 'bye' && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
-              <h3 className="text-white font-bold">Byes</h3>
+              <button onClick={() => setPanel('main')} style={{ color: 'var(--text-muted)' }}><X className="w-5 h-5" /></button>
+              <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>Byes</h3>
             </div>
             <div className="grid grid-cols-4 gap-2">
               {[1, 2, 3, 4].map(r => (
@@ -721,7 +737,7 @@ export default function LiveScoring() {
                 </button>
               ))}
             </div>
-            <div className="border-t border-slate-800 pt-4">
+            <div className="border-t pt-4" style={{ borderColor: 'var(--border)' }}>
               <button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ bye: 0 }); }}
                 className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">
                 Run Out (Off Bye)
@@ -734,8 +750,8 @@ export default function LiveScoring() {
         {panel === 'legBye' && (
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
-              <h3 className="text-white font-bold">Leg Byes</h3>
+              <button onClick={() => setPanel('main')} style={{ color: 'var(--text-muted)' }}><X className="w-5 h-5" /></button>
+              <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>Leg Byes</h3>
             </div>
             <div className="grid grid-cols-4 gap-2">
               {[1, 2, 3, 4].map(r => (
@@ -745,7 +761,7 @@ export default function LiveScoring() {
                 </button>
               ))}
             </div>
-            <div className="border-t border-slate-800 pt-4">
+            <div className="border-t pt-4" style={{ borderColor: 'var(--border)' }}>
               <button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ legBye: 0 }); }}
                 className="py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-900/30 hover:bg-red-700/50 border border-red-700/30 text-red-200 w-full disabled:opacity-40">
                 Run Out (Off Leg Bye)
@@ -758,37 +774,37 @@ export default function LiveScoring() {
         {panel === 'others' && (
           <div className="space-y-3">
             <div className="flex items-center gap-2 mb-2">
-              <button onClick={() => setPanel('main')} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
-              <h3 className="text-white font-bold">Other Actions</h3>
+              <button onClick={() => setPanel('main')} style={{ color: 'var(--text-muted)' }}><X className="w-5 h-5" /></button>
+              <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>Other Actions</h3>
             </div>
             <button onClick={() => { setPanel('main'); handleStrikeChange(); }} disabled={isActionDisabled}
-              className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-blue-900/30 hover:bg-blue-700/40 border border-blue-700/40 text-blue-300 text-left disabled:opacity-40">
+              className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-left disabled:opacity-40" style={{ background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(37,99,235,0.35)', color: '#60a5fa' }}>
               ⇄ Change Strike
             </button>
             <button onClick={() => handleRetirement('striker')} disabled={isActionDisabled}
-              className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-left disabled:opacity-40">
+              className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-left disabled:opacity-40" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
               🚶 Retired Hurt (Striker)
             </button>
             <button onClick={() => handleRetirement('nonStriker')} disabled={isActionDisabled}
-              className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-left disabled:opacity-40">
+              className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-left disabled:opacity-40" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
               🚶 Retired Hurt (Non-Striker)
             </button>
             <button onClick={() => { setPanel('main'); setStep('playerSelect'); }} disabled={isActionDisabled}
-              className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-left disabled:opacity-40">
+              className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-left disabled:opacity-40" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
               🔄 Change Bowler Mid-Over
             </button>
-            <div className="pt-3 border-t border-slate-800">
-              <p className="text-slate-500 text-xs mb-2">Penalty Runs</p>
+            <div className="pt-3 border-t" style={{ borderColor: 'var(--border)' }}>
+              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Penalty Runs</p>
               <div className="grid grid-cols-5 gap-2">
                 {[1, 2, 3, 4, 5].map(p => (
                   <button key={p} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ penalty: p }); }}
-                    className="py-2 rounded-xl text-sm font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 disabled:opacity-40">
+                    className="py-2 rounded-xl text-sm font-semibold disabled:opacity-40" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
                     +{p}
                   </button>
                 ))}
               </div>
             </div>
-            <div className="border-t border-slate-800 pt-3 space-y-2">
+            <div className="border-t pt-3 space-y-2" style={{ borderColor: 'var(--border)' }}>
               <button onClick={handleEndInnings} disabled={isActionDisabled}
                 className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-orange-900/30 hover:bg-orange-700/40 border border-orange-700/40 text-orange-300 disabled:opacity-40">
                 🔚 End Innings Manually
@@ -805,20 +821,20 @@ export default function LiveScoring() {
       {/* ══════════════════════════════════════════════════════════════════════
           BOTTOM ACTION BAR
       ══════════════════════════════════════════════════════════════════════ */}
-      <div className="bg-slate-900 border-t border-slate-800 px-4 py-3 grid grid-cols-2 gap-3 shrink-0">
+      <div className="px-4 py-3 grid grid-cols-2 gap-3 shrink-0 border-t" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <button onClick={handleEndInnings} disabled={isActionDisabled}
           className="py-3 rounded-xl font-semibold text-sm bg-orange-900/30 hover:bg-orange-700/40 border border-orange-700/40 text-orange-300 flex justify-center items-center gap-2 disabled:opacity-40">
           <RefreshCw className="w-4 h-4" /> Change Innings
         </button>
         <button onClick={() => navigate(-1)}
-          className="py-3 rounded-xl font-semibold text-sm bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 flex justify-center items-center gap-2">
+          className="py-3 rounded-xl font-semibold text-sm flex justify-center items-center gap-2" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
           <LogOut className="w-4 h-4" /> Leave & Save
         </button>
       </div>
 
       {/* Recording indicator */}
       {submitting && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm text-slate-300 flex items-center gap-2 shadow-xl z-40">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 rounded-full px-4 py-2 text-sm flex items-center gap-2 shadow-xl z-40" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
           <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /> Recording…
         </div>
       )}
