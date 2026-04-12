@@ -65,7 +65,7 @@ function TossModal({ match, onDone }: { match: any; onDone: (data: any) => void 
             <label className="text-sm font-semibold mb-2 block" style={{ color: 'var(--text-muted)' }}>Decision</label>
             <div className="grid grid-cols-2 gap-3">
               {(['bat', 'bowl'] as const).map(d => (
-                <button key={d} onClick={() => setDecision(d)} className={`py-3 px-4 rounded-xl font-bold text-sm border-2 capitalize ${decision === d ? 'border-green-500 bg-green-500/20 text-white' : 'border-var text-var' style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}}`}>{d === 'bat' ? '🏏 Bat' : '🎳 Bowl'}</button>
+                <button key={d} onClick={() => setDecision(d)} className={`py-3 px-4 rounded-xl font-bold text-sm border-2 capitalize ${decision === d ? 'border-green-500 bg-green-500/20 text-white' : ''}`} style={decision === d ? {} : { borderColor: 'var(--border)', color: 'var(--text-muted)' }}>{d === 'bat' ? '🏏 Bat' : '🎳 Bowl'}</button>
               ))}
             </div>
           </div>
@@ -167,7 +167,7 @@ function BroadcastDirectorPanel({ matchId }: { matchId: string }) {
     { label: '🏏 Batting Card', type: 'BATTING_CARD',    color: 'bg-blue-900/40 border-blue-700/40 text-blue-300 hover:bg-blue-700/60' },
     { label: '🎳 Bowling Card', type: 'BOWLING_CARD',    color: 'bg-indigo-900/40 border-indigo-700/40 text-indigo-300 hover:bg-indigo-700/60' },
     { label: '📊 Both Cards',   type: 'BOTH_CARDS',      color: 'bg-fuchsia-900/40 border-fuchsia-700/40 text-fuchsia-300 hover:bg-fuchsia-700/60' },
-    { label: '🔄 Restore Live', type: 'RESTORE',         color: 'border' + `" style="background:var(--bg-elevated);border-color:var(--border);color:var(--text-secondary)` },
+    { label: '🔄 Restore Live', type: 'RESTORE',         color: 'bg-gray-800/40 border-gray-600/40 text-gray-300 hover:bg-gray-700/60' },
   ];
 
   return (
@@ -481,7 +481,8 @@ export default function LiveScoring() {
                 <div className="flex gap-2 mb-4">
                   {(['striker', 'nonStriker'] as const).map(role => (
                     <button key={role} onClick={() => setOutBatsman(role)}
-                      className={`flex-1 py-2 rounded-xl text-sm font-bold border ${outBatsman === role ? 'bg-red-600/20 border-red-500 text-red-400' : 'border-var text-var' style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}}`}>
+                      className={`flex-1 py-2 rounded-xl text-sm font-bold border ${outBatsman === role ? 'bg-red-600/20 border-red-500 text-red-400' : ''}`}
+                      style={outBatsman === role ? {} : { borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
                       {role === 'striker' ? `Striker (${activeStriker?.name || '?'})` : `Non-Striker (${activeNonStriker?.name || '?'})`}
                     </button>
                   ))}
@@ -565,15 +566,15 @@ export default function LiveScoring() {
                 b.wicket ? 'bg-red-600 text-white' :
                 (isWide || isNoBall) ? 'bg-amber-500 text-white' :
                 b.runs === 4 ? 'bg-blue-600 text-white' :
-                b.runs === 6 ? 'bg-purple-600 text-white' :
-                '' style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-              }`}>
+                b.runs === 6 ? 'bg-purple-600 text-white' : ''
+              }`}
+              style={!(b.wicket || isWide || isNoBall || b.runs === 4 || b.runs === 6) ? { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' } : {}}>
                 {b.wicket ? 'W' : isWide ? 'Wd' : isNoBall ? 'Nb' : (b.runs || '•')}
               </span>
             );
           })}
           {Array(Math.max(0, 6 - validBallsInOver)).fill(0).map((_, i) => (
-            <span key={`e-${i}`} className="min-w-[1.75rem] h-7 flex shrink-0 items-center justify-center rounded-full text-xs" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}">·</span>
+            <span key={`e-${i}`} className="min-w-[1.75rem] h-7 flex shrink-0 items-center justify-center rounded-full text-xs" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>·</span>
           ))}
         </div>
 
@@ -634,9 +635,9 @@ export default function LiveScoring() {
                     className={`py-5 rounded-2xl font-black text-2xl transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg ${
                       r === 4 ? 'bg-blue-600 shadow-blue-600/30' :
                       r === 6 ? 'bg-purple-600 shadow-purple-600/30' :
-                      r === 0 ? 'border' :
-                      '' style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                      r === 0 ? 'border' : ''
                     }`}
+                    style={r !== 4 && r !== 6 ? { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' } : {}}
                   >
                     {r === 0 ? '•' : r}
                   </button>
@@ -647,8 +648,9 @@ export default function LiveScoring() {
                   className={`py-3 rounded-2xl font-black text-xs transition-all flex flex-col items-center justify-center gap-1 ${
                     isDecisionPending
                       ? 'bg-amber-500 text-black shadow-[0_0_20px_rgba(245,158,11,0.5)] animate-pulse'
-                      : '' style={{ background: 'var(--bg-elevated)', border: '1px solid rgba(217,119,6,0.3)', color: '#f59e0b' }}
+                      : ''
                   }`}
+                  style={!isDecisionPending ? { background: 'var(--bg-elevated)', border: '1px solid rgba(217,119,6,0.3)', color: '#f59e0b' } : {}}
                 >
                   <AlertTriangle className="w-5 h-5" />
                   <span className="uppercase leading-tight text-center">{isDecisionPending ? 'Resume' : '3rd Umpire'}</span>

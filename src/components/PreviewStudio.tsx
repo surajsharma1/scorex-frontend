@@ -297,8 +297,9 @@ export default function PreviewStudio() {
  }} className={`flex-1 py-1 rounded text-[10px] font-black transition-all ${
  filterLevel === lvl
  ? lvl === 2 ? 'bg-purple-600 text-white' : lvl === 1 ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'
- : 'transition-colors' style={{ color: 'var(--text-muted)' }}
- }`}>
+ : 'transition-colors'
+ }`}
+ style={filterLevel !== lvl ? { color: 'var(--text-muted)' } : {}}>
  {lvl === 'all' ? 'All' : lvl === 1 ? 'Prem' : 'Ent'}
  </button>
  ))}
@@ -313,8 +314,9 @@ export default function PreviewStudio() {
  ? t.level === 2
  ? 'bg-purple-500/10 border-purple-500/40 text-purple-300'
  : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
- : 'border border-transparent transition-all' style={{ color: 'var(--text-secondary)' }}
- }`}>
+ : 'border-transparent transition-all'
+ }`}
+ style={selectedTemplate.url !== t.url ? { color: 'var(--text-secondary)' } : {}}>
  <span className="flex items-center gap-1.5">
  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${t.level === 2 ? 'bg-purple-400' : 'bg-emerald-400'}`} />
  {t.name}
@@ -367,7 +369,7 @@ export default function PreviewStudio() {
  <div key={group.label}>
  <button
  onClick={() => toggleGroup(group.label)}
- className="w-full flex items-center justify-between px-4 py-2.5 hover: transition-all border-b sticky top-0 z-10" style={{ background: 'var(--bg-card)' }}
+ className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 transition-all border-b sticky top-0 z-10" style={{ background: 'var(--bg-card)' }}
  >
  <span className="text-[10px] font-black uppercase tracking-widest">{group.label}</span>
  {openGroups.has(group.label)
@@ -395,7 +397,7 @@ export default function PreviewStudio() {
  <div className="px-3 py-2 border-t sticky bottom-0 " style={{ background: 'var(--bg-card)' }}>
  <button
  onClick={handleRestore}
- className="w-full py-2.5 hover: text-white text-xs font-black rounded-lg transition-all flex items-center justify-center gap-2"
+ className="w-full py-2.5 hover:bg-white/5 text-white text-xs font-black rounded-lg transition-all flex items-center justify-center gap-2"
  >
  <X className="w-3.5 h-3.5" /> Restore Scoreboard
  </button>

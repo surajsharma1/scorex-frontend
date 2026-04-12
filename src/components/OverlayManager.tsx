@@ -82,13 +82,13 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
  <p className="text-[10px] sm:text-[11px] ">Automations & sponsors</p>
  </div>
  </div>
- <button onClick={onClose} className="p-2 rounded-xl hover: transition-colors" style={{ color: 'var(--text-muted)' transition-all"><X className="w-4 h-4" /></button>
+ <button onClick={onClose} className="p-2 rounded-xl hover:bg-white/10 transition-colors" style={{ color: 'var(--text-muted)' }}><X className="w-4 h-4" /></button>
  </div>
 
  {/* Tabs */}
  <div className="flex border-b shrink-0">
- <button onClick={() => setTab('automation')} className={`flex-1 py-3 sm:py-3.5 text-sm font-bold border-b-2 ${tab === 'automation' ? 'border-blue-500 text-blue-400 bg-blue-500/5' : 'border-transparent hover:'}`}>Automations</button>
- <button onClick={() => setTab('sponsors')} className={`flex-1 py-3 sm:py-3.5 text-sm font-bold border-b-2 ${tab === 'sponsors' ? 'border-blue-500 text-blue-400 bg-blue-500/5' : 'border-transparent hover:'}`}>Sponsors</button>
+ <button onClick={() => setTab('automation')} className={`flex-1 py-3 sm:py-3.5 text-sm font-bold border-b-2 ${tab === 'automation' ? 'border-blue-500 text-blue-400 bg-blue-500/5' : 'border-transparent hover:bg-white/5'}`}>Automations</button>
+ <button onClick={() => setTab('sponsors')} className={`flex-1 py-3 sm:py-3.5 text-sm font-bold border-b-2 ${tab === 'sponsors' ? 'border-blue-500 text-blue-400 bg-blue-500/5' : 'border-transparent hover:bg-white/5'}`}>Sponsors</button>
  </div>
 
  {/* Content */}
@@ -187,7 +187,7 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
 
  {/* Footer */}
  <div className="p-3 sm:p-4 border-t shrink-0 flex gap-3 ">
- <button onClick={onClose} className="flex-1 py-3 rounded-xl border hover: font-bold text-sm transition-all">Cancel</button>
+ <button onClick={onClose} className="flex-1 py-3 rounded-xl border hover:bg-white/10 font-bold text-sm transition-all">Cancel</button>
  <button onClick={onSave} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg">
  <Check className="w-4 h-4" /> Save
  </button>
