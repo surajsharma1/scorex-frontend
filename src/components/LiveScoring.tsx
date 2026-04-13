@@ -189,7 +189,7 @@ function BroadcastPanel({ fire, match }: any) {
     { label: '📺 VS Screen',    fn: () => fire('VS_SCREEN', { team1: match?.team1?.name || match?.team1Name, team2: match?.team2?.name || match?.team2Name }, 10) },
     { label: '🪙 Toss Card',    fn: () => fire('SHOW_TOSS', { text: (match?.tossWinnerName || "TEAM") + " WON TOSS", team1Players: match?.team1?.players, team2Players: match?.team2?.players }, 8) },
     { label: '👥 Playing XI',   fn: () => fire('SHOW_SQUADS', { team1Name: match?.team1?.name, team2Name: match?.team2?.name, team1Players: match?.team1?.players, team2Players: match?.team2?.players }, 10) },
-    { label: '🏏 Inning Intro',  fn: () => fire('START_INNINGS_INTRO', { striker: activeStriker?.name, nonStriker: match?.nonStrikerName, bowler: currentBowler?.name }, 8) },
+    { label: '🏏 Inning Intro',  fn: () => fire('START_INNINGS_INTRO', { striker: activeStriker?.name || match?.strikerName, nonStriker: match?.nonStrikerName, bowler: match?.currentBowlerName }, 8) },
     { label: '👤 Batsman Profile', fn: () => fire('BATSMAN_PROFILE', { title: "CURRENT BATSMAN", stats: [{label:"BATSMAN", value: activeStriker?.name}, {label:"RUNS", value: `${activeStriker?.runs||0} (${activeStriker?.balls||0})`}, {label:"STRIKE RATE", value: activeStriker?.strikeRate||0}] }, 8) },
     { label: '👤 Bowler Profile',  fn: () => fire('BOWLER_PROFILE', { title: "CURRENT BOWLING SPELL", stats: [{label:"BOWLER", value: currentBowler?.name}, {label:"OVERS", value: `${Math.floor((currentBowler?.balls||0)/6)}.${(currentBowler?.balls||0)%6}`}, {label:"FIGURES", value: `${currentBowler?.wickets||0} - ${currentBowler?.runs||0}`}] }, 8) },
     { label: '🎯 Batting Card',  fn: () => fire('BATTING_CARD', { batsmen: buildBatSummary() }, 12) },
@@ -281,12 +281,14 @@ export default function LiveScoring() {
     return () => { socket.leaveMatch(id); socket.off('scoreUpdate', onScore); socket.off('inningsEnded', onInnings); socket.off('matchEnded', onEnd); };
   }, [id, fetchMatch]);
 
+  // CRITICAL: Packages `isManual: true` into the data object so engine bypasses configuration locks.
   const fireTrigger = useCallback((type: string, data: any = {}, duration = 6) => {
     if (!match?._id) return;
-    socket.emit('manualOverlayTrigger', { matchId: match._id, trigger: { type, data, duration } });
+    const payload = { type, data: { ...data, isManual: true }, duration };
+    socket.emit('manualOverlayTrigger', { matchId: match._id, trigger: payload });
     const iframes = document.querySelectorAll('iframe');
     iframes.forEach(iframe => {
-      try { iframe.contentWindow?.postMessage({ type: 'OVERLAY_TRIGGER', payload: { type, data, duration } }, '*'); } catch (_) {}
+      try { iframe.contentWindow?.postMessage({ type: 'OVERLAY_TRIGGER', payload: payload }, '*'); } catch (_) {}
     });
   }, [match]);
 
