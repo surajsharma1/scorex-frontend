@@ -297,7 +297,6 @@ export default function LiveScoring() {
     try {
       if (match.status !== 'live') {
         await matchAPI.startMatch(id, { ...tossData, ...players });
-        fireTrigger('SHOW_TOSS', { tossWinnerName: tossData.tossWinnerName, tossDecision: tossData.tossDecision }, 8);
       } else {
         await matchAPI.selectPlayers(id, players);
       }
@@ -323,7 +322,6 @@ export default function LiveScoring() {
     } catch (e: any) { setError('Failed to record ball'); } finally { setSubmitting(false); }
   };
 
-  // REDDED UNDO BUTTON LOGIC
   const handleUndo = async () => {
     if (!id || submitting || isDecisionPending || !confirm('Undo last ball?')) return;
     setSubmitting(true);
@@ -343,7 +341,7 @@ export default function LiveScoring() {
     const retiredName = type === 'striker' ? match?.strikerName : match?.nonStrikerName;
     setPanel('main'); setStep('playerSelect');
     submitBall({ retired: true, outBatsmanName: retiredName });
-    fireTrigger('RETIRED_PLAYER', { playerName: retiredName }, 8);
+    fireTrigger('RETIRED_PLAYER', { playerName: retiredName, status: 'Retired' }, 8);
   };
 
   const handleEndInnings = async () => {
@@ -430,7 +428,6 @@ export default function LiveScoring() {
         </div>
       )}
 
-      {/* ── RESTORED HEADER WITH UNDO ── */}
       <div className="px-4 py-3 flex items-center justify-between shrink-0 border-b" style={{ background: N.bgCard, borderColor: N.border }}>
         <div>
           <h1 className="font-black text-sm" style={{ color: N.accent }}>{match.name}</h1>
@@ -517,9 +514,6 @@ export default function LiveScoring() {
             </div>
           </div>
         )}
-      </div>
-      <div className="px-4 py-3 grid grid-cols-1 gap-3 shrink-0 border-t" style={{ background: N.bgCard, borderColor: N.border }}>
-        <button onClick={() => navigate(-1)} className="py-3 rounded-xl font-semibold text-sm flex justify-center items-center gap-2" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}><LogOut className="w-4 h-4" /> Leave & Save</button>
       </div>
     </div>
   );
