@@ -179,21 +179,23 @@ function BroadcastPanel({ fire, match }: any) {
   const batsmen = inn.batsmen || [];
   const bowlers = inn.bowlers || [];
   
-  const buildBatSummary = () => batsmen.map((b: any) => ({ name: b.name, runs: b.runs||0, balls: b.balls||0, fours: b.fours||0, sixes: b.sixes||0, isOut: b.isOut||false, outType: b.outType||'' }));
-  const buildBowlSummary = () => bowlers.map((b: any) => ({ name: b.name, overs: b.balls?`${Math.floor(b.balls/6)}.${b.balls%6}`:'0.0', runs: b.runs||0, wickets: b.wickets||0, economy: b.economy||0 }));
+  // Exact Mapping to test.html Squad objects
+  const buildBatSummary = () => batsmen.map((b: any) => ({ name: b.name, runs: b.runs||0, balls: b.balls||0, fours: b.fours||0, sixes: b.sixes||0, sr: b.strikeRate||0, outStatus: b.isOut?'out':'not_out' }));
+  const buildBowlSummary = () => bowlers.map((b: any) => ({ name: b.name, overs: b.balls?`${Math.floor(b.balls/6)}.${b.balls%6}`:'0.0', maidens: 0, runs: b.runs||0, wkts: b.wickets||0, econ: b.economy||0 }));
 
   const activeStriker = batsmen.find((b: any) => b.name === match?.strikerName);
   const currentBowler = bowlers.find((b: any) => b.name === match?.currentBowlerName);
 
+  // EXACT TRIGGER NAMES FROM TEST.HTML
   const triggers = [
-    { label: '📺 VS Screen',    fn: () => fire('SHOW_VS_SCREEN', { team1Name: match?.team1Name, team2Name: match?.team2Name }, 10) },
-    { label: '🪙 Toss Card',    fn: () => fire('SHOW_TOSS', { tossWinnerName: match?.tossWinnerName, tossDecision: match?.tossDecision }, 8) },
-    { label: '🏏 Inning Intro',  fn: () => fire('INNING_START', { battingTeamName: inn.teamName, players: (match?.currentInnings === 2 ? match?.team2 : match?.team1)?.players?.map((p: any) => p.name || p) || [] }, 8) },
-    { label: '👤 Batsman Profile', fn: () => fire('BATSMAN_PROFILE', { playerName: activeStriker?.name, runs: activeStriker?.runs, balls: activeStriker?.balls, fours: activeStriker?.fours, sixes: activeStriker?.sixes, strikeRate: activeStriker?.strikeRate }, 8) },
-    { label: '👤 Bowler Profile',  fn: () => fire('BOWLER_PROFILE', { playerName: currentBowler?.name, runs: currentBowler?.runs, wickets: currentBowler?.wickets, economy: currentBowler?.economy }, 8) },
-    { label: '🎯 Batting Card',  fn: () => fire('BATTING_SUMMARY', { batsmen: buildBatSummary(), teamName: inn.teamName, innings: match?.currentInnings }, 12) },
-    { label: '🎳 Bowling Card',  fn: () => fire('BOWLING_SUMMARY', { bowlers: buildBowlSummary(), innings: match?.currentInnings }, 12) },
-    { label: '🎯+🎳 Both Cards', fn: () => fire('BOTH_CARDS', { batsmen: buildBatSummary(), bowlers: buildBowlSummary(), teamName: inn.teamName, innings: match?.currentInnings }, 12) },
+    { label: '📺 VS Screen',    fn: () => fire('VS_SCREEN', { team1: match?.team1Name, team2: match?.team2Name }, 10) },
+    { label: '🪙 Toss Card',    fn: () => fire('SHOW_TOSS', { text: (match?.tossWinnerName || "TEAM") + " WON TOSS", team1Players: match?.team1?.players, team2Players: match?.team2?.players }, 8) },
+    { label: '🏏 Inning Intro',  fn: () => fire('START_INNINGS_INTRO', { striker: activeStriker?.name, nonStriker: match?.nonStrikerName, bowler: currentBowler?.name }, 8) },
+    { label: '👤 Batsman Profile', fn: () => fire('BATSMAN_PROFILE', { title: "CURRENT BATSMAN", stats: [{label:"BATSMAN", value: activeStriker?.name}, {label:"RUNS", value: `${activeStriker?.runs||0} (${activeStriker?.balls||0})`}, {label:"STRIKE RATE", value: activeStriker?.strikeRate||0}] }, 8) },
+    { label: '👤 Bowler Profile',  fn: () => fire('BOWLER_PROFILE', { title: "CURRENT BOWLING SPELL", stats: [{label:"BOWLER", value: currentBowler?.name}, {label:"OVERS", value: `${Math.floor((currentBowler?.balls||0)/6)}.${(currentBowler?.balls||0)%6}`}, {label:"FIGURES", value: `${currentBowler?.wickets||0} - ${currentBowler?.runs||0}`}] }, 8) },
+    { label: '🎯 Batting Card',  fn: () => fire('BATTING_CARD', { batsmen: buildBatSummary() }, 12) },
+    { label: '🎳 Bowling Card',  fn: () => fire('BOWLING_CARD', { bowlers: buildBowlSummary() }, 12) },
+    { label: '🎯+🎳 Both Cards', fn: () => fire('BOTH_CARDS', { batsmen: buildBatSummary(), bowlers: buildBowlSummary() }, 12) },
     { label: '🔄 Recover State',  fn: () => fire('RESTORE') },
   ];
 
@@ -341,7 +343,7 @@ export default function LiveScoring() {
     const retiredName = type === 'striker' ? match?.strikerName : match?.nonStrikerName;
     setPanel('main'); setStep('playerSelect');
     submitBall({ retired: true, outBatsmanName: retiredName });
-    fireTrigger('RETIRED_PLAYER', { playerName: retiredName, status: 'Retired' }, 8);
+    fireTrigger('BATSMAN_CHANGE', { outName: retiredName, howOut: 'Retired Hurt', inName: "Replaced", isSub: true }, 8);
   };
 
   const handleEndInnings = async () => {
@@ -428,6 +430,7 @@ export default function LiveScoring() {
         </div>
       )}
 
+      {/* ── RESTORED HEADER WITH UNDO ── */}
       <div className="px-4 py-3 flex items-center justify-between shrink-0 border-b" style={{ background: N.bgCard, borderColor: N.border }}>
         <div>
           <h1 className="font-black text-sm" style={{ color: N.accent }}>{match.name}</h1>
