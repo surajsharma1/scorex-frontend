@@ -77,11 +77,8 @@ const WICKET_TYPES = [
   { id: 'timed_out', label: 'Timed Out' },
 ];
 
-// ─── Neon button style helpers ────────────────────────────────────────────────
 const btnBase = 'rounded-xl font-bold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed';
-const btnNeon  = `${btnBase} border text-sm`;
 
-// ─── RunButtons ───────────────────────────────────────────────────────────────
 function RunButtons({ onSelect, disabled = false, extraLabel = '' }: { onSelect: (r: number) => void; disabled?: boolean; extraLabel?: string }) {
   return (
     <div className="grid grid-cols-4 gap-2">
@@ -96,7 +93,6 @@ function RunButtons({ onSelect, disabled = false, extraLabel = '' }: { onSelect:
   );
 }
 
-// ─── TossModal ────────────────────────────────────────────────────────────────
 function TossModal({ match, onDone }: { match: any; onDone: (data: any) => void }) {
   const [tossWinner, setTossWinner] = useState('');
   const [decision, setDecision] = useState<'bat' | 'bowl'>('bat');
@@ -147,7 +143,6 @@ function TossModal({ match, onDone }: { match: any; onDone: (data: any) => void 
   );
 }
 
-// ─── PlayerSelectModal ────────────────────────────────────────────────────────
 function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, title, defaultStriker = '', defaultNonStriker = '', defaultBowler = '', onDone, onClose, currentInningsData }: any) {
   const [striker, setStriker] = useState(defaultStriker);
   const [nonStriker, setNonStriker] = useState(defaultNonStriker);
@@ -190,7 +185,6 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
   );
 }
 
-// ─── InningsBreak ─────────────────────────────────────────────────────────────
 function InningsBreak({ match, onContinue }: { match: any; onContinue: () => void }) {
   const inn1 = match.innings?.[0];
   const target = (inn1?.score || 0) + 1;
@@ -215,7 +209,6 @@ function InningsBreak({ match, onContinue }: { match: any; onContinue: () => voi
   );
 }
 
-// ─── AnimConfigPanel ──────────────────────────────────────────────────────────
 function AnimConfigPanel({ cfg, onChange, onClose }: { cfg: AnimConfig; onChange: (c: AnimConfig) => void; onClose: () => void }) {
   const set = (key: keyof AnimConfig, val: any) => onChange({ ...cfg, [key]: val });
   const Toggle = ({ k, label }: { k: keyof AnimConfig; label: string }) => (
@@ -303,7 +296,7 @@ function AnimConfigPanel({ cfg, onChange, onClose }: { cfg: AnimConfig; onChange
   );
 }
 
-// ─── BroadcastPanel ───────────────────────────────────────────────────────────
+// ─── BroadcastPanel (Neon Overhaul) ───────────────────────────────────────────
 function BroadcastPanel({ matchId, match, animCfg }: { matchId: string; match: any; animCfg: AnimConfig }) {
   const [open, setOpen] = useState(false);
 
@@ -329,18 +322,29 @@ function BroadcastPanel({ matchId, match, animCfg }: { matchId: string; match: a
     inn2: { teamName: inn2.teamName||'', score: inn2.score||0, wickets: inn2.wickets||0, overs: inn2.balls?`${Math.floor(inn2.balls/6)}.${inn2.balls%6}`:'0.0', batting: (inn2.batsmen||[]).map((b:any)=>({name:b.name,runs:b.runs||0,balls:b.balls||0,isOut:b.isOut||false,outType:b.outType||''})), bowling: (inn2.bowlers||[]).map((b:any)=>({name:b.name,overs:b.balls?`${Math.floor(b.balls/6)}.${b.balls%6}`:'0.0',runs:b.runs||0,wickets:b.wickets||0})) },
   });
 
+  // Sleek Neon Green Styling for all triggers
+  const neonStyle = {
+    background: 'rgba(0, 255, 136, 0.05)',
+    border: `1px solid ${N.accentBorder}`,
+    color: N.accent,
+    boxShadow: `0 0 10px rgba(0, 255, 136, 0.02)`
+  };
+
   const triggers = [
-    { label: '📺 VS Screen',     fn: () => fire('SHOW_VS_SCREEN', { team1Name: match?.team1Name||match?.team1?.name, team2Name: match?.team2Name||match?.team2?.name }),  col: 'from-sky-900/50 border-sky-700/40 text-sky-300' },
-    { label: '🪙 Toss Card',     fn: () => fire('SHOW_TOSS', { tossWinnerName: match?.tossWinnerName, tossDecision: match?.tossDecision }),                              col: 'from-yellow-900/50 border-yellow-700/40 text-yellow-300' },
-    { label: '👥 Playing XI',    fn: () => fire('SHOW_SQUADS', { team1Name: match?.team1Name||match?.team1?.name, team2Name: match?.team2Name||match?.team2?.name, team1Players: (match?.team1?.players||[]).map((p:any)=>p.name||p), team2Players: (match?.team2?.players||[]).map((p:any)=>p.name||p) }), col: 'from-purple-900/50 border-purple-700/40 text-purple-300' },
-    { label: '🏏 Inning Intro',  fn: () => fire('INNING_START', { innings: match?.currentInnings, battingTeamName: inn.teamName, players: (match?.currentInnings===2?match?.team2:match?.team1)?.players?.map((p:any)=>p.name||p)||[] }), col: 'from-green-900/50 border-green-700/40 text-green-300' },
-    { label: '🎯 Batting Card',  fn: () => fire('BATTING_SUMMARY', { batsmen: buildBatSummary(), teamName: inn.teamName, innings: match?.currentInnings }, ),            col: 'from-blue-900/50 border-blue-700/40 text-blue-300' },
-    { label: '🎳 Bowling Card',  fn: () => fire('BOWLING_SUMMARY', { bowlers: buildBowlSummary(), innings: match?.currentInnings }),                                     col: 'from-indigo-900/50 border-indigo-700/40 text-indigo-300' },
-    { label: '🎯+🎳 Both Cards', fn: () => { fire('BATTING_SUMMARY', { batsmen: buildBatSummary(), teamName: inn.teamName }); setTimeout(() => fire('BOWLING_SUMMARY', { bowlers: buildBowlSummary() }), (animCfg.summaryDuration+2)*1000); }, col: 'from-fuchsia-900/50 border-fuchsia-700/40 text-fuchsia-300' },
-    { label: '🎯 Target Card',   fn: () => fire('TARGET_CARD', { targetScore: (inn1.score||0)+1, inn1Score: inn1.score||0, inn1Wickets: inn1.wickets||0, inn1Overs: inn1.balls?`${Math.floor(inn1.balls/6)}.${inn1.balls%6}`:'0.0', inn1TeamName: inn1.teamName||'' }), col: 'from-teal-900/50 border-teal-700/40 text-teal-300' },
-    { label: '🏆 Match End',     fn: () => fire('MATCH_WIN', { winnerName: match?.winnerName||'', resultSummary: match?.resultSummary||'' }),                            col: 'from-amber-900/50 border-amber-700/40 text-amber-300' },
-    { label: '📊 Match Summary', fn: () => fire('MATCH_SUMMARY', { summary: buildMatchSummary() }),                                                                      col: 'from-orange-900/50 border-orange-700/40 text-orange-300' },
-    { label: '🔄 Restore Live',  fn: () => fire('RESTORE'),                                                                                                              col: 'from-gray-900/50 border-gray-700/40 text-gray-300' },
+    { label: '📺 VS Screen',    fn: () => fire('SHOW_VS_SCREEN', { team1Name: match?.team1Name||match?.team1?.name, team2Name: match?.team2Name||match?.team2?.name }) },
+    { label: '🪙 Toss Card',    fn: () => fire('SHOW_TOSS', { tossWinnerName: match?.tossWinnerName, tossDecision: match?.tossDecision }) },
+    { label: '👥 Playing XI',    fn: () => fire('SHOW_SQUADS', { team1Name: match?.team1Name||match?.team1?.name, team2Name: match?.team2Name||match?.team2?.name, team1Players: (match?.team1?.players||[]).map((p:any)=>p.name||p), team2Players: (match?.team2?.players||[]).map((p:any)=>p.name||p) }) },
+    { label: '🏏 Inning Intro',  fn: () => fire('INNING_START', { innings: match?.currentInnings, battingTeamName: inn.teamName, players: (match?.currentInnings===2?match?.team2:match?.team1)?.players?.map((p:any)=>p.name||p)||[] }) },
+    { label: '🎯 Batting Card',  fn: () => fire('BATTING_SUMMARY', { batsmen: buildBatSummary(), teamName: inn.teamName, innings: match?.currentInnings }) },
+    { label: '🎳 Bowling Card',  fn: () => fire('BOWLING_SUMMARY', { bowlers: buildBowlSummary(), innings: match?.currentInnings }) },
+    
+    // NEW: Using BOTH_CARDS queue logic perfectly
+    { label: '🎯+🎳 Both Cards', fn: () => fire('BOTH_CARDS', { batsmen: buildBatSummary(), teamName: inn.teamName, bowlers: buildBowlSummary(), innings: match?.currentInnings }) },
+    
+    { label: '🎯 Target Card',   fn: () => fire('TARGET_CARD', { targetScore: (inn1.score||0)+1, inn1Score: inn1.score||0, inn1Wickets: inn1.wickets||0, inn1Overs: inn1.balls?`${Math.floor(inn1.balls/6)}.${inn1.balls%6}`:'0.0', inn1TeamName: inn1.teamName||'' }) },
+    { label: '🏆 Match End',     fn: () => fire('MATCH_WIN', { winnerName: match?.winnerName||'', resultSummary: match?.resultSummary||'' }) },
+    { label: '📊 Match Summary', fn: () => fire('MATCH_SUMMARY', { summary: buildMatchSummary() }) },
+    { label: '🔄 Restore Live',  fn: () => fire('RESTORE') },
   ];
 
   return (
@@ -358,11 +362,12 @@ function BroadcastPanel({ matchId, match, animCfg }: { matchId: string; match: a
       </button>
       {open && (
         <div className="px-4 pb-4">
-          <p className="text-[10px] uppercase tracking-wider mb-3" style={{ color: N.textMuted }}>Tap to broadcast animation to overlay</p>
+          <p className="text-[10px] uppercase tracking-wider mb-3" style={{ color: N.textMuted }}>Tap to broadcast manual override to overlay</p>
           <div className="grid grid-cols-2 gap-2">
             {triggers.map((t, i) => (
               <button key={i} onClick={t.fn}
-                className={`py-2.5 px-3 rounded-xl font-bold text-xs border bg-gradient-to-br transition-all active:scale-95 text-left ${t.col}`}>
+                className="py-2.5 px-3 rounded-xl font-bold text-xs transition-all active:scale-95 text-left hover:brightness-125"
+                style={neonStyle}>
                 {t.label}
               </button>
             ))}
@@ -394,7 +399,6 @@ export default function LiveScoring() {
   const [outBatsman, setOutBatsman] = useState<'striker' | 'nonStriker'>('striker');
   const [showAnimConfig, setShowAnimConfig] = useState(false);
   const [animCfg, setAnimCfg] = useState<AnimConfig>(DEFAULT_ANIM_CONFIG);
-  const prevBowlerRef = useRef<string>('');
 
   const isActionDisabled = submitting || isDecisionPending;
 
@@ -432,7 +436,6 @@ export default function LiveScoring() {
     return () => { socket.leaveMatch(id); socket.off('scoreUpdate', onScore); socket.off('inningsEnded', onInnings); socket.off('matchEnded', onEnd); };
   }, [id, fetchMatch]);
 
-  // ── Fire overlay trigger helper ─────────────────────────────────────────────
   const fireTrigger = useCallback((type: string, data: any = {}, duration = 6) => {
     if (!match?._id) return;
     const payload = { type, data, duration };
@@ -454,7 +457,6 @@ export default function LiveScoring() {
         await matchAPI.startMatch(id, { ...tossData, ...players });
       } else {
         await matchAPI.selectPlayers(id, players);
-        // Detect change type and fire appropriate trigger
         const bowlerChanged = players.bowler && players.bowler !== prevBowler;
         if (bowlerChanged && animCfg.showBowlerChange) {
           fireTrigger('BOWLER_CHANGE', { newBowlerName: players.bowler, prevBowlerName: prevBowler }, animCfg.bowlerChangeDuration);
@@ -472,7 +474,6 @@ export default function LiveScoring() {
     try {
       const res = await matchAPI.addBall(id, data);
       const result = res.data.data;
-      // Fire animation triggers based on ball result
       if (result?.isWicket || data.wicket) {
         if (animCfg.showWicket) {
           fireTrigger('WICKET', { playerName: data.outBatsmanName || match?.strikerName, outType: data.outType || 'out', runs: 0, balls: 0 }, animCfg.wicketDuration);
@@ -538,7 +539,6 @@ export default function LiveScoring() {
 
   const openWicketModal = (baseData: BallData = {}) => { setSelectedWicketType(''); setWicketModal({ open: true, baseData }); setOutBatsman('striker'); };
 
-  // ── Derived data ─────────────────────────────────────────────────────────────
   const innings = match?.innings?.[match?.currentInnings - 1] || {};
   const safeBatsmen = Array.isArray(innings?.batsmen) ? innings.batsmen : [];
   const safeBowlers = Array.isArray(innings?.bowlers) ? innings.bowlers : [];
@@ -570,7 +570,6 @@ export default function LiveScoring() {
   let defStriker = activeStriker?.name || ''; let defNonStriker = activeNonStriker?.name || ''; let defBowler = match?.currentBowlerName || '';
   if (step === 'players') { defStriker = ''; defNonStriker = ''; defBowler = ''; }
 
-  // ── Early returns ──────────────────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: N.bg }}>
       <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: N.accent, borderTopColor: 'transparent' }} />
@@ -597,7 +596,6 @@ export default function LiveScoring() {
     <div className="min-h-screen flex flex-col" style={{ background: N.bg, color: N.textPrimary }}>
       {showAnimConfig && <AnimConfigPanel cfg={animCfg} onChange={setAnimCfg} onClose={() => setShowAnimConfig(false)} />}
 
-      {/* Modals */}
       {step === 'toss' && <TossModal match={match} onDone={handleTossDone} />}
       {(step === 'players' || step === 'playerSelect') && (
         <PlayerSelectModal match={match} battingTeamId={currentBattingTeamId} bowlingTeamId={currentBowlingTeamId}
@@ -608,7 +606,6 @@ export default function LiveScoring() {
       )}
       {step === 'inningsBreak' && <InningsBreak match={match} onContinue={() => setStep('playerSelect')} />}
 
-      {/* Wicket Modal */}
       {wicketModal.open && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
           <div className="rounded-2xl p-6 w-full max-w-sm" style={{ background: N.bgCard, border: `1px solid ${N.border}` }}>
@@ -687,7 +684,6 @@ export default function LiveScoring() {
 
       {/* ── SCOREBOARD ─────────────────────────────────────────────────────── */}
       <div className="px-4 py-4 shrink-0 border-b" style={{ background: N.bgCard, borderColor: N.border }}>
-        {/* Score + Run Rate */}
         <div className="flex items-start justify-between mb-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: N.textMuted }}>
@@ -710,7 +706,6 @@ export default function LiveScoring() {
           </div>
         </div>
 
-        {/* This over balls */}
         <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1">
           <span className="text-xs mr-1 font-semibold shrink-0" style={{ color: N.textMuted }}>Over:</span>
           {thisOverBalls.map((b: any, i: number) => {
@@ -733,7 +728,6 @@ export default function LiveScoring() {
           ))}
         </div>
 
-        {/* Players row */}
         <div className="grid grid-cols-3 gap-2 text-xs">
           {[
             { label: '🏏 Striker', name: activeStriker?.name || match.strikerName || '–', stat: activeStriker ? `${activeStriker.runs}(${activeStriker.balls}) SR:${activeStriker.strikeRate?.toFixed(0) ?? '–'}` : '' },
@@ -748,7 +742,6 @@ export default function LiveScoring() {
           ))}
         </div>
 
-        {/* Last ball + errors */}
         {lastBall && (
           <div className="mt-2.5 text-center">
             <span className="text-xs rounded-full px-3 py-1"
@@ -770,10 +763,8 @@ export default function LiveScoring() {
 
         {panel === 'main' && (
           <div className="p-4 space-y-4">
-            {/* Broadcast Director */}
             <BroadcastPanel matchId={match._id} match={match} animCfg={animCfg} />
 
-            {/* Run Buttons */}
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>Runs</p>
               <div className="grid grid-cols-3 gap-3 mb-3">
@@ -789,7 +780,6 @@ export default function LiveScoring() {
                     {r === 0 ? '•' : r}
                   </button>
                 ))}
-                {/* Decision Pending */}
                 <button onClick={toggleDecisionPending}
                   className={`py-3 rounded-2xl font-black text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95`}
                   style={{
@@ -805,7 +795,6 @@ export default function LiveScoring() {
               </div>
             </div>
 
-            {/* Extras & Wickets */}
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>Extras & Wickets</p>
               <div className="grid grid-cols-2 gap-2">
@@ -824,7 +813,6 @@ export default function LiveScoring() {
               </div>
             </div>
 
-            {/* OUT + Others */}
             <div className="grid grid-cols-2 gap-3">
               <button disabled={isActionDisabled} onClick={() => openWicketModal({})}
                 className="py-4 rounded-2xl font-black text-lg active:scale-95 disabled:opacity-40 transition-all"
@@ -840,7 +828,6 @@ export default function LiveScoring() {
           </div>
         )}
 
-        {/* Wide Panel */}
         {panel === 'wide' && (
           <div className="p-4 space-y-4">
             <div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Wide Ball</h3></div>
@@ -855,7 +842,6 @@ export default function LiveScoring() {
           </div>
         )}
 
-        {/* No Ball Panel */}
         {panel === 'noBall' && (
           <div className="p-4 space-y-4">
             <div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>No Ball</h3></div>
@@ -870,7 +856,6 @@ export default function LiveScoring() {
           </div>
         )}
 
-        {/* Bye Panel */}
         {panel === 'bye' && (
           <div className="p-4 space-y-4">
             <div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Byes</h3></div>
@@ -889,7 +874,6 @@ export default function LiveScoring() {
           </div>
         )}
 
-        {/* Leg Bye Panel */}
         {panel === 'legBye' && (
           <div className="p-4 space-y-4">
             <div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Leg Byes</h3></div>
@@ -908,7 +892,6 @@ export default function LiveScoring() {
           </div>
         )}
 
-        {/* Others Panel */}
         {panel === 'others' && (
           <div className="p-4 space-y-3">
             <div className="flex items-center gap-2 mb-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Other Actions</h3></div>
@@ -964,7 +947,6 @@ export default function LiveScoring() {
         </button>
       </div>
 
-      {/* Submitting indicator */}
       {submitting && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 rounded-full px-4 py-2 text-sm flex items-center gap-2 shadow-xl z-40"
           style={{ background: N.bgCard, border: `1px solid ${N.accentBorder}`, color: N.accentDim }}>
