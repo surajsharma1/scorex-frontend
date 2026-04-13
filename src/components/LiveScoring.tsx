@@ -186,9 +186,10 @@ function BroadcastPanel({ fire, match }: any) {
   const currentBowler = bowlers.find((b: any) => b.name === match?.currentBowlerName);
 
   const triggers = [
-    { label: '📺 VS Screen',    fn: () => fire('VS_SCREEN', { team1: match?.team1Name, team2: match?.team2Name }, 10) },
+    { label: '📺 VS Screen',    fn: () => fire('VS_SCREEN', { team1: match?.team1?.name || match?.team1Name, team2: match?.team2?.name || match?.team2Name }, 10) },
     { label: '🪙 Toss Card',    fn: () => fire('SHOW_TOSS', { text: (match?.tossWinnerName || "TEAM") + " WON TOSS", team1Players: match?.team1?.players, team2Players: match?.team2?.players }, 8) },
-    { label: '🏏 Inning Intro',  fn: () => fire('START_INNINGS_INTRO', { striker: match?.strikerName, nonStriker: match?.nonStrikerName, bowler: match?.currentBowlerName }, 8) },
+    { label: '👥 Playing XI',   fn: () => fire('SHOW_SQUADS', { team1Name: match?.team1?.name, team2Name: match?.team2?.name, team1Players: match?.team1?.players, team2Players: match?.team2?.players }, 10) },
+    { label: '🏏 Inning Intro',  fn: () => fire('START_INNINGS_INTRO', { striker: activeStriker?.name, nonStriker: match?.nonStrikerName, bowler: currentBowler?.name }, 8) },
     { label: '👤 Batsman Profile', fn: () => fire('BATSMAN_PROFILE', { title: "CURRENT BATSMAN", stats: [{label:"BATSMAN", value: activeStriker?.name}, {label:"RUNS", value: `${activeStriker?.runs||0} (${activeStriker?.balls||0})`}, {label:"STRIKE RATE", value: activeStriker?.strikeRate||0}] }, 8) },
     { label: '👤 Bowler Profile',  fn: () => fire('BOWLER_PROFILE', { title: "CURRENT BOWLING SPELL", stats: [{label:"BOWLER", value: currentBowler?.name}, {label:"OVERS", value: `${Math.floor((currentBowler?.balls||0)/6)}.${(currentBowler?.balls||0)%6}`}, {label:"FIGURES", value: `${currentBowler?.wickets||0} - ${currentBowler?.runs||0}`}] }, 8) },
     { label: '🎯 Batting Card',  fn: () => fire('BATTING_CARD', { batsmen: buildBatSummary() }, 12) },
