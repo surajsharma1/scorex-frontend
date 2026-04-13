@@ -186,14 +186,14 @@ function BroadcastPanel({ fire, match }: any) {
   const currentBowler = bowlers.find((b: any) => b.name === match?.currentBowlerName);
 
   const triggers = [
-    { label: '📺 VS Screen',    fn: () => fire('SHOW_VS_SCREEN', { team1Name: match?.team1Name, team2Name: match?.team2Name }) },
-    { label: '🪙 Toss Card',    fn: () => fire('SHOW_TOSS', { tossWinnerName: match?.tossWinnerName, tossDecision: match?.tossDecision }) },
-    { label: '🏏 Inning Intro',  fn: () => fire('INNING_START', { battingTeamName: inn.teamName, players: (match?.currentInnings === 2 ? match?.team2 : match?.team1)?.players?.map((p: any) => p.name || p) || [] }) },
-    { label: '👤 Batsman Profile', fn: () => fire('BATSMAN_PROFILE', { playerName: activeStriker?.name, runs: activeStriker?.runs, balls: activeStriker?.balls, fours: activeStriker?.fours, sixes: activeStriker?.sixes, strikeRate: activeStriker?.strikeRate }) },
-    { label: '👤 Bowler Profile',  fn: () => fire('BOWLER_PROFILE', { playerName: currentBowler?.name, runs: currentBowler?.runs, wickets: currentBowler?.wickets, economy: currentBowler?.economy }) },
-    { label: '🎯 Batting Card',  fn: () => fire('BATTING_SUMMARY', { batsmen: buildBatSummary(), teamName: inn.teamName, innings: match?.currentInnings }) },
-    { label: '🎳 Bowling Card',  fn: () => fire('BOWLING_SUMMARY', { bowlers: buildBowlSummary(), innings: match?.currentInnings }) },
-    { label: '🎯+🎳 Both Cards', fn: () => fire('BOTH_CARDS', { batsmen: buildBatSummary(), bowlers: buildBowlSummary(), teamName: inn.teamName, innings: match?.currentInnings }) },
+    { label: '📺 VS Screen',    fn: () => fire('SHOW_VS_SCREEN', { team1Name: match?.team1Name, team2Name: match?.team2Name }, 10) },
+    { label: '🪙 Toss Card',    fn: () => fire('SHOW_TOSS', { tossWinnerName: match?.tossWinnerName, tossDecision: match?.tossDecision }, 8) },
+    { label: '🏏 Inning Intro',  fn: () => fire('INNING_START', { battingTeamName: inn.teamName, players: (match?.currentInnings === 2 ? match?.team2 : match?.team1)?.players?.map((p: any) => p.name || p) || [] }, 8) },
+    { label: '👤 Batsman Profile', fn: () => fire('BATSMAN_PROFILE', { playerName: activeStriker?.name, runs: activeStriker?.runs, balls: activeStriker?.balls, fours: activeStriker?.fours, sixes: activeStriker?.sixes, strikeRate: activeStriker?.strikeRate }, 8) },
+    { label: '👤 Bowler Profile',  fn: () => fire('BOWLER_PROFILE', { playerName: currentBowler?.name, runs: currentBowler?.runs, wickets: currentBowler?.wickets, economy: currentBowler?.economy }, 8) },
+    { label: '🎯 Batting Card',  fn: () => fire('BATTING_SUMMARY', { batsmen: buildBatSummary(), teamName: inn.teamName, innings: match?.currentInnings }, 12) },
+    { label: '🎳 Bowling Card',  fn: () => fire('BOWLING_SUMMARY', { bowlers: buildBowlSummary(), innings: match?.currentInnings }, 12) },
+    { label: '🎯+🎳 Both Cards', fn: () => fire('BOTH_CARDS', { batsmen: buildBatSummary(), bowlers: buildBowlSummary(), teamName: inn.teamName, innings: match?.currentInnings }, 12) },
     { label: '🔄 Recover State',  fn: () => fire('RESTORE') },
   ];
 
@@ -297,7 +297,7 @@ export default function LiveScoring() {
     try {
       if (match.status !== 'live') {
         await matchAPI.startMatch(id, { ...tossData, ...players });
-        fireTrigger('SHOW_TOSS', { tossWinnerName: tossData.tossWinnerName, tossDecision: tossData.tossDecision });
+        fireTrigger('SHOW_TOSS', { tossWinnerName: tossData.tossWinnerName, tossDecision: tossData.tossDecision }, 8);
       } else {
         await matchAPI.selectPlayers(id, players);
       }
@@ -323,6 +323,7 @@ export default function LiveScoring() {
     } catch (e: any) { setError('Failed to record ball'); } finally { setSubmitting(false); }
   };
 
+  // REDDED UNDO BUTTON LOGIC
   const handleUndo = async () => {
     if (!id || submitting || isDecisionPending || !confirm('Undo last ball?')) return;
     setSubmitting(true);
@@ -342,7 +343,7 @@ export default function LiveScoring() {
     const retiredName = type === 'striker' ? match?.strikerName : match?.nonStrikerName;
     setPanel('main'); setStep('playerSelect');
     submitBall({ retired: true, outBatsmanName: retiredName });
-    fireTrigger('RETIRED_PLAYER', { playerName: retiredName });
+    fireTrigger('RETIRED_PLAYER', { playerName: retiredName }, 8);
   };
 
   const handleEndInnings = async () => {
@@ -441,11 +442,6 @@ export default function LiveScoring() {
             style={{ background: N.amberDim, border: `1px solid ${N.amberBorder}`, color: N.amber }}>
             <RotateCcw className="w-3.5 h-3.5" /> Undo
           </button>
-          <button onClick={() => navigate(-1)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold"
-            style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textMuted }}>
-            <LogOut className="w-3.5 h-3.5" /> Leave
-          </button>
         </div>
       </div>
 
@@ -521,6 +517,9 @@ export default function LiveScoring() {
             </div>
           </div>
         )}
+      </div>
+      <div className="px-4 py-3 grid grid-cols-1 gap-3 shrink-0 border-t" style={{ background: N.bgCard, borderColor: N.border }}>
+        <button onClick={() => navigate(-1)} className="py-3 rounded-xl font-semibold text-sm flex justify-center items-center gap-2" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}><LogOut className="w-4 h-4" /> Leave & Save</button>
       </div>
     </div>
   );
