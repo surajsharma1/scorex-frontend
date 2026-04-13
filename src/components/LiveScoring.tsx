@@ -165,7 +165,7 @@ function InningsBreak({ match, onContinue }: { match: any; onContinue: () => voi
   );
 }
 
-function BroadcastPanel({ fire }: any) {
+function BroadcastPanel({ fire, match }: any) {
   const [open, setOpen] = useState(false);
 
   const neonStyle = {
@@ -175,15 +175,25 @@ function BroadcastPanel({ fire }: any) {
     boxShadow: `0 0 10px rgba(0, 255, 136, 0.02)`
   };
 
+  const inn = match?.innings?.[match?.currentInnings - 1] || {};
+  const batsmen = inn.batsmen || [];
+  const bowlers = inn.bowlers || [];
+  
+  const buildBatSummary = () => batsmen.map((b: any) => ({ name: b.name, runs: b.runs||0, balls: b.balls||0, fours: b.fours||0, sixes: b.sixes||0, isOut: b.isOut||false, outType: b.outType||'' }));
+  const buildBowlSummary = () => bowlers.map((b: any) => ({ name: b.name, overs: b.balls?`${Math.floor(b.balls/6)}.${b.balls%6}`:'0.0', runs: b.runs||0, wickets: b.wickets||0, economy: b.economy||0 }));
+
+  const activeStriker = batsmen.find((b: any) => b.name === match?.strikerName);
+  const currentBowler = bowlers.find((b: any) => b.name === match?.currentBowlerName);
+
   const triggers = [
-    { label: '📺 VS Screen',    fn: () => fire('SHOW_VS_SCREEN') },
-    { label: '🪙 Toss Card',    fn: () => fire('SHOW_TOSS') },
-    { label: '🏏 Inning Intro',  fn: () => fire('INNING_START') },
-    { label: '👤 Batsman Profile', fn: () => fire('BATSMAN_PROFILE') },
-    { label: '👤 Bowler Profile',  fn: () => fire('BOWLER_PROFILE') },
-    { label: '🎯 Batting Card',  fn: () => fire('BATTING_SUMMARY') },
-    { label: '🎳 Bowling Card',  fn: () => fire('BOWLING_SUMMARY') },
-    { label: '🎯+🎳 Both Cards', fn: () => fire('BOTH_CARDS') },
+    { label: '📺 VS Screen',    fn: () => fire('SHOW_VS_SCREEN', { team1Name: match?.team1Name, team2Name: match?.team2Name }) },
+    { label: '🪙 Toss Card',    fn: () => fire('SHOW_TOSS', { tossWinnerName: match?.tossWinnerName, tossDecision: match?.tossDecision }) },
+    { label: '🏏 Inning Intro',  fn: () => fire('INNING_START', { battingTeamName: inn.teamName, players: (match?.currentInnings === 2 ? match?.team2 : match?.team1)?.players?.map((p: any) => p.name || p) || [] }) },
+    { label: '👤 Batsman Profile', fn: () => fire('BATSMAN_PROFILE', { playerName: activeStriker?.name, runs: activeStriker?.runs, balls: activeStriker?.balls, fours: activeStriker?.fours, sixes: activeStriker?.sixes, strikeRate: activeStriker?.strikeRate }) },
+    { label: '👤 Bowler Profile',  fn: () => fire('BOWLER_PROFILE', { playerName: currentBowler?.name, runs: currentBowler?.runs, wickets: currentBowler?.wickets, economy: currentBowler?.economy }) },
+    { label: '🎯 Batting Card',  fn: () => fire('BATTING_SUMMARY', { batsmen: buildBatSummary(), teamName: inn.teamName, innings: match?.currentInnings }) },
+    { label: '🎳 Bowling Card',  fn: () => fire('BOWLING_SUMMARY', { bowlers: buildBowlSummary(), innings: match?.currentInnings }) },
+    { label: '🎯+🎳 Both Cards', fn: () => fire('BOTH_CARDS', { batsmen: buildBatSummary(), bowlers: buildBowlSummary(), teamName: inn.teamName, innings: match?.currentInnings }) },
     { label: '🔄 Recover State',  fn: () => fire('RESTORE') },
   ];
 
@@ -233,7 +243,6 @@ export default function LiveScoring() {
   const [scorerError, setScorerError] = useState('');
   const [tossData, setTossData] = useState<any>(null);
   
-  // 3rd Umpire Lock state
   const [isDecisionPending, setIsDecisionPending] = useState(false);
   
   const [wicketModal, setWicketModal] = useState<{ open: boolean; baseData: BallData }>({ open: false, baseData: {} });
@@ -288,11 +297,9 @@ export default function LiveScoring() {
     try {
       if (match.status !== 'live') {
         await matchAPI.startMatch(id, { ...tossData, ...players });
-        // Send toss trigger (engine.js auto-chains Inning Start)
         fireTrigger('SHOW_TOSS', { tossWinnerName: tossData.tossWinnerName, tossDecision: tossData.tossDecision });
       } else {
         await matchAPI.selectPlayers(id, players);
-        // Backend handles auto emitting PLAYER_CHANGE and BOWLER_CHANGE via socket
       }
       await fetchMatch(); setStep('scoring'); setPanel('main');
     } catch (e: any) { setError('Failed to update players'); } finally { setSubmitting(false); }
@@ -316,6 +323,12 @@ export default function LiveScoring() {
     } catch (e: any) { setError('Failed to record ball'); } finally { setSubmitting(false); }
   };
 
+  const handleUndo = async () => {
+    if (!id || submitting || isDecisionPending || !confirm('Undo last ball?')) return;
+    setSubmitting(true);
+    try { await matchAPI.undoBall(id); await fetchMatch(); setLastBall('↩ Undone'); setPanel('main'); } catch { setError('Cannot undo'); } finally { setSubmitting(false); }
+  };
+
   const handleStrikeChange = async () => {
     if (!id || submitting) return;
     setSubmitting(true);
@@ -329,7 +342,7 @@ export default function LiveScoring() {
     const retiredName = type === 'striker' ? match?.strikerName : match?.nonStrikerName;
     setPanel('main'); setStep('playerSelect');
     submitBall({ retired: true, outBatsmanName: retiredName });
-    fireTrigger('RETIRED_PLAYER', { playerName: retiredName }, 8);
+    fireTrigger('RETIRED_PLAYER', { playerName: retiredName });
   };
 
   const handleEndInnings = async () => {
@@ -371,7 +384,7 @@ export default function LiveScoring() {
   return (
     <div className="min-h-screen flex flex-col relative" style={{ background: N.bg, color: N.textPrimary }}>
       
-      {/* 3RD UMPIRE SCOREBOARD LOCK OVERLAY (Massive and unbreakable) */}
+      {/* 3RD UMPIRE SCOREBOARD LOCK OVERLAY */}
       {isDecisionPending && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md">
           <div className="text-center p-10 rounded-3xl" style={{ border: `2px solid ${N.amber}`, background: N.bgCard, boxShadow: `0 0 80px ${N.amberDim}` }}>
@@ -416,10 +429,23 @@ export default function LiveScoring() {
         </div>
       )}
 
+      {/* ── RESTORED HEADER WITH UNDO ── */}
       <div className="px-4 py-3 flex items-center justify-between shrink-0 border-b" style={{ background: N.bgCard, borderColor: N.border }}>
         <div>
           <h1 className="font-black text-sm" style={{ color: N.accent }}>{match.name}</h1>
           <p className="text-xs" style={{ color: N.textMuted }}>{match.venue} · {match.format}</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={handleUndo} disabled={submitting || isDecisionPending}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-40"
+            style={{ background: N.amberDim, border: `1px solid ${N.amberBorder}`, color: N.amber }}>
+            <RotateCcw className="w-3.5 h-3.5" /> Undo
+          </button>
+          <button onClick={() => navigate(-1)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold"
+            style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textMuted }}>
+            <LogOut className="w-3.5 h-3.5" /> Leave
+          </button>
         </div>
       </div>
 
@@ -447,12 +473,12 @@ export default function LiveScoring() {
       <div className="flex-1 overflow-y-auto" style={{ background: N.bg }}>
         {panel === 'main' && (
           <div className="p-4 space-y-4">
-            <BroadcastPanel fire={fireTrigger} />
+            <BroadcastPanel fire={fireTrigger} match={match} />
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>Runs</p>
               <div className="grid grid-cols-3 gap-3 mb-3">
                 {[0, 1, 2, 3, 4, 6].map(r => (
-                  <button key={r} disabled={submitting} onClick={() => submitBall({ runs: r })} className={`py-5 rounded-2xl font-black text-2xl transition-all active:scale-95 disabled:opacity-40 shadow-lg`} style={{ background: r === 4 ? '#1d4ed8' : r === 6 ? '#6d28d9' : N.bgElevated, border: `1px solid ${r === 4 ? '#2563eb' : r === 6 ? '#7c3aed' : N.border}`, color: r === 4 || r === 6 ? '#fff' : N.textPrimary }}>{r === 0 ? '•' : r}</button>
+                  <button key={r} disabled={submitting || isDecisionPending} onClick={() => submitBall({ runs: r })} className={`py-5 rounded-2xl font-black text-2xl transition-all active:scale-95 disabled:opacity-40 shadow-lg`} style={{ background: r === 4 ? '#1d4ed8' : r === 6 ? '#6d28d9' : N.bgElevated, border: `1px solid ${r === 4 ? '#2563eb' : r === 6 ? '#7c3aed' : N.border}`, color: r === 4 || r === 6 ? '#fff' : N.textPrimary }}>{r === 0 ? '•' : r}</button>
                 ))}
                 <button onClick={toggleDecisionPending} className={`py-3 rounded-2xl font-black text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95`} style={{ background: isDecisionPending ? N.amber : N.amberDim, border: `1px solid ${N.amberBorder}`, color: isDecisionPending ? N.bg : N.amber, boxShadow: isDecisionPending ? `0 0 20px ${N.amberBorder}` : 'none', animation: isDecisionPending ? 'pulse 1.5s infinite' : 'none' }}><AlertTriangle className="w-5 h-5" /><span className="uppercase leading-tight text-center">3rd Umpire</span></button>
               </div>
@@ -466,19 +492,19 @@ export default function LiveScoring() {
                   { label: 'Bye', icon: 'B', panel: 'bye' as ScoringPanel, bg: '#0f3d3322', border: '#0d9488', color: '#5eead4' },
                   { label: 'Leg Bye', icon: 'LB', panel: 'legBye' as ScoringPanel, bg: '#0c2a3d22', border: '#0369a1', color: '#38bdf8' },
                 ].map(btn => (
-                  <button key={btn.label} disabled={submitting} onClick={() => setPanel(btn.panel)} className="py-3 px-4 rounded-xl font-bold text-sm border flex items-center gap-2 disabled:opacity-40" style={{ background: btn.bg, borderColor: btn.border, color: btn.color }}><span className="font-black">{btn.icon}</span> {btn.label}</button>
+                  <button key={btn.label} disabled={submitting || isDecisionPending} onClick={() => setPanel(btn.panel)} className="py-3 px-4 rounded-xl font-bold text-sm border flex items-center gap-2 disabled:opacity-40" style={{ background: btn.bg, borderColor: btn.border, color: btn.color }}><span className="font-black">{btn.icon}</span> {btn.label}</button>
                 ))}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <button disabled={submitting} onClick={() => openWicketModal({})} className="py-4 rounded-2xl font-black text-lg active:scale-95 disabled:opacity-40 transition-all" style={{ background: N.red, color: '#fff', boxShadow: `0 4px 20px ${N.redBorder}` }}>OUT! 🎯</button>
-              <button disabled={submitting} onClick={() => setPanel('others')} className="py-4 rounded-2xl font-bold text-sm disabled:opacity-40" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}>Others…</button>
+              <button disabled={submitting || isDecisionPending} onClick={() => openWicketModal({})} className="py-4 rounded-2xl font-black text-lg active:scale-95 disabled:opacity-40 transition-all" style={{ background: N.red, color: '#fff', boxShadow: `0 4px 20px ${N.redBorder}` }}>OUT! 🎯</button>
+              <button disabled={submitting || isDecisionPending} onClick={() => setPanel('others')} className="py-4 rounded-2xl font-bold text-sm disabled:opacity-40" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}>Others…</button>
             </div>
           </div>
         )}
         
-        {panel === 'wide' && <div className="p-4 space-y-4"><div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Wide Ball</h3></div><RunButtons onSelect={r => { setPanel('main'); submitBall({ wide: true, runs: r }); }} disabled={submitting} extraLabel="Wd" /><div className="border-t pt-4" style={{ borderColor: N.border }}><button disabled={submitting} onClick={() => { setPanel('main'); openWicketModal({ wide: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40" style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>Wicket (Off Wide)</button></div></div>}
-        {panel === 'noBall' && <div className="p-4 space-y-4"><div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>No Ball</h3></div><RunButtons onSelect={r => { setPanel('main'); submitBall({ noBall: true, runs: r }); }} disabled={submitting} extraLabel="NB" /><div className="border-t pt-4" style={{ borderColor: N.border }}><button disabled={submitting} onClick={() => { setPanel('main'); openWicketModal({ noBall: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40" style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>Run Out (Off No Ball)</button></div></div>}
+        {panel === 'wide' && <div className="p-4 space-y-4"><div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Wide Ball</h3></div><RunButtons onSelect={r => { setPanel('main'); submitBall({ wide: true, runs: r }); }} disabled={submitting || isDecisionPending} extraLabel="Wd" /><div className="border-t pt-4" style={{ borderColor: N.border }}><button disabled={submitting || isDecisionPending} onClick={() => { setPanel('main'); openWicketModal({ wide: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40" style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>Wicket (Off Wide)</button></div></div>}
+        {panel === 'noBall' && <div className="p-4 space-y-4"><div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>No Ball</h3></div><RunButtons onSelect={r => { setPanel('main'); submitBall({ noBall: true, runs: r }); }} disabled={submitting || isDecisionPending} extraLabel="NB" /><div className="border-t pt-4" style={{ borderColor: N.border }}><button disabled={submitting || isDecisionPending} onClick={() => { setPanel('main'); openWicketModal({ noBall: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40" style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>Run Out (Off No Ball)</button></div></div>}
         {panel === 'others' && (
           <div className="p-4 space-y-3">
             <div className="flex items-center gap-2 mb-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Other Actions</h3></div>
@@ -488,16 +514,13 @@ export default function LiveScoring() {
               { label: '🚶 Retired Hurt (Non-Striker)', fn: () => handleRetirement('nonStriker'), color: N.bgElevated, border: N.border, text: N.textSecondary },
               { label: '🔄 Change Bowler / Players', fn: () => { setPanel('main'); setStep('playerSelect'); }, color: N.bgElevated, border: N.border, text: N.textSecondary },
             ].map(b => (
-              <button key={b.label} disabled={submitting} onClick={b.fn} className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-left disabled:opacity-40" style={{ background: b.color, border: `1px solid ${b.border}`, color: b.text }}>{b.label}</button>
+              <button key={b.label} disabled={submitting || isDecisionPending} onClick={b.fn} className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-left disabled:opacity-40" style={{ background: b.color, border: `1px solid ${b.border}`, color: b.text }}>{b.label}</button>
             ))}
             <div className="border-t pt-3 space-y-2" style={{ borderColor: N.border }}>
-              <button onClick={handleEndInnings} disabled={submitting} className="w-full py-3 px-4 rounded-xl text-sm font-semibold disabled:opacity-40" style={{ background: N.amberDim, border: `1px solid ${N.amberBorder}`, color: N.amber }}>🔚 End Innings Manually</button>
+              <button onClick={handleEndInnings} disabled={submitting || isDecisionPending} className="w-full py-3 px-4 rounded-xl text-sm font-semibold disabled:opacity-40" style={{ background: N.amberDim, border: `1px solid ${N.amberBorder}`, color: N.amber }}>🔚 End Innings Manually</button>
             </div>
           </div>
         )}
-      </div>
-      <div className="px-4 py-3 grid grid-cols-1 gap-3 shrink-0 border-t" style={{ background: N.bgCard, borderColor: N.border }}>
-        <button onClick={() => navigate(-1)} className="py-3 rounded-xl font-semibold text-sm flex justify-center items-center gap-2" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}><LogOut className="w-4 h-4" /> Leave & Save</button>
       </div>
     </div>
   );
