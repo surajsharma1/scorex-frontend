@@ -3,12 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import { socket } from '../services/socket';
 import {
-  RotateCcw, LogOut, X, RefreshCw, Users, MonitorPlay,
-  AlertTriangle, ChevronDown, ChevronUp, Settings, Zap,
-  Play, Eye, BarChart2, Trophy, Target, Radio
+  RotateCcw, LogOut, X, RefreshCw, Users,
+  AlertTriangle, ChevronDown, ChevronUp, Settings, Radio
 } from 'lucide-react';
 
-// ─── Neon green theme tokens ──────────────────────────────────────────────────
 const N = {
   accent:       '#00ff88',
   accentDim:    '#00cc6a',
@@ -17,7 +15,6 @@ const N = {
   bg:           '#070d0f',
   bgCard:       '#0c1418',
   bgElevated:   '#111c20',
-  bgHover:      '#152028',
   border:       '#1a2e35',
   textPrimary:  '#e8f5f0',
   textSecondary:'#8ba89e',
@@ -29,12 +26,10 @@ const N = {
   amberDim:     'rgba(245,158,11,0.15)',
   amberBorder:  'rgba(245,158,11,0.3)',
   blue:         '#38bdf8',
-  purple:       '#a78bfa',
 };
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface BallData { runs?: number; wide?: boolean; noBall?: boolean; bye?: number; legBye?: number; wicket?: boolean; outType?: string; outBatsmanName?: string; outFielder?: string; retired?: boolean; penalty?: number; }
-type ScoringPanel = 'main' | 'wide' | 'noBall' | 'bye' | 'legBye' | 'wicket' | 'others';
+interface BallData { runs?: number; wide?: boolean; noBall?: boolean; bye?: number; legBye?: number; wicket?: boolean; outType?: string; outBatsmanName?: string; retired?: boolean; penalty?: number; }
+type ScoringPanel = 'main' | 'wide' | 'noBall' | 'bye' | 'legBye' | 'others';
 type ScoreStep = 'toss' | 'players' | 'scoring' | 'playerSelect' | 'inningsBreak' | 'done';
 
 interface AnimConfig {
@@ -109,7 +104,6 @@ function TossModal({ match, onDone }: { match: any; onDone: (data: any) => void 
         <h2 className="text-2xl font-black mb-6 text-center" style={{ color: N.accent }}>🪙 Toss</h2>
         <div className="space-y-5">
           <div>
-            <label className="text-sm font-semibold mb-2 block" style={{ color: N.textSecondary }}>Who won the toss?</label>
             <div className="grid grid-cols-2 gap-3">
               {[match.team1, match.team2].map(team => {
                 const id = team?._id || team; const name = team?.name || 'Team';
@@ -121,7 +115,6 @@ function TossModal({ match, onDone }: { match: any; onDone: (data: any) => void 
             </div>
           </div>
           <div>
-            <label className="text-sm font-semibold mb-2 block" style={{ color: N.textSecondary }}>Decision</label>
             <div className="grid grid-cols-2 gap-3">
               {(['bat', 'bowl'] as const).map(d => (
                 <button key={d} onClick={() => setDecision(d)}
@@ -132,11 +125,7 @@ function TossModal({ match, onDone }: { match: any; onDone: (data: any) => void 
               ))}
             </div>
           </div>
-          <button onClick={submit} disabled={!tossWinner}
-            className="w-full py-3 rounded-xl font-black text-sm disabled:opacity-40"
-            style={{ background: N.accent, color: N.bg }}>
-            Continue →
-          </button>
+          <button onClick={submit} disabled={!tossWinner} className="w-full py-3 rounded-xl font-black text-sm disabled:opacity-40" style={{ background: N.accent, color: N.bg }}>Continue →</button>
         </div>
       </div>
     </div>
@@ -165,7 +154,7 @@ function PlayerSelectModal({ match, battingTeamId, bowlingTeamId, inningsNum, ti
     </select>
   );
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] p-4 overflow-y-auto">
       <div className="rounded-2xl p-6 w-full max-w-lg my-4 relative" style={{ background: N.bgCard, border: `1px solid ${N.accentBorder}` }}>
         {onClose && <button onClick={onClose} className="absolute top-4 right-4" style={{ color: N.textMuted }}><X className="w-5 h-5" /></button>}
         <h2 className="text-xl font-black mb-2 flex items-center gap-2" style={{ color: N.accent }}><Users className="w-5 h-5" /> {title}</h2>
@@ -196,7 +185,6 @@ function InningsBreak({ match, onContinue }: { match: any; onContinue: () => voi
         <div className="rounded-xl p-4 mb-4" style={{ background: N.bgElevated }}>
           <p className="text-sm" style={{ color: N.textMuted }}>{inn1?.teamName || 'Team 1'} scored</p>
           <p className="text-4xl font-black" style={{ color: N.textPrimary }}>{inn1?.score}/{inn1?.wickets}</p>
-          <p className="text-sm mt-1" style={{ color: N.textMuted }}>{inn1?.overs?.toFixed ? inn1.overs.toFixed(1) : 0} overs</p>
         </div>
         <div className="rounded-xl p-4 mb-6" style={{ background: N.accentGlow, border: `1px solid ${N.accentBorder}` }}>
           <p className="font-bold text-lg" style={{ color: N.accent }}>Target: {target}</p>
@@ -222,25 +210,6 @@ function AnimConfigPanel({ cfg, onChange, onClose }: { cfg: AnimConfig; onChange
       </button>
     </div>
   );
-  const Slider = ({ k, label, min = 0, max = 60 }: { k: keyof AnimConfig; label: string; min?: number; max?: number }) => (
-    <div className="py-2 border-b" style={{ borderColor: N.border }}>
-      <div className="flex justify-between mb-1">
-        <span className="text-sm" style={{ color: N.textSecondary }}>{label}</span>
-        <span className="text-sm font-bold" style={{ color: N.accent }}>{cfg[k] as number}s</span>
-      </div>
-      <input type="range" min={min} max={max} value={cfg[k] as number} onChange={e => set(k, Number(e.target.value))}
-        className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-        style={{ accentColor: N.accent, background: N.bgElevated }} />
-    </div>
-  );
-  const OversInput = ({ k, label }: { k: keyof AnimConfig; label: string }) => (
-    <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: N.border }}>
-      <span className="text-sm" style={{ color: N.textSecondary }}>{label} <span style={{ color: N.textMuted }}>(0=off)</span></span>
-      <input type="number" min={0} max={20} value={cfg[k] as number} onChange={e => set(k, Number(e.target.value))}
-        className="w-14 rounded-lg px-2 py-1 text-sm text-center font-bold"
-        style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.accent }} />
-    </div>
-  );
   return (
     <div className="fixed inset-0 bg-black/95 z-[9999] flex flex-col" style={{ color: N.textPrimary }}>
       <div className="flex items-center justify-between px-4 py-3 border-b" style={{ background: N.bgCard, borderColor: N.accentBorder }}>
@@ -251,78 +220,32 @@ function AnimConfigPanel({ cfg, onChange, onClose }: { cfg: AnimConfig; onChange
         <button onClick={onClose} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button>
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1" style={{ background: N.bg }}>
-
-        <p className="text-xs font-bold uppercase tracking-widest pt-2 pb-1" style={{ color: N.textMuted }}>Pre-Match Sequence</p>
+        <p className="text-xs font-bold uppercase tracking-widest pt-2 pb-1" style={{ color: N.textMuted }}>Pre-Match</p>
         <Toggle k="showVS" label="VS Screen" />
-        {cfg.showVS && <Slider k="vsDuration" label="VS Screen Duration" />}
         <Toggle k="showToss" label="Toss Result Card" />
-        {cfg.showToss && <Slider k="tossDuration" label="Toss Card Duration" />}
-        <Toggle k="showSquads" label="Playing XI / Squads" />
-        {cfg.showSquads && <Slider k="squadDuration" label="Squads Duration" />}
         <Toggle k="showInningIntro" label="Inning Start Intro" />
-        {cfg.showInningIntro && <Slider k="introDuration" label="Intro Duration" />}
-
         <p className="text-xs font-bold uppercase tracking-widest pt-4 pb-1" style={{ color: N.textMuted }}>Ball Events</p>
         <Toggle k="showFour" label="FOUR Animation" />
         <Toggle k="showSix" label="SIX Animation" />
         <Toggle k="showWicket" label="OUT / Wicket Card" />
-        {cfg.showWicket && <Slider k="wicketDuration" label="Wicket Card Duration" />}
         <Toggle k="showDecision" label="Decision Pending" />
-
         <p className="text-xs font-bold uppercase tracking-widest pt-4 pb-1" style={{ color: N.textMuted }}>Change Cards</p>
         <Toggle k="showPlayerChange" label="New Batsman Card" />
-        {cfg.showPlayerChange && <Slider k="playerChangeDuration" label="Player Card Duration" />}
         <Toggle k="showBowlerChange" label="New Bowler Card" />
-        {cfg.showBowlerChange && <Slider k="bowlerChangeDuration" label="Bowler Card Duration" />}
-
         <p className="text-xs font-bold uppercase tracking-widest pt-4 pb-1" style={{ color: N.textMuted }}>Summary Cards</p>
         <Toggle k="showBattingSummary" label="Batting Summary Card" />
         <Toggle k="showBowlingSummary" label="Bowling Summary Card" />
-        <OversInput k="autoBattingOvers" label="Auto Batting Summary every N overs" />
-        <OversInput k="autoBowlingOvers" label="Auto Bowling Summary every N overs" />
-        {(cfg.showBattingSummary || cfg.showBowlingSummary) && <Slider k="summaryDuration" label="Summary Card Duration" />}
-
-        <p className="text-xs font-bold uppercase tracking-widest pt-4 pb-1" style={{ color: N.textMuted }}>Match Milestones</p>
-        <Toggle k="showTargetCard" label="Target Card (Innings Break)" />
-        {cfg.showTargetCard && <Slider k="targetCardDuration" label="Target Card Duration" />}
-        <Toggle k="showMatchEnd" label="Match End / Result Screen" />
       </div>
       <div className="px-4 py-3 border-t" style={{ borderColor: N.border, background: N.bgCard }}>
-        <button onClick={onClose} className="w-full py-3 rounded-xl font-black text-sm" style={{ background: N.accent, color: N.bg }}>
-          Save & Close
-        </button>
+        <button onClick={onClose} className="w-full py-3 rounded-xl font-black text-sm" style={{ background: N.accent, color: N.bg }}>Save & Close</button>
       </div>
     </div>
   );
 }
 
-// ─── BroadcastPanel (Neon Overhaul) ───────────────────────────────────────────
-function BroadcastPanel({ matchId, match, animCfg }: { matchId: string; match: any; animCfg: AnimConfig }) {
+function BroadcastPanel({ fire, match }: any) {
   const [open, setOpen] = useState(false);
 
-  const fire = (type: string, data: any = {}) => {
-    socket.emit('manualOverlayTrigger', { matchId, trigger: { type, data, duration: (data.duration || 8) } });
-    const iframes = document.querySelectorAll('iframe');
-    iframes.forEach(iframe => {
-      try { iframe.contentWindow?.postMessage({ type: 'OVERLAY_TRIGGER', payload: { type, data } }, '*'); } catch (_) {}
-    });
-  };
-
-  const inn = match?.innings?.[match?.currentInnings - 1] || {};
-  const batsmen = inn.batsmen || [];
-  const bowlers = inn.bowlers || [];
-  const inn1 = match?.innings?.[0] || {};
-  const inn2 = match?.innings?.[1] || {};
-
-  const buildBatSummary = () => batsmen.map((b: any) => ({ name: b.name, runs: b.runs||0, balls: b.balls||0, fours: b.fours||0, sixes: b.sixes||0, isOut: b.isOut||false, outType: b.outType||'' }));
-  const buildBowlSummary = () => bowlers.map((b: any) => ({ name: b.name, overs: b.balls?`${Math.floor(b.balls/6)}.${b.balls%6}`:'0.0', runs: b.runs||0, wickets: b.wickets||0, economy: b.economy||0 }));
-  const buildMatchSummary = () => ({
-    winner: match?.winnerName || '', resultSummary: match?.resultSummary || '',
-    inn1: { teamName: inn1.teamName||'', score: inn1.score||0, wickets: inn1.wickets||0, overs: inn1.balls?`${Math.floor(inn1.balls/6)}.${inn1.balls%6}`:'0.0', batting: (inn1.batsmen||[]).map((b:any)=>({name:b.name,runs:b.runs||0,balls:b.balls||0,isOut:b.isOut||false,outType:b.outType||''})), bowling: (inn1.bowlers||[]).map((b:any)=>({name:b.name,overs:b.balls?`${Math.floor(b.balls/6)}.${b.balls%6}`:'0.0',runs:b.runs||0,wickets:b.wickets||0})) },
-    inn2: { teamName: inn2.teamName||'', score: inn2.score||0, wickets: inn2.wickets||0, overs: inn2.balls?`${Math.floor(inn2.balls/6)}.${inn2.balls%6}`:'0.0', batting: (inn2.batsmen||[]).map((b:any)=>({name:b.name,runs:b.runs||0,balls:b.balls||0,isOut:b.isOut||false,outType:b.outType||''})), bowling: (inn2.bowlers||[]).map((b:any)=>({name:b.name,overs:b.balls?`${Math.floor(b.balls/6)}.${b.balls%6}`:'0.0',runs:b.runs||0,wickets:b.wickets||0})) },
-  });
-
-  // Sleek Neon Green Styling for all triggers
   const neonStyle = {
     background: 'rgba(0, 255, 136, 0.05)',
     border: `1px solid ${N.accentBorder}`,
@@ -331,20 +254,15 @@ function BroadcastPanel({ matchId, match, animCfg }: { matchId: string; match: a
   };
 
   const triggers = [
-    { label: '📺 VS Screen',    fn: () => fire('SHOW_VS_SCREEN', { team1Name: match?.team1Name||match?.team1?.name, team2Name: match?.team2Name||match?.team2?.name }) },
-    { label: '🪙 Toss Card',    fn: () => fire('SHOW_TOSS', { tossWinnerName: match?.tossWinnerName, tossDecision: match?.tossDecision }) },
-    { label: '👥 Playing XI',    fn: () => fire('SHOW_SQUADS', { team1Name: match?.team1Name||match?.team1?.name, team2Name: match?.team2Name||match?.team2?.name, team1Players: (match?.team1?.players||[]).map((p:any)=>p.name||p), team2Players: (match?.team2?.players||[]).map((p:any)=>p.name||p) }) },
-    { label: '🏏 Inning Intro',  fn: () => fire('INNING_START', { innings: match?.currentInnings, battingTeamName: inn.teamName, players: (match?.currentInnings===2?match?.team2:match?.team1)?.players?.map((p:any)=>p.name||p)||[] }) },
-    { label: '🎯 Batting Card',  fn: () => fire('BATTING_SUMMARY', { batsmen: buildBatSummary(), teamName: inn.teamName, innings: match?.currentInnings }) },
-    { label: '🎳 Bowling Card',  fn: () => fire('BOWLING_SUMMARY', { bowlers: buildBowlSummary(), innings: match?.currentInnings }) },
-    
-    // NEW: Using BOTH_CARDS queue logic perfectly
-    { label: '🎯+🎳 Both Cards', fn: () => fire('BOTH_CARDS', { batsmen: buildBatSummary(), teamName: inn.teamName, bowlers: buildBowlSummary(), innings: match?.currentInnings }) },
-    
-    { label: '🎯 Target Card',   fn: () => fire('TARGET_CARD', { targetScore: (inn1.score||0)+1, inn1Score: inn1.score||0, inn1Wickets: inn1.wickets||0, inn1Overs: inn1.balls?`${Math.floor(inn1.balls/6)}.${inn1.balls%6}`:'0.0', inn1TeamName: inn1.teamName||'' }) },
-    { label: '🏆 Match End',     fn: () => fire('MATCH_WIN', { winnerName: match?.winnerName||'', resultSummary: match?.resultSummary||'' }) },
-    { label: '📊 Match Summary', fn: () => fire('MATCH_SUMMARY', { summary: buildMatchSummary() }) },
-    { label: '🔄 Restore Live',  fn: () => fire('RESTORE') },
+    { label: '📺 VS Screen',    fn: () => fire('SHOW_VS_SCREEN') },
+    { label: '🪙 Toss Card',    fn: () => fire('SHOW_TOSS') },
+    { label: '🏏 Inning Intro',  fn: () => fire('INNING_START') },
+    { label: '👤 Batsman Profile', fn: () => fire('BATSMAN_PROFILE') },
+    { label: '👤 Bowler Profile',  fn: () => fire('BOWLER_PROFILE') },
+    { label: '🎯 Batting Card',  fn: () => fire('BATTING_SUMMARY') },
+    { label: '🎳 Bowling Card',  fn: () => fire('BOWLING_SUMMARY') },
+    { label: '🎯+🎳 Both Cards', fn: () => fire('BOTH_CARDS') },
+    { label: '🔄 Recover State',  fn: () => fire('RESTORE') },
   ];
 
   return (
@@ -362,7 +280,7 @@ function BroadcastPanel({ matchId, match, animCfg }: { matchId: string; match: a
       </button>
       {open && (
         <div className="px-4 pb-4">
-          <p className="text-[10px] uppercase tracking-wider mb-3" style={{ color: N.textMuted }}>Tap to broadcast manual override to overlay</p>
+          <p className="text-[10px] uppercase tracking-wider mb-3" style={{ color: N.textMuted }}>Tap to broadcast manual override</p>
           <div className="grid grid-cols-2 gap-2">
             {triggers.map((t, i) => (
               <button key={i} onClick={t.fn}
@@ -378,7 +296,6 @@ function BroadcastPanel({ matchId, match, animCfg }: { matchId: string; match: a
   );
 }
 
-// ─── Main LiveScoring ─────────────────────────────────────────────────────────
 export default function LiveScoring() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -394,11 +311,15 @@ export default function LiveScoring() {
   const [scorerError, setScorerError] = useState('');
   const [tossData, setTossData] = useState<any>(null);
   const [isDecisionPending, setIsDecisionPending] = useState(false);
+  
   const [wicketModal, setWicketModal] = useState<{ open: boolean; baseData: BallData }>({ open: false, baseData: {} });
   const [selectedWicketType, setSelectedWicketType] = useState('');
   const [outBatsman, setOutBatsman] = useState<'striker' | 'nonStriker'>('striker');
   const [showAnimConfig, setShowAnimConfig] = useState(false);
   const [animCfg, setAnimCfg] = useState<AnimConfig>(DEFAULT_ANIM_CONFIG);
+
+  // Animation Sequence State
+  const [pendingTriggers, setPendingTriggers] = useState<any[]>([]);
 
   const isActionDisabled = submitting || isDecisionPending;
 
@@ -409,10 +330,7 @@ export default function LiveScoring() {
       const m = res.data.data || res.data;
       setMatch(m);
       const userStr = localStorage.getItem('user');
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        setIsScorer(m.scorerId === user._id || m.tournament?.createdBy?._id === user._id || user.role === 'admin');
-      }
+      if (userStr) setIsScorer(m.scorerId === JSON.parse(userStr)._id || JSON.parse(userStr).role === 'admin');
       if (m.status === 'completed') setStep('done');
       else if (m.status === 'live') {
         const inn = m.innings?.[m.currentInnings - 1];
@@ -438,11 +356,10 @@ export default function LiveScoring() {
 
   const fireTrigger = useCallback((type: string, data: any = {}, duration = 6) => {
     if (!match?._id) return;
-    const payload = { type, data, duration };
-    socket.emit('manualOverlayTrigger', { matchId: match._id, trigger: payload });
+    socket.emit('manualOverlayTrigger', { matchId: match._id, trigger: { type, data, duration } });
     const iframes = document.querySelectorAll('iframe');
     iframes.forEach(iframe => {
-      try { iframe.contentWindow?.postMessage({ type: 'OVERLAY_TRIGGER', payload }, '*'); } catch (_) {}
+      try { iframe.contentWindow?.postMessage({ type: 'OVERLAY_TRIGGER', payload: { type, data, duration } }, '*'); } catch (_) {}
     });
   }, [match]);
 
@@ -455,17 +372,39 @@ export default function LiveScoring() {
     try {
       if (match.status !== 'live') {
         await matchAPI.startMatch(id, { ...tossData, ...players });
+        
+        // Toss -> Inning Start Chained Animation
+        if (animCfg.showToss) fireTrigger('SHOW_TOSS', { tossWinnerName: tossData.tossWinnerName, tossDecision: tossData.tossDecision }, animCfg.tossDuration);
+        if (animCfg.showInningIntro) fireTrigger('INNING_START', { battingTeamName: tossData.battingTeamName, players: [players.striker, players.nonStriker] }, animCfg.introDuration);
       } else {
         await matchAPI.selectPlayers(id, players);
+        
+        // Execute Pending Queue sequentially
+        const batsmanChanged = players.striker !== match.strikerName || players.nonStriker !== match.nonStrikerName;
         const bowlerChanged = players.bowler && players.bowler !== prevBowler;
-        if (bowlerChanged && animCfg.showBowlerChange) {
-          fireTrigger('BOWLER_CHANGE', { newBowlerName: players.bowler, prevBowlerName: prevBowler }, animCfg.bowlerChangeDuration);
-        } else if (animCfg.showPlayerChange) {
-          fireTrigger('PLAYER_CHANGE', { newBatsmanName: players.striker || players.nonStriker, striker: players.striker, nonStriker: players.nonStriker }, animCfg.playerChangeDuration);
+
+        // 1. Wicket / Retired Animation
+        const wicketAnim = pendingTriggers.find(t => t.type === 'WICKET' || t.type === 'RETIRED_PLAYER');
+        if (wicketAnim && animCfg.showWicket) fireTrigger(wicketAnim.type, wicketAnim.data, wicketAnim.dur);
+
+        // 2. Replacement Player Animation
+        if (batsmanChanged && animCfg.showPlayerChange) {
+          fireTrigger('PLAYER_CHANGE', { newBatsmanName: players.striker || players.nonStriker }, animCfg.playerChangeDuration);
         }
+
+        // 3. Bowler Change Animation (Fires BEFORE Summary per request)
+        if (bowlerChanged && animCfg.showBowlerChange) {
+          fireTrigger('BOWLER_CHANGE', { newBowlerName: players.bowler }, animCfg.bowlerChangeDuration);
+        }
+
+        // 4. Over Summary Animations
+        const summaryAnim = pendingTriggers.find(t => t.type.includes('SUMMARY'));
+        if (summaryAnim) fireTrigger(summaryAnim.type, summaryAnim.data, summaryAnim.dur);
+
+        setPendingTriggers([]); // Clear queue
       }
       await fetchMatch(); setStep('scoring'); setPanel('main');
-    } catch (e: any) { setError(e.response?.data?.message || 'Failed to update players'); } finally { setSubmitting(false); }
+    } catch (e: any) { setError('Failed to update players'); } finally { setSubmitting(false); }
   };
 
   const submitBall = async (data: BallData) => {
@@ -474,25 +413,39 @@ export default function LiveScoring() {
     try {
       const res = await matchAPI.addBall(id, data);
       const result = res.data.data;
+      
+      const newPending = [...pendingTriggers];
+
       if (result?.isWicket || data.wicket) {
-        if (animCfg.showWicket) {
-          fireTrigger('WICKET', { playerName: data.outBatsmanName || match?.strikerName, outType: data.outType || 'out', runs: 0, balls: 0 }, animCfg.wicketDuration);
-        }
-      } else if (data.runs === 6) {
-        if (animCfg.showSix) fireTrigger('SIX', { playerName: match?.strikerName }, 5);
-      } else if (data.runs === 4) {
-        if (animCfg.showFour) fireTrigger('FOUR', { playerName: match?.strikerName }, 4);
+        newPending.push({ type: 'WICKET', data: { playerName: data.outBatsmanName || match?.strikerName, outType: data.outType || 'out' }, dur: animCfg.wicketDuration });
+      } else if (data.retired) {
+        newPending.push({ type: 'RETIRED_PLAYER', data: { playerName: data.outBatsmanName }, dur: animCfg.playerChangeDuration });
+      } else if (data.runs === 6 && animCfg.showSix) {
+        fireTrigger('SIX', { playerName: match?.strikerName }, 5);
+      } else if (data.runs === 4 && animCfg.showFour) {
+        fireTrigger('FOUR', { playerName: match?.strikerName }, 4);
       }
+
+      if (result.overChanged) {
+        const type = result.completedOverNumber % 2 === 0 ? 'BATTING_SUMMARY' : 'BOWLING_SUMMARY';
+        if ((type === 'BATTING_SUMMARY' && animCfg.showBattingSummary) || (type === 'BOWLING_SUMMARY' && animCfg.showBowlingSummary)) {
+          newPending.push({ type, data: {}, dur: animCfg.summaryDuration });
+        }
+      }
+
+      setPendingTriggers(newPending);
       await fetchMatch();
       setLastBall(result?.ballDescription || 'Ball Recorded');
       setPanel('main');
+      
       if (result?.matchEnded) setStep('done');
-      else if (result?.inningsEnded) setStep('inningsBreak');
+      else if (result?.inningsEnded) {
+        fireTrigger('TARGET_CARD', {}, animCfg.targetCardDuration);
+        setStep('inningsBreak');
+      }
       else if (result?.needPlayerSelection) setStep('playerSelect');
-    } catch (e: any) {
-      if (e.response?.status === 403) setScorerError('Scoring permission denied.');
-      else setError(e.response?.data?.message || 'Failed to record ball');
-    } finally { setSubmitting(false); }
+
+    } catch (e: any) { setError('Failed to record ball'); } finally { setSubmitting(false); }
   };
 
   const handleStrikeChange = async () => {
@@ -508,27 +461,12 @@ export default function LiveScoring() {
     const retiredName = type === 'striker' ? match?.strikerName : match?.nonStrikerName;
     setPanel('main'); setStep('playerSelect');
     submitBall({ retired: true, outBatsmanName: retiredName });
-    if (animCfg.showPlayerChange) {
-      fireTrigger('PLAYER_CHANGE', { newBatsmanName: retiredName + ' (Retired)', retired: true }, animCfg.playerChangeDuration);
-    }
-  };
-
-  const handleUndo = async () => {
-    if (!id || isActionDisabled || !confirm('Undo last ball?')) return;
-    setSubmitting(true);
-    try { await matchAPI.undoBall(id); await fetchMatch(); setLastBall('↩ Undone'); setPanel('main'); } catch { setError('Cannot undo'); } finally { setSubmitting(false); }
   };
 
   const handleEndInnings = async () => {
     if (!confirm('End current innings?')) return;
     setSubmitting(true);
-    try { await matchAPI.endInnings(id!); await fetchMatch(); setStep('inningsBreak'); } catch { } finally { setSubmitting(false); }
-  };
-
-  const handleEndMatch = async () => {
-    if (!confirm('End the match?')) return;
-    setSubmitting(true);
-    try { await matchAPI.endMatch(id!, {}); await fetchMatch(); setStep('done'); } catch { } finally { setSubmitting(false); }
+    try { await matchAPI.endInnings(id!); await fetchMatch(); fireTrigger('TARGET_CARD'); setStep('inningsBreak'); } catch { } finally { setSubmitting(false); }
   };
 
   const toggleDecisionPending = () => {
@@ -547,64 +485,41 @@ export default function LiveScoring() {
   const oversNum = Math.floor((innings?.balls || 0) / 6);
   const ballsNum = (innings?.balls || 0) % 6;
   const oversDisplay = `${oversNum}.${ballsNum}`;
-  const runRate = innings?.runRate?.toFixed(2) || '0.00';
-  const target = innings?.targetScore;
-  const requiredRuns = innings?.requiredRuns;
-  const rrr = innings?.requiredRunRate?.toFixed(2);
-
-  const safeHistory = Array.isArray(innings?.ballHistory) ? innings.ballHistory : [];
-  const currentBallsMod = Number(innings?.balls || 0) % 6;
-  const validBallsInOver = (currentBallsMod === 0 && safeHistory.length > 0 && innings?.balls > 0) ? 6 : currentBallsMod;
-  let thisOverBalls: any[] = []; let validCount = 0;
-  for (let i = safeHistory.length - 1; i >= 0; i--) {
-    const b = safeHistory[i]; thisOverBalls.unshift(b);
-    if (!(b.extras === 'wide' || b.wide || b.extras === 'nb' || b.noBall || b.extras === 'noBall')) validCount++;
-    if (validCount >= validBallsInOver) break;
-  }
 
   const currentBattingTeamId = innings?.teamId || tossData?.battingTeamId || match?.team1?._id || match?.team1;
   const currentBowlingTeamId = currentBattingTeamId === (match?.team1?._id || match?.team1) ? (match?.team2?._id || match?.team2) : (match?.team1?._id || match?.team1);
   const activeStriker = safeBatsmen.find((b: any) => b.name === match?.strikerName) || safeBatsmen.find((b: any) => b?.isStriker && !b?.isOut);
   const activeNonStriker = safeBatsmen.find((b: any) => b.name === match?.nonStrikerName) || safeBatsmen.find((b: any) => !b?.isStriker && !b?.isOut && b?.enteredAt !== undefined);
   const currentBowler = safeBowlers.find((b: any) => b.name === match?.currentBowlerName);
+  
   let defStriker = activeStriker?.name || ''; let defNonStriker = activeNonStriker?.name || ''; let defBowler = match?.currentBowlerName || '';
   if (step === 'players') { defStriker = ''; defNonStriker = ''; defBowler = ''; }
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: N.bg }}>
-      <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: N.accent, borderTopColor: 'transparent' }} />
-    </div>
-  );
-  if (!match) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: N.bg }}>
-      <p className="text-xl" style={{ color: N.red }}>Match not found</p>
-    </div>
-  );
-  if (step === 'done') return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: N.bg }}>
-      <div className="rounded-2xl p-8 text-center max-w-md w-full" style={{ background: N.bgCard, border: `1px solid ${N.accentBorder}`, boxShadow: `0 0 40px ${N.accentGlow}` }}>
-        <div className="text-5xl mb-4">🏆</div>
-        <h2 className="text-2xl font-black mb-2" style={{ color: N.accent }}>Match Completed</h2>
-        {match.winnerName && <p className="font-semibold mb-2" style={{ color: N.accentDim }}>{match.winnerName} won!</p>}
-        {match.resultSummary && <p className="mb-6" style={{ color: N.textSecondary }}>{match.resultSummary}</p>}
-        <button onClick={() => navigate(-1)} className="w-full py-3 rounded-xl font-black text-sm" style={{ background: N.accent, color: N.bg }}>Back to Match</button>
-      </div>
-    </div>
-  );
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-black"><div className="w-12 h-12 border-4 border-t-transparent border-green-500 rounded-full animate-spin" /></div>;
+  if (!match) return <div className="min-h-screen flex items-center justify-center bg-black"><p className="text-red-500 text-xl">Match not found</p></div>;
+  if (step === 'done') return <div className="min-h-screen bg-black flex justify-center items-center"><div className="text-green-500 font-bold text-2xl">Match Completed</div></div>;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: N.bg, color: N.textPrimary }}>
+    <div className="min-h-screen flex flex-col relative" style={{ background: N.bg, color: N.textPrimary }}>
       {showAnimConfig && <AnimConfigPanel cfg={animCfg} onChange={setAnimCfg} onClose={() => setShowAnimConfig(false)} />}
-
       {step === 'toss' && <TossModal match={match} onDone={handleTossDone} />}
       {(step === 'players' || step === 'playerSelect') && (
-        <PlayerSelectModal match={match} battingTeamId={currentBattingTeamId} bowlingTeamId={currentBowlingTeamId}
-          inningsNum={match.currentInnings || 1} title={step === 'players' ? 'Select Opening Players' : 'Player Selection'}
-          defaultStriker={defStriker} defaultNonStriker={defNonStriker} defaultBowler={defBowler}
-          currentInningsData={innings} onDone={handlePlayersDone}
-          onClose={step === 'playerSelect' ? () => setStep('scoring') : undefined} />
+        <PlayerSelectModal match={match} battingTeamId={currentBattingTeamId} bowlingTeamId={currentBowlingTeamId} inningsNum={match.currentInnings || 1} title={step === 'players' ? 'Select Opening Players' : 'Player Selection'} defaultStriker={defStriker} defaultNonStriker={defNonStriker} defaultBowler={defBowler} currentInningsData={innings} onDone={handlePlayersDone} onClose={step === 'playerSelect' ? () => setStep('scoring') : undefined} />
       )}
-      {step === 'inningsBreak' && <InningsBreak match={match} onContinue={() => setStep('playerSelect')} />}
+      {step === 'inningsBreak' && <InningsBreak match={match} onContinue={() => { fireTrigger('INNING_START'); setStep('playerSelect'); }} />}
+
+      {/* 3RD UMPIRE SCOREBOARD LOCK OVERLAY */}
+      {isDecisionPending && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
+          <div className="text-center p-8 rounded-3xl" style={{ border: `1px solid ${N.amber}`, background: N.bgCard, boxShadow: `0 0 50px ${N.amberDim}` }}>
+             <AlertTriangle className="w-20 h-20 mx-auto mb-6 text-amber-500 animate-pulse" />
+             <h2 className="text-3xl font-black text-amber-500 mb-8 uppercase tracking-widest">Decision Pending</h2>
+             <button onClick={toggleDecisionPending} className="px-8 py-4 bg-amber-500 text-black font-black text-lg rounded-2xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(245,158,11,0.5)]">
+                RESUME SCORING
+             </button>
+          </div>
+        </div>
+      )}
 
       {wicketModal.open && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
@@ -613,188 +528,69 @@ export default function LiveScoring() {
               <h3 className="text-lg font-black" style={{ color: N.red }}>⚡ Wicket Details</h3>
               <button onClick={() => setWicketModal({ open: false, baseData: {} })} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button>
             </div>
-            <label className="text-sm font-semibold mb-2 block" style={{ color: N.textSecondary }}>How out?</label>
             <div className="grid grid-cols-2 gap-2 mb-4">
               {WICKET_TYPES.map(wt => (
-                <button key={wt.id} onClick={() => setSelectedWicketType(wt.id)}
-                  className="py-2.5 px-3 rounded-xl text-sm font-semibold border transition-colors"
-                  style={{ background: selectedWicketType === wt.id ? N.red : N.redDim, borderColor: selectedWicketType === wt.id ? N.red : N.redBorder, color: selectedWicketType === wt.id ? '#fff' : '#fca5a5' }}>
-                  {wt.label}
-                </button>
+                <button key={wt.id} onClick={() => setSelectedWicketType(wt.id)} className="py-2.5 px-3 rounded-xl text-sm font-semibold border" style={{ background: selectedWicketType === wt.id ? N.red : N.redDim, borderColor: selectedWicketType === wt.id ? N.red : N.redBorder, color: selectedWicketType === wt.id ? '#fff' : '#fca5a5' }}>{wt.label}</button>
               ))}
             </div>
             {selectedWicketType && (
               <div className="pt-3 border-t" style={{ borderColor: N.border }}>
-                <label className="text-sm font-semibold mb-2 block" style={{ color: N.textSecondary }}>Who is out?</label>
                 <div className="flex gap-2 mb-4">
                   {(['striker', 'nonStriker'] as const).map(role => (
-                    <button key={role} onClick={() => setOutBatsman(role)}
-                      className="flex-1 py-2 rounded-xl text-sm font-bold border transition-colors"
-                      style={{ background: outBatsman === role ? N.redDim : N.bgElevated, borderColor: outBatsman === role ? N.red : N.border, color: outBatsman === role ? N.red : N.textSecondary }}>
-                      {role === 'striker' ? `Striker (${activeStriker?.name || '?'})` : `Non-Striker (${activeNonStriker?.name || '?'})`}
-                    </button>
+                    <button key={role} onClick={() => setOutBatsman(role)} className="flex-1 py-2 rounded-xl text-sm font-bold border" style={{ background: outBatsman === role ? N.redDim : N.bgElevated, borderColor: outBatsman === role ? N.red : N.border, color: outBatsman === role ? N.red : N.textSecondary }}>{role === 'striker' ? `Striker` : `Non-Striker`}</button>
                   ))}
                 </div>
-                {selectedWicketType === 'run_out' ? (
-                  <>
-                    <label className="text-sm font-semibold mb-2 block" style={{ color: N.textSecondary }}>Runs before run out?</label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {[0,1,2,3].map(r => (
-                        <button key={r} onClick={() => { setWicketModal({ open: false, baseData: {} }); submitBall({ ...wicketModal.baseData, runs: r, wicket: true, outType: 'run_out', outBatsmanName: outBatsman === 'striker' ? activeStriker?.name : activeNonStriker?.name }); }}
-                          className="py-3 rounded-xl text-sm font-bold"
-                          style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textPrimary }}>{r}</button>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <button onClick={() => { setWicketModal({ open: false, baseData: {} }); submitBall({ ...wicketModal.baseData, wicket: true, outType: selectedWicketType, outBatsmanName: outBatsman === 'striker' ? activeStriker?.name : activeNonStriker?.name }); }}
-                    className="w-full py-3 rounded-xl font-black text-sm"
-                    style={{ background: N.red, color: '#fff' }}>Confirm Wicket ⚡</button>
-                )}
+                <button onClick={() => { setWicketModal({ open: false, baseData: {} }); submitBall({ ...wicketModal.baseData, wicket: true, outType: selectedWicketType, outBatsmanName: outBatsman === 'striker' ? activeStriker?.name : activeNonStriker?.name }); }} className="w-full py-3 rounded-xl font-black text-sm" style={{ background: N.red, color: '#fff' }}>Confirm Wicket ⚡</button>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <div className="px-4 py-3 flex items-center justify-between shrink-0 border-b" style={{ background: N.bgCard, borderColor: N.border }}>
         <div>
           <h1 className="font-black text-sm" style={{ color: N.accent }}>{match.name}</h1>
           <p className="text-xs" style={{ color: N.textMuted }}>{match.venue} · {match.format}</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setShowAnimConfig(true)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold"
-            style={{ background: N.accentGlow, border: `1px solid ${N.accentBorder}`, color: N.accent }}>
-            <Settings className="w-3.5 h-3.5" /> Config
-          </button>
-          <button onClick={handleUndo} disabled={isActionDisabled}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-40"
-            style={{ background: N.amberDim, border: `1px solid ${N.amberBorder}`, color: N.amber }}>
-            <RotateCcw className="w-3.5 h-3.5" /> Undo
-          </button>
-          <button onClick={() => navigate(-1)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold"
-            style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textMuted }}>
-            <LogOut className="w-3.5 h-3.5" /> Leave
-          </button>
+          <button onClick={() => setShowAnimConfig(true)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: N.accentGlow, border: `1px solid ${N.accentBorder}`, color: N.accent }}><Settings className="w-3.5 h-3.5" /> Config</button>
         </div>
       </div>
 
-      {/* ── SCOREBOARD ─────────────────────────────────────────────────────── */}
       <div className="px-4 py-4 shrink-0 border-b" style={{ background: N.bgCard, borderColor: N.border }}>
         <div className="flex items-start justify-between mb-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: N.textMuted }}>
-              {innings?.teamName || match.team1Name} · Inn {match.currentInnings}
-            </p>
-            <div className="flex items-end gap-2">
-              <span className="text-5xl font-black leading-none" style={{ color: N.accent }}>{score}/{wickets}</span>
-              <span className="text-lg mb-0.5" style={{ color: N.textSecondary }}>({oversDisplay} ov)</span>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-xs mb-0.5" style={{ color: N.textMuted }}>Run Rate</div>
-            <div className="text-2xl font-black" style={{ color: N.accentDim }}>{runRate}</div>
-            {target && (
-              <div className="mt-1">
-                <div className="text-xs font-semibold" style={{ color: N.blue }}>Target {target}</div>
-                <div className="text-xs" style={{ color: N.textSecondary }}>Need {requiredRuns} @ {rrr}</div>
-              </div>
-            )}
+            <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: N.textMuted }}>{innings?.teamName || match.team1Name} · Inn {match.currentInnings}</p>
+            <div className="flex items-end gap-2"><span className="text-5xl font-black leading-none" style={{ color: N.accent }}>{score}/{wickets}</span><span className="text-lg mb-0.5" style={{ color: N.textSecondary }}>({oversDisplay} ov)</span></div>
           </div>
         </div>
-
-        <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1">
-          <span className="text-xs mr-1 font-semibold shrink-0" style={{ color: N.textMuted }}>Over:</span>
-          {thisOverBalls.map((b: any, i: number) => {
-            const isWide = b.extras === 'wide' || b.wide;
-            const isNoBall = b.extras === 'nb' || b.noBall || b.extras === 'noBall';
-            return (
-              <span key={i} className="min-w-[1.75rem] h-7 px-1.5 flex shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                style={{
-                  background: b.wicket ? N.red : (isWide || isNoBall) ? N.amber : b.runs === 4 ? '#2563eb' : b.runs === 6 ? '#7c3aed' : N.bgElevated,
-                  border: `1px solid ${b.wicket ? N.red : (isWide || isNoBall) ? N.amber : b.runs === 4 ? '#2563eb' : b.runs === 6 ? '#7c3aed' : N.border}`,
-                  color: (b.wicket || isWide || isNoBall || b.runs === 4 || b.runs === 6) ? '#fff' : N.textPrimary,
-                }}>
-                {b.wicket ? 'W' : isWide ? 'Wd' : isNoBall ? 'Nb' : (b.runs || '•')}
-              </span>
-            );
-          })}
-          {Array(Math.max(0, 6 - validBallsInOver)).fill(0).map((_, i) => (
-            <span key={`e-${i}`} className="min-w-[1.75rem] h-7 flex shrink-0 items-center justify-center rounded-full text-xs"
-              style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textMuted }}>·</span>
-          ))}
-        </div>
-
         <div className="grid grid-cols-3 gap-2 text-xs">
           {[
-            { label: '🏏 Striker', name: activeStriker?.name || match.strikerName || '–', stat: activeStriker ? `${activeStriker.runs}(${activeStriker.balls}) SR:${activeStriker.strikeRate?.toFixed(0) ?? '–'}` : '' },
-            { label: '⬤ Non-Str', name: activeNonStriker?.name || match.nonStrikerName || '–', stat: activeNonStriker ? `${activeNonStriker.runs}(${activeNonStriker.balls})` : '' },
-            { label: '🎳 Bowler', name: match.currentBowlerName || '–', stat: currentBowler ? `${Math.floor(currentBowler.balls/6)}.${currentBowler.balls%6}ov ${currentBowler.runs}R ${currentBowler.wickets}W` : '' },
+            { label: '🏏 Striker', name: activeStriker?.name || match.strikerName || '–' },
+            { label: '⬤ Non-Str', name: activeNonStriker?.name || match.nonStrikerName || '–' },
+            { label: '🎳 Bowler', name: match.currentBowlerName || '–' },
           ].map(p => (
             <div key={p.label} className="rounded-xl p-2.5" style={{ background: N.bgElevated, border: `1px solid ${N.border}` }}>
               <div className="mb-0.5 text-[11px]" style={{ color: N.textMuted }}>{p.label}</div>
               <div className="font-bold truncate" style={{ color: N.textPrimary }}>{p.name}</div>
-              {p.stat && <div className="mt-0.5 text-[11px]" style={{ color: N.accentDim }}>{p.stat}</div>}
             </div>
           ))}
         </div>
-
-        {lastBall && (
-          <div className="mt-2.5 text-center">
-            <span className="text-xs rounded-full px-3 py-1"
-              style={{ background: N.accentGlow, border: `1px solid ${N.accentBorder}`, color: N.accentDim }}>Last: {lastBall}</span>
-          </div>
-        )}
-        {(error || scorerError) && (
-          <div className="mt-2 rounded-lg px-3 py-2 flex items-center gap-2"
-            style={{ background: N.redDim, border: `1px solid ${N.redBorder}` }}>
-            <AlertTriangle className="w-4 h-4 shrink-0" style={{ color: N.red }} />
-            <span className="text-xs flex-1" style={{ color: '#fca5a5' }}>{error || scorerError}</span>
-            <button onClick={() => { setError(''); setScorerError(''); }} style={{ color: N.red }}><X className="w-3.5 h-3.5" /></button>
-          </div>
-        )}
       </div>
 
-      {/* ── SCORING PANELS ──────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto" style={{ background: N.bg }}>
-
         {panel === 'main' && (
           <div className="p-4 space-y-4">
-            <BroadcastPanel matchId={match._id} match={match} animCfg={animCfg} />
-
+            <BroadcastPanel fire={fireTrigger} match={match} />
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>Runs</p>
               <div className="grid grid-cols-3 gap-3 mb-3">
                 {[0, 1, 2, 3, 4, 6].map(r => (
-                  <button key={r} disabled={isActionDisabled} onClick={() => submitBall({ runs: r })}
-                    className={`py-5 rounded-2xl font-black text-2xl transition-all active:scale-95 disabled:opacity-40 shadow-lg`}
-                    style={{
-                      background: r === 4 ? '#1d4ed8' : r === 6 ? '#6d28d9' : N.bgElevated,
-                      border: `1px solid ${r === 4 ? '#2563eb' : r === 6 ? '#7c3aed' : N.border}`,
-                      color: r === 4 || r === 6 ? '#fff' : N.textPrimary,
-                      boxShadow: r === 4 ? '0 4px 20px rgba(37,99,235,0.3)' : r === 6 ? '0 4px 20px rgba(109,40,217,0.3)' : 'none',
-                    }}>
-                    {r === 0 ? '•' : r}
-                  </button>
+                  <button key={r} disabled={isActionDisabled} onClick={() => submitBall({ runs: r })} className={`py-5 rounded-2xl font-black text-2xl transition-all active:scale-95 disabled:opacity-40 shadow-lg`} style={{ background: r === 4 ? '#1d4ed8' : r === 6 ? '#6d28d9' : N.bgElevated, border: `1px solid ${r === 4 ? '#2563eb' : r === 6 ? '#7c3aed' : N.border}`, color: r === 4 || r === 6 ? '#fff' : N.textPrimary }}>{r === 0 ? '•' : r}</button>
                 ))}
-                <button onClick={toggleDecisionPending}
-                  className={`py-3 rounded-2xl font-black text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95`}
-                  style={{
-                    background: isDecisionPending ? N.amber : N.amberDim,
-                    border: `1px solid ${N.amberBorder}`,
-                    color: isDecisionPending ? N.bg : N.amber,
-                    boxShadow: isDecisionPending ? `0 0 20px ${N.amberBorder}` : 'none',
-                    animation: isDecisionPending ? 'pulse 1.5s infinite' : 'none',
-                  }}>
-                  <AlertTriangle className="w-5 h-5" />
-                  <span className="uppercase leading-tight text-center">{isDecisionPending ? 'Resume' : '3rd Umpire'}</span>
-                </button>
+                <button onClick={toggleDecisionPending} className={`py-3 rounded-2xl font-black text-xs flex flex-col items-center justify-center gap-1 transition-all active:scale-95`} style={{ background: isDecisionPending ? N.amber : N.amberDim, border: `1px solid ${N.amberBorder}`, color: isDecisionPending ? N.bg : N.amber, boxShadow: isDecisionPending ? `0 0 20px ${N.amberBorder}` : 'none', animation: isDecisionPending ? 'pulse 1.5s infinite' : 'none' }}><AlertTriangle className="w-5 h-5" /><span className="uppercase leading-tight text-center">3rd Umpire</span></button>
               </div>
             </div>
-
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>Extras & Wickets</p>
               <div className="grid grid-cols-2 gap-2">
@@ -804,94 +600,19 @@ export default function LiveScoring() {
                   { label: 'Bye', icon: 'B', panel: 'bye' as ScoringPanel, bg: '#0f3d3322', border: '#0d9488', color: '#5eead4' },
                   { label: 'Leg Bye', icon: 'LB', panel: 'legBye' as ScoringPanel, bg: '#0c2a3d22', border: '#0369a1', color: '#38bdf8' },
                 ].map(btn => (
-                  <button key={btn.label} disabled={isActionDisabled} onClick={() => setPanel(btn.panel)}
-                    className="py-3 px-4 rounded-xl font-bold text-sm border flex items-center gap-2 disabled:opacity-40"
-                    style={{ background: btn.bg, borderColor: btn.border, color: btn.color }}>
-                    <span className="font-black">{btn.icon}</span> {btn.label}
-                  </button>
+                  <button key={btn.label} disabled={isActionDisabled} onClick={() => setPanel(btn.panel)} className="py-3 px-4 rounded-xl font-bold text-sm border flex items-center gap-2 disabled:opacity-40" style={{ background: btn.bg, borderColor: btn.border, color: btn.color }}><span className="font-black">{btn.icon}</span> {btn.label}</button>
                 ))}
               </div>
             </div>
-
             <div className="grid grid-cols-2 gap-3">
-              <button disabled={isActionDisabled} onClick={() => openWicketModal({})}
-                className="py-4 rounded-2xl font-black text-lg active:scale-95 disabled:opacity-40 transition-all"
-                style={{ background: N.red, color: '#fff', boxShadow: `0 4px 20px ${N.redBorder}` }}>
-                OUT! 🎯
-              </button>
-              <button disabled={isActionDisabled} onClick={() => setPanel('others')}
-                className="py-4 rounded-2xl font-bold text-sm disabled:opacity-40"
-                style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}>
-                Others…
-              </button>
+              <button disabled={isActionDisabled} onClick={() => openWicketModal({})} className="py-4 rounded-2xl font-black text-lg active:scale-95 disabled:opacity-40 transition-all" style={{ background: N.red, color: '#fff', boxShadow: `0 4px 20px ${N.redBorder}` }}>OUT! 🎯</button>
+              <button disabled={isActionDisabled} onClick={() => setPanel('others')} className="py-4 rounded-2xl font-bold text-sm disabled:opacity-40" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}>Others…</button>
             </div>
           </div>
         )}
-
-        {panel === 'wide' && (
-          <div className="p-4 space-y-4">
-            <div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Wide Ball</h3></div>
-            <RunButtons onSelect={r => { setPanel('main'); submitBall({ wide: true, runs: r }); }} disabled={isActionDisabled} extraLabel="Wd" />
-            <div className="border-t pt-4" style={{ borderColor: N.border }}>
-              <button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ wide: true }); }}
-                className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40"
-                style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>
-                Wicket (Off Wide)
-              </button>
-            </div>
-          </div>
-        )}
-
-        {panel === 'noBall' && (
-          <div className="p-4 space-y-4">
-            <div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>No Ball</h3></div>
-            <RunButtons onSelect={r => { setPanel('main'); submitBall({ noBall: true, runs: r }); }} disabled={isActionDisabled} extraLabel="NB" />
-            <div className="border-t pt-4" style={{ borderColor: N.border }}>
-              <button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ noBall: true }); }}
-                className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40"
-                style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>
-                Run Out (Off No Ball)
-              </button>
-            </div>
-          </div>
-        )}
-
-        {panel === 'bye' && (
-          <div className="p-4 space-y-4">
-            <div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Byes</h3></div>
-            <div className="grid grid-cols-4 gap-2">
-              {[1,2,3,4].map(r => (
-                <button key={r} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ bye: r }); }}
-                  className="py-4 rounded-xl font-bold text-lg disabled:opacity-40"
-                  style={{ background: '#0f3d3322', border: '1px solid #0d9488', color: '#5eead4' }}>B{r}</button>
-              ))}
-            </div>
-            <div className="border-t pt-4" style={{ borderColor: N.border }}>
-              <button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ bye: 0 }); }}
-                className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40"
-                style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>Run Out (Off Bye)</button>
-            </div>
-          </div>
-        )}
-
-        {panel === 'legBye' && (
-          <div className="p-4 space-y-4">
-            <div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Leg Byes</h3></div>
-            <div className="grid grid-cols-4 gap-2">
-              {[1,2,3,4].map(r => (
-                <button key={r} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ legBye: r }); }}
-                  className="py-4 rounded-xl font-bold text-lg disabled:opacity-40"
-                  style={{ background: '#0c2a3d22', border: '1px solid #0369a1', color: '#38bdf8' }}>LB{r}</button>
-              ))}
-            </div>
-            <div className="border-t pt-4" style={{ borderColor: N.border }}>
-              <button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ legBye: 0 }); }}
-                className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40"
-                style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>Run Out (Off Leg Bye)</button>
-            </div>
-          </div>
-        )}
-
+        
+        {panel === 'wide' && <div className="p-4 space-y-4"><div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Wide Ball</h3></div><RunButtons onSelect={r => { setPanel('main'); submitBall({ wide: true, runs: r }); }} disabled={isActionDisabled} extraLabel="Wd" /><div className="border-t pt-4" style={{ borderColor: N.border }}><button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ wide: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40" style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>Wicket (Off Wide)</button></div></div>}
+        {panel === 'noBall' && <div className="p-4 space-y-4"><div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>No Ball</h3></div><RunButtons onSelect={r => { setPanel('main'); submitBall({ noBall: true, runs: r }); }} disabled={isActionDisabled} extraLabel="NB" /><div className="border-t pt-4" style={{ borderColor: N.border }}><button disabled={isActionDisabled} onClick={() => { setPanel('main'); openWicketModal({ noBall: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40" style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>Run Out (Off No Ball)</button></div></div>}
         {panel === 'others' && (
           <div className="p-4 space-y-3">
             <div className="flex items-center gap-2 mb-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Other Actions</h3></div>
@@ -901,58 +622,17 @@ export default function LiveScoring() {
               { label: '🚶 Retired Hurt (Non-Striker)', fn: () => handleRetirement('nonStriker'), color: N.bgElevated, border: N.border, text: N.textSecondary },
               { label: '🔄 Change Bowler / Players', fn: () => { setPanel('main'); setStep('playerSelect'); }, color: N.bgElevated, border: N.border, text: N.textSecondary },
             ].map(b => (
-              <button key={b.label} disabled={isActionDisabled} onClick={b.fn}
-                className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-left disabled:opacity-40"
-                style={{ background: b.color, border: `1px solid ${b.border}`, color: b.text }}>
-                {b.label}
-              </button>
+              <button key={b.label} disabled={isActionDisabled} onClick={b.fn} className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-left disabled:opacity-40" style={{ background: b.color, border: `1px solid ${b.border}`, color: b.text }}>{b.label}</button>
             ))}
-            <div className="pt-3 border-t" style={{ borderColor: N.border }}>
-              <p className="text-xs mb-2" style={{ color: N.textMuted }}>Penalty Runs</p>
-              <div className="grid grid-cols-5 gap-2">
-                {[1,2,3,4,5].map(p => (
-                  <button key={p} disabled={isActionDisabled} onClick={() => { setPanel('main'); submitBall({ penalty: p }); }}
-                    className="py-2 rounded-xl text-sm font-semibold disabled:opacity-40"
-                    style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}>+{p}</button>
-                ))}
-              </div>
-            </div>
             <div className="border-t pt-3 space-y-2" style={{ borderColor: N.border }}>
-              <button onClick={handleEndInnings} disabled={isActionDisabled}
-                className="w-full py-3 px-4 rounded-xl text-sm font-semibold disabled:opacity-40"
-                style={{ background: N.amberDim, border: `1px solid ${N.amberBorder}`, color: N.amber }}>
-                🔚 End Innings Manually
-              </button>
-              <button onClick={handleEndMatch} disabled={isActionDisabled}
-                className="w-full py-3 px-4 rounded-xl text-sm font-semibold disabled:opacity-40"
-                style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: N.red }}>
-                🏁 End Match
-              </button>
+              <button onClick={handleEndInnings} disabled={isActionDisabled} className="w-full py-3 px-4 rounded-xl text-sm font-semibold disabled:opacity-40" style={{ background: N.amberDim, border: `1px solid ${N.amberBorder}`, color: N.amber }}>🔚 End Innings Manually</button>
             </div>
           </div>
         )}
       </div>
-
-      {/* ── BOTTOM BAR ─────────────────────────────────────────────────────── */}
-      <div className="px-4 py-3 grid grid-cols-2 gap-3 shrink-0 border-t" style={{ background: N.bgCard, borderColor: N.border }}>
-        <button onClick={handleEndInnings} disabled={isActionDisabled}
-          className="py-3 rounded-xl font-semibold text-sm flex justify-center items-center gap-2 disabled:opacity-40"
-          style={{ background: N.amberDim, border: `1px solid ${N.amberBorder}`, color: N.amber }}>
-          <RefreshCw className="w-4 h-4" /> Change Innings
-        </button>
-        <button onClick={() => navigate(-1)}
-          className="py-3 rounded-xl font-semibold text-sm flex justify-center items-center gap-2"
-          style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}>
-          <LogOut className="w-4 h-4" /> Leave & Save
-        </button>
+      <div className="px-4 py-3 grid grid-cols-1 gap-3 shrink-0 border-t" style={{ background: N.bgCard, borderColor: N.border }}>
+        <button onClick={() => navigate(-1)} className="py-3 rounded-xl font-semibold text-sm flex justify-center items-center gap-2" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}><LogOut className="w-4 h-4" /> Leave & Save</button>
       </div>
-
-      {submitting && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 rounded-full px-4 py-2 text-sm flex items-center gap-2 shadow-xl z-40"
-          style={{ background: N.bgCard, border: `1px solid ${N.accentBorder}`, color: N.accentDim }}>
-          <div className="w-3 h-3 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: N.accent, borderTopColor: 'transparent' }} /> Recording…
-        </div>
-      )}
     </div>
   );
 }
