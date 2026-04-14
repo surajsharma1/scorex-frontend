@@ -456,7 +456,15 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
                   </div>
                 </div>
                 <button
-                  onClick={() => { socket.emit('resolveDecisionPending', { matchId }); matchAPI.getMatch(matchId).then(r => setMatch(r.data.data)); }}
+                  onClick={() => { 
+                    socket.emit('resolveDecisionPending', { matchId }); 
+                    matchAPI.getMatch(matchId).then(r => setMatch(r.data.data));
+                    // Trigger overlay animation (like PreviewStudio)
+                    window.parent.postMessage({ 
+                      type: 'OVERLAY_TRIGGER', 
+                      payload: { type: 'DECISION_PENDING' } 
+                    }, '*');
+                  }}
                   className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95"
                   style={{ background: '#ca8a04', color: '#000' }}>
                   Resolve Decision
