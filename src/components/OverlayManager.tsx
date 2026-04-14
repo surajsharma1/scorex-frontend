@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   Eye, Trash2, Copy, X, Settings, Timer, Plus, Sparkles, Tag,
   ChevronRight, Star, ImageOff, Building2, Check, Monitor,
-  ZoomIn, ZoomOut, RotateCcw, MonitorPlay, Lock, RefreshCw
+  ZoomIn, ZoomOut, RotateCcw, MonitorPlay, Activity, Lock, RefreshCw
 } from 'lucide-react';
 import { overlayAPI, matchAPI } from '../services/api';
 import { useAuth } from '../App';
@@ -109,7 +109,7 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="border border-[var(--border)] rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[88vh]" style={{ background: 'var(--bg-card)' }}>
+      <div className=" border rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[88vh]">
         <div className="p-4 sm:p-5 border-b flex justify-between items-center shrink-0">
           <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full sm:hidden" />
           <div className="flex items-center gap-3 mt-1 sm:mt-0">
@@ -117,7 +117,7 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
               <Settings className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-black" style={{ color: 'var(--text-primary)' }}>Overlay Settings</h3>
+              <h3 className="text-sm sm:text-base font-black text-white">Overlay Settings</h3>
               <p className="text-[10px] sm:text-[11px] ">Automations & sponsors</p>
             </div>
           </div>
@@ -145,7 +145,7 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
                     <div className="flex items-center gap-2">
                       <input type="number" min="1" max={max} value={(globalConfig as any)[key]}
                         onChange={e => setGlobalConfig({ ...globalConfig, [key]: Math.min(max, Number(e.target.value)) })}
-                        className="flex-1 p-2 border rounded-lg text-sm outline-none focus:border-[var(--accent)] transition-all" style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+                        className="flex-1 p-2 bg-black/60 border text-white rounded-lg text-sm outline-none focus:border-blue-500 transition-all" />
                       <span className="text-xs font-bold shrink-0">{unit}</span>
                     </div>
                   </div>
@@ -155,14 +155,14 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
                 <div className="p-3 sm:p-4 border rounded-xl">
                   <label className="block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2">Batting Card (Every N Overs)</label>
                   <div className="flex items-center gap-2">
-                    <input type="number" min="0" value={globalConfig.autoBattingOvers} onChange={e => setGlobalConfig({ ...globalConfig, autoBattingOvers: Number(e.target.value) })} className="flex-1 p-2 border rounded-lg text-sm outline-none focus:border-[var(--accent)]" style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+                    <input type="number" min="0" value={globalConfig.autoBattingOvers} onChange={e => setGlobalConfig({ ...globalConfig, autoBattingOvers: Number(e.target.value) })} className="flex-1 p-2 bg-black/60 border text-white rounded-lg text-sm outline-none focus:border-blue-500" />
                     <span className="text-xs font-bold shrink-0">ov (0=off)</span>
                   </div>
                 </div>
                 <div className="p-3 sm:p-4 border rounded-xl">
                   <label className="block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2">Bowling Card (Every N Overs)</label>
                   <div className="flex items-center gap-2">
-                    <input type="number" min="0" value={globalConfig.autoBowlingOvers} onChange={e => setGlobalConfig({ ...globalConfig, autoBowlingOvers: Number(e.target.value) })} className="flex-1 p-2 border rounded-lg text-sm outline-none focus:border-[var(--accent)]" style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+                    <input type="number" min="0" value={globalConfig.autoBowlingOvers} onChange={e => setGlobalConfig({ ...globalConfig, autoBowlingOvers: Number(e.target.value) })} className="flex-1 p-2 bg-black/60 border text-white rounded-lg text-sm outline-none focus:border-blue-500" />
                     <span className="text-xs font-bold shrink-0">ov (0=off)</span>
                   </div>
                 </div>
@@ -170,7 +170,7 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
               <div className="p-3 sm:p-4 border rounded-xl">
                 <label className="block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2">When Both Cards Trigger on Same Over</label>
                 <select value={globalConfig.autoStatsStyle} onChange={e => setGlobalConfig({ ...globalConfig, autoStatsStyle: e.target.value as any })}
-                  className="w-full p-2 border rounded-lg text-sm outline-none focus:border-[var(--accent)] transition-all" style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
+                  className="w-full p-2 bg-black/60 border text-white rounded-lg text-sm outline-none focus:border-blue-500 transition-all">
                   <option value="TOGETHER">Show Both Together</option>
                   <option value="SEQUENTIAL">Sequential (Batting → Bowling)</option>
                 </select>
@@ -182,7 +182,7 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
             <div className="space-y-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Sponsor Branding</p>
+                  <p className="text-sm font-bold text-white">Sponsor Branding</p>
                   <p className="text-xs mt-0.5">Names shown inside overlay templates.</p>
                 </div>
                 <button onClick={addSponsor} className="flex items-center gap-1.5 px-3 py-2 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-xs font-bold hover:bg-green-500/20 transition-all shrink-0">
@@ -192,7 +192,7 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
               <div className="p-3 sm:p-4 border rounded-xl">
                 <label className="block text-[11px] font-bold uppercase tracking-wider mb-2">Display Duration</label>
                 <div className="flex items-center gap-2">
-                  <input type="number" value={sponsorConfig.showDuration} onChange={e => setSponsorConfig({ ...sponsorConfig, showDuration: Number(e.target.value) })} className="w-20 p-2 border rounded-lg text-sm outline-none focus:border-[var(--accent)]" style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+                  <input type="number" value={sponsorConfig.showDuration} onChange={e => setSponsorConfig({ ...sponsorConfig, showDuration: Number(e.target.value) })} className="w-20 p-2 bg-black/60 border text-white rounded-lg text-sm outline-none focus:border-blue-500" />
                   <span className="text-xs font-bold">seconds each</span>
                 </div>
               </div>
@@ -208,7 +208,7 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
                     <div className="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
                       <Star className="w-3 h-3 text-amber-400" />
                     </div>
-                    <input type="text" placeholder="Sponsor name" value={sp.name} onChange={e => updateSponsor(i, 'name', e.target.value)} className="flex-1 min-w-0 bg-transparent text-sm outline-none border-b pb-0.5 transition-all" style={{ color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
+                    <input type="text" placeholder="Sponsor name" value={sp.name} onChange={e => updateSponsor(i, 'name', e.target.value)} className="flex-1 min-w-0 bg-transparent text-sm text-white placeholder-gray-600 outline-none border-b focus:border-blue-500 pb-0.5 transition-all" />
                     <input type="text" placeholder="Tagline" value={sp.tagline} onChange={e => updateSponsor(i, 'tagline', e.target.value)} className="flex-1 min-w-0 bg-transparent text-sm placeholder-gray-700 outline-none border-b focus:border-blue-500 pb-0.5 transition-all hidden sm:block" />
                     <button onClick={() => removeSponsor(i)} className="p-1.5 rounded-lg hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0">
                       <X className="w-3.5 h-3.5" />
@@ -222,7 +222,7 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
 
         <div className="p-3 sm:p-4 border-t shrink-0 flex gap-3 ">
           <button onClick={onClose} className="flex-1 py-3 rounded-xl border hover:bg-white/10 font-bold text-sm transition-all">Cancel</button>
-          <button onClick={onSave} className="flex-1 py-3 rounded-xl font-black text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg" style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}>
+          <button onClick={onSave} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg">
             <Check className="w-4 h-4" /> Save
           </button>
         </div>
@@ -437,6 +437,35 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
     const templateFilename = getTemplateFilename(activePreview);
     const level = templateFilename.startsWith('lvl2') ? '2' : '1';
 
+    const TRIGGER_BTNS = level === '2' ? [
+      { label: '▶ VS Screen',      type: 'SHOW_VS_SCREEN',   color: '#3b82f6' },
+      { label: '🪙 Toss',          type: 'SHOW_TOSS',        color: '#f59e0b' },
+      { label: '🧑‍🤝‍🧑 Playing XI', type: 'SHOW_SQUADS',      color: '#8b5cf6' },
+      { label: '🏏 Innings Intro', type: 'INNING_START',     color: '#06b6d4' },
+      { label: '4️⃣ FOUR',         type: 'FOUR',             color: '#3b82f6' },
+      { label: '6️⃣ SIX',          type: 'SIX',              color: '#22c55e' },
+      { label: '🎯 WICKET',        type: 'WICKET',           color: '#ef4444' },
+      { label: '⚖️ 3rd Umpire',   type: 'DECISION_PENDING', color: '#f59e0b' },
+      { label: '🏏 Bat Card',      type: 'BATTING_SUMMARY',  color: '#60a5fa' },
+      { label: '🎳 Bowl Card',     type: 'BOWLING_SUMMARY',  color: '#818cf8' },
+      { label: '📊 Both Cards',    type: 'BOTH_CARDS',       color: '#c084fc' },
+      { label: '👤 Bat Profile',   type: 'BATSMAN_PROFILE',  color: '#34d399' },
+      { label: '👤 Bowl Profile',  type: 'BOWLER_PROFILE',   color: '#2dd4bf' },
+      { label: '🔄 New Bowler',    type: 'NEW_BOWLER',       color: '#a78bfa' },
+      { label: '🏃 Wicket Switch', type: 'WICKET_SWITCH',    color: '#f87171' },
+      { label: '5️⃣0️⃣ 50 Runs',   type: '50_RUNS',          color: '#fbbf24' },
+      { label: '💯 100 Runs',      type: '100_RUNS',         color: '#f59e0b' },
+      { label: '🔚 Inns Break',    type: 'INNINGS_BREAK',    color: '#38bdf8' },
+      { label: '🏆 Match End',     type: 'MATCH_WIN',        color: '#fb923c' },
+      { label: '↩ Restore Live',   type: 'RESTORE',          color: '#6b7280' },
+    ] : [
+      { label: '4️⃣ FOUR',         type: 'FOUR',             color: '#3b82f6' },
+      { label: '6️⃣ SIX',          type: 'SIX',              color: '#22c55e' },
+      { label: '🎯 WICKET',        type: 'WICKET',           color: '#ef4444' },
+      { label: '⚖️ 3rd Umpire',   type: 'DECISION_PENDING', color: '#f59e0b' },
+      { label: '↩ Restore Live',   type: 'RESTORE',          color: '#6b7280' },
+    ];
+
     return createPortal(
       <div className="fixed inset-0 z-[9999] backdrop-blur-md flex flex-col" style={{ background: 'rgba(0,0,0,0.97)' }}>
         {/* Top bar */}
@@ -499,17 +528,37 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
           </div>
         </div>
 
-        {/* Bottom bar — OBS URL only */}
+        {/* Bottom bar — OBS URL + Animation Triggers */}
         <div className="shrink-0 border-t" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-          <div className="px-3 sm:px-4 py-3 flex items-center gap-3">
-            <span className="text-[10px] font-black uppercase tracking-widest shrink-0" style={{ color: 'var(--text-muted)' }}>OBS URL</span>
-            <code className="flex-1 text-[10px] font-mono truncate" style={{ color: 'var(--text-muted)' }}>{generateOverlayUrl(activePreview)}</code>
+          {/* OBS URL row */}
+          <div className="px-3 sm:px-4 py-2 flex items-center gap-2 border-b" style={{ borderColor: 'var(--border)' }}>
+            <span className="text-[10px] font-black uppercase tracking-widest shrink-0" style={{ color: 'var(--text-muted)' }}>OBS URL:</span>
             <button
               onClick={() => { navigator.clipboard.writeText(generateOverlayUrl(activePreview)); addToast({ type: 'success', message: 'OBS URL Copied!' }); }}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs transition-all shrink-0"
-              style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}>
-              <Copy className="w-3.5 h-3.5" /> Copy for OBS
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold text-[11px] transition-all border"
+              style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', borderColor: 'var(--border)' }}>
+              <Copy className="w-3 h-3" /> Copy OBS URL
             </button>
+          </div>
+          {/* Animation trigger buttons */}
+          <div className="px-3 sm:px-4 py-2.5 overflow-x-auto">
+            <div className="text-[10px] font-black uppercase tracking-widest mb-2 flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+              <Activity className="w-3 h-3 text-red-400" /> Animation Triggers
+            </div>
+            <div className="flex gap-1.5 flex-wrap">
+              {TRIGGER_BTNS.map(btn => (
+                <button
+                  key={btn.type}
+                  onClick={() => fireTrigger(btn.type)}
+                  className="px-2.5 py-1.5 rounded-lg font-bold text-[11px] border transition-all active:scale-95 whitespace-nowrap"
+                  style={{ background: `${btn.color}18`, borderColor: `${btn.color}40`, color: btn.color }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${btn.color}30`; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = `${btn.color}18`; }}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>,

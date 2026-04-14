@@ -92,36 +92,7 @@
     if (!isPlayingAnim) processQueue();
   }
 
-  function _queueInningIntroWhenReady(flat, matchObj) {
-    // If all three players are known, queue immediately
-    if (flat.strikerName && flat.currentBowlerName) {
-      queueAnimation('START_INNINGS_INTRO', {
-        striker:    flat.strikerName,
-        nonStriker: flat.nonStrikerName,
-        bowler:     flat.currentBowlerName
-      }, cfg.introDuration);
-      return;
-    }
-    // Otherwise poll up to ~15s for player selection to complete
-    var attempts = 0;
-    var maxAttempts = 15;
-    var checker = setInterval(function() {
-      attempts++;
-      var d = matchData || {};
-      if ((d.strikerName && d.currentBowlerName) || attempts >= maxAttempts) {
-        clearInterval(checker);
-        if (d.strikerName || d.currentBowlerName) {
-          queueAnimation('START_INNINGS_INTRO', {
-            striker:    d.strikerName    || flat.strikerName    || '',
-            nonStriker: d.nonStrikerName || flat.nonStrikerName || '',
-            bowler:     d.currentBowlerName || flat.currentBowlerName || ''
-          }, cfg.introDuration);
-        }
-      }
-    }, 1000);
-  }
-
-
+  function _doTossSequence(flat, matchObj) {
     var t1p = (matchObj.team1 && matchObj.team1.players) ? matchObj.team1.players : (flat.team1Players || []);
     var t2p = (matchObj.team2 && matchObj.team2.players) ? matchObj.team2.players : (flat.team2Players || []);
     var t1n = (matchObj.team1 && matchObj.team1.name) ? matchObj.team1.name : flat.team1Name;
@@ -137,11 +108,11 @@
         
         setTimeout(function() { 
           state = 'LIVE'; dispatch('RESTORE', {}); 
-          if (cfg.showInningIntro) _queueInningIntroWhenReady(flat, matchObj);
+          if (cfg.showInningIntro) queueAnimation('START_INNINGS_INTRO', { striker: flat.strikerName, nonStriker: flat.nonStrikerName, bowler: flat.currentBowlerName }, cfg.introDuration);
         }, cfg.squadDuration * 1000);
       } else { 
         state = 'LIVE'; dispatch('RESTORE', {}); 
-        if (cfg.showInningIntro) _queueInningIntroWhenReady(flat, matchObj);
+        if (cfg.showInningIntro) queueAnimation('START_INNINGS_INTRO', { striker: flat.strikerName, nonStriker: flat.nonStrikerName, bowler: flat.currentBowlerName }, cfg.introDuration);
       }
     }, cfg.tossDuration * 1000);
   }
@@ -206,24 +177,18 @@
 
       case 'OVER_COMPLETE':
         var over = data.overNumber || 0;
-        var wantBat  = cfg.autoBattingOvers  > 0 && over % cfg.autoBattingOvers  === 0 && cfg.showBattingSummary;
-        var wantBowl = cfg.autoBowlingOvers > 0 && over % cfg.autoBowlingOvers === 0 && cfg.showBowlingSummary;
-        if (wantBat && wantBowl) {
-          // Show both columns side-by-side in a single card
-          queueAnimation('BOTH_CARDS', richData, cfg.summaryDuration);
-        } else if (wantBat) {
+        if (cfg.autoBattingOvers > 0 && over % cfg.autoBattingOvers === 0 && cfg.showBattingSummary) {
           queueAnimation('BATTING_CARD', richData, cfg.summaryDuration);
-        } else if (wantBowl) {
+        }
+        if (cfg.autoBowlingOvers > 0 && over % cfg.autoBowlingOvers === 0 && cfg.showBowlingSummary) {
           queueAnimation('BOWLING_CARD', richData, cfg.summaryDuration);
         }
         break;
 
       case 'DECISION_PENDING': 
-        if (!cfg.showDecision && !isManual) return;
-        // Support explicit active flag, default to toggling current state
-        decisionPending = (data.active !== undefined) ? !!data.active : !decisionPending;
-        if (decisionPending) { 
-          animQueue = []; // clear queue while umpire decides
+        if (!cfg.showDecision && !isManual) return; 
+        decisionPending = data.active; 
+        if(decisionPending) { 
           isPlayingAnim = true; dispatch('DECISION_PENDING', richData, 0); // Indefinite lock
         } else { 
           isPlayingAnim = false; dispatch('RESTORE', {}); processQueue(); 
@@ -243,37 +208,11 @@
           if (cfg.showInningIntro) queueAnimation('START_INNINGS_INTRO', richData, cfg.introDuration);
         }); break;
 
-      case 'START_INNINGS_INTRO':
-        // Ensure bowler is populated from flat match data if not in data payload
-        var introData = Object.assign({
-          striker:    flat.strikerName    || '',
-          nonStriker: flat.nonStrikerName || '',
-          bowler:     flat.currentBowlerName || ''
-        }, richData);
-        queueAnimation('START_INNINGS_INTRO', introData, dur); break;
+      case 'START_INNINGS_INTRO': queueAnimation('START_INNINGS_INTRO', richData, dur); break;
 
       case 'MATCH_END':        
         if (!cfg.showMatchEnd && !isManual) return;
-        // Build per-team innings data so the template can flip between them
-        var matchObj2 = data.match || flat.match || flat;
-        var innings1 = (matchObj2.innings && matchObj2.innings[0]) || {};
-        var innings2 = (matchObj2.innings && matchObj2.innings[1]) || {};
-        var buildTeam = function(inn, matchObj3) {
-          var teamName = inn.teamName || '';
-          var bats = (inn.batsmen || []).map(function(b) {
-            return { name: b.name, runs: b.runs||0, balls: b.balls||0, fours: b.fours||0, sixes: b.sixes||0, sr: b.strikeRate||0, isOut: b.isOut||false };
-          });
-          var bowls = (inn.bowlers || []).map(function(b) {
-            var ov = b.balls ? (Math.floor(b.balls/6) + '.' + (b.balls%6)) : '0.0';
-            return { name: b.name, overs: ov, maidens: b.maidens||0, runs: b.runs||0, wickets: b.wickets||0, economy: b.economy||0 };
-          });
-          return { name: teamName, batsmen: bats, bowlers: bowls };
-        };
-        var matchEndData = Object.assign({}, richData, {
-          team1: buildTeam(innings1, matchObj2),
-          team2: buildTeam(innings2, matchObj2)
-        });
-        queueAnimation('MATCH_END', matchEndData, cfg.matchSummaryDuration); break;
+        queueAnimation('MATCH_END', richData, cfg.matchSummaryDuration); break;
 
       case 'RESTORE':          
         decisionPending = false; isPlayingAnim = false; animQueue = []; dispatch('RESTORE', {}); break;

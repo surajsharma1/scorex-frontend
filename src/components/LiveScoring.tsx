@@ -182,11 +182,20 @@ function BroadcastPanel({ fire, match }: any) {
   const buildBatSummary = () => batsmen.map((b: any) => ({ name: b.name, runs: b.runs||0, balls: b.balls||0, fours: b.fours||0, sixes: b.sixes||0, sr: b.strikeRate||0, outStatus: b.isOut?'out':'not_out' }));
   const buildBowlSummary = () => bowlers.map((b: any) => ({ name: b.name, overs: b.balls?`${Math.floor(b.balls/6)}.${b.balls%6}`:'0.0', maidens: 0, runs: b.runs||0, wkts: b.wickets||0, econ: b.economy||0 }));
 
+  const activeStriker = batsmen.find((b: any) => b.name === match?.strikerName);
+  const currentBowler = bowlers.find((b: any) => b.name === match?.currentBowlerName);
+
   const triggers = [
+    { label: '📺 VS Screen',    fn: () => fire('VS_SCREEN', { team1: match?.team1?.name || match?.team1Name, team2: match?.team2?.name || match?.team2Name }, 10) },
+    { label: '🪙 Toss Card',    fn: () => fire('SHOW_TOSS', { text: (match?.tossWinnerName || "TEAM") + " WON TOSS", team1Players: match?.team1?.players, team2Players: match?.team2?.players }, 8) },
+    { label: '👥 Playing XI',   fn: () => fire('SHOW_SQUADS', { team1Name: match?.team1?.name, team2Name: match?.team2?.name, team1Players: match?.team1?.players, team2Players: match?.team2?.players }, 10) },
+    { label: '🏏 Inning Intro',  fn: () => fire('START_INNINGS_INTRO', { striker: activeStriker?.name || match?.strikerName, nonStriker: match?.nonStrikerName, bowler: match?.currentBowlerName }, 8) },
+    { label: '👤 Batsman Profile', fn: () => fire('BATSMAN_PROFILE', { title: "CURRENT BATSMAN", stats: [{label:"BATSMAN", value: activeStriker?.name}, {label:"RUNS", value: `${activeStriker?.runs||0} (${activeStriker?.balls||0})`}, {label:"STRIKE RATE", value: activeStriker?.strikeRate||0}] }, 8) },
+    { label: '👤 Bowler Profile',  fn: () => fire('BOWLER_PROFILE', { title: "CURRENT BOWLING SPELL", stats: [{label:"BOWLER", value: currentBowler?.name}, {label:"OVERS", value: `${Math.floor((currentBowler?.balls||0)/6)}.${(currentBowler?.balls||0)%6}`}, {label:"FIGURES", value: `${currentBowler?.wickets||0} - ${currentBowler?.runs||0}`}] }, 8) },
     { label: '🎯 Batting Card',  fn: () => fire('BATTING_CARD', { batsmen: buildBatSummary() }, 12) },
     { label: '🎳 Bowling Card',  fn: () => fire('BOWLING_CARD', { bowlers: buildBowlSummary() }, 12) },
-    { label: '📊 Both Cards',    fn: () => fire('BOTH_CARDS', { batsmen: buildBatSummary(), bowlers: buildBowlSummary() }, 12) },
-    { label: '↩ Restore State', fn: () => fire('RESTORE') },
+    { label: '🎯+🎳 Both Cards', fn: () => fire('BOTH_CARDS', { batsmen: buildBatSummary(), bowlers: buildBowlSummary() }, 12) },
+    { label: '🔄 Recover State',  fn: () => fire('RESTORE') },
   ];
 
   return (
@@ -333,8 +342,6 @@ export default function LiveScoring() {
 
   const handleRetirement = (type: 'striker' | 'nonStriker') => {
     const retiredName = type === 'striker' ? match?.strikerName : match?.nonStrikerName;
-    // Fire retired animation overlay before changing players
-    fireTrigger('WICKET', { playerName: retiredName, outType: 'Retired Hurt', runs: type === 'striker' ? (activeStriker?.runs || 0) : (activeNonStriker?.runs || 0), isRetired: true }, 6);
     setPanel('main'); setStep('playerSelect');
     submitBall({ retired: true, outBatsmanName: retiredName });
   };
