@@ -108,11 +108,32 @@
         
         setTimeout(function() { 
           state = 'LIVE'; dispatch('RESTORE', {}); 
-          if (cfg.showInningIntro) queueAnimation('START_INNINGS_INTRO', { striker: flat.strikerName, nonStriker: flat.nonStrikerName, bowler: flat.currentBowlerName }, cfg.introDuration);
+          if (cfg.showInningIntro) {
+            // Poll until currentBowlerName is known (player selection may not be done yet)
+            var attempts = 0;
+            var waitForBowler = setInterval(function() {
+              var d = matchData || flat;
+              attempts++;
+              if ((d.strikerName && d.currentBowlerName) || attempts >= 15) {
+                clearInterval(waitForBowler);
+                queueAnimation('START_INNINGS_INTRO', { striker: d.strikerName || flat.strikerName || '', nonStriker: d.nonStrikerName || flat.nonStrikerName || '', bowler: d.currentBowlerName || flat.currentBowlerName || '' }, cfg.introDuration);
+              }
+            }, 1000);
+          }
         }, cfg.squadDuration * 1000);
       } else { 
         state = 'LIVE'; dispatch('RESTORE', {}); 
-        if (cfg.showInningIntro) queueAnimation('START_INNINGS_INTRO', { striker: flat.strikerName, nonStriker: flat.nonStrikerName, bowler: flat.currentBowlerName }, cfg.introDuration);
+        if (cfg.showInningIntro) {
+          var attempts2 = 0;
+          var waitForBowler2 = setInterval(function() {
+            var d2 = matchData || flat;
+            attempts2++;
+            if ((d2.strikerName && d2.currentBowlerName) || attempts2 >= 15) {
+              clearInterval(waitForBowler2);
+              queueAnimation('START_INNINGS_INTRO', { striker: d2.strikerName || flat.strikerName || '', nonStriker: d2.nonStrikerName || flat.nonStrikerName || '', bowler: d2.currentBowlerName || flat.currentBowlerName || '' }, cfg.introDuration);
+            }
+          }, 1000);
+        }
       }
     }, cfg.tossDuration * 1000);
   }
@@ -177,19 +198,23 @@
 
       case 'OVER_COMPLETE':
         var over = data.overNumber || 0;
-        if (cfg.autoBattingOvers > 0 && over % cfg.autoBattingOvers === 0 && cfg.showBattingSummary) {
+        var wantBat  = cfg.autoBattingOvers  > 0 && over % cfg.autoBattingOvers  === 0 && cfg.showBattingSummary;
+        var wantBowl = cfg.autoBowlingOvers > 0 && over % cfg.autoBowlingOvers === 0 && cfg.showBowlingSummary;
+        if (wantBat && wantBowl) {
+          queueAnimation('BOTH_CARDS', richData, cfg.summaryDuration);
+        } else if (wantBat) {
           queueAnimation('BATTING_CARD', richData, cfg.summaryDuration);
-        }
-        if (cfg.autoBowlingOvers > 0 && over % cfg.autoBowlingOvers === 0 && cfg.showBowlingSummary) {
+        } else if (wantBowl) {
           queueAnimation('BOWLING_CARD', richData, cfg.summaryDuration);
         }
         break;
 
       case 'DECISION_PENDING': 
         if (!cfg.showDecision && !isManual) return; 
-        decisionPending = data.active; 
-        if(decisionPending) { 
-          isPlayingAnim = true; dispatch('DECISION_PENDING', richData, 0); // Indefinite lock
+        // Use explicit active flag if provided, otherwise toggle current state
+        decisionPending = (typeof data.active !== 'undefined') ? !!data.active : !decisionPending;
+        if (decisionPending) { 
+          animQueue = []; isPlayingAnim = true; dispatch('DECISION_PENDING', richData, 0); // Indefinite lock
         } else { 
           isPlayingAnim = false; dispatch('RESTORE', {}); processQueue(); 
         }
@@ -208,11 +233,39 @@
           if (cfg.showInningIntro) queueAnimation('START_INNINGS_INTRO', richData, cfg.introDuration);
         }); break;
 
-      case 'START_INNINGS_INTRO': queueAnimation('START_INNINGS_INTRO', richData, dur); break;
+      case 'START_INNINGS_INTRO':
+        // Ensure striker/nonStriker/bowler are populated from flat match data if not in trigger payload
+        var introData = Object.assign(
+          { striker: flat.strikerName || '', nonStriker: flat.nonStrikerName || '', bowler: flat.currentBowlerName || '' },
+          richData
+        );
+        queueAnimation('START_INNINGS_INTRO', introData, dur); break;
 
       case 'MATCH_END':        
         if (!cfg.showMatchEnd && !isManual) return;
-        queueAnimation('MATCH_END', richData, cfg.matchSummaryDuration); break;
+        // Build team1/team2 from innings data so template flip() has batsmen & bowlers
+        (function() {
+          var rawMatch = (data.match || flat.match || flat);
+          var inn1 = (rawMatch.innings && rawMatch.innings[0]) || {};
+          var inn2 = (rawMatch.innings && rawMatch.innings[1]) || {};
+          var buildTeam = function(inn) {
+            return {
+              name: inn.teamName || '',
+              batsmen: (inn.batsmen || []).map(function(b) {
+                return { name: b.name, runs: b.runs||0, balls: b.balls||0, fours: b.fours||0, sixes: b.sixes||0, sr: b.strikeRate||0, isOut: b.isOut||false };
+              }),
+              bowlers: (inn.bowlers || []).map(function(b) {
+                return { name: b.name, overs: b.balls ? (Math.floor(b.balls/6) + '.' + (b.balls%6)) : '0.0', maidens: b.maidens||0, runs: b.runs||0, wickets: b.wickets||0, economy: b.economy||0 };
+              })
+            };
+          };
+          var matchEndData = Object.assign({}, richData, {
+            team1: richData.team1 || buildTeam(inn1),
+            team2: richData.team2 || buildTeam(inn2)
+          });
+          queueAnimation('MATCH_END', matchEndData, cfg.matchSummaryDuration);
+        })();
+        break;
 
       case 'RESTORE':          
         decisionPending = false; isPlayingAnim = false; animQueue = []; dispatch('RESTORE', {}); break;

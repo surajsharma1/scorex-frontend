@@ -149,22 +149,47 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
             {expandedTeam === team._id && (
               <div className="p-4 sm:p-6 bg-[var(--bg-primary)]/50">
                 {/* Roster Array */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-                  {team.players?.map((p: any) => (
-                    <div key={p._id} className="flex items-center justify-between p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] group">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center text-xs font-bold text-[var(--text-secondary)]">
-                          {p.jerseyNumber || '--'}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mb-6">
+                  {team.players?.map((p: any, idx: number) => {
+                    const roleColors: Record<string, { bg: string; text: string; label: string }> = {
+                      'batsman':       { bg: 'rgba(59,130,246,0.12)',  text: '#60a5fa', label: 'BAT' },
+                      'bowler':        { bg: 'rgba(239,68,68,0.12)',   text: '#f87171', label: 'BOWL' },
+                      'all-rounder':   { bg: 'rgba(34,197,94,0.12)',   text: '#4ade80', label: 'AR' },
+                      'wicket-keeper': { bg: 'rgba(245,158,11,0.12)',  text: '#fbbf24', label: 'WK' },
+                    };
+                    const rc = roleColors[p.role?.toLowerCase()] || { bg: 'rgba(148,163,184,0.1)', text: '#94a3b8', label: (p.role || 'PLR').toUpperCase().slice(0,4) };
+                    return (
+                      <div key={p._id} className="group relative flex items-center gap-3 p-3 rounded-xl border transition-all hover:border-[var(--accent)]/20"
+                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                        {/* Jersey number badge */}
+                        <div className="relative flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm"
+                          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--accent)' }}>
+                          {p.jerseyNumber || idx + 1}
+                          <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center" style={{ borderColor: 'var(--bg-card)', background: rc.text }}>
+                          </span>
                         </div>
-                        <div>
-                          <p className="font-bold text-sm text-[var(--text-primary)] truncate max-w-[150px]">{p.name}</p>
-                          <p className="text-[10px] uppercase tracking-wider text-green-400 font-semibold">{p.role}</p>
+                        {/* Name + role */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{p.name}</p>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider mt-0.5"
+                            style={{ background: rc.bg, color: rc.text }}>
+                            {rc.label}
+                          </span>
                         </div>
+                        {/* Remove button */}
+                        <button onClick={() => handleRemovePlayer(team._id, p._id)}
+                          className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 hover:bg-red-500/20"
+                          style={{ color: '#f87171' }}>
+                          <Trash2 className="w-3.5 h-3.5"/>
+                        </button>
                       </div>
-<button onClick={() => handleRemovePlayer(team._id, p._id)} className="p-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-red-400 hover:bg-red-500/20 rounded-lg transition-all flex-shrink-0"><Trash2 className="w-3.5 h-3.5"/></button>
+                    );
+                  })}
+                  {(!team.players || team.players.length === 0) && (
+                    <div className="col-span-full py-8 text-center rounded-xl border border-dashed" style={{ borderColor: 'var(--border)' }}>
+                      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No players added to this squad yet.</p>
                     </div>
-                  ))}
-                  {(!team.players || team.players.length === 0) && <div className="col-span-full text-center text-sm py-4 text-[var(--text-muted)]">No players added to this squad yet.</div>}
+                  )}
                 </div>
 
                 {/* Add Player Controls */}
