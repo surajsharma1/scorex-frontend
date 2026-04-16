@@ -272,7 +272,7 @@ const PLANS = [
     features: [
       'Up to 3 tournaments',
       'Basic live scoring',
-      '5 overlay templates',
+      '5 broadcast overlay templates',
       'Standard support',
     ],
   },
@@ -290,7 +290,7 @@ const PLANS = [
     features: [
       'Unlimited tournaments',
       'Live scoring + undo',
-      '20 premium overlays',
+      '9 premium overlay designs',
       'Priority support',
       'Match analytics',
       'Export data',
@@ -308,7 +308,7 @@ const PLANS = [
     glowColor: 'rgba(168,85,247,0.18)',
     features: [
       'Everything in Premium',
-      'Custom overlays',
+      '15 enterprise overlay designs',
       'White-label branding',
       'API access',
       'Dedicated support',

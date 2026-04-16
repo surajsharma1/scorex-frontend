@@ -190,7 +190,8 @@ export default function PreviewStudio() {
  const fireTrigger = useCallback((type: string, data: any = {}) => {
  const iframe = iframeRef.current;
  if (!iframe?.contentWindow) return;
- iframe.contentWindow.postMessage({ type: 'OVERLAY_TRIGGER', payload: { type, data } }, '*');
+ // isManual:true bypasses cfg.showX config checks in the engine so all triggers work in studio
+    iframe.contentWindow.postMessage({ type: 'OVERLAY_TRIGGER', payload: { type, data: { ...data, isManual: true } } }, '*');
  }, []);
 
  // ✅ RESTORE works by posting RESTORE trigger type
