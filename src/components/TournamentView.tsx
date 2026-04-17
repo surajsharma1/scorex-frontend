@@ -342,7 +342,9 @@ export default function TournamentView() {
     </div>
   );
 
-  const isOwner = selected.organizer === (user as any)?._id || selected.organizer === (user as any)?.id || user?.role === 'admin';
+  const userId = (user as any)?._id?.toString() || (user as any)?.id?.toString();
+  const organizerId = selected.organizer?.toString();
+  const isOwner = organizerId === userId || user?.role === 'admin';
 
   const handleDeleteTournament = async () => {
     if (!confirm('WARNING: Are you absolutely sure you want to delete this entire tournament? This action cannot be undone.')) return;
