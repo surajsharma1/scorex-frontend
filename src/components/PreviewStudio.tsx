@@ -106,7 +106,11 @@ const ALL_TEMPLATES: Template[] = [
  { name: 'Neon Pulse', url: '/overlays/lvl2-neon-pulse.html', level: 2 },
  { name: 'Particle Storm', url: '/overlays/lvl2-particle-storm.html', level: 2 },
  { name: 'RGB Split', url: '/overlays/lvl2-rgb-split.html', level: 2 },
- { name: 'Water Flow', url: '/overlays/lvl2-water-flow.html', level: 2 },
+{ name: 'Water Flow', url: '/overlays/lvl2-water-flow.html', level: 2 },
+  { name: 'Thunder Strike', url: '/overlays/lvl2-thunder-strike.html', level: 2 },
+  { name: 'Solar Flare', url: '/overlays/lvl2-solar-flare.html', level: 2 },
+  { name: 'Arctic Ice', url: '/overlays/lvl2-arctic-ice.html', level: 2 },
+  { name: 'Midnight Gold', url: '/overlays/lvl2-midnight-gold.html', level: 2 },
 ];
 
 const COLOR_MAP: Record<string, string> = {

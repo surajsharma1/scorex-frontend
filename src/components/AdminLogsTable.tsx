@@ -4,7 +4,7 @@ import { FileText, Download, Search, RefreshCw, AlertCircle } from 'lucide-react
 import { adminAPI } from '../services/api';
 
 interface Log {
-  name: string;
+  name: string; 
   size: number;
   mtime: string;
 }
