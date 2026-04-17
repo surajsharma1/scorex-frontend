@@ -270,10 +270,8 @@ const PLANS = [
     iconColor: '#94a3b8',
     glowColor: 'rgba(100,116,139,0)',
     features: [
-      'Up to 3 tournaments',
-      'Basic live scoring',
-      '5 broadcast overlay templates',
-      'Standard support',
+            'Basic live scoring',
+            'Standard support',
     ],
   },
   {
@@ -293,7 +291,6 @@ const PLANS = [
       '9 premium overlay designs',
       'Priority support',
       'Match analytics',
-      'Export data',
     ],
   },
   {
@@ -308,11 +305,8 @@ const PLANS = [
     glowColor: 'rgba(168,85,247,0.18)',
     features: [
       'Everything in Premium',
-      '15 enterprise overlay designs',
-      'White-label branding',
-      'API access',
+      '16 enterprise overlay designs',
       'Dedicated support',
-      'Club management',
     ],
   },
 ] as const;
