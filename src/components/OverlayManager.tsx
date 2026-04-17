@@ -113,8 +113,8 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
         <div className="p-4 sm:p-5 border-b flex justify-between items-center shrink-0">
           <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full sm:hidden" />
           <div className="flex items-center gap-3 mt-1 sm:mt-0">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-              <Settings className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-lg" style={{ background:'var(--accent)' }}>
+              <Settings className="w-4 h-4" style={{ color:'var(--bg-primary)' }} />
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-black" style={{ color: 'var(--text-primary)' }}>Overlay Settings</h3>
@@ -125,8 +125,8 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
         </div>
 
         <div className="flex border-b shrink-0">
-          <button onClick={() => setTab('automation')} className={`flex-1 py-3 sm:py-3.5 text-sm font-bold border-b-2 ${tab === 'automation' ? 'border-blue-500 text-blue-400 bg-blue-500/5' : 'border-transparent hover:bg-white/5'}`}>Automations</button>
-          <button onClick={() => setTab('sponsors')} className={`flex-1 py-3 sm:py-3.5 text-sm font-bold border-b-2 ${tab === 'sponsors' ? 'border-blue-500 text-blue-400 bg-blue-500/5' : 'border-transparent hover:bg-white/5'}`}>Sponsors</button>
+          <button onClick={() => setTab('automation')} className={`flex-1 py-3 sm:py-3.5 text-sm font-bold border-b-2 ${tab === 'automation' ? 'border-[var(--accent)] text-[var(--accent)] bg-green-500/5' : 'border-transparent hover:bg-white/5'}`}>Automations</button>
+          <button onClick={() => setTab('sponsors')} className={`flex-1 py-3 sm:py-3.5 text-sm font-bold border-b-2 ${tab === 'sponsors' ? 'border-[var(--accent)] text-[var(--accent)] bg-green-500/5' : 'border-transparent hover:bg-white/5'}`}>Sponsors</button>
         </div>
 
         <div className="overflow-y-auto flex-1 p-4 sm:p-5">
@@ -170,7 +170,7 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
               <div className="p-3 sm:p-4 border rounded-xl">
                 <label className="block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2">When Both Cards Trigger on Same Over</label>
                 <select value={globalConfig.autoStatsStyle} onChange={e => setGlobalConfig({ ...globalConfig, autoStatsStyle: e.target.value as any })}
-                  className="w-full p-2 border rounded-lg text-sm outline-none focus:border-[var(--accent)] transition-all" style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
+                  className="w-full p-2 border rounded-lg text-sm outline-none transition-all" style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
                   <option value="TOGETHER">Show Both Together</option>
                   <option value="SEQUENTIAL">Sequential (Batting → Bowling)</option>
                 </select>
@@ -574,7 +574,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
             <select value={createForm.match} onChange={e => setCreateForm({ ...createForm, match: e.target.value })}
               className="w-full p-3 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] rounded-xl text-sm outline-none focus:border-green-500/50 transition-all">
               <option value="">Select Match (Optional)</option>
-              {matches.map(m => <option key={m._id} value={m._id}>{m.team1Name} vs {m.team2Name}</option>)}
+              {matches.filter((m:any) => m.status !== 'completed').map(m => <option key={m._id} value={m._id}>{m.team1Name} vs {m.team2Name} ({m.status})</option>)}
             </select>
             {(() => {
               const sel = templates.find(t => (t.file || t.id) === createForm.template);
