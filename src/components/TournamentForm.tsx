@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../App';
 import { tournamentAPI, teamAPI } from '../services/api';
 import { Team } from './types';
 import { Calendar, Trophy, MapPin, CheckCircle, Info, FileText } from 'lucide-react';
@@ -19,6 +20,7 @@ export default function TournamentForm() {
   const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -50,7 +52,8 @@ const handleSubmit = async (e: React.FormEvent) => {
         ...formData,
         venue: formData.location,
         teams: formData.selectedTeams,
-        prizePool: 0
+        prizePool: 0,
+        organizer: user?._id || ''
       };
       await tournamentAPI.createTournament(tournamentData);
       addToast({ type: 'success', message: 'Tournament created successfully!' });
