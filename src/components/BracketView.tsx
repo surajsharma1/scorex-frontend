@@ -6,6 +6,7 @@ import { tournamentAPI } from '../services/api';
 import TeamManagement from './TeamManagement';
 import TournamentStats from './TournamentStats';
 import { Trophy, Calendar, MapPin, Users, Settings, Activity, LayoutGrid, ChevronRight, ArrowLeft } from 'lucide-react';
+import React from 'react';
 
 type TabType = 'overview' | 'teams' | 'matches' | 'stats' | 'settings';
 

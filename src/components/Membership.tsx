@@ -641,7 +641,7 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
                   {/* Preview button */}
                   {plan.level > 0 && (
                     <button
-onClick={() => {
+                    onClick={() => {
                         setSelectedFloatingOverlay(''); // reset selection when switching plan
                         setPreviewLevel(plan.level);
                       }}
