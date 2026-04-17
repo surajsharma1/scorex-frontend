@@ -134,7 +134,6 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
     if (!iframe?.contentWindow) return;
     let data: any = {};
     switch (type) {
-      case 'SHOW_VS_SCREEN':   data = { team1Name: 'MUMBAI', team2Name: 'CHENNAI' }; break;
       case 'SHOW_TOSS':        data = { tossWinnerName: 'MUMBAI', tossDecision: 'BAT', team1Name: 'MUMBAI', team2Name: 'CHENNAI' }; break;
       case 'SHOW_SQUADS':      data = { team1Name: 'MUMBAI', team2Name: 'CHENNAI', team1Players: MOCK_SCORE.team1Players, team2Players: MOCK_SCORE.team2Players }; break;
       case 'FOUR':             data = { playerName: 'R. Sharma', runs: MOCK_SCORE.strikerRuns, balls: MOCK_SCORE.strikerBalls }; break;
