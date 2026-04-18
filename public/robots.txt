@@ -1,9 +1,13 @@
 User-agent: *
 Allow: /
-Allow: /tournaments
 Allow: /live
+Allow: /tournaments
+Allow: /studio
+Allow: /leaderboard
+Allow: /terms
+Allow: /privacy
 
-# Block auth and private pages — no SEO value, keep crawl budget clean
+# Block auth and private pages — no SEO value
 Disallow: /admin
 Disallow: /admin/
 Disallow: /login
@@ -19,5 +23,4 @@ Disallow: /matches/*/score
 # Block API routes
 Disallow: /api/
 
-# Sitemap
 Sitemap: https://scorex-live.vercel.app/sitemap.xml

@@ -10,7 +10,7 @@ interface SEOProps {
 
 const SITE_NAME = 'ScoreX';
 const BASE_URL  = 'https://scorex-live.vercel.app';
-const DEFAULT_DESC = 'Live cricket scoring and tournament management platform for clubs, academies, and organizers.';
+const DEFAULT_DESC = 'Free cricket overlay app for OBS. Score live cricket matches, manage tournaments, and broadcast professional scoreboard overlays — built for clubs and academies across India.';
 const DEFAULT_IMAGE = `${BASE_URL}/og-image.png`;
 
 /**
@@ -24,7 +24,7 @@ const DEFAULT_IMAGE = `${BASE_URL}/og-image.png`;
  */
 export function useSEO({ title, description, canonical, ogImage, noIndex = false }: SEOProps = {}) {
   useEffect(() => {
-    const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} – Live Cricket Scoring & Tournament Management`;
+    const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} – Cricket Overlay App | Live Scoring & Tournament Management India`;
     const desc      = description ?? DEFAULT_DESC;
     const image     = ogImage ?? DEFAULT_IMAGE;
     const url       = canonical ? `${BASE_URL}${canonical}` : window.location.href;

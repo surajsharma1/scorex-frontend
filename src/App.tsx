@@ -26,6 +26,8 @@ import LiveScoreboardPreview from './components/LiveScoreboardPreview';
 import Leaderboard from './components/Leaderboard';
 import AdminPanel from './components/AdminPanel';
 import PreviewStudio from './components/PreviewStudio';
+import TermsAndConditions from './components/TermsAndConditions';
+import PrivacyPolicy from './components/PrivacyPolicy';
 
 export interface AuthUser {
   _id: string;
@@ -227,6 +229,8 @@ export default function App() {
                 } />
 
                 <Route path="*" element={<Navigate to="/" />} />
+                <Route path="/terms" element={<TermsAndConditions />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
               </Routes>
             </Router>
           </AuthContext.Provider>

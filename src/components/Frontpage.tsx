@@ -516,10 +516,10 @@ export default function Frontpage() {
             </div>
           </div>
           <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-gray-500 text-sm">© 2025 ScoreX. All rights reserved.</p>
+            <p className="text-gray-500 text-sm">© 2026 ScoreX. All rights reserved.</p>
             <div className="flex gap-6 text-gray-500 text-sm">
-              <a href="#" className="hover:text-white transition">Privacy</a>
-              <a href="#" className="hover:text-white transition">Terms</a>
+              <Link to="/privacy" className="hover:text-white transition">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-white transition">Terms &amp; Conditions</Link>
             </div>
           </div>
         </div>

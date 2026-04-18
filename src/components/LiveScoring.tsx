@@ -573,11 +573,13 @@ export default function LiveScoring() {
   };
 
   // ── 3rd Umpire — lock scoring UI and fire overlay DECISION_PENDING toggle ──
-  const toggleDecisionPending = () => {
-    const next = !isDecisionPending;
-    setIsDecisionPending(next);
-    fireTrigger('DECISION_PENDING', { active: next }, 0);
-  };
+  const toggleDecisionPending = useCallback(() => {
+    setIsDecisionPending(prev => {
+      const next = !prev;
+      fireTrigger('DECISION_PENDING', { active: next }, 0);
+      return next;
+    });
+  }, [fireTrigger]);
 
   // ── Derived values ────────────────────────────────────────────────────────
   const innings = match?.innings?.[match?.currentInnings - 1] || {};
