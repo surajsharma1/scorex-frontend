@@ -210,14 +210,16 @@ function OverEndModal({ match, onSubstitute, onBowlerOnly }: { match: any; onSub
       <div className="rounded-2xl p-6 w-full max-w-sm text-center" style={{ background: N.bgCard, border: `1px solid ${N.accentBorder}` }}>
         <div className="text-4xl mb-3">⚡</div>
         <h2 className="text-xl font-black mb-1" style={{ color: N.accent }}>End of Over {overs}</h2>
-        <p className="text-xs mb-6" style={{ color: N.textMuted }}>Any batting substitutions before selecting the new bowler?</p>
+        <p className="text-xs mb-6" style={{ color: N.textMuted }}>
+          Do you need to change any batters (striker / non-striker) as well as the bowler?
+        </p>
         <div className="space-y-3">
           <button onClick={onSubstitute} className="w-full py-3 rounded-xl font-bold text-sm"
             style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textPrimary }}>
-            Yes — Make a Substitution
+            Yes — Change Batter(s) + Bowler
           </button>
           <button onClick={onBowlerOnly} className="w-full py-3 rounded-xl font-black text-sm" style={{ background: N.accent, color: N.bg }}>
-            No — Select New Bowler →
+            Bowler Only →
           </button>
         </div>
       </div>
@@ -422,25 +424,32 @@ export default function LiveScoring() {
   };
 
   // ── Players confirmed ─────────────────────────────────────────────────────────
+  // NOTE: We capture selectContext.reason at call time to avoid stale closure
   const handlePlayersDone = async (players: any) => {
     if (!id || !match) return;
+    // Snapshot reason BEFORE any async operations or state changes
+    const currentReason = selectContext.reason;
     setSubmitting(true);
     try {
       if (match.status !== 'live') await matchAPI.startMatch(id, { ...tossData, ...players });
       else await matchAPI.selectPlayers(id, players);
       await fetchMatch();
 
-      // ANIMATION: NEW_BOWLER on bowler change
-      if ((selectContext.reason === 'bowler_change' || selectContext.reason === 'over_end') && players.bowler) {
+      // ANIMATION: NEW_BOWLER only on mid-innings bowler change (not innings start — that would fire
+      // NEW_BOWLER for the opening bowler which is wrong; innings_start gets START_INNINGS_INTRO)
+      if ((currentReason === 'bowler_change' || currentReason === 'over_end') && players.bowler) {
         fireTrigger('NEW_BOWLER', { bowler: players.bowler, ...getBowlerStats(players.bowler) }, 8);
       }
-      // ANIMATION: START_INNINGS_INTRO on innings start (delayed slightly for data to settle in DB)
-      if (selectContext.reason === 'innings_start' && players.striker && players.bowler) {
+      // ANIMATION: START_INNINGS_INTRO for both innings starts
+      // Delayed so the DB write settles before the overlay reads the data
+      if (currentReason === 'innings_start' && players.striker && players.bowler) {
         setTimeout(() => {
           fireTrigger('START_INNINGS_INTRO', {
-            striker: players.striker, nonStriker: players.nonStriker || '', bowler: players.bowler,
-          }, 8);
-        }, 700);
+            striker: players.striker,
+            nonStriker: players.nonStriker || '',
+            bowler: players.bowler,
+          }, 10);
+        }, 800);
       }
 
       setStep('scoring'); setPanel('main');
@@ -468,11 +477,22 @@ export default function LiveScoring() {
           targetScore: inn1Score + 1,
         }, 10);
         setStep('inningsBreak');
-      } else if (result?.overChanged && !result?.needPlayerSelection) {
+      } else if (result?.isWicket && result?.outBatsmanName) {
+        // Wicket (possibly at over end too) — player selection takes priority
+        const outName = result.outBatsmanName || '';
+        // outBatsmanName comes from the ball — use it directly, don't guess from striker position
+        // The backend sets outBatsmanName to whoever was dismissed
+        const currentStriker = match?.strikerName || '';
+        const outRole: 'striker' | 'nonStriker' = outName === currentStriker ? 'striker' : 'nonStriker';
+        setSelectContext({ reason: 'wicket', outRole, outName });
+        setStep('playerSelect');
+      } else if (result?.overChanged) {
+        // Over ended with no wicket — ask about substitutions + new bowler
         setStep('overEnd');
       } else if (result?.needPlayerSelection) {
+        // Fallback for other selection needs
         const outName = result.outBatsmanName || '';
-        const outRole = outName === match?.strikerName ? 'striker' : 'nonStriker';
+        const outRole: 'striker' | 'nonStriker' = outName === match?.strikerName ? 'striker' : 'nonStriker';
         setSelectContext({ reason: 'wicket', outRole, outName });
         setStep('playerSelect');
       }
