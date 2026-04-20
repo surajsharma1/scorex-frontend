@@ -93,12 +93,22 @@ interface SponsorConfig {
   showDuration: number; position: 'bottom' | 'top';
 }
 
+// ── Neon green design tokens matching the ScoreX site theme ─────────────────
+const S = {
+  bg: '#070d0f', bgCard: '#0c1418', bgElevated: '#111c20',
+  border: '#1a2e35', accent: '#00ff88', accentGlow: 'rgba(0,255,136,0.10)',
+  accentBorder: 'rgba(0,255,136,0.25)', text: '#e8f5f0',
+  textSec: '#8ba89e', textMuted: '#4a6560',
+  red: '#ff4444', redDim: 'rgba(255,68,68,0.10)', redBorder: 'rgba(255,68,68,0.25)',
+  amber: '#f59e0b', amberDim: 'rgba(245,158,11,0.10)', amberBorder: 'rgba(245,158,11,0.25)',
+};
+
 function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponsorConfig, onSave, onClose }: {
   globalConfig: GlobalConfig; setGlobalConfig: (c: GlobalConfig) => void;
   sponsorConfig: SponsorConfig; setSponsorConfig: (c: SponsorConfig) => void;
   onSave: () => void; onClose: () => void;
 }) {
-  const [tab, setTab] = useState<'automation' | 'sponsors'>('automation');
+  const [tab, setTab] = useState<'automation' | 'sponsors' | 'animations'>('automation');
   const addSponsor = () => setSponsorConfig({ ...sponsorConfig, sponsors: [...sponsorConfig.sponsors, { name: '', tagline: '' }] });
   const removeSponsor = (i: number) => setSponsorConfig({ ...sponsorConfig, sponsors: sponsorConfig.sponsors.filter((_, idx) => idx !== i) });
   const updateSponsor = (i: number, field: 'name' | 'tagline', val: string) => {
@@ -107,123 +117,160 @@ function SettingsModal({ globalConfig, setGlobalConfig, sponsorConfig, setSponso
     setSponsorConfig({ ...sponsorConfig, sponsors: updated });
   };
 
+  const inputStyle = { background: S.bgElevated, border: `1px solid ${S.border}`, color: S.text, borderRadius: 10, padding: '8px 12px', fontSize: 13, outline: 'none', width: '100%' };
+  const cardStyle = { background: S.bgElevated, border: `1px solid ${S.border}`, borderRadius: 14, padding: '14px 16px' };
+  const labelStyle = { color: S.textMuted, fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' as const, display: 'block', marginBottom: 8 };
+
+  const timingFields = [
+    { label: 'Toss Screen', key: 'tossDuration', max: 30, icon: '🪙' },
+    { label: 'Playing XI', key: 'squadDuration', max: 30, icon: '👥' },
+    { label: 'Innings Intro', key: 'introDuration', max: 30, icon: '🏏' },
+    { label: 'Stats Card', key: 'autoStatsDuration', max: 20, icon: '📊' },
+  ];
+
   return createPortal(
-    <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="border border-[var(--border)] rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[88vh]" style={{ background: 'var(--bg-card)' }}>
-        <div className="p-4 sm:p-5 border-b flex justify-between items-center shrink-0">
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full sm:hidden" />
-          <div className="flex items-center gap-3 mt-1 sm:mt-0">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-lg" style={{ background:'var(--accent)' }}>
-              <Settings className="w-4 h-4" style={{ color:'var(--bg-primary)' }} />
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ background: S.bgCard, border: `1px solid ${S.accentBorder}`, borderRadius: 20, width: '100%', maxWidth: 600, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: `0 0 60px ${S.accentGlow}, 0 25px 50px rgba(0,0,0,0.8)`, overflow: 'hidden' }}>
+
+        {/* Header */}
+        <div style={{ padding: '18px 20px', borderBottom: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: S.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 16px ${S.accentGlow}` }}>
+              <Settings style={{ width: 16, height: 16, color: S.bg }} />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-black" style={{ color: 'var(--text-primary)' }}>Overlay Settings</h3>
-              <p className="text-[10px] sm:text-[11px] ">Automations & sponsors</p>
+              <div style={{ color: S.accent, fontWeight: 900, fontSize: 14, letterSpacing: 1 }}>Overlay Settings</div>
+              <div style={{ color: S.textMuted, fontSize: 11, marginTop: 1 }}>Animation timings, automation & sponsors</div>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-white/10 transition-colors" style={{ color: 'var(--text-muted)' }}><X className="w-4 h-4" /></button>
+          <button onClick={onClose} style={{ background: S.bgElevated, border: `1px solid ${S.border}`, color: S.textMuted, borderRadius: 10, padding: 8, cursor: 'pointer', display: 'flex' }}>
+            <X style={{ width: 15, height: 15 }} />
+          </button>
         </div>
 
-        <div className="flex border-b shrink-0">
-          <button onClick={() => setTab('automation')} className={`flex-1 py-3 sm:py-3.5 text-sm font-bold border-b-2 ${tab === 'automation' ? 'border-[var(--accent)] text-[var(--accent)] bg-green-500/5' : 'border-transparent hover:bg-white/5'}`}>Automations</button>
-          <button onClick={() => setTab('sponsors')} className={`flex-1 py-3 sm:py-3.5 text-sm font-bold border-b-2 ${tab === 'sponsors' ? 'border-[var(--accent)] text-[var(--accent)] bg-green-500/5' : 'border-transparent hover:bg-white/5'}`}>Sponsors</button>
+        {/* Tabs */}
+        <div style={{ display: 'flex', borderBottom: `1px solid ${S.border}`, flexShrink: 0 }}>
+          {(['automation', 'animations', 'sponsors'] as const).map(t => (
+            <button key={t} onClick={() => setTab(t)}
+              style={{ flex: 1, padding: '12px 0', fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', borderBottom: `2px solid ${tab === t ? S.accent : 'transparent'}`, background: tab === t ? S.accentGlow : 'transparent', color: tab === t ? S.accent : S.textMuted, textTransform: 'uppercase', letterSpacing: 1, transition: 'all 0.2s' }}>
+              {t === 'automation' ? '⚙ Auto' : t === 'animations' ? '🎬 Timing' : '⭐ Sponsors'}
+            </button>
+          ))}
         </div>
 
-        <div className="overflow-y-auto flex-1 p-4 sm:p-5">
+        {/* Content */}
+        <div style={{ overflowY: 'auto', flex: 1, padding: '16px 20px' }}>
+
           {tab === 'automation' && (
-            <div className="space-y-3">
-              <p className="text-xs mb-3">Controls how long animated overlay panels appear during broadcasts.</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ color: S.textMuted, fontSize: 11, lineHeight: 1.5, padding: '10px 14px', background: S.bgElevated, borderRadius: 10, border: `1px solid ${S.border}` }}>
+                Auto-trigger batting/bowling cards after a set number of overs. Set to 0 to disable.
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {[
-                  { label: 'Toss Screen', key: 'tossDuration', unit: 'sec', max: 30 },
-                  { label: 'Playing XI', key: 'squadDuration', unit: 'sec', max: 30 },
-                  { label: 'Batsman Intro', key: 'introDuration', unit: 'sec', max: 30 },
-                  { label: 'Stats Animation', key: 'autoStatsDuration', unit: 'sec', max: 12 },
-                ].map(({ label, key, unit, max }) => (
-                  <div key={key} className="p-3 sm:p-4 border rounded-xl">
-                    <label className="block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2">{label}</label>
-                    <div className="flex items-center gap-2">
-                      <input type="number" min="1" max={max} value={(globalConfig as any)[key]}
-                        onChange={e => setGlobalConfig({ ...globalConfig, [key]: Math.min(max, Number(e.target.value)) })}
-                        className="flex-1 p-2 border rounded-lg text-sm outline-none focus:border-[var(--accent)] transition-all" style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
-                      <span className="text-xs font-bold shrink-0">{unit}</span>
+                  { label: '🎯 Batting Card every', key: 'autoBattingOvers', note: 'overs (0 = off)' },
+                  { label: '🎳 Bowling Card every', key: 'autoBowlingOvers', note: 'overs (0 = off)' },
+                ].map(({ label, key, note }) => (
+                  <div key={key} style={cardStyle}>
+                    <label style={labelStyle}>{label}</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input type="number" min="0" max="20"
+                        value={(globalConfig as any)[key]}
+                        onChange={e => setGlobalConfig({ ...globalConfig, [key]: Number(e.target.value) })}
+                        style={{ ...inputStyle, width: 60, textAlign: 'center', padding: '6px 8px' }} />
+                      <span style={{ color: S.textMuted, fontSize: 11 }}>{note}</span>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-3 sm:p-4 border rounded-xl">
-                  <label className="block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2">Batting Card (Every N Overs)</label>
-                  <div className="flex items-center gap-2">
-                    <input type="number" min="0" value={globalConfig.autoBattingOvers} onChange={e => setGlobalConfig({ ...globalConfig, autoBattingOvers: Number(e.target.value) })} className="flex-1 p-2 border rounded-lg text-sm outline-none focus:border-[var(--accent)]" style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
-                    <span className="text-xs font-bold shrink-0">ov (0=off)</span>
-                  </div>
-                </div>
-                <div className="p-3 sm:p-4 border rounded-xl">
-                  <label className="block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2">Bowling Card (Every N Overs)</label>
-                  <div className="flex items-center gap-2">
-                    <input type="number" min="0" value={globalConfig.autoBowlingOvers} onChange={e => setGlobalConfig({ ...globalConfig, autoBowlingOvers: Number(e.target.value) })} className="flex-1 p-2 border rounded-lg text-sm outline-none focus:border-[var(--accent)]" style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
-                    <span className="text-xs font-bold shrink-0">ov (0=off)</span>
-                  </div>
-                </div>
-              </div>
-              <div className="p-3 sm:p-4 border rounded-xl">
-                <label className="block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2">When Both Cards Trigger on Same Over</label>
-                <select value={globalConfig.autoStatsStyle} onChange={e => setGlobalConfig({ ...globalConfig, autoStatsStyle: e.target.value as any })}
-                  className="w-full p-2 border rounded-lg text-sm outline-none transition-all" style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderColor: 'var(--border)' }}>
+              <div style={cardStyle}>
+                <label style={labelStyle}>When Batting & Bowling trigger on same over</label>
+                <select value={globalConfig.autoStatsStyle}
+                  onChange={e => setGlobalConfig({ ...globalConfig, autoStatsStyle: e.target.value as any })}
+                  style={{ ...inputStyle, cursor: 'pointer' }}>
                   <option value="TOGETHER">Show Both Together</option>
-                  <option value="SEQUENTIAL">Sequential (Batting → Bowling)</option>
+                  <option value="SEQUENTIAL">Sequential — Batting first, then Bowling</option>
                 </select>
               </div>
             </div>
           )}
 
-          {tab === 'sponsors' && (
-            <div className="space-y-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Sponsor Branding</p>
-                  <p className="text-xs mt-0.5">Names shown inside overlay templates.</p>
-                </div>
-                <button onClick={addSponsor} className="flex items-center gap-1.5 px-3 py-2 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-xs font-bold hover:bg-green-500/20 transition-all shrink-0">
-                  <Plus className="w-3.5 h-3.5" /> Add
-                </button>
+          {tab === 'animations' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ color: S.textMuted, fontSize: 11, lineHeight: 1.5, padding: '10px 14px', background: S.bgElevated, borderRadius: 10, border: `1px solid ${S.border}` }}>
+                Control how long each animation panel stays visible. These apply globally to all overlays.
               </div>
-              <div className="p-3 sm:p-4 border rounded-xl">
-                <label className="block text-[11px] font-bold uppercase tracking-wider mb-2">Display Duration</label>
-                <div className="flex items-center gap-2">
-                  <input type="number" value={sponsorConfig.showDuration} onChange={e => setSponsorConfig({ ...sponsorConfig, showDuration: Number(e.target.value) })} className="w-20 p-2 border rounded-lg text-sm outline-none focus:border-[var(--accent)]" style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
-                  <span className="text-xs font-bold">seconds each</span>
-                </div>
-              </div>
-              {sponsorConfig.sponsors.length === 0 && (
-                <div className="py-8 text-center border border-dashed rounded-2xl">
-                  <Building2 className="w-7 h-7 mx-auto mb-2" />
-                  <p className="text-xs ">No sponsors yet. Tap Add to get started.</p>
-                </div>
-              )}
-              <div className="space-y-2">
-                {sponsorConfig.sponsors.map((sp, i) => (
-                  <div key={i} className="flex items-center gap-2 p-3 border rounded-xl">
-                    <div className="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
-                      <Star className="w-3 h-3 text-amber-400" />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {timingFields.map(({ label, key, max, icon }) => (
+                  <div key={key} style={cardStyle}>
+                    <label style={labelStyle}>{icon} {label}</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input type="range" min="2" max={max}
+                        value={(globalConfig as any)[key]}
+                        onChange={e => setGlobalConfig({ ...globalConfig, [key]: Number(e.target.value) })}
+                        style={{ flex: 1, accentColor: S.accent }} />
+                      <span style={{ color: S.accent, fontWeight: 900, fontSize: 14, minWidth: 32, textAlign: 'right' }}>
+                        {(globalConfig as any)[key]}s
+                      </span>
                     </div>
-                    <input type="text" placeholder="Sponsor name" value={sp.name} onChange={e => updateSponsor(i, 'name', e.target.value)} className="flex-1 min-w-0 bg-transparent text-sm outline-none border-b pb-0.5 transition-all" style={{ color: 'var(--text-primary)', borderColor: 'var(--border)' }} />
-                    <input type="text" placeholder="Tagline" value={sp.tagline} onChange={e => updateSponsor(i, 'tagline', e.target.value)} className="flex-1 min-w-0 bg-transparent text-sm placeholder-gray-700 outline-none border-b focus:border-blue-500 pb-0.5 transition-all hidden sm:block" />
-                    <button onClick={() => removeSponsor(i)} className="p-1.5 rounded-lg hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
                   </div>
                 ))}
               </div>
             </div>
           )}
+
+          {tab === 'sponsors' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ color: S.text, fontWeight: 700, fontSize: 13 }}>Sponsor Ticker</div>
+                  <div style={{ color: S.textMuted, fontSize: 11, marginTop: 2 }}>Scrolls in the overlay sponsor bar. Shown on all lvl2 overlays.</div>
+                </div>
+                <button onClick={addSponsor}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', background: S.accentGlow, border: `1px solid ${S.accentBorder}`, color: S.accent, borderRadius: 10, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  <Plus style={{ width: 13, height: 13 }} /> Add
+                </button>
+              </div>
+              {sponsorConfig.sponsors.length === 0 ? (
+                <div style={{ padding: '32px 0', textAlign: 'center', border: `1px dashed ${S.border}`, borderRadius: 14 }}>
+                  <Building2 style={{ width: 28, height: 28, color: S.textMuted, margin: '0 auto 8px' }} />
+                  <div style={{ color: S.textMuted, fontSize: 12 }}>No sponsors added yet</div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {sponsorConfig.sponsors.map((sp, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: S.bgElevated, border: `1px solid ${S.border}`, borderRadius: 12 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 8, background: S.amberDim, border: `1px solid ${S.amberBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Star style={{ width: 12, height: 12, color: S.amber }} />
+                      </div>
+                      <input type="text" placeholder="Sponsor name" value={sp.name}
+                        onChange={e => updateSponsor(i, 'name', e.target.value)}
+                        style={{ flex: 1, background: 'transparent', border: 'none', borderBottom: `1px solid ${S.border}`, color: S.text, fontSize: 13, outline: 'none', paddingBottom: 2 }} />
+                      <input type="text" placeholder="Tagline (optional)" value={sp.tagline}
+                        onChange={e => updateSponsor(i, 'tagline', e.target.value)}
+                        style={{ flex: 1, background: 'transparent', border: 'none', borderBottom: `1px solid ${S.border}`, color: S.textSec, fontSize: 12, outline: 'none', paddingBottom: 2 }} />
+                      <button onClick={() => removeSponsor(i)}
+                        style={{ padding: 6, background: 'transparent', border: 'none', color: S.textMuted, cursor: 'pointer', borderRadius: 8 }}>
+                        <X style={{ width: 14, height: 14 }} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="p-3 sm:p-4 border-t shrink-0 flex gap-3 ">
-          <button onClick={onClose} className="flex-1 py-3 rounded-xl border hover:bg-white/10 font-bold text-sm transition-all">Cancel</button>
-          <button onClick={onSave} className="flex-1 py-3 rounded-xl font-black text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg" style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}>
-            <Check className="w-4 h-4" /> Save
+        {/* Footer */}
+        <div style={{ padding: '14px 20px', borderTop: `1px solid ${S.border}`, display: 'flex', gap: 10, flexShrink: 0 }}>
+          <button onClick={onClose}
+            style={{ flex: 1, padding: '11px 0', borderRadius: 12, background: S.bgElevated, border: `1px solid ${S.border}`, color: S.textSec, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+            Cancel
+          </button>
+          <button onClick={onSave}
+            style={{ flex: 1, padding: '11px 0', borderRadius: 12, background: S.accent, border: 'none', color: S.bg, fontWeight: 900, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: `0 0 20px ${S.accentGlow}` }}>
+            <Check style={{ width: 15, height: 15 }} /> Save Settings
           </button>
         </div>
       </div>
