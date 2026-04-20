@@ -56,7 +56,8 @@ const TRIGGER_GROUPS = [
  { label: 'FOUR (4)', type: 'FOUR', data: {} },
  { label: 'SIX (6)', type: 'SIX', data: {} },
  { label: 'WICKET', type: 'WICKET', data: {} },
- { label: '3rd Umpire', type: 'DECISION_PENDING', data: {} },
+ { label: '3rd Umpire ON', type: 'DECISION_PENDING', data: { active: true } },
+     { label: '3rd Umpire OFF', type: 'DECISION_PENDING', data: { active: false } },
  { label: '50 Runs', type: '50_RUNS', data: { playerName: 'R. SHARMA' } },
  { label: '100 Runs', type: '100_RUNS', data: { playerName: 'R. SHARMA' } },
  ],
@@ -191,12 +192,16 @@ export default function PreviewStudio() {
  }, [pushScore]);
 
  // ── Fire trigger ────────────────────────────────────────────────────────────
- const fireTrigger = useCallback((type: string, data: any = {}) => {
- const iframe = iframeRef.current;
- if (!iframe?.contentWindow) return;
- // isManual:true bypasses cfg.showX config checks in the engine so all triggers work in studio
-    iframe.contentWindow.postMessage({ type: 'OVERLAY_TRIGGER', payload: { type, data: { ...data, isManual: true } } }, '*');
- }, []);
+ const fireTrigger = useCallback((type: string, data: any = {}, duration?: number) => {
+    const iframe = iframeRef.current;
+    if (!iframe?.contentWindow) return;
+    // DECISION_PENDING uses duration:0 to lock indefinitely; isManual bypasses config checks
+    const dur = duration !== undefined ? duration : (type === 'DECISION_PENDING' ? 0 : 6);
+    iframe.contentWindow.postMessage({
+      type: 'OVERLAY_TRIGGER',
+      payload: { type, data: { ...data, isManual: true }, duration: dur }
+    }, '*');
+  }, []);
 
  // ✅ RESTORE works by posting RESTORE trigger type
  const handleRestore = useCallback(() => {
