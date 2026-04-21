@@ -361,13 +361,17 @@ export default function LiveScoring() {
   // ── Named Animation Trigger ───────────────────────────────────────────────────
   // Central function: sends named overlay animation to all connected overlays via socket + postMessage
   const fireTrigger = useCallback((type: string, data: any = {}, duration = 6) => {
-    if (!match?._id) return;
+    // Use match._id if available, fallback to URL param id so triggers always work
+    const matchId = match?._id || id;
     const payload = { type, data: { ...data, isManual: true }, duration };
-    socket.emit('manualOverlayTrigger', { matchId: match._id, trigger: payload });
+    if (matchId) {
+      socket.emit('manualOverlayTrigger', { matchId, trigger: payload });
+    }
+    // Also broadcast via postMessage to any iframes on the page
     document.querySelectorAll('iframe').forEach(iframe => {
       try { iframe.contentWindow?.postMessage({ type: 'OVERLAY_TRIGGER', payload }, '*'); } catch (_) { }
     });
-  }, [match]);
+  }, [match, id]);
 
   // ── Animation helper builders ─────────────────────────────────────────────────
   const getBatterStats = useCallback((name: string) => {
@@ -568,10 +572,12 @@ export default function LiveScoring() {
   const toggleDecisionPending = useCallback(() => {
     setIsDecisionPending(prev => {
       const next = !prev;
-      if (next) {
-        fireTrigger('DECISION_PENDING', { active: true }, 0);
-      } else {
-        fireTrigger('RESTORE', {}, 0);
+      // Match the test.html pattern: fire DECISION_PENDING each press (engine toggles internally)
+      // Duration 0 means indefinite lock
+      fireTrigger('DECISION_PENDING', {}, 0);
+      if (!next) {
+        // Turning OFF: also fire RESTORE after a small delay to clear overlay
+        setTimeout(() => fireTrigger('RESTORE', {}, 0), 150);
       }
       return next;
     });
@@ -796,14 +802,14 @@ export default function LiveScoring() {
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>Broadcast</p>
               <div className="grid grid-cols-3 gap-2">
                 {/* ANIMATION: BATSMAN_PROFILE — shows striker's profile card on overlay */}
-                <button onClick={triggerBatsmanProfile} disabled={!match?.strikerName}
+                <button onClick={triggerBatsmanProfile}
                   className="py-3 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all active:scale-95 disabled:opacity-40"
                   style={{ background: N.accentGlow, border: `1px solid ${N.accentBorder}`, color: N.accent }}>
                   <User className="w-4 h-4" />
                   <span>Batter Profile</span>
                 </button>
                 {/* ANIMATION: BOWLER_PROFILE — shows current bowler's profile card on overlay */}
-                <button onClick={triggerBowlerProfile} disabled={!match?.currentBowlerName}
+                <button onClick={triggerBowlerProfile}
                   className="py-3 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all active:scale-95 disabled:opacity-40"
                   style={{ background: N.accentGlow, border: `1px solid ${N.accentBorder}`, color: N.accent }}>
                   <UserCheck className="w-4 h-4" />
@@ -817,19 +823,7 @@ export default function LiveScoring() {
                   <span>Restore</span>
                 </button>
               </div>
-              {/* Summary card buttons */}
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <button onClick={triggerBattingCard}
-                  className="py-2 rounded-xl font-bold text-xs transition-all active:scale-95"
-                  style={{ background: N.accentGlow, border: `1px solid ${N.accentBorder}`, color: N.accent }}>
-                  🎯 Batting Card
-                </button>
-                <button onClick={triggerBowlingCard}
-                  className="py-2 rounded-xl font-bold text-xs transition-all active:scale-95"
-                  style={{ background: N.accentGlow, border: `1px solid ${N.accentBorder}`, color: N.accent }}>
-                  🎳 Bowling Card
-                </button>
-              </div>
+
             </div>
 
             {/* ── 3RD UMPIRE TOGGLE ── */}

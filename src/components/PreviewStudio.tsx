@@ -74,7 +74,6 @@ const TRIGGER_GROUPS = [
  {
  label: 'FULL SCREEN', color: 'green',
  triggers: [
- { label: 'Playing XI', type: 'SHOW_SQUADS', data: { team1Name: 'MUMBAI', team2Name: 'CHENNAI', team1Players: SQUAD_MUMBAI, team2Players: SQUAD_CHENNAI } },
  { label: 'Innings Break', type: 'INNINGS_BREAK', data: { chasingTeam: 'CHENNAI', target: 214 } },
  { label: 'Batting Card', type: 'BATTING_CARD', data: { batsmen: SQUAD_MUMBAI.slice(0, 4) } },
  { label: 'Bowling Card', type: 'BOWLING_CARD', data: { bowlers: SQUAD_CHENNAI.filter((p: any) => p.overs > 0) } },
