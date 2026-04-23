@@ -24,3 +24,4 @@ dist-ssr
 .env*.local
 public/overlays/test.html
 .env
+*.bak

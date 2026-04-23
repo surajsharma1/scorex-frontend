@@ -135,7 +135,11 @@ await tournamentAPI.updateTournament(id!, editForm);
                 <MapPin className="w-4 h-4 opacity-70" /> {tournament.location || 'Location TBA'}
               </span>
               <span className="flex items-center gap-1.5 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                <Calendar className="w-4 h-4 opacity-70" /> {new Date(tournament.startDate).toLocaleDateString()}
+                <Calendar className="w-4 h-4 opacity-70" />
+                {new Date(tournament.startDate).toLocaleDateString()}
+                {tournament.endDate && (
+                  <> → {new Date(tournament.endDate).toLocaleDateString()}</>
+                )}
               </span>
             </div>
           </div>

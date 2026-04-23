@@ -34,6 +34,7 @@ html { scroll-behavior: smooth; font-size: 16px; }
   --accent-glow:   rgba(34,197,94,0.3);
   --scrollbar-thumb: #1e293b;
 --scrollbar-hover: #334155;
+  --color-scheme: dark;
   --sidebar-width: 16rem;
   --sidebar-collapsed: 4rem;
   --font-orbitron: 'Orbitron', monospace;
@@ -55,6 +56,7 @@ html.light {
   --accent-glow:   rgba(22,163,74,0.2);
   --scrollbar-thumb: #bbf7d0;
   --scrollbar-hover: #86efac;
+  --color-scheme: light;
 }
 
 body {
@@ -285,4 +287,19 @@ body {
   width: 100%;
   height: 100%;
   border: none;
+}
+
+/* Date input calendar icon color via accent */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  cursor: pointer;
+  color: var(--accent);
+  opacity: 0.8;
+}
+html:not(.light) input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) sepia(1) saturate(5) hue-rotate(90deg);
+}
+html.light input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.7;
 }

@@ -20,6 +20,8 @@ export default function AdminUserTable() {
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
   const [showModal, setShowModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 15;
   const [banDuration, setBanDuration] = useState('1day');
   const [banReason, setBanReason] = useState('');
   const [memLevel, setMemLevel] = useState<1 | 2>(1);
@@ -65,6 +67,8 @@ export default function AdminUserTable() {
     (u?.username || '').toLowerCase().includes(search.toLowerCase()) ||
     (u?.email || '').toLowerCase().includes(search.toLowerCase())
   );
+  const totalPages = Math.ceil(filteredUsers.length / PAGE_SIZE);
+  const pagedUsers = filteredUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const roleOptions = ['viewer', 'organizer', 'admin'];
 
@@ -131,7 +135,7 @@ export default function AdminUserTable() {
           </div>
           <div>
             <h2 className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>User Management</h2>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{filteredUsers.length} users</p>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{filteredUsers.length} users · Page {page}/{totalPages || 1}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -182,7 +186,7 @@ export default function AdminUserTable() {
                 </td>
               </tr>
             ) : (
-              filteredUsers.map((user) => (
+              pagedUsers.map((user) => (
                 <tr key={user._id} className="hover:bg-[var(--bg-hover)] dark:hover:bg-gray-800/50 transition-all group">
 
                   <td className="px-6 py-4">

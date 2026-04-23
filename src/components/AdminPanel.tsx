@@ -62,7 +62,7 @@ export default function AdminPanel() {
 
   useEffect(() => {
     const loadStats = api.get('/stats/admin')
-      .then(res => setStats(res.data))
+      .then(res => setStats(res.data.data || res.data))
       .catch(() => setStatsError(true));
 
     const loadPrices = api.get('/admin/membership-prices')
@@ -209,7 +209,8 @@ export default function AdminPanel() {
           style={{
             background: 'var(--bg-card)',
             border: '1px solid var(--border)',
-            scrollbarWidth: 'none',
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'var(--scrollbar-thumb) transparent',
           }}
         >
           {sections.map(s => {

@@ -109,7 +109,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               </label>
               <input type="date" required value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})}
                 className="w-full p-3 sm:p-4 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)', colorScheme: 'var(--color-scheme, dark)', accentColor: 'var(--accent)' }} />
             </div>
 
             <div>
@@ -118,7 +118,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               </label>
               <input type="date" required value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})}
                 className="w-full p-3 sm:p-4 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)', colorScheme: 'var(--color-scheme, dark)', accentColor: 'var(--accent)' }} />
             </div>
 
             <div>
