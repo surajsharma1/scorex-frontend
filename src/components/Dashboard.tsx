@@ -4,7 +4,7 @@ import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { useAuth } from '../App';
 import {
   Trophy, Activity, Users, Zap, Plus, ChevronRight,
-  Radio, Target, Clock
+  BarChart3, Radio, Target, TrendingUp, Clock
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -117,7 +117,9 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
           <QuickAction icon={<Plus className="w-4 h-4" />}      gradient="linear-gradient(135deg,#22c55e,#16a34a)"  title="New Tournament"     desc="Create a new competition"       onClick={() => navigate('/tournaments')} />
           <QuickAction icon={<Radio className="w-4 h-4" />}     gradient="linear-gradient(135deg,#ef4444,#dc2626)"  title="Live Scoring"       desc="Score a match in real-time"     onClick={() => navigate('/live')} />
+          <QuickAction icon={<BarChart3 className="w-4 h-4" />} gradient="linear-gradient(135deg,#a855f7,#7c3aed)"  title="Leaderboard"        desc="Tournament standings & stats"   onClick={() => navigate('/leaderboard')} />
           <QuickAction icon={<Target className="w-4 h-4" />}    gradient="linear-gradient(135deg,#f59e0b,#d97706)"  title="My Tournaments"     desc="Manage your competitions"       onClick={() => navigate('/tournaments')} />
+          <QuickAction icon={<TrendingUp className="w-4 h-4" />} gradient="linear-gradient(135deg,#06b6d4,#0284c7)" title="Match History"      desc="Review past match results"      onClick={() => navigate('/live')} />
         </div>
       </div>
 
