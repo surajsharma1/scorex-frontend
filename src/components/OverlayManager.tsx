@@ -620,7 +620,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
             </select>
             <select value={createForm.match} onChange={e => setCreateForm({ ...createForm, match: e.target.value })}
               className="w-full p-3 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] rounded-xl text-sm outline-none focus:border-green-500/50 transition-all">
-              <option value="">Select Match</option>
+              <option value="">Select Match (Optional)</option>
               {matches.filter((m:any) => m.status !== 'completed').map(m => <option key={m._id} value={m._id}>{m.team1Name} vs {m.team2Name} ({m.status})</option>)}
             </select>
             {(() => {

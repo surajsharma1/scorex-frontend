@@ -89,14 +89,54 @@ function PlayerSelectModal({ match, battingTeamId, inningsNum, context, onDone, 
   const [striker, setStriker] = useState('');
   const [nonStriker, setNonStriker] = useState('');
   const [bowler, setBowler] = useState('');
+  // Track selected player by index (not name) to handle duplicate names correctly
+  const [strikerIdx, setStrikerIdx] = useState(-1);
+  const [nonStrikerIdx, setNonStrikerIdx] = useState(-1);
+
   const t1Id = match.team1?._id || match.team1;
   const battingTeam = t1Id === battingTeamId ? match.team1 : match.team2;
   const bowlingTeam = battingTeam === match.team1 ? match.team2 : match.team1;
   const batPlayers: any[] = battingTeam?.players || [];
   const bowlPlayers: any[] = bowlingTeam?.players || [];
-  const fullyOut = new Set<string>((currentInningsData?.batsmen || []).filter((b: any) => b.isOut && b.outType !== 'retired_hurt' && b.outType !== 'retired').map((b: any) => b.name));
-  const getBatOptions = (excludeValue: string) => batPlayers.filter((p: any) => !fullyOut.has(p.name) && p.name !== excludeValue);
+
+  // Build fully-out set from names (still needed to exclude dismissed batters)
+  const fullyOut = new Set<string>(
+    (currentInningsData?.batsmen || [])
+      .filter((b: any) => b.isOut && b.outType !== 'retired_hurt' && b.outType !== 'retired')
+      .map((b: any) => b.name)
+  );
+
+  // Returns players eligible for a role, excluding the player selected in the OTHER role by index
+  const getBatOptions = (excludeIdx: number) =>
+    batPlayers
+      .map((p: any, i: number) => ({ ...p, _idx: i, _key: `${i}::${p.name}` }))
+      .filter((p: any) => !fullyOut.has(p.name) && p._idx !== excludeIdx);
+
   useEffect(() => { if (context.reason === 'bowler_change' || context.reason === 'over_end') setBowler(''); }, [context]);
+
+  // Sel now uses index-based value so duplicate names work
+  const SelIdx = ({ label, value, onChange, opts }: {
+    label: string; value: number; onChange: (idx: number, name: string) => void; opts: any[];
+  }) => (
+    <div>
+      <label className="text-sm font-semibold mb-1.5 block" style={{ color: N.textSecondary }}>{label}</label>
+      <select
+        value={value >= 0 ? value : ''}
+        onChange={e => {
+          const idx = parseInt(e.target.value, 10);
+          const name = isNaN(idx) ? '' : (opts.find((p: any) => p._idx === idx)?.name || '');
+          onChange(isNaN(idx) ? -1 : idx, name);
+        }}
+        className="w-full rounded-xl px-3 py-2.5 text-sm"
+        style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textPrimary }}
+      >
+        <option value="">-- Select --</option>
+        {opts.map((p: any) => (
+          <option key={p._key} value={p._idx}>{p.name}</option>
+        ))}
+      </select>
+    </div>
+  );
   const Sel = ({ label, value, onChange, opts }: { label: string; value: string; onChange: (v: string) => void; opts: any[] }) => (
     <div>
       <label className="text-sm font-semibold mb-1.5 block" style={{ color: N.textSecondary }}>{label}</label>
@@ -108,13 +148,20 @@ function PlayerSelectModal({ match, battingTeamId, inningsNum, context, onDone, 
   );
   let title = 'Player Selection'; let showStriker = false, showNonStriker = false, showBowler = false, isValid = false;
   switch (context.reason) {
-    case 'innings_start': title = `Innings ${inningsNum} — Opening Players`; showStriker = true; showNonStriker = true; showBowler = true; isValid = !!(striker && nonStriker && bowler && striker !== nonStriker); break;
-    case 'wicket': title = context.outRole === 'striker' ? `New Striker (replacing ${context.outName})` : `New Non-Striker (replacing ${context.outName})`; if (context.outRole === 'striker') { showStriker = true; isValid = !!striker; } else { showNonStriker = true; isValid = !!nonStriker; } break;
-    case 'retired': title = `${context.retiredName} Retired — Select Replacement`; if (context.retiredRole === 'striker') { showStriker = true; isValid = !!striker; } else { showNonStriker = true; isValid = !!nonStriker; } break;
+    case 'innings_start': title = `Innings ${inningsNum} — Opening Players`; showStriker = true; showNonStriker = true; showBowler = true; isValid = !!(strikerIdx >= 0 && nonStrikerIdx >= 0 && bowler && strikerIdx !== nonStrikerIdx); break;
+    case 'wicket': title = context.outRole === 'striker' ? `New Striker (replacing ${context.outName})` : `New Non-Striker (replacing ${context.outName})`; if (context.outRole === 'striker') { showStriker = true; isValid = strikerIdx >= 0; } else { showNonStriker = true; isValid = nonStrikerIdx >= 0; } break;
+    case 'retired': title = `${context.retiredName} Retired — Select Replacement`; if (context.retiredRole === 'striker') { showStriker = true; isValid = strikerIdx >= 0; } else { showNonStriker = true; isValid = nonStrikerIdx >= 0; } break;
     case 'over_end': case 'bowler_change': title = 'New Bowler'; showBowler = true; isValid = !!bowler; break;
-    case 'manual': title = 'Change Players / Bowler'; showStriker = true; showNonStriker = true; showBowler = true; isValid = !!(striker || nonStriker || bowler); break;
+    case 'manual': title = 'Change Players / Bowler'; showStriker = true; showNonStriker = true; showBowler = true; isValid = !!(strikerIdx >= 0 || nonStrikerIdx >= 0 || bowler); break;
   }
-  const handleConfirm = () => { if (!isValid) return; const payload: any = {}; if (showStriker && striker) payload.striker = striker; if (showNonStriker && nonStriker) payload.nonStriker = nonStriker; if (showBowler && bowler) payload.bowler = bowler; onDone(payload); };
+  const handleConfirm = () => {
+    if (!isValid) return;
+    const payload: any = {};
+    if (showStriker && strikerIdx >= 0) payload.striker = batPlayers[strikerIdx]?.name;
+    if (showNonStriker && nonStrikerIdx >= 0) payload.nonStriker = batPlayers[nonStrikerIdx]?.name;
+    if (showBowler && bowler) payload.bowler = bowler;
+    onDone(payload);
+  };
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] p-4 overflow-y-auto">
       <div className="rounded-2xl p-6 w-full max-w-lg my-4 relative" style={{ background: N.bgCard, border: `1px solid ${N.accentBorder}` }}>
@@ -122,8 +169,8 @@ function PlayerSelectModal({ match, battingTeamId, inningsNum, context, onDone, 
         <h2 className="text-lg font-black mb-1 flex items-center gap-2" style={{ color: N.accent }}><Users className="w-5 h-5" /> {title}</h2>
         <p className="text-xs mb-5" style={{ color: N.textMuted }}>Innings {inningsNum} · {battingTeam?.name} batting</p>
         <div className="space-y-4">
-          {showStriker && <Sel label="🏏 Striker (facing)" value={striker} onChange={setStriker} opts={getBatOptions(nonStriker)} />}
-          {showNonStriker && <Sel label="⬤ Non-Striker (other end)" value={nonStriker} onChange={setNonStriker} opts={getBatOptions(striker)} />}
+          {showStriker && <SelIdx label="🏏 Striker (facing)" value={strikerIdx} onChange={(idx, _name) => setStrikerIdx(idx)} opts={getBatOptions(nonStrikerIdx)} />}
+          {showNonStriker && <SelIdx label="⬤ Non-Striker (other end)" value={nonStrikerIdx} onChange={(idx, _name) => setNonStrikerIdx(idx)} opts={getBatOptions(strikerIdx)} />}
           {showBowler && <Sel label="🎳 Bowler" value={bowler} onChange={setBowler} opts={bowlPlayers} />}
           <button onClick={handleConfirm} disabled={!isValid} className="w-full py-3 rounded-xl font-black text-sm disabled:opacity-40" style={{ background: N.accent, color: N.bg }}>Confirm ✓</button>
         </div>
@@ -451,10 +498,6 @@ export default function LiveScoring() {
                 <button onClick={triggerBatsmanProfile} className="py-3 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all active:scale-95" style={{ background: N.accentGlow, border: `1px solid ${N.accentBorder}`, color: N.accent }}><User className="w-4 h-4" /><span>Batter Profile</span></button>
                 <button onClick={triggerBowlerProfile} className="py-3 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all active:scale-95" style={{ background: N.accentGlow, border: `1px solid ${N.accentBorder}`, color: N.accent }}><UserCheck className="w-4 h-4" /><span>Bowler Profile</span></button>
                 <button onClick={triggerRestore} className="py-3 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all active:scale-95" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}><RefreshCw className="w-4 h-4" /><span>Restore</span></button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={triggerBattingCard} className="py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}>📊 Batting Summary</button>
-                <button onClick={triggerBowlingCard} className="py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}>🎳 Bowling Summary</button>
               </div>
             </div>
             {/* 3rd Umpire */}
