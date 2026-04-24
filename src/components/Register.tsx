@@ -194,7 +194,7 @@ export default function Register() {
 
           {/* Google Register */}
           <a
-            href={}
+            href={`${import.meta.env.VITE_API_URL || ''}/api/v1/auth/google`}
             className="flex items-center justify-center gap-3 w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
             style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
           >
