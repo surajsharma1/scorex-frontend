@@ -121,25 +121,49 @@
   }
 
   function tpl_BATSMAN_PROFILE(data) {
+    // Supports two payload formats:
+    // (a) LiveScoring direct: { playerName, runs, balls, fours, sixes, sr }
+    // (b) test.html stats[]: { title, stats: [{label, value}, ...] }
+    var name, rows;
+    if (data.stats && Array.isArray(data.stats)) {
+      var nameEntry = data.stats.find(function(s) { return /batsman|player|name/i.test(s.label); });
+      name = nameEntry ? nameEntry.value : (data.title || '');
+      rows = data.stats
+        .filter(function(s) { return !/batsman|player|name/i.test(s.label); })
+        .map(function(s) { return stat_row(s.label, s.value); }).join('');
+    } else {
+      name = data.playerName || data.name || '';
+      rows = stat_row('RUNS', data.runs||0) + stat_row('BALLS', data.balls||0) +
+             stat_row('FOURS', data.fours||0) + stat_row('SIXES', data.sixes||0) +
+             stat_row('STRIKE RATE', data.sr||data.strikeRate||'0.0');
+    }
     return '<div style="padding:40px 52px;background:'+C.bg+';border:2px solid '+C.purple+';border-radius:24px;min-width:420px;box-shadow:0 0 40px rgba(168,85,247,0.15)">' +
       '<div style="display:inline-block;background:'+C.purple+';color:#fff;font-size:12px;font-weight:900;letter-spacing:3px;padding:4px 18px;border-radius:20px;margin-bottom:16px;">BATSMAN</div>' +
-      '<div style="color:'+C.text+';font-size:34px;font-weight:900;margin-bottom:20px;">' + (data.playerName||data.name||'') + '</div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
-        stat_row('RUNS', data.runs||0) + stat_row('BALLS', data.balls||0) +
-        stat_row('FOURS', data.fours||0) + stat_row('SIXES', data.sixes||0) +
-        stat_row('STRIKE RATE', data.sr||data.strikeRate||'0.0') +
-      '</div>' +
+      '<div style="color:'+C.text+';font-size:34px;font-weight:900;margin-bottom:20px;">' + name + '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' + rows + '</div>' +
     '</div>';
   }
 
   function tpl_BOWLER_PROFILE(data) {
+    // Supports two payload formats:
+    // (a) LiveScoring direct: { playerName, overs, wickets, runs, economy }
+    // (b) test.html stats[]: { title, stats: [{label, value}, ...] }
+    var name, rows;
+    if (data.stats && Array.isArray(data.stats)) {
+      var nameEntry = data.stats.find(function(s) { return /bowler|player|name/i.test(s.label); });
+      name = nameEntry ? nameEntry.value : (data.title || '');
+      rows = data.stats
+        .filter(function(s) { return !/bowler|player|name/i.test(s.label); })
+        .map(function(s) { return stat_row(s.label, s.value); }).join('');
+    } else {
+      name = data.playerName || data.name || data.bowler || '';
+      rows = stat_row('OVERS', data.overs||'0.0') + stat_row('WICKETS', data.wickets||0) +
+             stat_row('RUNS', data.runs||0) + stat_row('ECONOMY', data.economy||data.econ||'0.00');
+    }
     return '<div style="padding:40px 52px;background:'+C.bg+';border:2px solid '+C.blue+';border-radius:24px;min-width:420px;box-shadow:0 0 40px rgba(56,189,248,0.15)">' +
       '<div style="display:inline-block;background:'+C.blue+';color:#000;font-size:12px;font-weight:900;letter-spacing:3px;padding:4px 18px;border-radius:20px;margin-bottom:16px;">BOWLER</div>' +
-      '<div style="color:'+C.text+';font-size:34px;font-weight:900;margin-bottom:20px;">' + (data.playerName||data.name||data.bowler||'') + '</div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
-        stat_row('OVERS', data.overs||'0.0') + stat_row('WICKETS', data.wickets||0) +
-        stat_row('RUNS', data.runs||0) + stat_row('ECONOMY', data.economy||data.econ||'0.00') +
-      '</div>' +
+      '<div style="color:'+C.text+';font-size:34px;font-weight:900;margin-bottom:20px;">' + name + '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' + rows + '</div>' +
     '</div>';
   }
 
@@ -318,6 +342,75 @@
         return false;
     }
   };
+
+  // ── Global message listener — intercepts triggers BEFORE overlay's own handler ──
+  // This guarantees DECISION_PENDING, BATSMAN_PROFILE, BOWLER_PROFILE and
+  // START_INNINGS_INTRO always work on every overlay without touching each file.
+  // NOTE: We intentionally do NOT filter out _engineSelf here — we WANT to receive
+  // the engine's own dispatches so the shared panel renders them reliably.
+  window.addEventListener('message', function(e) {
+    if (!e.data) return;
+    if (e.data.type !== 'OVERLAY_TRIGGER' || !e.data.payload) return;
+
+    var payload = e.data.payload;
+    var type    = payload.type;
+    var data    = payload.data || {};
+    var dur     = (payload.duration > 0 ? payload.duration : 8) * 1000;
+
+    switch (type) {
+      case 'DECISION_PENDING': {
+        ensureDecisionElement();
+        var dp = document.getElementById('__decision-overlay__');
+        // If active is explicitly set (from engine/LiveScoring), use it directly.
+        // If not set (from test.html which sends empty data {}), toggle current state.
+        var active;
+        if (typeof data.active === 'boolean') {
+          active = data.active;
+        } else if (data.active !== undefined) {
+          active = !!data.active;
+        } else {
+          // No active flag — toggle based on current visibility (test.html style)
+          active = !dp || dp.style.display === 'none' || dp.style.display === '';
+        }
+        if (dp) {
+          if (active) {
+            dp.style.display = 'none';
+            void dp.offsetWidth; // force reflow to restart CSS animation
+            dp.style.display = 'flex';
+          } else {
+            dp.style.display = 'none';
+          }
+        }
+        var nat = document.getElementById('ev-decision') || document.getElementById('anim-decision');
+        if (nat) { nat.classList.toggle('fire', active); nat.classList.toggle('layer-show', active); }
+        break;
+      }
+
+      case 'RESTORE': {
+        var dp2 = document.getElementById('__decision-overlay__');
+        if (dp2) dp2.style.display = 'none';
+        var nat2 = document.getElementById('ev-decision') || document.getElementById('anim-decision');
+        if (nat2) { nat2.classList.remove('fire'); nat2.classList.remove('layer-show'); }
+        hidePanel();
+        break;
+      }
+
+      case 'BATSMAN_PROFILE':
+        showPanel(tpl_BATSMAN_PROFILE(data), dur);
+        break;
+
+      case 'BOWLER_PROFILE':
+        showPanel(tpl_BOWLER_PROFILE(data), dur);
+        break;
+
+      case 'START_INNINGS_INTRO':
+        showPanel(tpl_START_INNINGS_INTRO(data), dur);
+        break;
+
+      default:
+        break;
+    }
+  });
 
   // Ensure decision element on DOM ready
   if (document.readyState === 'loading') {
