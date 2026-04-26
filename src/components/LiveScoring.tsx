@@ -3,8 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import { socket } from '../services/socket';
 import {
-  RotateCcw, X, Users, AlertTriangle,
-  User, UserCheck, RefreshCw, LogOut
+  RotateCcw, X, Users, LogOut, AlertTriangle
 } from 'lucide-react';
 
 const N = {
@@ -265,7 +264,6 @@ export default function LiveScoring() {
   const [isScorer, setIsScorer] = useState(false);
   const [tossData, setTossData] = useState<any>(null);
   const [selectContext, setSelectContext] = useState<SelectContext>({ reason: 'innings_start' });
-  const [isDecisionPending, setIsDecisionPending] = useState(false);
   const [wicketModal, setWicketModal] = useState<{ open: boolean; baseData: BallData; runOutOnly?: boolean }>({ open: false, baseData: {} });
 
   const fetchMatch = useCallback(async () => {
@@ -297,31 +295,9 @@ export default function LiveScoring() {
     return () => { socket.leaveMatch(id); socket.off('scoreUpdate', onScore); socket.off('inningsEnded', onInnings); socket.off('matchEnded', onEnd); };
   }, [id, fetchMatch]);
 
-  // fireTrigger: sends socket event + HTTP POST (visible in Network tab)
-  const fireTrigger = useCallback((type: string, data: any = {}, duration = 6) => {
-    const matchId = match?._id || id;
-    if (!matchId) { console.warn('[fireTrigger] No matchId — skipping:', type); return; }
-    const payload = { type, data: { ...data, isManual: true }, duration };
-    socket.emit('manualOverlayTrigger', { matchId, trigger: payload });
-    document.querySelectorAll('iframe').forEach(iframe => { try { iframe.contentWindow?.postMessage({ type: 'OVERLAY_TRIGGER', payload }, '*'); } catch (_) { } });
-    // HTTP POST so activity appears in Network tab
-    const apiBase = (window as any).__VITE_API_URL__ || (import.meta as any).env?.VITE_API_URL || '';
-    fetch(`${apiBase}/api/v1/overlays/trigger`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token') || ''}` },
-      body: JSON.stringify({ matchId, trigger: payload }),
-    }).catch(() => {});
-    console.log(`[Broadcast] ✅ ${type}`, { matchId });
   }, [match, id]);
 
-  const getBatterStats = useCallback((name: string) => { const inn = match?.innings?.[match?.currentInnings - 1]; const b = (inn?.batsmen || []).find((x: any) => x.name === name) || {}; return { name, runs: b.runs || 0, balls: b.balls || 0, fours: b.fours || 0, sixes: b.sixes || 0, sr: b.strikeRate || 0 }; }, [match]);
-  const getBowlerStats = useCallback((name: string) => { const inn = match?.innings?.[match?.currentInnings - 1]; const b = (inn?.bowlers || []).find((x: any) => x.name === name) || {}; const balls = b.balls || 0; return { name, overs: `${Math.floor(balls / 6)}.${balls % 6}`, runs: b.runs || 0, wickets: b.wickets || 0, economy: b.economy || 0 }; }, [match]);
 
-  const triggerBatsmanProfile = useCallback(() => { const s = match?.strikerName; if (!s) { setError('No striker set'); return; } fireTrigger('BATSMAN_PROFILE', { playerName: s, ...getBatterStats(s) }, 8); }, [match, getBatterStats, fireTrigger]);
-  const triggerBowlerProfile = useCallback(() => { const b = match?.currentBowlerName; if (!b) { setError('No bowler set'); return; } fireTrigger('BOWLER_PROFILE', { playerName: b, ...getBowlerStats(b) }, 8); }, [match, getBowlerStats, fireTrigger]);
-  const triggerRestore = useCallback(() => { fireTrigger('RESTORE', {}, 0); }, [fireTrigger]);
-  const triggerBattingCard = useCallback(() => { const inn = match?.innings?.[match?.currentInnings - 1] || {}; const batsmen = (inn.batsmen || []).map((b: any) => ({ name: b.name, runs: b.runs || 0, balls: b.balls || 0, fours: b.fours || 0, sixes: b.sixes || 0, sr: b.strikeRate || 0, outStatus: b.isOut && b.outType !== 'retired_hurt' ? 'out' : 'not_out' })); fireTrigger('BATTING_CARD', { batsmen }, 12); }, [match, fireTrigger]);
-  const triggerBowlingCard = useCallback(() => { const inn = match?.innings?.[match?.currentInnings - 1] || {}; const bowlers = (inn.bowlers || []).map((b: any) => ({ name: b.name, overs: b.balls ? `${Math.floor(b.balls / 6)}.${b.balls % 6}` : '0.0', maidens: 0, runs: b.runs || 0, wkts: b.wickets || 0, econ: b.economy || 0 })); fireTrigger('BOWLING_CARD', { bowlers }, 12); }, [match, fireTrigger]);
 
   const handleTossDone = (data: any) => { setTossData(data); setSelectContext({ reason: 'innings_start' }); setStep('players'); };
 
@@ -333,8 +309,6 @@ export default function LiveScoring() {
       if (match.status !== 'live') await matchAPI.startMatch(id, { ...tossData, ...players });
       else await matchAPI.selectPlayers(id, players);
       await fetchMatch();
-      if ((currentReason === 'bowler_change' || currentReason === 'over_end') && players.bowler) fireTrigger('NEW_BOWLER', { bowler: players.bowler, ...getBowlerStats(players.bowler) }, 8);
-      if (currentReason === 'innings_start' && players.striker && players.bowler) setTimeout(() => { fireTrigger('START_INNINGS_INTRO', { striker: players.striker, nonStriker: players.nonStriker || '', bowler: players.bowler }, 10); }, 800);
       setStep('scoring'); setPanel('main');
     } catch { setError('Failed to update players'); } finally { setSubmitting(false); }
   };
@@ -349,7 +323,7 @@ export default function LiveScoring() {
       setLastBall(result?.ballDescription || '');
       setPanel('main');
       if (result?.matchEnded) { setStep('done'); }
-      else if (result?.inningsEnded) { const inn1Score = match?.innings?.[0]?.score || 0; fireTrigger('INNINGS_BREAK', { chasingTeam: match?.team2Name || 'Team 2', targetScore: inn1Score + 1 }, 10); setStep('inningsBreak'); }
+      else if (result?.inningsEnded) { setStep('inningsBreak'); }
       else if (result?.isWicket && result?.outBatsmanName) { const outName = result.outBatsmanName || ''; const outRole: 'striker' | 'nonStriker' = outName === match?.strikerName ? 'striker' : 'nonStriker'; setSelectContext({ reason: 'wicket', outRole, outName }); setStep('playerSelect'); }
       else if (result?.overChanged) { setStep('overEnd'); }
       else if (result?.needPlayerSelection) { const outName = result.outBatsmanName || ''; const outRole: 'striker' | 'nonStriker' = outName === match?.strikerName ? 'striker' : 'nonStriker'; setSelectContext({ reason: 'wicket', outRole, outName }); setStep('playerSelect'); }
@@ -367,7 +341,6 @@ export default function LiveScoring() {
     const retiredName = role === 'striker' ? match?.strikerName : match?.nonStrikerName;
     const retiredStats = (inn?.batsmen || []).find((b: any) => b.name === retiredName);
     if (!retiredName || submitting) return;
-    fireTrigger('BATSMAN_CHANGE', { outName: retiredName, howOut: 'Retired Hurt', outRuns: retiredStats?.runs || 0, outBalls: retiredStats?.balls || 0, inName: '', isSub: true }, 8);
     setSubmitting(true);
     try {
       const res = await matchAPI.addBall(id!, { retired: true, outBatsmanName: retiredName });
@@ -386,7 +359,6 @@ export default function LiveScoring() {
     const retiredName = role === 'striker' ? match?.strikerName : match?.nonStrikerName;
     const retiredStats = (inn?.batsmen || []).find((b: any) => b.name === retiredName);
     if (!retiredName || submitting) return;
-    fireTrigger('WICKET_SWITCH', { outName: retiredName, howOut: 'Retired Out', outRuns: retiredStats?.runs || 0, outBalls: retiredStats?.balls || 0 }, 8);
     setSubmitting(true);
     try {
       const res = await matchAPI.addBall(id!, { retiredOut: true, wicket: true, outType: 'retired_out', outBatsmanName: retiredName });
@@ -401,15 +373,6 @@ export default function LiveScoring() {
 
   const handleEndInnings = async () => { if (!confirm('End current innings?')) return; setSubmitting(true); try { await matchAPI.endInnings(id!); await fetchMatch(); setStep('inningsBreak'); } catch { } finally { setSubmitting(false); } };
 
-  // 3rd Umpire: ON fires DECISION_PENDING, OFF fires RESTORE — never both simultaneously
-  const toggleDecisionPending = useCallback(() => {
-    setIsDecisionPending(prev => {
-      const next = !prev;
-      if (next) { fireTrigger('DECISION_PENDING', {}, 0); }
-      else { fireTrigger('RESTORE', {}, 0); }
-      return next;
-    });
-  }, [fireTrigger]);
 
   const innings = match?.innings?.[match?.currentInnings - 1] || {};
   const safeBatsmen = Array.isArray(innings?.batsmen) ? innings.batsmen : [];
@@ -430,7 +393,33 @@ export default function LiveScoring() {
     for (let i = hist.length - 1; i >= 0 && legal < 6; i--) { const b = hist[i]; result.unshift(b); if (b.extras !== 'wide' && b.extras !== 'nb') legal++; if (legal >= ballsNum) break; }
     return result;
   })();
-  const locked = submitting || isDecisionPending;
+  const locked = submitting;
+
+  // ── 3rd Umpire — local toggle state only. ON fires DECISION_PENDING (6000s).
+  // OFF fires RESTORE which kills the animation immediately on the overlay.
+  const [isUmpireReview, setIsUmpireReview] = useState(false);
+
+  const fireBroadcast = useCallback((type: string, duration = 6) => {
+    const matchId = match?._id || id;
+    if (!matchId) return;
+    const payload = { type, data: { isManual: true }, duration };
+    socket.emit('manualOverlayTrigger', { matchId, trigger: payload });
+    fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/overlays/trigger`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token') || ''}` },
+      body: JSON.stringify({ matchId, trigger: payload }),
+    }).catch(() => {});
+  }, [match, id]);
+
+  const handleUmpireToggle = useCallback(() => {
+    setIsUmpireReview(prev => {
+      const next = !prev;
+      // ON  → fire DECISION_PENDING for 6000s (100 min)
+      // OFF → fire RESTORE which kills animation immediately
+      fireBroadcast(next ? 'DECISION_PENDING' : 'RESTORE', next ? 6000 : 0);
+      return next;
+    });
+  }, [fireBroadcast]);
 
   if (loading) return (<div className="min-h-screen flex items-center justify-center bg-black"><div className="w-12 h-12 border-4 border-t-transparent border-green-500 rounded-full animate-spin" /></div>);
   if (!match) return (<div className="min-h-screen flex items-center justify-center bg-black"><p className="text-red-500 text-xl">Match not found</p></div>);
@@ -491,23 +480,24 @@ export default function LiveScoring() {
       <div className="flex-1 overflow-y-auto" style={{ background: N.bg }}>
         {panel === 'main' && (
           <div className="p-4 space-y-4">
-            {/* Broadcast */}
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>Broadcast</p>
-              <div className="grid grid-cols-3 gap-2 mb-2">
-                <button onClick={triggerBatsmanProfile} className="py-3 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all active:scale-95" style={{ background: N.accentGlow, border: `1px solid ${N.accentBorder}`, color: N.accent }}><User className="w-4 h-4" /><span>Batter Profile</span></button>
-                <button onClick={triggerBowlerProfile} className="py-3 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all active:scale-95" style={{ background: N.accentGlow, border: `1px solid ${N.accentBorder}`, color: N.accent }}><UserCheck className="w-4 h-4" /><span>Bowler Profile</span></button>
-                <button onClick={triggerRestore} className="py-3 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all active:scale-95" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}><RefreshCw className="w-4 h-4" /><span>Restore</span></button>
-              </div>
             </div>
             {/* 3rd Umpire */}
             <div>
-              <button onClick={toggleDecisionPending} className="w-full py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all active:scale-95" style={{ background: isDecisionPending ? N.amber : N.amberDim, border: `2px solid ${isDecisionPending ? N.amber : N.amberBorder}`, color: isDecisionPending ? '#000' : N.amber, boxShadow: isDecisionPending ? `0 0 24px ${N.amberBorder}` : 'none' }}>
+              <button
+                onClick={handleUmpireToggle}
+                className="w-full py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all active:scale-95"
+                style={{
+                  background: isUmpireReview ? N.amber : N.amberDim,
+                  border: `2px solid ${isUmpireReview ? N.amber : N.amberBorder}`,
+                  color: isUmpireReview ? '#000' : N.amber,
+                  boxShadow: isUmpireReview ? `0 0 24px ${N.amberBorder}` : 'none',
+                }}
+              >
                 <AlertTriangle className="w-5 h-5" />
-                {isDecisionPending ? '⚠ DECISION PENDING — Tap to Resume' : '3rd Umpire Review'}
+                {isUmpireReview ? '⚠ REVIEW IN PROGRESS — Tap to Close' : '3rd Umpire Review'}
               </button>
-              {isDecisionPending && <p className="text-center text-[11px] mt-1" style={{ color: N.amber }}>Scoring locked while reviewing · Only this button is pressable</p>}
             </div>
+
             {/* Runs */}
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>Runs</p>

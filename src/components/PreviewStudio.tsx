@@ -56,8 +56,6 @@ const TRIGGER_GROUPS = [
  { label: 'FOUR (4)', type: 'FOUR', data: {} },
  { label: 'SIX (6)', type: 'SIX', data: {} },
  { label: 'WICKET', type: 'WICKET', data: {} },
- { label: '3rd Umpire ON', type: 'DECISION_PENDING', data: { active: true } },
-     { label: '3rd Umpire OFF', type: 'DECISION_PENDING', data: { active: false } },
  { label: '50 Runs', type: '50_RUNS', data: { playerName: 'R. SHARMA' } },
  { label: '100 Runs', type: '100_RUNS', data: { playerName: 'R. SHARMA' } },
  ],
@@ -139,6 +137,7 @@ export default function PreviewStudio() {
  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set(['LIVE ACTION']));
  // ✅ Mobile sidebar toggle
  const [sidebarOpen, setSidebarOpen] = useState(false);
+ const [isUmpireReview, setIsUmpireReview] = useState(false);
 
  const containerRef = useRef<HTMLDivElement>(null);
  const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -194,8 +193,7 @@ export default function PreviewStudio() {
  const fireTrigger = useCallback((type: string, data: any = {}, duration?: number) => {
     const iframe = iframeRef.current;
     if (!iframe?.contentWindow) return;
-    // DECISION_PENDING uses duration:0 to lock indefinitely; isManual bypasses config checks
-    const dur = duration !== undefined ? duration : (type === 'DECISION_PENDING' ? 0 : 6);
+    const dur = duration !== undefined ? duration : 6;
     iframe.contentWindow.postMessage({
       type: 'OVERLAY_TRIGGER',
       payload: { type, data: { ...data, isManual: true }, duration: dur }
@@ -401,6 +399,29 @@ export default function PreviewStudio() {
  )}
  </div>
  ))}
+
+ {/* ✅ 3rd Umpire toggle — ON fires DECISION_PENDING (6000s), OFF fires RESTORE */}
+ <div className="px-3 pt-2">
+   <button
+     onClick={() => {
+       const next = !isUmpireReview;
+       setIsUmpireReview(next);
+       if (next) {
+         fireTrigger('DECISION_PENDING', {}, 6000);
+       } else {
+         fireTrigger('RESTORE', {}, 0);
+       }
+     }}
+     className="w-full py-2.5 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-2 mb-1"
+     style={{
+       background: isUmpireReview ? '#f59e0b' : 'rgba(245,158,11,0.12)',
+       border: `1.5px solid ${isUmpireReview ? '#f59e0b' : 'rgba(245,158,11,0.3)'}`,
+       color: isUmpireReview ? '#000' : '#f59e0b',
+     }}
+   >
+     ⚖️ {isUmpireReview ? 'REVIEW IN PROGRESS — Click to Close' : '3rd Umpire Review'}
+   </button>
+ </div>
 
  {/* ✅ Restore Scoreboard — always at bottom, full width */}
  <div className="px-3 py-2 border-t sticky bottom-0 " style={{ background: 'var(--bg-card)' }}>
