@@ -293,26 +293,8 @@
   // ─── handleManualTrigger — single entry point for ALL manually fired triggers
   // Sources: socket manualOverlayTrigger, socket overlayTrigger, engine message listener
   // ALL types route through window.sharedHandleTrigger (in overlay-handlers.js).
-  // SAFETY: retries up to 2 seconds if overlay-handlers.js hasn't loaded yet.
+  // engine.js does NOT render anything itself — it only enriches data from matchData.
   function handleManualTrigger(trigger) {
-    if (typeof window.sharedHandleTrigger !== 'function') {
-      var retryCount = 0;
-      var retryInterval = setInterval(function() {
-        retryCount++;
-        if (typeof window.sharedHandleTrigger === 'function') {
-          clearInterval(retryInterval);
-          _doManualTrigger(trigger);
-        } else if (retryCount >= 20) {
-          clearInterval(retryInterval);
-          console.warn('[Engine] sharedHandleTrigger not available for:', trigger.type || trigger);
-        }
-      }, 100);
-      return;
-    }
-    _doManualTrigger(trigger);
-  }
-
-  function _doManualTrigger(trigger) {
     var t    = trigger.type || trigger;
     var data = trigger.data || trigger.payload || {};
     var dur  = trigger.duration;
