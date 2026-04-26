@@ -265,6 +265,27 @@ export default function LiveScoring() {
   const [tossData, setTossData] = useState<any>(null);
   const [selectContext, setSelectContext] = useState<SelectContext>({ reason: 'innings_start' });
   const [wicketModal, setWicketModal] = useState<{ open: boolean; baseData: BallData; runOutOnly?: boolean }>({ open: false, baseData: {} });
+  const [isUmpireReview, setIsUmpireReview] = useState(false);
+
+  const fireBroadcast = useCallback((type: string, duration = 6) => {
+    const matchId = match?._id || id;
+    if (!matchId) return;
+    const payload = { type, data: { isManual: true }, duration };
+    socket.emit('manualOverlayTrigger', { matchId, trigger: payload });
+    fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/overlays/trigger`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token') || ''}` },
+      body: JSON.stringify({ matchId, trigger: payload }),
+    }).catch(() => {});
+  }, [match, id]);
+
+  const handleUmpireToggle = useCallback(() => {
+    setIsUmpireReview(prev => {
+      const next = !prev;
+      fireBroadcast(next ? 'DECISION_PENDING' : 'RESTORE', next ? 6000 : 0);
+      return next;
+    });
+  }, [fireBroadcast]);
 
   const fetchMatch = useCallback(async () => {
     if (!id) return;
@@ -294,10 +315,6 @@ export default function LiveScoring() {
     socket.on('scoreUpdate', onScore); socket.on('inningsEnded', onInnings); socket.on('matchEnded', onEnd);
     return () => { socket.leaveMatch(id); socket.off('scoreUpdate', onScore); socket.off('inningsEnded', onInnings); socket.off('matchEnded', onEnd); };
   }, [id, fetchMatch]);
-
-  }, [match, id]);
-
-
 
   const handleTossDone = (data: any) => { setTossData(data); setSelectContext({ reason: 'innings_start' }); setStep('players'); };
 
@@ -395,32 +412,6 @@ export default function LiveScoring() {
   })();
   const locked = submitting;
 
-  // ── 3rd Umpire — local toggle state only. ON fires DECISION_PENDING (6000s).
-  // OFF fires RESTORE which kills the animation immediately on the overlay.
-  const [isUmpireReview, setIsUmpireReview] = useState(false);
-
-  const fireBroadcast = useCallback((type: string, duration = 6) => {
-    const matchId = match?._id || id;
-    if (!matchId) return;
-    const payload = { type, data: { isManual: true }, duration };
-    socket.emit('manualOverlayTrigger', { matchId, trigger: payload });
-    fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/overlays/trigger`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token') || ''}` },
-      body: JSON.stringify({ matchId, trigger: payload }),
-    }).catch(() => {});
-  }, [match, id]);
-
-  const handleUmpireToggle = useCallback(() => {
-    setIsUmpireReview(prev => {
-      const next = !prev;
-      // ON  → fire DECISION_PENDING for 6000s (100 min)
-      // OFF → fire RESTORE which kills animation immediately
-      fireBroadcast(next ? 'DECISION_PENDING' : 'RESTORE', next ? 6000 : 0);
-      return next;
-    });
-  }, [fireBroadcast]);
-
   if (loading) return (<div className="min-h-screen flex items-center justify-center bg-black"><div className="w-12 h-12 border-4 border-t-transparent border-green-500 rounded-full animate-spin" /></div>);
   if (!match) return (<div className="min-h-screen flex items-center justify-center bg-black"><p className="text-red-500 text-xl">Match not found</p></div>);
   if (step === 'done') return (<div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: N.bg }}><div className="text-5xl">🏆</div><h2 className="text-2xl font-black" style={{ color: N.accent }}>Match Completed</h2>{match.resultSummary && <p className="text-sm" style={{ color: N.textSecondary }}>{match.resultSummary}</p>}<button onClick={() => navigate(-1)} className="mt-4 px-6 py-3 rounded-xl font-bold text-sm" style={{ background: N.bgCard, border: `1px solid ${N.border}`, color: N.textPrimary }}>← Back</button></div>);
@@ -480,7 +471,6 @@ export default function LiveScoring() {
       <div className="flex-1 overflow-y-auto" style={{ background: N.bg }}>
         {panel === 'main' && (
           <div className="p-4 space-y-4">
-            </div>
             {/* 3rd Umpire */}
             <div>
               <button
