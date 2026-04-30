@@ -271,12 +271,14 @@ export default function LiveScoring() {
     const matchId = match?._id || id;
     if (!matchId) return;
     const payload = { type, data: { ...data, isManual: true }, duration };
+    // 1. Socket path: server re-emits to all overlay sockets in the match room
     socket.emit('manualOverlayTrigger', { matchId, trigger: payload });
-    fetch(`${(import.meta as any).env?.VITE_API_URL || ''}/api/v1/overlays/trigger`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token') || ''}` },
-      body: JSON.stringify({ matchId, trigger: payload }),
-    }).catch(() => {});
+    // 2. Iframe postMessage: directly reaches any overlay preview iframes on this page
+    document.querySelectorAll('iframe').forEach(iframe => {
+      try { iframe.contentWindow?.postMessage({ type: 'OVERLAY_TRIGGER', payload }, '*'); } catch (_) {}
+    });
+    // 3. Also postMessage to self (in case overlay is in same window context)
+    window.postMessage({ type: 'OVERLAY_TRIGGER', payload }, '*');
   }, [match, id]);
 
   const handleUmpireToggle = useCallback(() => {
@@ -488,45 +490,7 @@ export default function LiveScoring() {
               </button>
             </div>
 
-            {/* Player Profile Triggers */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                disabled={locked}
-                onClick={() => {
-                  const s = activeStriker || {};
-                  fireBroadcast('BATSMAN_PROFILE', 8, {
-                    playerName: s.name || match?.strikerName || '',
-                    runs: s.runs || 0,
-                    balls: s.balls || 0,
-                    fours: s.fours || 0,
-                    sixes: s.sixes || 0,
-                    sr: s.strikeRate || (s.balls ? ((s.runs / s.balls) * 100).toFixed(1) : '0.0'),
-                  });
-                }}
-                className="py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ background: 'rgba(168,85,247,0.12)', border: `1px solid rgba(168,85,247,0.3)`, color: '#a855f7' }}
-              >
-                🏏 Batsman Profile
-              </button>
-              <button
-                disabled={locked}
-                onClick={() => {
-                  const b = activeBowler || {};
-                  const bowlerBalls = b.balls || 0;
-                  fireBroadcast('BOWLER_PROFILE', 8, {
-                    playerName: b.name || match?.currentBowlerName || '',
-                    overs: `${Math.floor(bowlerBalls / 6)}.${bowlerBalls % 6}`,
-                    wickets: b.wickets || 0,
-                    runs: b.runs || 0,
-                    economy: b.economy || (bowlerBalls ? ((b.runs / bowlerBalls) * 6).toFixed(2) : '0.00'),
-                  });
-                }}
-                className="py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ background: 'rgba(56,189,248,0.12)', border: `1px solid rgba(56,189,248,0.3)`, color: '#38bdf8' }}
-              >
-                🎳 Bowler Profile
-              </button>
-            </div>
+
 
             {/* Runs */}
             <div>
