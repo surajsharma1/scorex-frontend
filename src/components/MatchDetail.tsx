@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import {
   ArrowLeft, Zap, BarChart2, Users, MapPin, Shield, Activity
-} , ExternalLink } from 'lucide-react';
+} from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 
 interface Props {
