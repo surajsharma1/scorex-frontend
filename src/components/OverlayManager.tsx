@@ -503,7 +503,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
             </div>
             {/* ── Open in Full Studio for testing animations ── */}
             <button
-              onClick={() => window.open(`/studio?level=${level}&template=/overlays/${templateFilename}`, '_blank')}
+onClick={() => window.open(`/preview-studio?level=${level}&template=/overlays/${templateFilename}`, '_blank')}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white"
               style={{ background: 'linear-gradient(135deg,#3b82f6,#6366f1)' }}>
               <MonitorPlay className="w-3.5 h-3.5" /> Test in Studio

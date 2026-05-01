@@ -186,8 +186,8 @@ function OverlayCard({ name, category, level, url, gradient }: { name: string; c
 
       <div className="p-4 border-t border-white/5 flex items-center justify-between gap-2">
         <h4 className="font-bold text-white text-sm truncate">{name}</h4>
-        <Link
-          to={`/studio?template=${url}`}
+<Link
+          to={`/preview-studio?template=${url}`}
           className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/40 text-xs font-bold transition"
         >
           <MonitorPlay className="w-3 h-3" /> Studio
@@ -275,8 +275,8 @@ export default function Frontpage() {
               <NavLink href="#pricing">Pricing</NavLink>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <Link to="/studio" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/30 text-xs font-bold transition">
+<div className="flex items-center gap-2 shrink-0">
+              <Link to="/preview-studio" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/30 text-xs font-bold transition">
                 <MonitorPlay className="w-3.5 h-3.5" /> Preview Studio
               </Link>
               <Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition px-3 py-1.5">Sign In</Link>
@@ -333,7 +333,7 @@ export default function Frontpage() {
             <Link to="/register" className="group relative inline-flex items-center justify-center gap-3 px-10 py-5 bg-green-600 hover:bg-green-500 text-black font-bold rounded-2xl transition-all shadow-[0_0_40px_rgba(34,197,94,0.4)] hover:shadow-[0_0_60px_rgba(34,197,94,0.6)]">
               Start Tournament Free <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link to="/studio" className="group inline-flex items-center justify-center gap-3 px-10 py-5 bg-blue-600/20 border-2 border-blue-500/40 hover:bg-blue-600/30 rounded-2xl font-bold transition-all">
+<Link to="/preview-studio" className="group inline-flex items-center justify-center gap-3 px-10 py-5 bg-blue-600/20 border-2 border-blue-500/40 hover:bg-blue-600/30 rounded-2xl font-bold transition-all">
               <MonitorPlay className="w-5 h-5 text-blue-400" /> Try Overlay Studio
             </Link>
           </div>
@@ -403,7 +403,7 @@ export default function Frontpage() {
           <SectionHeader title="Broadcast Overlays" subtitle="21 professional overlay templates. Click any card to preview in the Studio." />
 
           <div className="flex justify-center gap-3 mt-8 mb-12">
-            <Link to="/studio" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition text-sm">
+<Link to="/preview-studio" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition text-sm">
               <MonitorPlay className="w-4 h-4" /> Open Full Preview Studio
             </Link>
             <Link to="/register" className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition text-sm">
@@ -465,7 +465,7 @@ export default function Frontpage() {
             <Link to="/register" className="inline-flex items-center gap-3 px-10 py-5 bg-white text-black font-bold rounded-full hover:bg-gray-100 transition shadow-[0_0_40px_rgba(255,255,255,0.2)]">
               Get Started Free <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link to="/studio" className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600/20 border border-blue-500/40 rounded-full font-bold transition hover:bg-blue-600/30">
+<Link to="/preview-studio" className="inline-flex items-center gap-3 px-10 py-5 bg-blue-600/20 border border-blue-500/40 rounded-full font-bold transition hover:bg-blue-600/30">
               <MonitorPlay className="w-5 h-5 text-blue-400" /> Preview Overlays
             </Link>
           </div>
@@ -493,7 +493,7 @@ export default function Frontpage() {
               <ul className="space-y-2 text-gray-400 text-sm">
                 <li><a href="#features" className="hover:text-green-400 transition">Features</a></li>
                 <li><a href="#pricing" className="hover:text-green-400 transition">Pricing</a></li>
-                <li><Link to="/studio" className="hover:text-green-400 transition">Overlay Studio</Link></li>
+<li><Link to="/preview-studio" className="hover:text-green-400 transition">Overlay Studio</Link></li>
                 <li><a href="#overlays" className="hover:text-green-400 transition">Templates</a></li>
               </ul>
             </div>
