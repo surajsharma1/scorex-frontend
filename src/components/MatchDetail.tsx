@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { AlertTriangle, RefreshCw, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RefreshCw, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { socket } from '../services/socket';
 import { useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
@@ -444,33 +444,6 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
               </div>
             ))}
 
-            {/* Decision Pending */}
-            {match.decisionPending && (
-              <div className="rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-                style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.35)' }}>
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-yellow-400" />
-                  <div>
-                    <p className="font-bold text-base text-yellow-400">Decision Pending</p>
-                    <p className="text-xs text-yellow-400/70 mt-0.5">Awaiting official decision (umpire/admin required).</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => { 
-                    socket.emit('resolveDecisionPending', { matchId }); 
-                    matchAPI.getMatch(matchId).then(r => setMatch(r.data.data));
-                    // Trigger overlay animation (like PreviewStudio)
-                    window.parent.postMessage({ 
-                      type: 'OVERLAY_TRIGGER', 
-                      payload: { type: 'DECISION_PENDING' } 
-                    }, '*');
-                  }}
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95"
-                  style={{ background: '#ca8a04', color: '#000' }}>
-                  Resolve Decision
-                </button>
-              </div>
-            )}
           </div>
         )}
 

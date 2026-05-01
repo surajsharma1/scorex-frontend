@@ -54,7 +54,6 @@ const TRIGGERS_LVL1 = [
   { label: '4\ufe0f\u20e3 FOUR',       type: 'FOUR',             color: '#3b82f6' },
   { label: '6\ufe0f\u20e3 SIX',        type: 'SIX',              color: '#22c55e' },
   { label: '\ud83c\udfaf WICKET',      type: 'WICKET',           color: '#ef4444' },
-  { label: '\u2696\ufe0f 3rd Umpire',  type: 'DECISION_PENDING', color: '#f59e0b' },
   { label: '\u21a9 Restore',           type: 'RESTORE',          color: '#6b7280' },
 ];
 
@@ -65,7 +64,6 @@ const TRIGGERS_LVL2 = [
   { label: '4\ufe0f\u20e3 FOUR',       type: 'FOUR',             color: '#3b82f6' },
   { label: '6\ufe0f\u20e3 SIX',        type: 'SIX',              color: '#22c55e' },
   { label: '\ud83c\udfaf WICKET',      type: 'WICKET',           color: '#ef4444' },
-  { label: '\u2696\ufe0f 3rd Umpire',  type: 'DECISION_PENDING', color: '#f59e0b' },
   { label: 'Bat Card',                type: 'BATTING_SUMMARY',  color: '#60a5fa' },
   { label: 'Bowl Card',               type: 'BOWLING_SUMMARY',  color: '#818cf8' },
   { label: 'Both Cards',              type: 'BOTH_CARDS',       color: '#c084fc' },

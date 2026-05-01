@@ -4,7 +4,7 @@ import {
   BarChart3, ShieldCheck, Play, ArrowRight,
   Activity, Video, Trophy, Users, Zap,
   Globe, Sparkles, ChevronDown, Star,
-  Twitter, Instagram, Youtube, Github,
+  Instagram, Youtube,
   MonitorPlay, ExternalLink, Eye
 } from 'lucide-react';
 import { matchAPI } from '../services/api';
@@ -97,9 +97,10 @@ function PricingCard({ name, price, period, features, highlight }: { name: strin
   );
 }
 
-function SocialLink({ icon }: { icon: React.ReactNode }) {
+function SocialLink({ icon, href, label }: { icon: React.ReactNode; href: string; label: string }) {
   return (
-    <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-white transition">
+    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
+      className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-white/10 hover:text-white transition">
       {icon}
     </a>
   );
@@ -508,10 +509,9 @@ export default function Frontpage() {
             <div>
               <h4 className="font-bold mb-4 text-white">Connect</h4>
               <div className="flex gap-3">
-                <SocialLink icon={<Twitter className="w-4 h-4" />} />
-                <SocialLink icon={<Instagram className="w-4 h-4" />} />
-                <SocialLink icon={<Youtube className="w-4 h-4" />} />
-                <SocialLink icon={<Github className="w-4 h-4" />} />
+                <SocialLink icon={<Youtube className="w-4 h-4" />} href="https://www.youtube.com/@ScoreX-Live" label="YouTube" />
+                <SocialLink icon={<Instagram className="w-4 h-4" />} href="https://www.instagram.com/scorex_live?igsh=MWZkdzA1ZTN0b2xmZw==" label="Instagram" />
+                <SocialLink icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>} href="https://www.facebook.com/share/1CoY1Sfmki/" label="Facebook" />
               </div>
             </div>
           </div>
