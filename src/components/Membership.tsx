@@ -215,18 +215,42 @@ function OverlayPreviewModal({ isOpen, onClose, level, templates }: OverlayPrevi
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-type Duration = '1day' | '1week' | '1month';
+type Duration = '1day' | '1week' | '1month' | '3month' | '6month' | '1year';
 
 const DURATION_LABELS: Record<Duration, string> = {
-  '1day':  '1 Day',
-  '1week': '1 Week',
-  '1month':'1 Month',
+  '1day':   '1 Day',
+  '1week':  '1 Week',
+  '1month': '1 Month',
+  '3month': '3 Months',
+  '6month': '6 Months',
+  '1year':  '1 Year',
 };
 
-const DEFAULT_PRICES: Record<number, Record<Duration, number>> = {
-  1: { '1day': 149,  '1week': 499,  '1month': 1499  },
-  2: { '1day': 249,  '1week': 999,  '1month': 2499  },
+// Each entry: { price, discount } — discount is % off
+type PriceEntry = { price: number; discount: number };
+const DEFAULT_PRICES: Record<number, Record<Duration, PriceEntry>> = {
+  1: {
+    '1day':   { price: 149,   discount: 0 },
+    '1week':  { price: 499,   discount: 0 },
+    '1month': { price: 1499,  discount: 0 },
+    '3month': { price: 3999,  discount: 0 },
+    '6month': { price: 6999,  discount: 0 },
+    '1year':  { price: 11999, discount: 0 },
+  },
+  2: {
+    '1day':   { price: 249,   discount: 0 },
+    '1week':  { price: 999,   discount: 0 },
+    '1month': { price: 2499,  discount: 0 },
+    '3month': { price: 6999,  discount: 0 },
+    '6month': { price: 11999, discount: 0 },
+    '1year':  { price: 19999, discount: 0 },
+  },
 };
+
+function effectivePrice(entry: PriceEntry): number {
+  if (!entry.discount) return entry.price;
+  return Math.round(entry.price * (1 - entry.discount / 100));
+}
 
 function formatTimeLeft(expiryISO: string): string {
   const ms = new Date(expiryISO).getTime() - Date.now();
@@ -342,7 +366,23 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
 
   useEffect(() => {
     api.get('/admin/membership-prices').then(res => {
-      if (res.data?.prices) setPrices(res.data.prices);
+      if (res.data?.prices) {
+        // Normalise: backend may store {price, discount} or legacy plain numbers
+        const raw = res.data.prices;
+        const normalised: typeof DEFAULT_PRICES = { ...DEFAULT_PRICES };
+        ([1, 2] as const).forEach(lvl => {
+          if (raw[lvl]) {
+            (Object.keys(DEFAULT_PRICES[lvl]) as Duration[]).forEach(dur => {
+              const v = raw[lvl][dur];
+              if (v !== undefined) {
+                normalised[lvl] = { ...normalised[lvl] };
+                normalised[lvl][dur] = typeof v === 'object' ? v : { price: v, discount: 0 };
+              }
+            });
+          }
+        });
+        setPrices(normalised);
+      }
     }).catch(() => {});
   }, []);
 
@@ -395,7 +435,7 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
       addToast({ type: 'success', message: 'Creating secure payment order...' });
 
       // 2. NOW CREATE THE ORDER
-      const amount = prices[plan.level][selectedDuration];
+      const amount = effectivePrice(prices[plan.level][selectedDuration]);
       const res = await paymentAPI.createRazorpayOrder(amount, plan.name);
       const order = res.data.data;
       
@@ -556,7 +596,8 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
             const overlayCount = templates.filter((t: any) => t.level === plan.level).length;
             const isCurrent = plan.level === currentLevel;
             const isLower   = plan.level < currentLevel;
-            const price     = plan.level > 0 ? prices[plan.level]?.[selectedDuration] : 0;
+            const priceEntry = plan.level > 0 ? prices[plan.level]?.[selectedDuration] : null;
+            const price     = priceEntry ? effectivePrice(priceEntry) : 0;
 
             return (
               <div
@@ -600,6 +641,16 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
                     {plan.name}
                   </h3>
 
+                  {plan.level > 0 && prices[plan.level]?.[selectedDuration]?.discount > 0 && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs line-through" style={{ color: 'var(--text-muted)' }}>
+                        ₹{prices[plan.level][selectedDuration].price}
+                      </span>
+                      <span className="text-xs font-black px-2 py-0.5 rounded-full" style={{ background: 'rgba(34,197,94,0.2)', color: '#22c55e' }}>
+                        {prices[plan.level][selectedDuration].discount}% OFF
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-end gap-1">
                     <span className="text-3xl sm:text-4xl font-black" style={{ color: 'var(--text-primary)' }}>
                       {plan.level === 0 ? 'Free' : `₹${price}`}

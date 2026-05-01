@@ -10,20 +10,39 @@ import AdminPaymentsTable from './AdminPaymentsTable';
 import AdminTournamentsTable from './AdminTournamentsTable';
 import AdminLogsTable from './AdminLogsTable';
 
-type Duration = '1day' | '1week' | '1month';
-type Section = 'overview' | 'pricing' | 'users' | 'payments' | 'tournaments' | 'logs';
+type Duration = '1day' | '1week' | '1month' | '3month' | '6month' | '1year';
+type Section = 'overview' | 'pricing' | 'notifications' | 'users' | 'payments' | 'tournaments' | 'logs';
 
-const DURATIONS: Duration[] = ['1day', '1week', '1month'];
+const DURATIONS: Duration[] = ['1day', '1week', '1month', '3month', '6month', '1year'];
 const DURATION_LABELS: Record<Duration, string> = {
-  '1day': '1 Day',
-  '1week': '1 Week',
+  '1day':   '1 Day',
+  '1week':  '1 Week',
   '1month': '1 Month',
+  '3month': '3 Months',
+  '6month': '6 Months',
+  '1year':  '1 Year',
 };
 
-const DEFAULT_PRICES = {
-  1: { '1day': 149, '1week': 499, '1month': 1499 },
-  2: { '1day': 249, '1week': 999, '1month': 2499 },
+type PriceEntry = { price: number; discount: number };
+const DEFAULT_PRICES: Record<number, Record<Duration, PriceEntry>> = {
+  1: {
+    '1day':   { price: 149,   discount: 0 },
+    '1week':  { price: 499,   discount: 0 },
+    '1month': { price: 1499,  discount: 0 },
+    '3month': { price: 3999,  discount: 0 },
+    '6month': { price: 6999,  discount: 0 },
+    '1year':  { price: 11999, discount: 0 },
+  },
+  2: {
+    '1day':   { price: 249,   discount: 0 },
+    '1week':  { price: 999,   discount: 0 },
+    '1month': { price: 2499,  discount: 0 },
+    '3month': { price: 6999,  discount: 0 },
+    '6month': { price: 11999, discount: 0 },
+    '1year':  { price: 19999, discount: 0 },
+  },
 };
+function effectivePrice(e: PriceEntry) { return e.discount ? Math.round(e.price * (1 - e.discount / 100)) : e.price; }
 
 interface Stats {
   users: number;
@@ -49,6 +68,10 @@ export default function AdminPanel() {
   const [prices, setPrices] = useState(DEFAULT_PRICES);
   const [savingPrices, setSavingPrices] = useState(false);
   const [priceSaveStatus, setPriceSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [notifTitle, setNotifTitle] = useState('');
+  const [notifMessage, setNotifMessage] = useState('');
+  const [notifLink, setNotifLink] = useState('');
+  const [sendingNotif, setSendingNotif] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [activeSection, setActiveSection] = useState<Section>('overview');
 
@@ -67,19 +90,38 @@ export default function AdminPanel() {
 
     const loadPrices = api.get('/admin/membership-prices')
       .then(res => {
-        let loaded = res.data.prices || DEFAULT_PRICES;
-        if (loaded.basic && loaded.premium) {
-          loaded = {
-            1: { '1day': loaded.basic.price, '1week': loaded.basic.price * 3, '1month': loaded.basic.price * 10 },
-            2: { '1day': loaded.premium.price, '1week': loaded.premium.price * 3, '1month': loaded.premium.price * 10 },
-          };
-        }
-        setPrices(loaded);
+        const raw = res.data.prices || DEFAULT_PRICES;
+        const normalised: typeof DEFAULT_PRICES = JSON.parse(JSON.stringify(DEFAULT_PRICES));
+        ([1, 2] as const).forEach(lvl => {
+          if (raw[lvl]) {
+            (DURATIONS).forEach(dur => {
+              const v = raw[lvl][dur];
+              if (v !== undefined) {
+                normalised[lvl][dur] = typeof v === 'object' ? v : { price: v, discount: 0 };
+              }
+            });
+          }
+        });
+        setPrices(normalised);
       })
       .catch(() => {});
 
     Promise.all([loadStats, loadPrices]).finally(() => setLoading(false));
   }, []);
+
+  const sendNotification = async () => {
+    if (!notifTitle.trim() || !notifMessage.trim()) {
+      addToast('Title and message are required.', 'error'); return;
+    }
+    setSendingNotif(true);
+    try {
+      const res = await api.post('/admin/notifications/broadcast', { title: notifTitle.trim(), message: notifMessage.trim(), link: notifLink.trim() || undefined });
+      addToast(res.data.message || 'Notification sent to all users!', 'success');
+      setNotifTitle(''); setNotifMessage(''); setNotifLink('');
+    } catch {
+      addToast('Failed to send notification.', 'error');
+    } finally { setSendingNotif(false); }
+  };
 
   const savePrices = async () => {
     setSavingPrices(true);
@@ -97,7 +139,7 @@ export default function AdminPanel() {
     }
   };
 
-  const updatePrice = (level: 1 | 2, duration: Duration, value: string) => {
+  const updatePrice = (level: 1 | 2, duration: Duration, field: 'price' | 'discount', value: string) => {
     const num = parseInt(value) || 0;
     setPrices(p => ({ ...p, [level]: { ...p[level], [duration]: num } }));
     setPriceSaveStatus('idle');
@@ -456,32 +498,54 @@ export default function AdminPanel() {
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Set price in ₹ for each duration</p>
                   </div>
                 </div>
-                <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
-                  {DURATIONS.map(d => (
-                    <div key={d}>
-                      <label className="flex items-center gap-2 text-xs font-bold mb-2 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                        <Clock className="w-3.5 h-3.5" />
-                        {DURATION_LABELS[d]}
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-sm" style={{ color: 'var(--text-muted)' }}>₹</span>
-                        <input
-                          type="number"
-                          min="0"
-                          value={prices[level][d]}
-                          onChange={e => updatePrice(level, d, e.target.value)}
-                          className="w-full pl-8 pr-4 py-3 rounded-xl text-sm font-bold focus:outline-none transition-colors"
-                          style={{
-                            background: 'var(--bg-elevated)',
-                            border: `1px solid var(--border)`,
-                            color: 'var(--text-primary)',
-                          }}
-                          onFocus={e => (e.target.style.borderColor = level === 1 ? '#22c55e' : '#a855f7')}
-                          onBlur={e => (e.target.style.borderColor = 'var(--border)')}
-                        />
+                <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {DURATIONS.map(d => {
+                    const entry = prices[level][d];
+                    const effective = entry.discount ? Math.round(entry.price * (1 - entry.discount / 100)) : entry.price;
+                    return (
+                      <div key={d} className="rounded-xl p-3" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                        <p className="text-xs font-black uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ color: level === 1 ? '#22c55e' : '#a855f7' }}>
+                          <Clock className="w-3 h-3" /> {DURATION_LABELS[d]}
+                        </p>
+                        {/* Price */}
+                        <label className="text-[10px] font-bold uppercase tracking-wider mb-1 block" style={{ color: 'var(--text-muted)' }}>Price (₹)</label>
+                        <div className="relative mb-2">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold" style={{ color: 'var(--text-muted)' }}>₹</span>
+                          <input
+                            type="number" min="0"
+                            value={entry.price}
+                            onChange={e => updatePrice(level, d, 'price', e.target.value)}
+                            className="w-full pl-6 pr-3 py-2 rounded-lg text-sm font-bold focus:outline-none transition-colors"
+                            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                            onFocus={e => (e.target.style.borderColor = level === 1 ? '#22c55e' : '#a855f7')}
+                            onBlur={e => (e.target.style.borderColor = 'var(--border)')}
+                          />
+                        </div>
+                        {/* Discount */}
+                        <label className="text-[10px] font-bold uppercase tracking-wider mb-1 block" style={{ color: 'var(--text-muted)' }}>Discount (%)</label>
+                        <div className="relative mb-2">
+                          <input
+                            type="number" min="0" max="100"
+                            value={entry.discount}
+                            onChange={e => updatePrice(level, d, 'discount', e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg text-sm font-bold focus:outline-none transition-colors"
+                            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                            onFocus={e => (e.target.style.borderColor = '#f59e0b')}
+                            onBlur={e => (e.target.style.borderColor = 'var(--border)')}
+                            placeholder="0"
+                          />
+                        </div>
+                        {/* Effective price */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Final price:</span>
+                          <span className="text-sm font-black" style={{ color: entry.discount > 0 ? '#22c55e' : 'var(--text-primary)' }}>
+                            ₹{effective.toLocaleString()}
+                            {entry.discount > 0 && <span className="text-[10px] ml-1 font-bold text-amber-400">({entry.discount}% off)</span>}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -514,7 +578,12 @@ export default function AdminPanel() {
                         </td>
                         {DURATIONS.map(d => (
                           <td key={d} className="py-3 pr-6 font-black" style={{ color: level === 1 ? '#22c55e' : '#a855f7' }}>
-                            ₹{prices[level][d].toLocaleString()}
+                            <span className="font-black" style={{ color: level === 1 ? '#22c55e' : '#a855f7' }}>
+                              ₹{effectivePrice(prices[level][d]).toLocaleString()}
+                            </span>
+                            {prices[level][d].discount > 0 && (
+                              <span className="text-[10px] ml-1 text-amber-400">({prices[level][d].discount}% off)</span>
+                            )}
                           </td>
                         ))}
                       </tr>
@@ -522,6 +591,67 @@ export default function AdminPanel() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── BROADCAST NOTIFICATIONS ── */}
+        {activeSection === 'notifications' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
+                <Activity className="w-5 h-5 text-black" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>Broadcast Notification</h2>
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Send a message to all ScoreX users</p>
+              </div>
+            </div>
+            <div className="rounded-2xl p-6 space-y-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Notification Title *</label>
+                <input
+                  type="text"
+                  value={notifTitle}
+                  onChange={e => setNotifTitle(e.target.value)}
+                  placeholder="e.g. Maintenance scheduled for tonight"
+                  maxLength={100}
+                  className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Message *</label>
+                <textarea
+                  value={notifMessage}
+                  onChange={e => setNotifMessage(e.target.value)}
+                  placeholder="Type your message here…"
+                  rows={4}
+                  maxLength={500}
+                  className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none resize-none"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                />
+                <p className="text-right text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{notifMessage.length}/500</p>
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Link (optional)</label>
+                <input
+                  type="url"
+                  value={notifLink}
+                  onChange={e => setNotifLink(e.target.value)}
+                  placeholder="https://…"
+                  className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                />
+              </div>
+              <button
+                onClick={sendNotification}
+                disabled={sendingNotif || !notifTitle.trim() || !notifMessage.trim()}
+                className="w-full py-3 rounded-xl font-black text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#000' }}
+              >
+                {sendingNotif ? <><RefreshCw className="w-4 h-4 animate-spin" /> Sending…</> : <><Activity className="w-4 h-4" /> Send to All Users</>}
+              </button>
             </div>
           </div>
         )}

@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { RefreshCw, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RefreshCw, Trash2, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import { socket } from '../services/socket';
 import { useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import {
   ArrowLeft, Zap, BarChart2, Users, MapPin, Shield, Activity
-} from 'lucide-react';
+} , ExternalLink } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 
 interface Props {
@@ -22,6 +22,82 @@ const TABS = [
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
+
+
+// ── StreamUrlSection ─────────────────────────────────────────────────────────
+function StreamUrlSection({ matchId, streamUrl, isAuthorized, onUpdated }: {
+  matchId: string; streamUrl?: string; isAuthorized: boolean; onUpdated: (url: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(streamUrl || '');
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await matchAPI.updateMatch(matchId, { streamUrl: val.trim() });
+      onUpdated(val.trim());
+      setEditing(false);
+    } catch { /* silent */ } finally { setSaving(false); }
+  };
+
+  if (!streamUrl && !isAuthorized) return null;
+
+  return (
+    <div className="px-4 py-3 border-t" style={{ borderColor: 'var(--border)' }}>
+      {editing ? (
+        <div className="flex gap-2">
+          <input
+            type="url"
+            value={val}
+            onChange={e => setVal(e.target.value)}
+            placeholder="https://youtube.com/live/..."
+            autoFocus
+            className="flex-1 px-3 py-2 rounded-xl text-sm focus:outline-none"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--accent)', color: 'var(--text-primary)' }}
+          />
+          <button onClick={save} disabled={saving}
+            className="px-4 py-2 rounded-xl text-xs font-black disabled:opacity-40"
+            style={{ background: 'var(--accent)', color: '#000' }}>
+            {saving ? '…' : 'Save'}
+          </button>
+          <button onClick={() => { setEditing(false); setVal(streamUrl || ''); }}
+            className="px-3 py-2 rounded-xl text-xs font-semibold"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          {streamUrl ? (
+            <>
+              <a href={streamUrl} target="_blank" rel="noopener noreferrer"
+                className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold transition-all hover:opacity-80"
+                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171' }}>
+                <ExternalLink className="w-4 h-4 shrink-0" />
+                <span className="truncate">{streamUrl.replace(/^https?:\/\//, '')}</span>
+              </a>
+              {isAuthorized && (
+                <button onClick={() => setEditing(true)}
+                  className="px-3 py-2 rounded-xl text-xs font-semibold shrink-0"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                  Edit
+                </button>
+              )}
+            </>
+          ) : isAuthorized ? (
+            <button onClick={() => setEditing(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+              <ExternalLink className="w-3.5 h-3.5" /> Add Stream URL (YouTube / any platform)
+            </button>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) {
   const navigate = useNavigate();
@@ -223,6 +299,9 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
               {match.resultSummary}
             </div>
           )}
+
+          {/* ── Stream URL ── */}
+          <StreamUrlSection matchId={matchId} streamUrl={match.streamUrl} isAuthorized={isAuthorized} onUpdated={url => setMatch((m: any) => ({ ...m, streamUrl: url }))} />
         </div>
 
         {/* Tab bar with scroll arrows */}

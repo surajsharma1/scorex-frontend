@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from './ThemeProvider';
+import api from '../services/api';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Trophy, Zap, CreditCard,
   User, Sun, Moon, LogOut,
-  ChevronLeft, ChevronRight, Shield
+  ChevronLeft, ChevronRight, Shield, Bell, X
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,6 +26,35 @@ const navItems = [
 export default function Sidebar({ user, logout, isOpen = false, onClose }: SidebarProps) {
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+
+  const loadNotifications = async () => {
+    setNotifLoading(true);
+    try {
+      const res = await api.get('/notifications');
+      setNotifications(res.data.data || []);
+    } catch { /* silent */ } finally { setNotifLoading(false); }
+  };
+
+  const markRead = async (id: string) => {
+    try {
+      await api.put(`/notifications/${id}/read`);
+      setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
+    } catch { /* silent */ }
+  };
+
+  const deleteNotif = async (id: string) => {
+    try {
+      await api.delete(`/notifications/${id}`);
+      setNotifications(prev => prev.filter(n => n._id !== id));
+    } catch { /* silent */ }
+  };
+
+  useEffect(() => { loadNotifications(); }, []);
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -167,7 +197,28 @@ export default function Sidebar({ user, logout, isOpen = false, onClose }: Sideb
       {/* Bottom: theme toggle + logout */}
       <div className="p-2 space-y-1" style={{ borderTop: '1px solid var(--border)' }}>
 
-        {/* Theme toggle */}
+        {/* Notifications bell */}
+        <button
+          onClick={() => { setNotifOpen(o => !o); if (!notifOpen) loadNotifications(); }}
+          title="Notifications"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all hover:bg-[var(--bg-elevated)] relative"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          <div className="relative">
+            <Bell className="icon-fluid-base flex-shrink-0 text-amber-400" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </div>
+          {!collapsed && <span className="text-sm font-medium">Notifications</span>}
+          {!collapsed && unreadCount > 0 && (
+            <span className="ml-auto text-[10px] font-black px-1.5 py-0.5 rounded-full bg-red-500 text-white">{unreadCount}</span>
+          )}
+        </button>
+
+      {/* Theme toggle */}
         <button
           onClick={toggleTheme}
           title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
@@ -204,6 +255,59 @@ export default function Sidebar({ user, logout, isOpen = false, onClose }: Sideb
           {!collapsed && <span className="text-sm font-medium hover:text-red-400 transition-colors">Logout</span>}
         </button>
       </div>
+
+      {/* ── Notification Panel ── */}
+      {notifOpen && (
+        <div className="fixed inset-0 z-50 flex" onClick={() => setNotifOpen(false)}>
+          <div
+            className="absolute bottom-0 left-0 w-80 max-h-[70vh] rounded-tr-2xl rounded-br-2xl flex flex-col overflow-hidden shadow-2xl"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', bottom: '0', left: collapsed ? '60px' : '240px' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
+              <p className="font-black text-sm" style={{ color: 'var(--text-primary)' }}>
+                🔔 Notifications {unreadCount > 0 && <span className="text-xs font-bold ml-1 text-red-400">({unreadCount} new)</span>}
+              </p>
+              <button onClick={() => setNotifOpen(false)} style={{ color: 'var(--text-muted)' }}><X className="w-4 h-4" /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {notifLoading ? (
+                <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" /></div>
+              ) : notifications.length === 0 ? (
+                <div className="text-center py-8 px-4">
+                  <Bell className="w-8 h-8 mx-auto mb-2 opacity-20" style={{ color: 'var(--text-muted)' }} />
+                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No notifications yet</p>
+                </div>
+              ) : (
+                <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
+                  {notifications.map(n => (
+                    <div
+                      key={n._id}
+                      className="px-4 py-3 flex gap-3 transition-colors cursor-pointer"
+                      style={{ background: n.isRead ? 'transparent' : 'rgba(245,158,11,0.06)' }}
+                      onClick={() => { if (!n.isRead) markRead(n._id); if (n.link) window.open(n.link, '_blank'); }}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate" style={{ color: n.isRead ? 'var(--text-muted)' : 'var(--text-primary)' }}>{n.title}</p>
+                        <p className="text-xs mt-0.5 line-clamp-2" style={{ color: 'var(--text-muted)' }}>{n.message}</p>
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>{new Date(n.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                      <button
+                        onClick={e => { e.stopPropagation(); deleteNotif(n._id); }}
+                        className="shrink-0 w-5 h-5 flex items-center justify-center rounded-full opacity-40 hover:opacity-100 transition-opacity hover:bg-red-500/20"
+                        style={{ color: '#f87171' }}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                      {!n.isRead && <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 mt-1" />}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }
