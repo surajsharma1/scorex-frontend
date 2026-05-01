@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import { socket } from '../services/socket';
 import {
-  RotateCcw, X, Users, LogOut, AlertTriangle
+  RotateCcw, X, Users, LogOut,
 } from 'lucide-react';
 
 const N = {
@@ -219,31 +219,27 @@ function InningsBreak({ match, onContinue }: { match: any; onContinue: () => voi
   );
 }
 
-function WicketModal({ strikerName, nonStrikerName, baseData, onConfirm, onClose, runOutOnly = false }: { strikerName: string; nonStrikerName: string; baseData: BallData; onConfirm: (d: BallData, outRole: 'striker' | 'nonStriker') => void; onClose: () => void; runOutOnly?: boolean; }) {
-  const [outType, setOutType] = useState(runOutOnly ? 'run_out' : '');
+function WicketModal({ strikerName, nonStrikerName, baseData, onConfirm, onClose }: { strikerName: string; nonStrikerName: string; baseData: BallData; onConfirm: (d: BallData, outRole: 'striker' | 'nonStriker') => void; onClose: () => void; }) {
+  const [outType, setOutType] = useState('');
   const [outPerson, setOutPerson] = useState<'striker' | 'nonStriker'>('striker');
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
       <div className="rounded-2xl p-6 w-full max-w-sm" style={{ background: N.bgCard, border: `1px solid ${N.border}` }}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-black" style={{ color: N.red }}>⚡ {runOutOnly ? 'Run Out' : 'Wicket'}</h3>
+          <h3 className="text-lg font-black" style={{ color: N.red }}>⚡ Wicket</h3>
           <button onClick={onClose} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button>
         </div>
-        {!runOutOnly && (
-          <>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>How out?</p>
-            <div className="grid grid-cols-3 gap-1.5 mb-4">
-              {ALL_WICKET_TYPES.map(wt => (<button key={wt.id} onClick={() => setOutType(wt.id)} className="py-2 rounded-lg text-xs font-semibold border transition-all" style={{ background: outType === wt.id ? N.red : N.redDim, borderColor: outType === wt.id ? N.red : N.redBorder, color: outType === wt.id ? '#fff' : '#fca5a5' }}>{wt.label}</button>))}
-            </div>
-          </>
-        )}
-        {(outType || runOutOnly) && (
+        <p className="text-xs uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>How out?</p>
+        <div className="grid grid-cols-3 gap-1.5 mb-4">
+          {ALL_WICKET_TYPES.map(wt => (<button key={wt.id} onClick={() => setOutType(wt.id)} className="py-2 rounded-lg text-xs font-semibold border transition-all" style={{ background: outType === wt.id ? N.red : N.redDim, borderColor: outType === wt.id ? N.red : N.redBorder, color: outType === wt.id ? '#fff' : '#fca5a5' }}>{wt.label}</button>))}
+        </div>
+        {outType && (
           <>
             <p className="text-xs uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>Who is out?</p>
             <div className="grid grid-cols-2 gap-2 mb-4">
               {(['striker', 'nonStriker'] as const).map(role => (<button key={role} onClick={() => setOutPerson(role)} className="py-2.5 rounded-xl text-sm font-bold border transition-all" style={{ background: outPerson === role ? N.redDim : N.bgElevated, borderColor: outPerson === role ? N.red : N.border, color: outPerson === role ? N.red : N.textSecondary }}>{role === 'striker' ? (strikerName || 'Striker') : (nonStrikerName || 'Non-Striker')}</button>))}
             </div>
-            <button onClick={() => onConfirm({ ...baseData, wicket: true, outType: runOutOnly ? 'run_out' : outType, outBatsmanName: outPerson === 'striker' ? strikerName : nonStrikerName }, outPerson)} className="w-full py-3 rounded-xl font-black text-sm" style={{ background: N.red, color: '#fff' }}>Confirm {runOutOnly ? 'Run Out' : 'Wicket'} ⚡</button>
+            <button onClick={() => onConfirm({ ...baseData, wicket: true, outType, outBatsmanName: outPerson === 'striker' ? strikerName : nonStrikerName }, outPerson)} className="w-full py-3 rounded-xl font-black text-sm" style={{ background: N.red, color: '#fff' }}>Confirm Wicket ⚡</button>
           </>
         )}
       </div>
@@ -264,30 +260,7 @@ export default function LiveScoring() {
   const [isScorer, setIsScorer] = useState(false);
   const [tossData, setTossData] = useState<any>(null);
   const [selectContext, setSelectContext] = useState<SelectContext>({ reason: 'innings_start' });
-  const [wicketModal, setWicketModal] = useState<{ open: boolean; baseData: BallData; runOutOnly?: boolean }>({ open: false, baseData: {} });
-  const [isUmpireReview, setIsUmpireReview] = useState(false);
-
-  const fireBroadcast = useCallback((type: string, duration = 6, data: any = {}) => {
-    const matchId = match?._id || id;
-    if (!matchId) return;
-    const payload = { type, data: { ...data, isManual: true }, duration };
-    // 1. Socket path: server re-emits to all overlay sockets in the match room
-    socket.emit('manualOverlayTrigger', { matchId, trigger: payload });
-    // 2. Iframe postMessage: directly reaches any overlay preview iframes on this page
-    document.querySelectorAll('iframe').forEach(iframe => {
-      try { iframe.contentWindow?.postMessage({ type: 'OVERLAY_TRIGGER', payload }, '*'); } catch (_) {}
-    });
-    // 3. Also postMessage to self (in case overlay is in same window context)
-    window.postMessage({ type: 'OVERLAY_TRIGGER', payload }, '*');
-  }, [match, id]);
-
-  const handleUmpireToggle = useCallback(() => {
-    setIsUmpireReview(prev => {
-      const next = !prev;
-      fireBroadcast(next ? 'DECISION_PENDING' : 'RESTORE', next ? 6000 : 0);
-      return next;
-    });
-  }, [fireBroadcast]);
+  const [wicketModal, setWicketModal] = useState<{ open: boolean; baseData: BallData }>({ open: false, baseData: {} });
 
   const fetchMatch = useCallback(async () => {
     if (!id) return;
@@ -424,7 +397,7 @@ export default function LiveScoring() {
       {(step === 'players' || step === 'playerSelect') && <PlayerSelectModal match={match} battingTeamId={currentBattingTeamId} inningsNum={match.currentInnings || 1} context={step === 'players' ? { reason: 'innings_start' } : selectContext} onDone={handlePlayersDone} onClose={step === 'playerSelect' ? () => setStep('scoring') : undefined} currentInningsData={innings} />}
       {step === 'overEnd' && <OverEndModal match={match} onSubstitute={() => { setSelectContext({ reason: 'manual' }); setStep('playerSelect'); }} onBowlerOnly={() => { setSelectContext({ reason: 'over_end' }); setStep('playerSelect'); }} />}
       {step === 'inningsBreak' && <InningsBreak match={match} onContinue={() => { setSelectContext({ reason: 'innings_start' }); setStep('playerSelect'); }} />}
-      {wicketModal.open && <WicketModal strikerName={activeStriker?.name || match?.strikerName || ''} nonStrikerName={activeNonStriker?.name || match?.nonStrikerName || ''} baseData={wicketModal.baseData} onConfirm={handleWicketConfirm} onClose={() => setWicketModal({ open: false, baseData: {} })} runOutOnly={wicketModal.runOutOnly} />}
+      {wicketModal.open && <WicketModal strikerName={activeStriker?.name || match?.strikerName || ''} nonStrikerName={activeNonStriker?.name || match?.nonStrikerName || ''} baseData={wicketModal.baseData} onConfirm={handleWicketConfirm} onClose={() => setWicketModal({ open: false, baseData: {} })} />}
 
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between shrink-0 border-b" style={{ background: N.bgCard, borderColor: N.border }}>
@@ -473,22 +446,8 @@ export default function LiveScoring() {
       <div className="flex-1 overflow-y-auto" style={{ background: N.bg }}>
         {panel === 'main' && (
           <div className="p-4 space-y-4">
-            {/* 3rd Umpire */}
             <div>
               <button
-                onClick={handleUmpireToggle}
-                className="w-full py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all active:scale-95"
-                style={{
-                  background: isUmpireReview ? N.amber : N.amberDim,
-                  border: `2px solid ${isUmpireReview ? N.amber : N.amberBorder}`,
-                  color: isUmpireReview ? '#000' : N.amber,
-                  boxShadow: isUmpireReview ? `0 0 24px ${N.amberBorder}` : 'none',
-                }}
-              >
-                <AlertTriangle className="w-5 h-5" />
-                {isUmpireReview ? '⚠ REVIEW IN PROGRESS — Tap to Close' : '3rd Umpire Review'}
-              </button>
-            </div>
 
 
 
@@ -508,14 +467,14 @@ export default function LiveScoring() {
             </div>
             {/* Run Out + Others */}
             <div className="grid grid-cols-2 gap-3">
-              <button disabled={locked} onClick={() => setWicketModal({ open: true, baseData: {}, runOutOnly: true })} className="py-4 rounded-2xl font-black text-lg active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all" style={{ background: N.red, color: '#fff', boxShadow: `0 4px 20px ${N.redBorder}` }}>Run Out 🎯</button>
+              <button disabled={locked} onClick={() => setWicketModal({ open: true, baseData: {} })} className="py-4 rounded-2xl font-black text-lg active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all" style={{ background: N.red, color: '#fff', boxShadow: `0 4px 20px ${N.redBorder}` }}>OUT! 🎯</button>
               <button disabled={locked} onClick={() => setPanel('others')} className="py-4 rounded-2xl font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}>Others…</button>
             </div>
           </div>
         )}
 
-        {panel === 'wide' && (<div className="p-4 space-y-4"><div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Wide Ball</h3><span className="text-xs px-2 py-0.5 rounded ml-2" style={{ background: '#92400e22', color: '#fcd34d', border: '1px solid #d97706' }}>+1 auto</span></div><RunButtons onSelect={r => { setPanel('main'); submitBall({ wide: true, runs: r }); }} disabled={submitting} label="Wd" /><div className="border-t pt-4" style={{ borderColor: N.border }}><button disabled={submitting} onClick={() => { setPanel('main'); setWicketModal({ open: true, baseData: { wide: true }, runOutOnly: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40" style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>Run Out / Stumped off Wide</button></div></div>)}
-        {panel === 'noBall' && (<div className="p-4 space-y-4"><div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>No Ball</h3><span className="text-xs px-2 py-0.5 rounded ml-2" style={{ background: '#7c2d1222', color: '#fb923c', border: '1px solid #ea580c' }}>+1 + Free Hit</span></div><RunButtons onSelect={r => { setPanel('main'); submitBall({ noBall: true, runs: r }); }} disabled={submitting} label="NB" /><div className="border-t pt-4 space-y-2" style={{ borderColor: N.border }}><div className="grid grid-cols-2 gap-2"><button disabled={submitting} onClick={() => { setPanel('main'); submitBall({ noBall: true, bye: 1 }); }} className="py-2 px-3 rounded-xl text-xs font-semibold disabled:opacity-40" style={{ background: '#0f3d3322', border: '1px solid #0d9488', color: '#5eead4' }}>NB + Bye</button><button disabled={submitting} onClick={() => { setPanel('main'); submitBall({ noBall: true, legBye: 1 }); }} className="py-2 px-3 rounded-xl text-xs font-semibold disabled:opacity-40" style={{ background: '#0c2a3d22', border: '1px solid #0369a1', color: '#38bdf8' }}>NB + Leg Bye</button></div><button disabled={submitting} onClick={() => { setPanel('main'); setWicketModal({ open: true, baseData: { noBall: true }, runOutOnly: true }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40" style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>Run Out off No Ball</button></div></div>)}
+        {panel === 'wide' && (<div className="p-4 space-y-4"><div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Wide Ball</h3><span className="text-xs px-2 py-0.5 rounded ml-2" style={{ background: '#92400e22', color: '#fcd34d', border: '1px solid #d97706' }}>+1 auto</span></div><RunButtons onSelect={r => { setPanel('main'); submitBall({ wide: true, runs: r }); }} disabled={submitting} label="Wd" /><div className="border-t pt-4" style={{ borderColor: N.border }}><button disabled={submitting} onClick={() => { setPanel('main'); setWicketModal({ open: true, baseData: { wide: true } }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40" style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>Run Out / Stumped off Wide</button></div></div>)}
+        {panel === 'noBall' && (<div className="p-4 space-y-4"><div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>No Ball</h3><span className="text-xs px-2 py-0.5 rounded ml-2" style={{ background: '#7c2d1222', color: '#fb923c', border: '1px solid #ea580c' }}>+1 + Free Hit</span></div><RunButtons onSelect={r => { setPanel('main'); submitBall({ noBall: true, runs: r }); }} disabled={submitting} label="NB" /><div className="border-t pt-4 space-y-2" style={{ borderColor: N.border }}><div className="grid grid-cols-2 gap-2"><button disabled={submitting} onClick={() => { setPanel('main'); submitBall({ noBall: true, bye: 1 }); }} className="py-2 px-3 rounded-xl text-xs font-semibold disabled:opacity-40" style={{ background: '#0f3d3322', border: '1px solid #0d9488', color: '#5eead4' }}>NB + Bye</button><button disabled={submitting} onClick={() => { setPanel('main'); submitBall({ noBall: true, legBye: 1 }); }} className="py-2 px-3 rounded-xl text-xs font-semibold disabled:opacity-40" style={{ background: '#0c2a3d22', border: '1px solid #0369a1', color: '#38bdf8' }}>NB + Leg Bye</button></div><button disabled={submitting} onClick={() => { setPanel('main'); setWicketModal({ open: true, baseData: { noBall: true } }); }} className="py-2.5 px-4 rounded-xl text-sm font-semibold w-full disabled:opacity-40" style={{ background: N.redDim, border: `1px solid ${N.redBorder}`, color: '#fca5a5' }}>Run Out off No Ball</button></div></div>)}
         {panel === 'bye' && (<div className="p-4 space-y-4"><div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Bye</h3></div><RunButtons onSelect={r => { if (r === 0) { setPanel('main'); return; } setPanel('main'); submitBall({ bye: r }); }} disabled={submitting} label="B" /></div>)}
         {panel === 'legBye' && (<div className="p-4 space-y-4"><div className="flex items-center gap-2"><button onClick={() => setPanel('main')} style={{ color: N.textMuted }}><X className="w-5 h-5" /></button><h3 className="font-bold" style={{ color: N.textPrimary }}>Leg Bye</h3></div><RunButtons onSelect={r => { if (r === 0) { setPanel('main'); return; } setPanel('main'); submitBall({ legBye: r }); }} disabled={submitting} label="LB" /></div>)}
 
