@@ -336,7 +336,7 @@ const PLANS = [
 ] as const;
 
 export default function Membership() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { addToast } = useToast();
 
   const [loading, setLoading] = useState<string | null>(null);
@@ -390,6 +390,7 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
     api.get('/auth/me').then(res => {
       const freshUser = res.data.data;
       localStorage.setItem('user', JSON.stringify(freshUser));
+      refreshUser(); // sync global auth context with fresh server data
       setBackendUser(freshUser);
       if (freshUser.membershipLevel > 0 && freshUser.membershipExpiresAt) {
         setMembership({

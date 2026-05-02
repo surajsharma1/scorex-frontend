@@ -1,8 +1,20 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ThemeProvider from './components/ThemeProvider';
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback, useRef } from 'react';
 import { ToastProvider } from './hooks/useToast';
 import api from './services/api';
+
+// ── JWT client-side expiry check ─────────────────────────────────────────────
+// Decodes token locally (no network). Returns true if expired or malformed.
+// Stops the app from using a dead token before even hitting the server.
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now() - 10_000; // 10s clock-skew buffer
+  } catch {
+    return true;
+  }
+}
 import Sidebar from './components/Sidebar';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -43,6 +55,7 @@ export interface AuthUser {
 }
 
 interface AuthContextType {
+  refreshUser: () => void;
   user: AuthUser | null;
   token: string | null;
   login: (data: { token: string; user: any; data?: any }) => void;
@@ -55,6 +68,7 @@ export const AuthContext = createContext<AuthContextType>({
   token: null,
   login: () => {},
   logout: () => {},
+  refreshUser: () => {},
   loading: true,
 });
 
@@ -123,7 +137,30 @@ export default function App() {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const parseUser = (userData: any): AuthUser => ({
+  // ── PWA install prompt ───────────────────────────────────────────────────
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') setShowInstallBanner(false);
+    setInstallPrompt(null);
+  };
+
+  // ── User parser — always normalise to the same shape ────────────────────
+  const parseUser = useCallback((userData: any): AuthUser => ({
     _id: userData._id || userData.id || '',
     id: userData._id || userData.id || '',
     username: userData.username || '',
@@ -134,39 +171,60 @@ export default function App() {
     membershipPurchasedAt: userData.membershipStartedAt || null,
     membershipDuration: null,
     fullName: userData.fullName,
-  });
+  }), []);
 
+  // ── Clear all auth state + storage ──────────────────────────────────────
+  const clearAuth = useCallback(() => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  }, []);
+
+  // ── On app load: check token validity FIRST, then fetch fresh user ───────
+  // We do NOT pre-render with localStorage('user') as source of truth.
+  // localStorage token is only used to decide whether to call /auth/me.
+  // The actual user state always comes from the server response.
   useEffect(() => {
     const t = localStorage.getItem('token');
-    const u = localStorage.getItem('user');
 
-    if (t && u) {
-      setToken(t);
-      try {
-        const userData = JSON.parse(u);
-        if (userData?.username || userData?.email) setUser(parseUser(userData));
-        else localStorage.removeItem('user');
-      } catch { localStorage.removeItem('user'); }
-
-      api.get('/auth/me')
-        .then(res => {
-          const userData = res.data?.data;
-          if (userData?.username || userData?.email) {
-            setUser(parseUser(userData));
-            localStorage.setItem('user', JSON.stringify(userData));
-          }
-        })
-        .catch(() => {
-          setToken(null);
-          setUser(null);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-        })
-        .finally(() => setLoading(false));
-    } else {
+    if (!t) {
       setLoading(false);
+      return;
     }
-  }, []);
+
+    // Step 1 — client-side expiry check (no network needed)
+    if (isTokenExpired(t)) {
+      console.log('[Auth] Token expired client-side — clearing session');
+      clearAuth();
+      setLoading(false);
+      return;
+    }
+
+    // Step 2 — token looks valid, set it so API calls work
+    setToken(t);
+
+    // Step 3 — fetch fresh user from server (this is the ONLY source of truth)
+    // We deliberately do NOT read localStorage('user') here to avoid stale data
+    api.get('/auth/me')
+      .then(res => {
+        const userData = res.data?.data;
+        if (userData?.username || userData?.email) {
+          const parsed = parseUser(userData);
+          setUser(parsed);
+          // Keep localStorage('user') in sync for logout/reload hints only
+          localStorage.setItem('user', JSON.stringify(userData));
+        } else {
+          clearAuth();
+        }
+      })
+      .catch(() => {
+        // Server rejected the token (expired server-side, banned, deleted user)
+        console.log('[Auth] /auth/me failed — clearing session');
+        clearAuth();
+      })
+      .finally(() => setLoading(false));
+  }, [clearAuth, parseUser]);
 
   const login = (data: { token: string; user: any; data?: any }) => {
     const t = data.token || data.data?.token;
@@ -179,11 +237,20 @@ export default function App() {
     }
   };
 
+  // refreshUser — call this after any action that changes user data on server
+  // (membership upgrade, profile edit, role change etc.)
+  const refreshUser = useCallback(() => {
+    api.get('/auth/me').then(res => {
+      const userData = res.data?.data;
+      if (userData) {
+        setUser(parseUser(userData));
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+    }).catch(() => {});
+  }, [parseUser]);
+
   const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    clearAuth();
     window.location.href = '/';
   };
 
@@ -193,7 +260,29 @@ export default function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <ToastProvider>
-          <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+          <AuthContext.Provider value={{ user, token, login, logout, refreshUser, loading }}>
+            {/* ── PWA Install Banner ─────────────────────────────────────── */}
+            {showInstallBanner && (
+              <div style={{
+                position: 'fixed', bottom: 16, left: '50%', transform: 'translateX(-50%)',
+                zIndex: 9999, background: '#111', border: '1px solid #39ff14',
+                borderRadius: 12, padding: '12px 20px', display: 'flex',
+                alignItems: 'center', gap: 12, boxShadow: '0 0 20px rgba(57,255,20,0.2)',
+                maxWidth: '90vw', fontFamily: 'sans-serif'
+              }}>
+                <span style={{ color: '#39ff14', fontSize: 20 }}>🏏</span>
+                <span style={{ color: '#fff', fontSize: 14 }}>Install ScoreX for quick access</span>
+                <button onClick={handleInstallClick} style={{
+                  background: '#39ff14', color: '#000', border: 'none',
+                  borderRadius: 6, padding: '6px 14px', fontWeight: 700,
+                  cursor: 'pointer', fontSize: 13
+                }}>Install</button>
+                <button onClick={() => setShowInstallBanner(false)} style={{
+                  background: 'transparent', color: '#888', border: 'none',
+                  cursor: 'pointer', fontSize: 18, lineHeight: 1
+                }}>×</button>
+              </div>
+            )}
             <Router>
               <Routes>
                 {/* Public */}
@@ -204,11 +293,10 @@ export default function App() {
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
                 <Route path="/oauth/callback" element={<OAuthCallback />} />
 
-{/* Studio — public, fullscreen, no sidebar */}
+                {/* Studio — public, fullscreen, no sidebar */}
                 <Route path="/studio" element={<PreviewStudio />} />
                 <Route path="/studio/:id" element={<PreviewStudio />} />
                 <Route path="/studio/preview" element={<PreviewStudio />} />
-                <Route path="/preview-studio" element={<PreviewStudio />} />
 
                 {/* Dashboard pages */}
                 <Route path="/dashboard"          element={<DashboardLayout user={user} logout={logout} token={token}><Dashboard /></DashboardLayout>} />
