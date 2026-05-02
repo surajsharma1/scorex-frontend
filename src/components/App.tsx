@@ -98,7 +98,7 @@ function App() {
       <Route path="/" element={<Frontpage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-<Route path="/matches/live" element={<LiveMatches />} />
+      <Route path="/matches/live" element={<LiveMatches />} />
       <Route path="/live/:id" element={<LiveMatchPage />} />
       <Route path="/live-scoring/:id" element={<LiveScoring />} />
       <Route path="/studio" element={<PreviewStudio />} />
@@ -106,7 +106,7 @@ function App() {
       <Route path="/preview-studio" element={<PreviewStudio />} />
 
       {/* --- PROTECTED ROUTES --- */}
-      <Route element={token ? <DashboardLayout /> : <Navigate to="/login" replace />}>
+        <Route element={token ? <DashboardLayout /> : <Navigate to="/login" replace />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tournaments" element={<TournamentList />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
