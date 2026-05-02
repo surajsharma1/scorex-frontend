@@ -1,15 +1,59 @@
 {
-  "name": "ScoreX Cricket Tournament",
+  "name": "ScoreX - Cricket Tournament Platform",
   "short_name": "ScoreX",
+  "description": "Live cricket scoring, broadcast overlays, and tournament management.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0a0a",
+  "theme_color": "#39ff14",
+  "categories": ["sports", "utilities"],
+  "lang": "en",
   "icons": [
     {
-      "src": "/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live Matches",
+      "short_name": "Live",
+      "description": "View live cricket matches",
+      "url": "/live",
+      "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
+    },
+    {
+      "name": "Overlay Studio",
+      "short_name": "Studio",
+      "description": "Open broadcast overlay studio",
+      "url": "/preview-studio",
+      "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
+    },
+    {
+      "name": "Tournaments",
+      "short_name": "Tournaments",
+      "description": "Manage cricket tournaments",
+      "url": "/tournaments",
+      "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "ScoreX Cricket Platform"
     }
   ]
 }
