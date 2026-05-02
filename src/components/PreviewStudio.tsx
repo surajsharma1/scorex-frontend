@@ -400,6 +400,7 @@ export default function PreviewStudio() {
  ))}
 
 
+
  {/* ✅ Restore Scoreboard — always at bottom, full width */}
  <div className="px-3 py-2 border-t sticky bottom-0 " style={{ background: 'var(--bg-card)' }}>
  <button

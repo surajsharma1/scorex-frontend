@@ -101,6 +101,7 @@ function App() {
       <Route path="/matches/live" element={<LiveMatches />} />
       <Route path="/live/:id" element={<LiveMatchPage />} />
       <Route path="/live-scoring/:id" element={<LiveScoring />} />
+      <Route path="/studio" element={<PreviewStudio />} />
 
       {/* --- PROTECTED ROUTES --- */}
       <Route element={token ? <DashboardLayout /> : <Navigate to="/login" replace />}>
