@@ -120,7 +120,8 @@ export default function AdminPanel() {
     } catch { /* silent */ } finally { setLoadingSaved(false); }
   };
 
-  const [saveNotif, setSaveNotif] = useState(false);
+  const [saveNotif, setSaveNotif]   = useState(false);
+  const [audience, setAudience]       = useState<'all' | 'active' | 'new'>('all');
 
   const sendNotification = async () => {
     if (!notifTitle.trim() || !notifMessage.trim()) {
@@ -129,7 +130,7 @@ export default function AdminPanel() {
     setSendingNotif(true);
     try {
       const endpoint = saveNotif ? '/admin/notifications/saved' : '/admin/notifications/broadcast';
-      const res = await api.post(endpoint, { title: notifTitle.trim(), message: notifMessage.trim(), link: notifLink.trim() || undefined });
+      const res = await api.post(endpoint, { title: notifTitle.trim(), message: notifMessage.trim(), link: notifLink.trim() || undefined, audience: saveNotif ? undefined : audience });
       addToast(res.data.message || 'Notification sent!', 'success');
       setNotifTitle(''); setNotifMessage(''); setNotifLink('');
       if (saveNotif) loadSavedNotifs();
@@ -645,6 +646,8 @@ export default function AdminPanel() {
             {/* Compose */}
             <div className="rounded-2xl p-6 space-y-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
               <h3 className="font-black text-sm" style={{ color: 'var(--text-primary)' }}>✉ Compose Notification</h3>
+
+              {/* Title */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Title *</label>
                 <input type="text" value={notifTitle} onChange={e => setNotifTitle(e.target.value)}
@@ -652,6 +655,8 @@ export default function AdminPanel() {
                   className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
                   style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
               </div>
+
+              {/* Message */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Message *</label>
                 <textarea value={notifMessage} onChange={e => setNotifMessage(e.target.value)}
@@ -660,6 +665,8 @@ export default function AdminPanel() {
                   style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
                 <p className="text-right text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{notifMessage.length}/500</p>
               </div>
+
+              {/* Link */}
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Link (optional)</label>
                 <input type="url" value={notifLink} onChange={e => setNotifLink(e.target.value)}
@@ -667,32 +674,68 @@ export default function AdminPanel() {
                   className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
                   style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
               </div>
+
               {/* Save toggle */}
-              <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-xl" style={{ background: 'var(--bg-elevated)', border: `1px solid ${saveNotif ? '#f59e0b55' : 'var(--border)'}` }}>
-                <div
-                  className="w-10 h-6 rounded-full relative transition-colors flex-shrink-0"
+              <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-xl"
+                style={{ background: 'var(--bg-elevated)', border: `1px solid ${saveNotif ? '#f59e0b55' : 'var(--border)'}` }}>
+                <div className="w-10 h-6 rounded-full relative transition-colors flex-shrink-0"
                   style={{ background: saveNotif ? '#f59e0b' : 'var(--border)' }}
-                  onClick={() => setSaveNotif(v => !v)}
-                >
-                  <div className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all" style={{ left: saveNotif ? '22px' : '4px' }} />
+                  onClick={() => setSaveNotif(v => !v)}>
+                  <div className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all"
+                    style={{ left: saveNotif ? '22px' : '4px' }} />
                 </div>
                 <div>
                   <p className="text-xs font-bold" style={{ color: saveNotif ? '#f59e0b' : 'var(--text-primary)' }}>
                     {saveNotif ? '📌 Save for new registrations' : 'One-time broadcast only'}
                   </p>
                   <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                    {saveNotif ? 'This message will also be sent to every new user when they register.' : 'Sends now to all existing users. Not saved.'}
+                    {saveNotif ? 'New users will receive this on signup. Also sends to everyone now.' : 'Sends now. Not stored for future users.'}
                   </p>
                 </div>
               </label>
-              <button onClick={sendNotification} disabled={sendingNotif || !notifTitle.trim() || !notifMessage.trim()}
-                className="w-full py-3 rounded-xl font-black text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+
+              {/* Audience selector — only when NOT saving (saved notifs always go to all) */}
+              {!saveNotif && (
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider mb-2 block" style={{ color: 'var(--text-muted)' }}>
+                    Send To
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([
+                      { id: 'all',    icon: '👥', label: 'All Users',     desc: 'Every registered user' },
+                      { id: 'active', icon: '🟢', label: 'Active Users',  desc: 'Logged in last 30 days' },
+                      { id: 'new',    icon: '🆕', label: 'New Users Only', desc: 'Registered last 7 days' },
+                    ] as const).map(opt => (
+                      <button key={opt.id} onClick={() => setAudience(opt.id)}
+                        className="flex flex-col items-center text-center p-3 rounded-xl transition-all border"
+                        style={{
+                          background: audience === opt.id ? 'rgba(245,158,11,0.12)' : 'var(--bg-elevated)',
+                          borderColor: audience === opt.id ? '#f59e0b' : 'var(--border)',
+                          color: audience === opt.id ? '#f59e0b' : 'var(--text-secondary)',
+                        }}>
+                        <span className="text-lg mb-1">{opt.icon}</span>
+                        <span className="text-[10px] font-black leading-tight">{opt.label}</span>
+                        <span className="text-[9px] mt-0.5 opacity-70">{opt.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Send button */}
+              <button onClick={sendNotification}
+                disabled={sendingNotif || !notifTitle.trim() || !notifMessage.trim()}
+                className="w-full py-3.5 rounded-xl font-black text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#000' }}>
                 {sendingNotif
                   ? <><RefreshCw className="w-4 h-4 animate-spin" /> Sending…</>
                   : saveNotif
-                  ? <><Activity className="w-4 h-4" /> Save &amp; Send to All Users</>
-                  : <><Activity className="w-4 h-4" /> Send to All Users Now</>}
+                  ? <><Activity className="w-4 h-4" /> Save &amp; Broadcast to All</>
+                  : audience === 'new'
+                  ? <><Activity className="w-4 h-4" /> Send to New Users Only</>
+                  : audience === 'active'
+                  ? <><Activity className="w-4 h-4" /> Send to Active Users</>
+                  : <><Activity className="w-4 h-4" /> Send to All Users</>}
               </button>
             </div>
 

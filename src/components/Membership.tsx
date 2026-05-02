@@ -117,7 +117,7 @@ function OverlayPreviewModal({ isOpen, onClose, level, templates }: OverlayPrevi
             </div>
           </div>
           <div className="flex items-center gap-3">
-          <button
+            <button
               onClick={() => window.open(`/preview-studio?level=${level}`, '_blank')}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all"
               style={{ background: level === 2 ? 'linear-gradient(135deg,#a855f7,#7c3aed)' : 'linear-gradient(135deg,#22c55e,#10b981)', color: '#000' }}
@@ -611,8 +611,43 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
                     : '0 4px 16px rgba(0,0,0,0.3)',
                 }}
               >
+                {/* ── Discount corner ribbon ── */}
+                {plan.level > 0 && (prices[plan.level]?.[selectedDuration]?.discount ?? 0) > 0 && (() => {
+                  const disc = prices[plan.level][selectedDuration].discount;
+                  const ribbonColor = plan.level === 1
+                    ? 'linear-gradient(135deg, #16a34a, #22c55e)'
+                    : 'linear-gradient(135deg, #7c3aed, #a855f7)';
+                  return (
+                    <div className="absolute top-0 right-0 z-20 overflow-hidden" style={{ width: 88, height: 88, pointerEvents: 'none' }}>
+                      {/* corner triangle */}
+                      <div style={{
+                        position: 'absolute', top: 0, right: 0,
+                        width: 0, height: 0,
+                        borderStyle: 'solid',
+                        borderWidth: '0 88px 88px 0',
+                        borderColor: `transparent ${plan.level === 1 ? '#16a34a' : '#7c3aed'} transparent transparent`,
+                      }} />
+                      {/* label */}
+                      <div style={{
+                        position: 'absolute', top: 14, right: -2,
+                        transform: 'rotate(45deg)',
+                        transformOrigin: 'center',
+                        width: 88,
+                        textAlign: 'center',
+                        fontSize: 11,
+                        fontWeight: 900,
+                        letterSpacing: '0.05em',
+                        color: '#fff',
+                        lineHeight: 1,
+                      }}>
+                        {disc}% OFF
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Popular badge */}
-                {'popular' in plan && plan.popular && (
+                {'popular' in plan && plan.popular && !(prices[plan.level]?.[selectedDuration]?.discount > 0) && (
                   <div
                     className="absolute top-0 left-0 right-0 py-1.5 text-center text-xs font-black tracking-wider text-black"
                     style={{ background: 'linear-gradient(90deg, #22c55e, #10b981)' }}
@@ -623,44 +658,81 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
 
                 {/* Card header */}
                 <div
-                  className="px-6 pt-6 pb-5"
+                  className="px-6 pb-5"
                   style={{
-                    paddingTop: 'popular' in plan && plan.popular ? '2.75rem' : '1.5rem',
+                    paddingTop: 'popular' in plan && plan.popular && !(prices[plan.level]?.[selectedDuration]?.discount > 0) ? '2.75rem' : '1.5rem',
                     background: plan.accentColor,
                     borderBottom: '1px solid var(--border)',
                   }}
                 >
                   <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 shadow-lg"
+                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-3 shadow-lg"
                     style={{ background: plan.iconBg }}
                   >
                     <plan.icon className="w-5 h-5" style={{ color: plan.iconColor }} />
                   </div>
 
-                  <h3 className="text-lg font-black mb-1" style={{ color: 'var(--text-primary)' }}>
+                  <h3 className="text-lg font-black mb-2" style={{ color: 'var(--text-primary)' }}>
                     {plan.name}
                   </h3>
 
-                  {plan.level > 0 && prices[plan.level]?.[selectedDuration]?.discount > 0 && (
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs line-through" style={{ color: 'var(--text-muted)' }}>
-                        ₹{prices[plan.level][selectedDuration].price}
+                  {/* ── Discount callout block ── */}
+                  {plan.level > 0 && (prices[plan.level]?.[selectedDuration]?.discount ?? 0) > 0 ? (() => {
+                    const entry = prices[plan.level][selectedDuration];
+                    const disc  = entry.discount;
+                    const orig  = entry.price;
+                    const final = Math.round(orig * (1 - disc / 100));
+                    const saved = orig - final;
+                    const accentC = plan.level === 1 ? '#22c55e' : '#a855f7';
+                    const accentBg = plan.level === 1 ? 'rgba(34,197,94,0.12)' : 'rgba(168,85,247,0.12)';
+                    const accentBdr = plan.level === 1 ? 'rgba(34,197,94,0.35)' : 'rgba(168,85,247,0.35)';
+                    return (
+                      <div>
+                        {/* savings pill */}
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full mb-2"
+                          style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)' }}>
+                          <span style={{ fontSize: 10, fontWeight: 900, color: '#fbbf24', letterSpacing: '0.05em' }}>
+                            🔥 LIMITED OFFER — SAVE ₹{saved.toLocaleString()}
+                          </span>
+                        </div>
+                        {/* price row */}
+                        <div className="flex items-end gap-2 mb-1.5">
+                          <span className="font-black" style={{ fontSize: 36, lineHeight: 1, color: 'var(--text-primary)' }}>
+                            ₹{final.toLocaleString()}
+                          </span>
+                          <div className="flex flex-col mb-1">
+                            <span className="text-xs line-through font-semibold" style={{ color: 'var(--text-muted)' }}>
+                              ₹{orig.toLocaleString()}
+                            </span>
+                            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                              / {DURATION_LABELS[selectedDuration]}
+                            </span>
+                          </div>
+                        </div>
+                        {/* you save bar */}
+                        <div className="flex items-center gap-2 rounded-lg px-3 py-1.5"
+                          style={{ background: accentBg, border: `1px solid ${accentBdr}` }}>
+                          <span className="text-xs font-black" style={{ color: accentC }}>
+                            {disc}% OFF
+                          </span>
+                          <span className="text-[10px] font-semibold" style={{ color: accentC, opacity: 0.8 }}>
+                            · You save ₹{saved.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })() : (
+                    <div className="flex items-end gap-1">
+                      <span className="text-3xl sm:text-4xl font-black" style={{ color: 'var(--text-primary)' }}>
+                        {plan.level === 0 ? 'Free' : `₹${price}`}
                       </span>
-                      <span className="text-xs font-black px-2 py-0.5 rounded-full" style={{ background: 'rgba(34,197,94,0.2)', color: '#22c55e' }}>
-                        {prices[plan.level][selectedDuration].discount}% OFF
-                      </span>
+                      {plan.level > 0 && (
+                        <span className="text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
+                          / {DURATION_LABELS[selectedDuration]}
+                        </span>
+                      )}
                     </div>
                   )}
-                  <div className="flex items-end gap-1">
-                    <span className="text-3xl sm:text-4xl font-black" style={{ color: 'var(--text-primary)' }}>
-                      {plan.level === 0 ? 'Free' : `₹${price}`}
-                    </span>
-                    {plan.level > 0 && (
-                      <span className="text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
-                        / {DURATION_LABELS[selectedDuration]}
-                      </span>
-                    )}
-                  </div>
                 </div>
 
                 {/* Features */}
