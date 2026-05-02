@@ -98,10 +98,12 @@ function App() {
       <Route path="/" element={<Frontpage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/matches/live" element={<LiveMatches />} />
+<Route path="/matches/live" element={<LiveMatches />} />
       <Route path="/live/:id" element={<LiveMatchPage />} />
       <Route path="/live-scoring/:id" element={<LiveScoring />} />
       <Route path="/studio" element={<PreviewStudio />} />
+      {/* FIX: Make preview-studio publicly accessible from Frontpage - no login required */}
+      <Route path="/preview-studio" element={<PreviewStudio />} />
 
       {/* --- PROTECTED ROUTES --- */}
       <Route element={token ? <DashboardLayout /> : <Navigate to="/login" replace />}>
@@ -109,9 +111,6 @@ function App() {
         <Route path="/tournaments" element={<TournamentList />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/tournaments/create" element={<TournamentForm />} />
-        
-        {/* FIX: ADDED PREVIEW ROUTES HERE SO THEY DON'T REDIRECT TO HOME */}
-        <Route path="/preview-studio" element={<PreviewStudio />} />
         <Route path="/overlay-manager/:tournamentId?" element={<OverlayManager />} />
         
         {/* Note: If MembershipPreview requires props natively, you wrap it here, or use URL params */}
