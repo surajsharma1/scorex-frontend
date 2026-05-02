@@ -72,6 +72,8 @@ export default function AdminPanel() {
   const [notifMessage, setNotifMessage] = useState('');
   const [notifLink, setNotifLink] = useState('');
   const [sendingNotif, setSendingNotif] = useState(false);
+  const [savedNotifs, setSavedNotifs] = useState<any[]>([]);
+  const [loadingSaved, setLoadingSaved] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [activeSection, setActiveSection] = useState<Section>('overview');
 
@@ -107,7 +109,18 @@ export default function AdminPanel() {
       .catch(() => {});
 
     Promise.all([loadStats, loadPrices]).finally(() => setLoading(false));
+    loadSavedNotifs();
   }, []);
+
+  const loadSavedNotifs = async () => {
+    setLoadingSaved(true);
+    try {
+      const res = await api.get('/admin/notifications/saved');
+      setSavedNotifs(res.data.data || []);
+    } catch { /* silent */ } finally { setLoadingSaved(false); }
+  };
+
+  const [saveNotif, setSaveNotif] = useState(false);
 
   const sendNotification = async () => {
     if (!notifTitle.trim() || !notifMessage.trim()) {
@@ -115,12 +128,22 @@ export default function AdminPanel() {
     }
     setSendingNotif(true);
     try {
-      const res = await api.post('/admin/notifications/broadcast', { title: notifTitle.trim(), message: notifMessage.trim(), link: notifLink.trim() || undefined });
-      addToast(res.data.message || 'Notification sent to all users!', 'success');
+      const endpoint = saveNotif ? '/admin/notifications/saved' : '/admin/notifications/broadcast';
+      const res = await api.post(endpoint, { title: notifTitle.trim(), message: notifMessage.trim(), link: notifLink.trim() || undefined });
+      addToast(res.data.message || 'Notification sent!', 'success');
       setNotifTitle(''); setNotifMessage(''); setNotifLink('');
+      if (saveNotif) loadSavedNotifs();
     } catch {
       addToast('Failed to send notification.', 'error');
     } finally { setSendingNotif(false); }
+  };
+
+  const deleteSavedNotif = async (id: string) => {
+    try {
+      await api.delete(`/admin/notifications/saved/${id}`);
+      setSavedNotifs(prev => prev.filter(n => n._id !== id));
+      addToast('Saved notification deleted.', 'success');
+    } catch { addToast('Failed to delete.', 'error'); }
   };
 
   const savePrices = async () => {
@@ -140,14 +163,25 @@ export default function AdminPanel() {
   };
 
   const updatePrice = (level: 1 | 2, duration: Duration, field: 'price' | 'discount', value: string) => {
-    const num = parseInt(value) || 0;
-    setPrices(p => ({ ...p, [level]: { ...p[level], [duration]: num } }));
+    const num = Math.max(0, parseInt(value) || 0);
+    if (field === 'discount' && num > 100) return;
+    setPrices(p => ({
+      ...p,
+      [level]: {
+        ...p[level],
+        [duration]: {
+          ...(p[level]?.[duration] ?? DEFAULT_PRICES[level][duration]),
+          [field]: num,
+        },
+      },
+    }));
     setPriceSaveStatus('idle');
   };
 
   const sections: { key: Section; label: string; icon: React.ElementType; color: string }[] = [
     { key: 'overview',     label: 'Overview',     icon: BarChart3,   color: '#3b82f6' },
     { key: 'pricing',      label: 'Pricing',       icon: Settings,    color: '#22c55e' },
+    { key: 'notifications', label: 'Notifications', icon: Activity,    color: '#f59e0b' },
     { key: 'users',        label: 'Users',         icon: Users,       color: '#8b5cf6' },
     { key: 'tournaments',  label: 'Tournaments',   icon: Zap,         color: '#f59e0b' },
     { key: 'payments',     label: 'Payments',      icon: DollarSign,  color: '#10b981' },
@@ -597,61 +631,106 @@ export default function AdminPanel() {
 
         {/* ── BROADCAST NOTIFICATIONS ── */}
         {activeSection === 'notifications' && (
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
                 <Activity className="w-5 h-5 text-black" />
               </div>
               <div>
-                <h2 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>Broadcast Notification</h2>
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Send a message to all ScoreX users</p>
+                <h2 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>Notifications</h2>
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Send to all users · Save for new registrations</p>
               </div>
             </div>
+
+            {/* Compose */}
             <div className="rounded-2xl p-6 space-y-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+              <h3 className="font-black text-sm" style={{ color: 'var(--text-primary)' }}>✉ Compose Notification</h3>
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Notification Title *</label>
-                <input
-                  type="text"
-                  value={notifTitle}
-                  onChange={e => setNotifTitle(e.target.value)}
-                  placeholder="e.g. Maintenance scheduled for tonight"
-                  maxLength={100}
+                <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Title *</label>
+                <input type="text" value={notifTitle} onChange={e => setNotifTitle(e.target.value)}
+                  placeholder="e.g. New feature launched!" maxLength={100}
                   className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
-                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-                />
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Message *</label>
-                <textarea
-                  value={notifMessage}
-                  onChange={e => setNotifMessage(e.target.value)}
-                  placeholder="Type your message here…"
-                  rows={4}
-                  maxLength={500}
+                <textarea value={notifMessage} onChange={e => setNotifMessage(e.target.value)}
+                  placeholder="Type your message here…" rows={4} maxLength={500}
                   className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none resize-none"
-                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-                />
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
                 <p className="text-right text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{notifMessage.length}/500</p>
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Link (optional)</label>
-                <input
-                  type="url"
-                  value={notifLink}
-                  onChange={e => setNotifLink(e.target.value)}
+                <input type="url" value={notifLink} onChange={e => setNotifLink(e.target.value)}
                   placeholder="https://…"
                   className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
-                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-                />
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }} />
               </div>
-              <button
-                onClick={sendNotification}
-                disabled={sendingNotif || !notifTitle.trim() || !notifMessage.trim()}
+              {/* Save toggle */}
+              <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-xl" style={{ background: 'var(--bg-elevated)', border: `1px solid ${saveNotif ? '#f59e0b55' : 'var(--border)'}` }}>
+                <div
+                  className="w-10 h-6 rounded-full relative transition-colors flex-shrink-0"
+                  style={{ background: saveNotif ? '#f59e0b' : 'var(--border)' }}
+                  onClick={() => setSaveNotif(v => !v)}
+                >
+                  <div className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all" style={{ left: saveNotif ? '22px' : '4px' }} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold" style={{ color: saveNotif ? '#f59e0b' : 'var(--text-primary)' }}>
+                    {saveNotif ? '📌 Save for new registrations' : 'One-time broadcast only'}
+                  </p>
+                  <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                    {saveNotif ? 'This message will also be sent to every new user when they register.' : 'Sends now to all existing users. Not saved.'}
+                  </p>
+                </div>
+              </label>
+              <button onClick={sendNotification} disabled={sendingNotif || !notifTitle.trim() || !notifMessage.trim()}
                 className="w-full py-3 rounded-xl font-black text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#000' }}
-              >
-                {sendingNotif ? <><RefreshCw className="w-4 h-4 animate-spin" /> Sending…</> : <><Activity className="w-4 h-4" /> Send to All Users</>}
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#000' }}>
+                {sendingNotif
+                  ? <><RefreshCw className="w-4 h-4 animate-spin" /> Sending…</>
+                  : saveNotif
+                  ? <><Activity className="w-4 h-4" /> Save &amp; Send to All Users</>
+                  : <><Activity className="w-4 h-4" /> Send to All Users Now</>}
               </button>
+            </div>
+
+            {/* Saved notifications list */}
+            <div className="rounded-2xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-black text-sm" style={{ color: 'var(--text-primary)' }}>
+                  📌 Saved Notifications <span className="text-xs font-bold ml-1" style={{ color: 'var(--text-muted)' }}>({savedNotifs.length})</span>
+                </h3>
+                <button onClick={loadSavedNotifs} className="p-1.5 rounded-lg" style={{ color: 'var(--text-muted)' }}>
+                  <RefreshCw className={`w-4 h-4 ${loadingSaved ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+              {savedNotifs.length === 0 ? (
+                <p className="text-sm text-center py-6" style={{ color: 'var(--text-muted)' }}>
+                  No saved notifications yet. Use the toggle above to save one.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {savedNotifs.map(n => (
+                    <div key={n._id} className="flex items-start gap-3 p-4 rounded-xl" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{n.title}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{n.message}</p>
+                        {n.link && <p className="text-[10px] mt-1 text-blue-400 truncate">{n.link}</p>}
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>
+                          Saved {new Date(n.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
+                      </div>
+                      <button onClick={() => deleteSavedNotif(n._id)}
+                        className="p-1.5 rounded-lg flex-shrink-0 hover:bg-red-500/10 transition-colors"
+                        style={{ color: '#f87171' }}>
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

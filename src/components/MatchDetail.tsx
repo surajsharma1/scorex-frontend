@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { RefreshCw, Trash2, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import { socket } from '../services/socket';
 import { useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
 import {
-  ArrowLeft, Zap, BarChart2, Users, MapPin, Shield, Activity
+  ArrowLeft, Zap, BarChart2, Users, MapPin, Shield, Activity,
+  RefreshCw, Trash2, ChevronLeft, ChevronRight, ExternalLink
 } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
 
