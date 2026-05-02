@@ -276,7 +276,7 @@ export default function Frontpage() {
             </div>
 
 <div className="flex items-center gap-2 shrink-0">
-              <Link to="/preview-studio" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/30 text-xs font-bold transition">
+              <Link to="/studio" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/30 text-xs font-bold transition">
                 <MonitorPlay className="w-3.5 h-3.5" /> Preview Studio
               </Link>
               <Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition px-3 py-1.5">Sign In</Link>

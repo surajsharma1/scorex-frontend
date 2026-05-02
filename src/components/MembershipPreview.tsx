@@ -165,7 +165,7 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
         </button>
         <button
-          onClick={() => window.open(`/preview-studio?level=${isLvl2 ? '2' : '1'}&template=/overlays/${overlayFile}`, '_blank')}
+          onClick={() => window.open(`/studio?level=${isLvl2 ? '2' : '1'}&template=/overlays/${overlayFile}`, '_blank')}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all text-xs whitespace-nowrap"
         >
           <MonitorPlay className="w-3.5 h-3.5" /> Full Studio
