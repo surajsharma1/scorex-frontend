@@ -204,10 +204,11 @@ export default function App() {
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
                 <Route path="/oauth/callback" element={<OAuthCallback />} />
 
-                {/* Studio — public, fullscreen, no sidebar */}
+{/* Studio — public, fullscreen, no sidebar */}
                 <Route path="/studio" element={<PreviewStudio />} />
                 <Route path="/studio/:id" element={<PreviewStudio />} />
                 <Route path="/studio/preview" element={<PreviewStudio />} />
+                <Route path="/preview-studio" element={<PreviewStudio />} />
 
                 {/* Dashboard pages */}
                 <Route path="/dashboard"          element={<DashboardLayout user={user} logout={logout} token={token}><Dashboard /></DashboardLayout>} />
