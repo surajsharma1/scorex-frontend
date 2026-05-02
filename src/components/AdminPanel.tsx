@@ -97,7 +97,7 @@ export default function AdminPanel() {
             (DURATIONS).forEach(dur => {
               const v = raw[lvl][dur];
               if (v !== undefined) {
-                normalised[lvl][dur] = typeof v === 'object' ? v : { price: v, discount: 0 };
+                normalised[lvl][dur] = (v !== null && typeof v === 'object') ? v : { price: Number(v) || 0, discount: 0 };
               }
             });
           }
@@ -500,8 +500,8 @@ export default function AdminPanel() {
                 </div>
                 <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {DURATIONS.map(d => {
-                    const entry = prices[level][d];
-                    const effective = entry.discount ? Math.round(entry.price * (1 - entry.discount / 100)) : entry.price;
+                    const entry = prices[level]?.[d] ?? DEFAULT_PRICES[level][d];
+                    const effective = entry?.discount ? Math.round(entry.price * (1 - entry.discount / 100)) : (entry?.price ?? 0);
                     return (
                       <div key={d} className="rounded-xl p-3" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
                         <p className="text-xs font-black uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ color: level === 1 ? '#22c55e' : '#a855f7' }}>
@@ -513,7 +513,7 @@ export default function AdminPanel() {
                           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold" style={{ color: 'var(--text-muted)' }}>₹</span>
                           <input
                             type="number" min="0"
-                            value={entry.price}
+                            value={entry?.price ?? 0}
                             onChange={e => updatePrice(level, d, 'price', e.target.value)}
                             className="w-full pl-6 pr-3 py-2 rounded-lg text-sm font-bold focus:outline-none transition-colors"
                             style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
@@ -526,7 +526,7 @@ export default function AdminPanel() {
                         <div className="relative mb-2">
                           <input
                             type="number" min="0" max="100"
-                            value={entry.discount}
+                            value={entry?.discount ?? 0}
                             onChange={e => updatePrice(level, d, 'discount', e.target.value)}
                             className="w-full px-3 py-2 rounded-lg text-sm font-bold focus:outline-none transition-colors"
                             style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
@@ -538,9 +538,9 @@ export default function AdminPanel() {
                         {/* Effective price */}
                         <div className="flex items-center justify-between">
                           <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Final price:</span>
-                          <span className="text-sm font-black" style={{ color: entry.discount > 0 ? '#22c55e' : 'var(--text-primary)' }}>
+                          <span className="text-sm font-black" style={{ color: (entry?.discount ?? 0) > 0 ? '#22c55e' : 'var(--text-primary)' }}>
                             ₹{effective.toLocaleString()}
-                            {entry.discount > 0 && <span className="text-[10px] ml-1 font-bold text-amber-400">({entry.discount}% off)</span>}
+                            {(entry?.discount ?? 0) > 0 && <span className="text-[10px] ml-1 font-bold text-amber-400">({entry.discount}% off)</span>}
                           </span>
                         </div>
                       </div>
@@ -579,10 +579,10 @@ export default function AdminPanel() {
                         {DURATIONS.map(d => (
                           <td key={d} className="py-3 pr-6 font-black" style={{ color: level === 1 ? '#22c55e' : '#a855f7' }}>
                             <span className="font-black" style={{ color: level === 1 ? '#22c55e' : '#a855f7' }}>
-                              ₹{effectivePrice(prices[level][d]).toLocaleString()}
+                              ₹{effectivePrice(prices[level]?.[d] ?? DEFAULT_PRICES[level][d]).toLocaleString()}
                             </span>
-                            {prices[level][d].discount > 0 && (
-                              <span className="text-[10px] ml-1 text-amber-400">({prices[level][d].discount}% off)</span>
+                            {(prices[level]?.[d]?.discount ?? 0) > 0 && (
+                              <span className="text-[10px] ml-1 text-amber-400">({prices[level]?.[d]?.discount ?? 0}% off)</span>
                             )}
                           </td>
                         ))}
