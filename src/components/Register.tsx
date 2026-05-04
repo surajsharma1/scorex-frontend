@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../App';
 import { useTheme } from './ThemeProvider';
 import { authAPI } from '../services/api';
-import { Mail, Lock, User, Zap, AlertTriangle, Eye, EyeOff, Sun, Moon } from 'lucide-react';
+import { Mail, Lock, User, Zap, AlertTriangle, Eye, EyeOff, Sun, Moon, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 
-const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+const isValidEmailFormat = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
 
 export default function Register() {
   const { login } = useAuth();
@@ -17,11 +17,40 @@ export default function Register() {
   const [showPw, setShowPw] = useState(false);
   const [showCPw, setShowCPw] = useState(false);
 
+  // Email validation state: null = unchecked, true = valid, false = invalid
+  const [emailStatus, setEmailStatus] = useState<null | 'checking' | boolean>(null);
+  const emailDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const checkEmail = async (email: string) => {
+    if (!isValidEmailFormat(email)) { setEmailStatus(false); return; }
+    setEmailStatus('checking');
+    try {
+      const res = await authAPI.checkEmail(email);
+      setEmailStatus(res.data.valid === true);
+    } catch { setEmailStatus(null); }
+  };
+
+  const handleEmailChange = (val: string) => {
+    setForm(f => ({ ...f, email: val }));
+    setEmailStatus(null);
+    if (emailDebounceRef.current) clearTimeout(emailDebounceRef.current);
+    if (val.includes('@') && val.includes('.')) {
+      emailDebounceRef.current = setTimeout(() => checkEmail(val.trim()), 700);
+    }
+  };
+
+  const emailBorderColor = () => {
+    if (emailStatus === true) return '#22c55e';
+    if (emailStatus === false) return '#ef4444';
+    return 'var(--border)';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (form.username.trim().length < 3) { setError('Username must be at least 3 characters'); return; }
-    if (!isValidEmail(form.email)) { setError('Please enter a valid email address'); return; }
+    if (!isValidEmailFormat(form.email)) { setError('Please enter a valid email address'); return; }
+    if (emailStatus === false) { setError('Please use a real email address. Disposable/fake emails are not allowed.'); return; }
     if (form.password.length < 6) { setError('Password must be at least 6 characters'); return; }
     if (form.password !== form.confirmPassword) { setError('Passwords do not match'); return; }
     setLoading(true);
@@ -40,7 +69,6 @@ export default function Register() {
 
   const inp = {
     background: 'var(--bg-elevated)',
-    border: '1px solid var(--border)',
     color: 'var(--text-primary)',
   };
 
@@ -48,13 +76,10 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{ background: 'var(--bg-primary)' }}>
 
-      {/* Theme toggle — top right corner */}
-      <button
-        onClick={toggleTheme}
-        title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      {/* Theme toggle */}
+      <button onClick={toggleTheme} title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         className="fixed top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 shadow-lg"
-        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
-      >
+        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
         {isDark
           ? <><Sun className="w-3.5 h-3.5 text-amber-400" /><span>Light</span></>
           : <><Moon className="w-3.5 h-3.5 text-indigo-400" /><span>Dark</span></>}
@@ -108,24 +133,37 @@ export default function Register() {
                 <input type="text" value={form.username}
                   onChange={e => setForm({ ...form, username: e.target.value })}
                   placeholder="johndoe" required minLength={3} autoComplete="username"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm transition-all outline-none" style={inp}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm transition-all outline-none"
+                  style={{ ...inp, border: '1px solid var(--border)' }}
                   onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
                   onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
               </div>
             </div>
 
-            {/* Email */}
+            {/* Email — with live domain check */}
             <div>
               <label className="text-xs font-bold mb-1.5 block uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Email</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 z-10" style={{ color: 'var(--text-muted)' }} />
                 <input type="email" value={form.email}
-                  onChange={e => setForm({ ...form, email: e.target.value })}
+                  onChange={e => handleEmailChange(e.target.value)}
+                  onBlur={() => { if (form.email) checkEmail(form.email.trim()); }}
                   placeholder="you@example.com" required autoComplete="email"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm transition-all outline-none" style={inp}
-                  onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
-                  onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
+                  className="w-full pl-10 pr-10 py-3 rounded-xl text-sm transition-all outline-none"
+                  style={{ ...inp, border: `1px solid ${emailBorderColor()}`, transition: 'border-color 0.2s' }} />
+                {/* Status icon */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {emailStatus === 'checking' && <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--text-muted)' }} />}
+                  {emailStatus === true  && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                  {emailStatus === false && <XCircle className="w-4 h-4 text-red-400" />}
+                </div>
               </div>
+              {emailStatus === false && (
+                <p className="text-xs mt-1 ml-0.5 text-red-400">Please use a real email. Disposable/fake addresses are not allowed.</p>
+              )}
+              {emailStatus === true && (
+                <p className="text-xs mt-1 ml-0.5 text-green-500">Email looks good ✓</p>
+              )}
             </div>
 
             {/* Password */}
@@ -136,7 +174,8 @@ export default function Register() {
                 <input type={showPw ? 'text' : 'password'} value={form.password}
                   onChange={e => setForm({ ...form, password: e.target.value })}
                   placeholder="••••••••" required minLength={6} autoComplete="new-password"
-                  className="w-full pl-10 pr-12 py-3 rounded-xl text-sm transition-all outline-none" style={inp}
+                  className="w-full pl-10 pr-12 py-3 rounded-xl text-sm transition-all outline-none"
+                  style={{ ...inp, border: '1px solid var(--border)' }}
                   onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
                   onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
                 <button type="button" tabIndex={-1} onClick={() => setShowPw(v => !v)}
@@ -156,7 +195,8 @@ export default function Register() {
                 <input type={showCPw ? 'text' : 'password'} value={form.confirmPassword}
                   onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
                   placeholder="••••••••" required autoComplete="new-password"
-                  className="w-full pl-10 pr-12 py-3 rounded-xl text-sm transition-all outline-none" style={inp}
+                  className="w-full pl-10 pr-12 py-3 rounded-xl text-sm transition-all outline-none"
+                  style={{ ...inp, border: '1px solid var(--border)' }}
                   onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
                   onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
                 <button type="button" tabIndex={-1} onClick={() => setShowCPw(v => !v)}
@@ -196,8 +236,7 @@ export default function Register() {
           <a
             href={`${import.meta.env.VITE_API_URL || ''}/api/v1/auth/google`}
             className="flex items-center justify-center gap-3 w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-          >
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
             <svg width="18" height="18" viewBox="0 0 48 48">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
               <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>

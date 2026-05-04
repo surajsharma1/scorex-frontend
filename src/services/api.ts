@@ -82,6 +82,7 @@ export const authAPI = {
   resetPassword: (token: string, password: string) => api.post(`/auth/reset-password/${token}`, { password }),
   completeGoogleProfile: (data: { tempToken: string; username: string; password: string }) =>
     api.post('/auth/complete-google-profile', data),
+  checkEmail: (email: string) => api.post('/auth/check-email', { email }),
 };
 
 // ─── User API ─────────────────────────────────────────────────────────────────
