@@ -19,6 +19,7 @@ import Sidebar from './components/Sidebar';
 import Login from './components/Login';
 import Register from './components/Register';
 import OAuthCallback from './components/OAuthCallback';
+import CompleteProfile from './components/CompleteProfile';
 import ForgotPassword from './components/ForgotPassword';
 import Frontpage from './components/Frontpage';
 import ResetPassword from './components/ResetPassword';
@@ -292,6 +293,7 @@ export default function App() {
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
                 <Route path="/oauth/callback" element={<OAuthCallback />} />
+                <Route path="/complete-profile" element={<CompleteProfile />} />
 
                 {/* Studio — public, fullscreen, no sidebar */}
                 <Route path="/studio" element={<PreviewStudio />} />

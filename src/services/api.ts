@@ -80,6 +80,8 @@ export const authAPI = {
   getMe: () => api.get('/auth/me'),
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
   resetPassword: (token: string, password: string) => api.post(`/auth/reset-password/${token}`, { password }),
+  completeGoogleProfile: (data: { tempToken: string; username: string; password: string }) =>
+    api.post('/auth/complete-google-profile', data),
 };
 
 // ─── User API ─────────────────────────────────────────────────────────────────
