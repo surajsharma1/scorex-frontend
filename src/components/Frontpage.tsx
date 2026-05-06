@@ -156,7 +156,7 @@ function OverlayCard({ name, category, level, url, gradient }: { name: string; c
         </div>
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <Link to={`/preview-studio?template=${url}`}
+          <Link to={`/studio?template=${url}`}
             className="flex items-center gap-2 px-4 py-2 bg-white text-black font-bold rounded-xl text-xs hover:bg-gray-100 transition">
             <MonitorPlay className="w-3.5 h-3.5" /> Open in Studio
           </Link>
@@ -164,7 +164,7 @@ function OverlayCard({ name, category, level, url, gradient }: { name: string; c
       </div>
       <div className="p-3.5 flex items-center justify-between gap-2">
         <h4 className="font-bold text-white text-xs truncate">{name}</h4>
-        <Link to={`/preview-studio?template=${url}`}
+        <Link to={`/studio?template=${url}`}
           className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-600/15 border border-blue-500/25 text-blue-400 hover:bg-blue-600/30 text-[11px] font-bold transition">
           <MonitorPlay className="w-3 h-3" /> Studio
         </Link>
@@ -255,7 +255,7 @@ export default function Frontpage() {
 
             {/* Right actions */}
             <div className="flex items-center gap-2 shrink-0">
-              <Link to="/preview-studio"
+              <Link to="/studio"
                 className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:scale-[1.03]"
                 style={{ background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.25)', color: '#60a5fa' }}>
                 <MonitorPlay className="w-3.5 h-3.5" /> Studio
@@ -330,7 +330,7 @@ export default function Frontpage() {
               onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(34,197,94,0.4)')}>
               Start Tournament Free <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link to="/preview-studio"
+            <Link to="/studio"
               className="group inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-bold transition-all"
               style={{ background: 'rgba(59,130,246,0.1)', border: '2px solid rgba(59,130,246,0.3)', color: '#93c5fd' }}>
               <MonitorPlay className="w-5 h-5" /> Try Overlay Studio
@@ -430,7 +430,7 @@ export default function Frontpage() {
           </div>
 
           <div className="flex justify-center gap-3 mb-10">
-            <Link to="/preview-studio"
+            <Link to="/studio"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:scale-[1.03]"
               style={{ background: 'linear-gradient(135deg,#2563eb,#4f46e5)', color: '#fff', boxShadow: '0 0 20px rgba(99,102,241,0.3)' }}>
               <MonitorPlay className="w-4 h-4" /> Open Full Preview Studio
@@ -509,7 +509,7 @@ export default function Frontpage() {
               className="inline-flex items-center justify-center gap-3 px-9 py-4 bg-white text-black font-bold rounded-full transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] text-sm">
               Get Started Free <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link to="/preview-studio"
+            <Link to="/studio"
               className="inline-flex items-center justify-center gap-3 px-9 py-4 rounded-full font-bold transition-all hover:scale-[1.03] text-sm"
               style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: '#93c5fd' }}>
               <MonitorPlay className="w-4 h-4" /> Preview Overlays
@@ -543,7 +543,7 @@ export default function Frontpage() {
               <ul className="space-y-2.5 text-gray-500 text-xs">
                 <li><a href="#features" className="hover:text-green-400 transition">Features</a></li>
                 <li><a href="#pricing" className="hover:text-green-400 transition">Pricing</a></li>
-                <li><Link to="/preview-studio" className="hover:text-green-400 transition">Overlay Studio</Link></li>
+                <li><Link to="/studio" className="hover:text-green-400 transition">Overlay Studio</Link></li>
                 <li><a href="#overlays" className="hover:text-green-400 transition">Templates</a></li>
               </ul>
             </div>
