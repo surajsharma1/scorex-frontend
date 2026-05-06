@@ -5,10 +5,12 @@ import { Match, Tournament } from './types';
 import ScoreboardUpdate from './ScoreboardUpdate';
 import { ArrowLeft, Video, Save, Play, CheckCircle, Zap } from 'lucide-react';
 import { useToast } from '../hooks/useToast';
+import { useAuth } from '../App';
 
 export default function MatchDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth(); // Always fresh from server, never stale localStorage
   const [match, setMatch] = useState<Match | null>(null);
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
@@ -16,23 +18,11 @@ export default function MatchDetails() {
   // Video Link State
   const [videoLink, setVideoLink] = useState('');
   const [isSavingLink, setIsSavingLink] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const { addToast } = useToast();
 
   useEffect(() => {
     fetchMatch();
   }, [id]);
-
-  useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        setCurrentUser(JSON.parse(userStr));
-      } catch (e) {
-        console.error('Failed to parse user');
-      }
-    }
-  }, []); // Empty dependency array for mount only
 
   const fetchMatch = async () => {
     if (!id) return;

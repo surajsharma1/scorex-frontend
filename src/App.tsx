@@ -250,6 +250,27 @@ export default function App() {
     }).catch(() => {});
   }, [parseUser]);
 
+  // Re-sync user data whenever the browser tab becomes visible again
+  // (handles returning to the tab after being away, switching accounts in another tab, etc.)
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && localStorage.getItem('token')) {
+        refreshUser();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [refreshUser]);
+
+  // Also re-sync every 30 minutes while the tab is open and user is logged in
+  useEffect(() => {
+    if (!token) return;
+    const interval = setInterval(() => {
+      refreshUser();
+    }, 30 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [token, refreshUser]);
+
   const logout = () => {
     clearAuth();
     window.location.href = '/';
