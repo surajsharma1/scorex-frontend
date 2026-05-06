@@ -118,7 +118,7 @@ function OverlayPreviewModal({ isOpen, onClose, level, templates }: OverlayPrevi
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
-              onClick={() => window.open(`/preview-studio?level=${level}`, '_blank')}
+              onClick={() => window.open(`/studio?level=${level}`, '_blank')}
               className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all"
               style={{ background: level === 2 ? 'linear-gradient(135deg,#a855f7,#7c3aed)' : 'linear-gradient(135deg,#22c55e,#10b981)', color: '#000' }}
             >
