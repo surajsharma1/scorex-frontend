@@ -1,76 +1,9 @@
-import { useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../App';
 import { useTheme } from './ThemeProvider';
-import { authAPI } from '../services/api';
-import { Mail, Lock, User, Zap, AlertTriangle, Eye, EyeOff, Sun, Moon, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
-
-const isValidEmailFormat = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+import { Zap, Sun, Moon, ShieldCheck, Mail } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Register() {
-  const { login } = useAuth();
   const { isDark, toggleTheme } = useTheme();
-  const navigate = useNavigate();
-  const [form, setForm] = useState({ username: '', email: '', password: '', confirmPassword: '' });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [showPw, setShowPw] = useState(false);
-  const [showCPw, setShowCPw] = useState(false);
-
-  // Email validation state: null = unchecked, true = valid, false = invalid
-  const [emailStatus, setEmailStatus] = useState<null | 'checking' | boolean>(null);
-  const emailDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const checkEmail = async (email: string) => {
-    if (!isValidEmailFormat(email)) { setEmailStatus(false); return; }
-    setEmailStatus('checking');
-    try {
-      const res = await authAPI.checkEmail(email);
-      setEmailStatus(res.data.valid === true);
-    } catch { setEmailStatus(null); }
-  };
-
-  const handleEmailChange = (val: string) => {
-    setForm(f => ({ ...f, email: val }));
-    setEmailStatus(null);
-    if (emailDebounceRef.current) clearTimeout(emailDebounceRef.current);
-    if (val.includes('@') && val.includes('.')) {
-      emailDebounceRef.current = setTimeout(() => checkEmail(val.trim()), 700);
-    }
-  };
-
-  const emailBorderColor = () => {
-    if (emailStatus === true) return '#22c55e';
-    if (emailStatus === false) return '#ef4444';
-    return 'var(--border)';
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (form.username.trim().length < 3) { setError('Username must be at least 3 characters'); return; }
-    if (!isValidEmailFormat(form.email)) { setError('Please enter a valid email address'); return; }
-    if (emailStatus === false) { setError('Please use a real email address. Disposable/fake emails are not allowed.'); return; }
-    if (form.password.length < 6) { setError('Password must be at least 6 characters'); return; }
-    if (form.password !== form.confirmPassword) { setError('Passwords do not match'); return; }
-    setLoading(true);
-    try {
-      const res = await authAPI.register({
-        username: form.username.trim(),
-        email: form.email.trim().toLowerCase(),
-        password: form.password,
-      });
-      if (res.data.success) { login(res.data); navigate('/dashboard'); }
-      else setError(res.data.message || 'Registration failed');
-    } catch (e: any) {
-      setError(e.response?.data?.message || 'Registration failed. Please try again.');
-    } finally { setLoading(false); }
-  };
-
-  const inp = {
-    background: 'var(--bg-elevated)',
-    color: 'var(--text-primary)',
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
@@ -116,137 +49,66 @@ export default function Register() {
           <div className="absolute top-0 left-6 right-6 h-px rounded-full"
             style={{ background: 'linear-gradient(90deg,transparent,rgba(34,197,94,0.4),transparent)' }} />
 
-          {error && (
-            <div className="mb-5 p-3 rounded-xl flex items-center gap-2.5 text-sm"
-              style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171' }}>
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Username */}
+          {/* Verified-only notice */}
+          <div className="mb-6 p-4 rounded-xl flex items-start gap-3"
+            style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.18)' }}>
+            <ShieldCheck className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: '#22c55e' }} />
             <div>
-              <label className="text-xs font-bold mb-1.5 block uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Username</label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                <input type="text" value={form.username}
-                  onChange={e => setForm({ ...form, username: e.target.value })}
-                  placeholder="johndoe" required minLength={3} autoComplete="username"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl text-sm transition-all outline-none"
-                  style={{ ...inp, border: '1px solid var(--border)' }}
-                  onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
-                  onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
-              </div>
+              <p className="text-sm font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Verified accounts only</p>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                ScoreX requires a verified email to sign up. Sign in with Google so we know your account is real — no fake or disposable addresses.
+              </p>
             </div>
-
-            {/* Email — with live domain check */}
-            <div>
-              <label className="text-xs font-bold mb-1.5 block uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 z-10" style={{ color: 'var(--text-muted)' }} />
-                <input type="email" value={form.email}
-                  onChange={e => handleEmailChange(e.target.value)}
-                  onBlur={() => { if (form.email) checkEmail(form.email.trim()); }}
-                  placeholder="you@example.com" required autoComplete="email"
-                  className="w-full pl-10 pr-10 py-3 rounded-xl text-sm transition-all outline-none"
-                  style={{ ...inp, border: `1px solid ${emailBorderColor()}`, transition: 'border-color 0.2s' }} />
-                {/* Status icon */}
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  {emailStatus === 'checking' && <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--text-muted)' }} />}
-                  {emailStatus === true  && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-                  {emailStatus === false && <XCircle className="w-4 h-4 text-red-400" />}
-                </div>
-              </div>
-              {emailStatus === false && (
-                <p className="text-xs mt-1 ml-0.5 text-red-400">Please use a real email. Disposable/fake addresses are not allowed.</p>
-              )}
-              {emailStatus === true && (
-                <p className="text-xs mt-1 ml-0.5 text-green-500">Email looks good ✓</p>
-              )}
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="text-xs font-bold mb-1.5 block uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                <input type={showPw ? 'text' : 'password'} value={form.password}
-                  onChange={e => setForm({ ...form, password: e.target.value })}
-                  placeholder="••••••••" required minLength={6} autoComplete="new-password"
-                  className="w-full pl-10 pr-12 py-3 rounded-xl text-sm transition-all outline-none"
-                  style={{ ...inp, border: '1px solid var(--border)' }}
-                  onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
-                  onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
-                <button type="button" tabIndex={-1} onClick={() => setShowPw(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-all"
-                  style={{ color: 'var(--text-muted)' }}>
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              <p className="text-xs mt-1 ml-0.5" style={{ color: 'var(--text-muted)' }}>Minimum 6 characters</p>
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-              <label className="text-xs font-bold mb-1.5 block uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Confirm Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-                <input type={showCPw ? 'text' : 'password'} value={form.confirmPassword}
-                  onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
-                  placeholder="••••••••" required autoComplete="new-password"
-                  className="w-full pl-10 pr-12 py-3 rounded-xl text-sm transition-all outline-none"
-                  style={{ ...inp, border: '1px solid var(--border)' }}
-                  onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
-                  onBlur={e => (e.target.style.borderColor = 'var(--border)')} />
-                <button type="button" tabIndex={-1} onClick={() => setShowCPw(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-all"
-                  style={{ color: 'var(--text-muted)' }}>
-                  {showCPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {form.confirmPassword && form.password !== form.confirmPassword && (
-                <p className="text-xs mt-1 ml-0.5 text-red-400">Passwords do not match</p>
-              )}
-              {form.confirmPassword && form.password === form.confirmPassword && (
-                <p className="text-xs mt-1 ml-0.5" style={{ color: 'var(--accent)' }}>Passwords match ✓</p>
-              )}
-            </div>
-
-            <button type="submit" disabled={loading}
-              className="w-full py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-50 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] mt-1"
-              style={{ background: 'linear-gradient(135deg,#22c55e,#10b981)', color: '#000', boxShadow: '0 0 24px rgba(34,197,94,0.3)' }}>
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                  Creating account…
-                </span>
-              ) : 'Create Account'}
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-            <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>or register with</span>
-            <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
           </div>
 
-          {/* Google Register */}
+          {/* Google Sign Up — primary CTA */}
           <a
             href={`${import.meta.env.VITE_API_URL || ''}/api/v1/auth/google`}
-            className="flex items-center justify-center gap-3 w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+            className="flex items-center justify-center gap-3 w-full py-3.5 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] mb-3"
+            style={{
+              background: 'linear-gradient(135deg,#22c55e,#10b981)',
+              color: '#000',
+              boxShadow: '0 0 24px rgba(34,197,94,0.3)',
+            }}>
             <svg width="18" height="18" viewBox="0 0 48 48">
-              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              <path fill="#1a1a1a" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#1a1a1a" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#1a1a1a" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#1a1a1a" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
             Continue with Google
           </a>
 
-          <p className="text-center mt-5 text-xs" style={{ color: 'var(--text-muted)' }}>
+          {/* What they'll get */}
+          <div className="rounded-xl p-3 mb-5"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>What happens when you sign up:</p>
+            <ul className="space-y-1.5">
+              {[
+                'Google confirms your email is real',
+                'Choose your ScoreX username & password',
+                'Full access to tournaments & overlays',
+              ].map((item, i) => (
+                <li key={i} className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                  <span className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
+                    style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>{i + 1}</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Footer notice about email login */}
+          <div className="flex items-start gap-2 mb-5 p-3 rounded-xl"
+            style={{ background: 'rgba(234,179,8,0.06)', border: '1px solid rgba(234,179,8,0.15)' }}>
+            <Mail className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: '#ca8a04' }} />
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              Already have an account with email &amp; password?{' '}
+              <Link to="/login" className="font-bold" style={{ color: '#ca8a04' }}>Sign in here</Link> — email login still works.
+            </p>
+          </div>
+
+          <p className="text-center text-xs" style={{ color: 'var(--text-muted)' }}>
             Already have an account?{' '}
             <Link to="/login" className="font-bold transition-colors hover:opacity-80" style={{ color: 'var(--accent)' }}>
               Sign in
