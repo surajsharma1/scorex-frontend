@@ -94,6 +94,14 @@ export default function Sidebar({ user, logout, isOpen = false, onClose }: Sideb
     return () => document.removeEventListener('mousedown', handler);
   }, [notifOpen]);
 
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const unreadCount = notifications.filter(n => !n.isRead).length;
   const isAdmin     = user?.role === 'admin';
 
@@ -318,11 +326,16 @@ export default function Sidebar({ user, logout, isOpen = false, onClose }: Sideb
             onClick={() => setNotifOpen(false)}
           />
 
-          {/* Drawer — slides in from left, full height, proper width */}
+          {/* Drawer — mobile: full-width from edge; desktop: beside sidebar */}
           <div
             ref={drawerRef}
             className="fixed inset-y-0 z-[70] flex flex-col shadow-2xl"
-            style={{
+            style={isMobile ? {
+              left: 0,
+              width: '100%',
+              background: 'var(--bg-card)',
+              borderRight: '1px solid var(--border)',
+            } : {
               left: collapsed ? '4.5rem' : 'clamp(14rem,22vw,16rem)',
               width: 'min(420px, calc(100vw - 4.5rem))',
               background: 'var(--bg-card)',

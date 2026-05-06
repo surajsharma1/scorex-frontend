@@ -103,23 +103,23 @@ function OverlayPreviewModal({ isOpen, onClose, level, templates }: OverlayPrevi
     >
       <div
         className="relative w-full max-w-5xl rounded-2xl overflow-hidden flex flex-col"
-        style={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.08)', maxHeight: '90vh' }}
+        style={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.08)', maxHeight: '92vh', margin: '0 8px' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800 shrink-0">
-          <div className="flex items-center gap-3">
-            <Monitor className="w-5 h-5 text-blue-400" />
-            <div>
-              <h3 className="font-black text-white text-base">
-                {level === 1 ? 'Premium' : 'Enterprise'} Overlays Preview
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-800 shrink-0 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Monitor className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <h3 className="font-black text-white text-sm sm:text-base truncate">
+                {level === 1 ? 'Premium' : 'Enterprise'} Overlays
               </h3>
-              <p className="text-xs text-gray-500">{levelTemplates.length} broadcast templates</p>
+              <p className="text-xs text-gray-500">{levelTemplates.length} templates</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={() => window.open(`/preview-studio?level=${level}`, '_blank')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all"
               style={{ background: level === 2 ? 'linear-gradient(135deg,#a855f7,#7c3aed)' : 'linear-gradient(135deg,#22c55e,#10b981)', color: '#000' }}
             >
               <ExternalLink className="w-3.5 h-3.5" /> Full Studio
@@ -519,13 +519,13 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
         {/* ── Active membership banner ── */}
         {membership && !isExpired && (
           <div
-            className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 rounded-2xl p-4 sm:p-5 mb-8"
+            className="rounded-2xl p-4 mb-8"
             style={{
               background: 'rgba(34,197,94,0.08)',
               border: '1px solid rgba(34,197,94,0.25)',
             }}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)' }}>
                 <Shield className="w-5 h-5 text-black" />
@@ -538,18 +538,18 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
                   Expires {formatDate(membership.expiry)}
                 </p>
               </div>
+              <span className="ml-auto font-bold px-2.5 py-1 rounded-lg text-xs" style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>
+                {timeLeft}
+              </span>
             </div>
-            <div className="flex items-center gap-4 text-xs sm:ml-auto" style={{ color: 'var(--text-secondary)' }}>
+            <div className="flex items-center gap-4 text-xs flex-wrap" style={{ color: 'var(--text-secondary)' }}>
               <span className="flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5" />
-                {formatDate(membership.purchasedAt)}
+                Started {formatDate(membership.purchasedAt)}
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5" />
                 {DURATION_LABELS[membership.duration as Duration] || membership.duration}
-              </span>
-              <span className="font-bold px-2 py-1 rounded-lg" style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>
-                {timeLeft}
               </span>
             </div>
           </div>
@@ -569,16 +569,16 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
         )}
 
         {/* ── Duration selector ── */}
-        <div className="flex justify-center sm:justify-start mb-8">
+        <div className="mb-8 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
           <div
-            className="flex rounded-xl p-1 gap-1"
+            className="flex rounded-xl p-1 gap-1 w-max sm:w-auto"
             style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
           >
             {(Object.keys(DURATION_LABELS) as Duration[]).map(d => (
               <button
                 key={d}
                 onClick={() => setSelectedDuration(d)}
-                className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+                className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap"
                 style={
                   selectedDuration === d
                     ? { background: 'linear-gradient(135deg, #22c55e, #10b981)', color: '#000', boxShadow: '0 0 12px rgba(34,197,94,0.35)' }
