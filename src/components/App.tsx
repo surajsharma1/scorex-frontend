@@ -4,7 +4,6 @@ import Sidebar from './Sidebar';
 import Frontpage from './Frontpage';
 import Login from './Login';
 import Register from './Register';
-import CompleteProfile from './CompleteProfile';
 import Dashboard from './Dashboard';
 import TournamentList from './TournamentList';
 import TournamentForm from './TournamentForm';
@@ -103,8 +102,6 @@ function App() {
       <Route path="/live/:id" element={<LiveMatchPage />} />
       <Route path="/live-scoring/:id" element={<LiveScoring />} />
       <Route path="/studio" element={<PreviewStudio />} />
-      <Route path="/preview-studio" element={<PreviewStudio />} />
-      <Route path="/complete-profile" element={<CompleteProfile />} />
 
       {/* --- PROTECTED ROUTES --- */}
       <Route element={token ? <DashboardLayout /> : <Navigate to="/login" replace />}>
@@ -114,6 +111,7 @@ function App() {
         <Route path="/tournaments/create" element={<TournamentForm />} />
         
         {/* FIX: ADDED PREVIEW ROUTES HERE SO THEY DON'T REDIRECT TO HOME */}
+        <Route path="/preview-studio" element={<PreviewStudio />} />
         <Route path="/overlay-manager/:tournamentId?" element={<OverlayManager />} />
         
         {/* Note: If MembershipPreview requires props natively, you wrap it here, or use URL params */}
