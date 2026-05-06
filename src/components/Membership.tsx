@@ -20,17 +20,6 @@ interface OverlayPreviewModalProps {
 function OverlayPreviewModal({ isOpen, onClose, level, templates }: OverlayPreviewModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.1);
-
-  // Mobile: prevent background scroll + double-close issues when clicking buttons/iframes
-  useEffect(() => {
-    if (!isOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [isOpen]);
-
   const levelTemplates = templates.filter(t => t.level === level);
   const [selected, setSelected] = useState(levelTemplates[0] || null);
   const [iframeKey, setIframeKey] = useState(0);
@@ -471,10 +460,9 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
               plan: plan.name, 
               duration: selectedDuration 
             });
-            addToast({ type: 'success', message: '🎉 Membership activated! Updating...' });
+            addToast({ type: 'success', message: '🎉 Membership activated! Refreshing...' });
 
-            // Don't hard-reload the whole app; it can close/unmount preview modals on mobile.
-            setTimeout(() => refreshUser(), 900);
+            setTimeout(() => window.location.reload(), 1200);
           } catch (verifyErr) {
             addToast({ type: 'error', message: 'Payment OK but membership sync failed' });
             console.error(verifyErr);

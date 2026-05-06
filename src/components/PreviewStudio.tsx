@@ -354,7 +354,7 @@ export default function PreviewStudio() {
  ref={iframeRef}
  id="preview-frame"
  key={iframeKey}
- src={`${new URL('.', window.location.origin).toString()}${selectedTemplate.url}?preview=true`}
+ src={selectedTemplate.url + '?preview=true'}
  onLoad={handleIframeLoad}
  style={{
  width: '1920px', height: '1080px',
