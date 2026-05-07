@@ -59,11 +59,11 @@ class SocketFactory {
         transports: ['websocket', 'polling'],
         auth: { token: localStorage.getItem('token') },
         reconnection: true,
-        reconnectionAttempts: Infinity,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
+        reconnectionAttempts: 5,        // Stop hammering after 5 attempts — was Infinity
+        reconnectionDelay: 2000,        // Start at 2s — was 1s
+        reconnectionDelayMax: 30000,    // Cap at 30s backoff — was 5s
         timeout: 10000,
-        forceNew: true,
+        forceNew: false,                // Reuse connection — was true (created new socket every call)
       }) as Socket<ServerToClientEvents, ClientToServerEvents>;
 
       SocketFactory.setupEventHandlers(SocketFactory.instance);
@@ -73,16 +73,17 @@ class SocketFactory {
 
   private static setupEventHandlers(socket: Socket<ServerToClientEvents, ClientToServerEvents>) {
     socket.on('connect', () => {
-      console.log('✅ Socket connected:', socket.id);
+      console.log('[Socket] Connected:', socket.id);
     });
 
     socket.on('disconnect', (reason) => {
-      console.warn('❌ Socket disconnected:', reason);
+      console.warn('[Socket] Disconnected:', reason);
     });
 
-    (socket.io as any).on('reconnect', () => console.log('✅ Reconnected'));
+    (socket.io as any).on('reconnect', () => console.log('[Socket] Reconnected'));
     (socket.io as any).on('connect_error', (error: Error) => {
-      console.error('❌ Connect error:', error.message);
+      // Only log first error — avoid console spam during reconnect storm
+      console.warn('[Socket] Connect error:', error.message);
     });
   }
 
@@ -154,6 +155,3 @@ export const socketService = {
   getSocket: () => SocketFactory.getInstance(),
   disconnect: SocketFactory.disconnect.bind(SocketFactory),
 };
-
-console.log('🔌 Socket factory initialized safely');
-

@@ -411,17 +411,11 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
     return url;
   };
 
-  // ── FIX: Preview URL no longer includes previewProgress in the URL
-  // (that caused the iframe to reload on every slider move).
-  // Instead, score is pushed via postMessage after load.
+  // Preview URL always uses demo mode — never connects to backend
+  // This prevents engine.js from attempting socket/polling when backend is down
   const generatePreviewUrl = (overlay: any) => {
     const filename = getTemplateFilename(overlay);
-    let url = `/overlays/${filename}?preview=true`;
-    if (overlay.match) {
-      const matchId = typeof overlay.match === 'string' ? overlay.match : overlay.match._id;
-      url += `&matchId=${matchId}`;
-    }
-    return url;
+    return `/overlays/${filename}?demo=true`;
   };
 
   // ── FIX: Push rich mock score into preview iframe via postMessage ──────────

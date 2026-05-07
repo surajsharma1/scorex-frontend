@@ -105,9 +105,9 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
     : 0.15;
   const effectiveScale = idealScale * zoom;
 
-  // Direct overlay HTML URL — NOT /studio wrapper
-  const backendOrigin = baseUrl.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '');
-  const overlayUrl = `${backendOrigin}/overlays/${overlayFile}?preview=true`;
+  // Always load overlay HTML directly from frontend — never from backend origin.
+  // This ensures preview works even when the backend (Render) is cold or down.
+  const overlayUrl = `/overlays/${overlayFile}?demo=true`;
 
   const pushScore = useCallback(() => {
     const iframe = iframeRef.current;
@@ -150,26 +150,32 @@ const MembershipPreview: React.FC<MembershipPreviewProps> = ({ overlayFile, plan
   return (
     <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)' }}>
-        <div className="flex items-center gap-2 flex-1 min-w-[140px]">
-          <Eye className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--accent)' }} />
-          <span className="text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)' }}>{planName} Preview</span>
+      <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)' }}>
+        {/* Row 1: label + zoom + refresh */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+            <Eye className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--accent)' }} />
+            <span className="text-xs font-semibold truncate" style={{ color: 'var(--text-secondary)' }}>{planName} Preview</span>
+          </div>
+          <div className="flex items-center gap-1 rounded-lg p-1 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+            <button onClick={() => setZoom(z => clamp(z * 0.8))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom Out"><ZoomOut className="w-3.5 h-3.5" /></button>
+            <span className="px-1.5 text-xs font-bold tabular-nums w-10 text-center" style={{ color: 'var(--accent)' }}>{Math.round(zoom * 100)}%</span>
+            <button onClick={() => setZoom(z => clamp(z * 1.25))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom In"><ZoomIn className="w-3.5 h-3.5" /></button>
+            <button onClick={() => setZoom(1)} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Reset"><RotateCcw className="w-3.5 h-3.5" /></button>
+          </div>
+          <button onClick={pushScore} className="p-1.5 rounded-lg border transition-all" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border)', color: 'var(--text-muted)' }} title="Push demo data">
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
         </div>
-        <div className="flex items-center gap-1 rounded-lg p-1 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-          <button onClick={() => setZoom(z => clamp(z * 0.8))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom Out"><ZoomOut className="w-3.5 h-3.5" /></button>
-          <span className="px-1.5 text-xs font-bold tabular-nums w-10 text-center" style={{ color: 'var(--accent)' }}>{Math.round(zoom * 100)}%</span>
-          <button onClick={() => setZoom(z => clamp(z * 1.25))} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Zoom In"><ZoomIn className="w-3.5 h-3.5" /></button>
-          <button onClick={() => setZoom(1)} className="p-1.5 rounded" style={{ color: 'var(--text-muted)' }} title="Reset"><RotateCcw className="w-3.5 h-3.5" /></button>
+        {/* Row 2: Full Studio — always visible, full width on mobile */}
+        <div className="mt-2">
+          <button
+            onClick={() => window.open(`/preview-studio?template=/overlays/${overlayFile}`, '_blank')}
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all text-xs"
+          >
+            <MonitorPlay className="w-3.5 h-3.5" /> Open in Full Studio
+          </button>
         </div>
-        <button onClick={pushScore} className="p-1.5 rounded-lg border transition-all" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border)', color: 'var(--text-muted)' }} title="Push demo data">
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-        </button>
-<button
-          onClick={() => window.open(`/preview-studio?template=/overlays/${overlayFile}`, '_blank')}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all text-xs whitespace-nowrap"
-        >
-          <MonitorPlay className="w-3.5 h-3.5" /> Full Studio
-        </button>
       </div>
 
       {/* Canvas — 1920×1080 iframe scaled to fit, same as PreviewStudio */}
