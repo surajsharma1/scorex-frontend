@@ -485,7 +485,7 @@ export default function OverlayManager({ tournamentId }: { tournamentId?: string
     const level = templateFilename.startsWith('lvl2') ? '2' : '1';
 
     return createPortal(
-      <div className="fixed inset-0 z-[9999] backdrop-blur-md flex flex-col" style={{ background: 'rgba(0,0,0,0.97)' }}>
+      <div className="fixed inset-0 z-[9999] backdrop-blur-md flex flex-col" style={{ background: 'var(--bg-primary)' }}>
         {/* Top bar */}
         <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b shrink-0"
           style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
