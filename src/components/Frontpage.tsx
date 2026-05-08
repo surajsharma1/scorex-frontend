@@ -143,13 +143,31 @@ const MOCK_SCORE = {
 function OverlayShowcase() {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [scale, setScale] = useState(0.3);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const backendBase = (import.meta.env.VITE_API_URL || '').replace('/api/v1', '');
 
   const selected = OVERLAY_TEMPLATES[selectedIdx];
   const previewSrc = backendBase
     ? `${backendBase}${selected.url}?preview=true`
     : `${selected.url}?preview=true`;
+
+  // Compute scale from actual container width so it always fits perfectly
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const compute = () => {
+      const { width, height } = el.getBoundingClientRect();
+      if (width > 0 && height > 0) {
+        setScale(Math.min(width / 1920, height / 1080));
+      }
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // Push mock score data into iframe after it loads
   const pushScore = useCallback(() => {
@@ -169,8 +187,13 @@ function OverlayShowcase() {
     if (prevIdx.current === selectedIdx) return;
     prevIdx.current = selectedIdx;
     setIframeLoaded(false);
-    // src change triggers natural reload → onLoad fires → pushScore
-  }, [selectedIdx]);
+    if (iframeRef.current) {
+      const src = backendBase
+        ? `${backendBase}${OVERLAY_TEMPLATES[selectedIdx].url}?preview=true`
+        : `${OVERLAY_TEMPLATES[selectedIdx].url}?preview=true`;
+      iframeRef.current.src = src;
+    }
+  }, [selectedIdx, backendBase]);
 
   const prev = () => setSelectedIdx(i => (i - 1 + OVERLAY_TEMPLATES.length) % OVERLAY_TEMPLATES.length);
   const next = () => setSelectedIdx(i => (i + 1) % OVERLAY_TEMPLATES.length);
@@ -181,6 +204,7 @@ function OverlayShowcase() {
       {/* ── Big iframe preview ── */}
       <div className="w-full max-w-4xl mx-auto">
         <div
+          ref={containerRef}
           className="relative w-full rounded-2xl overflow-hidden border border-white/10 bg-black shadow-2xl"
           style={{ aspectRatio: '16/9' }}
         >
@@ -196,14 +220,15 @@ function OverlayShowcase() {
             src={previewSrc}
             onLoad={handleLoad}
             title={selected.name}
-            className="border-none pointer-events-none absolute inset-0"
+            className="border-none pointer-events-none absolute"
             style={{
               width: '1920px',
               height: '1080px',
-              transform: 'scale(0.3333)',  // 1/3 — fills a 640px-wide container exactly
-              transformOrigin: 'top left',
-              top: 0,
-              left: 0,
+              /* Anchor to center of container, then scale from center */
+              top: '50%',
+              left: '50%',
+              transform: `translate(-50%, -50%) scale(${scale})`,
+              transformOrigin: 'center center',
             }}
           />
 
