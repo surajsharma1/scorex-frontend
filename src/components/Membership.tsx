@@ -24,31 +24,26 @@ function OverlayPreviewModal({ isOpen, onClose, level, templates }: OverlayPrevi
   const [selected, setSelected] = useState(levelTemplates[0] || null);
   const [iframeKey, setIframeKey] = useState(0);
 
-  // Recompute scale whenever the container resizes (works after modal mounts)
+  // Recompute scale on container resize.
+  // Debounced via rAF — on mobile, iOS/Android resize the viewport on every
+  // scroll pixel as the address bar shows/hides, causing ResizeObserver to
+  // fire hundreds of times per second without this guard.
   useEffect(() => {
     if (!isOpen) return;
-    const computeScale = () => {
-      if (containerRef.current) {
-        const { width, height } = containerRef.current.getBoundingClientRect();
-        if (width > 0 && height > 0) {
-          setScale(Math.min(width / 1920, height / 1080));
+    let rafId: number;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (containerRef.current) {
+          const { width, height } = containerRef.current.getBoundingClientRect();
+          if (width > 0 && height > 0) {
+            setScale(Math.min(width / 1920, height / 1080));
+          }
         }
-      }
-    };
-    // Wait one frame for the modal DOM to settle
-    const raf = requestAnimationFrame(() => {
-      computeScale();
-      const ro = new ResizeObserver(computeScale);
-      if (containerRef.current) ro.observe(containerRef.current);
-      // store ro on window so we can disconnect in cleanup
-      (containerRef.current as any).__ro = ro;
+      });
     });
-    return () => {
-      cancelAnimationFrame(raf);
-      if (containerRef.current) {
-        (containerRef.current as any).__ro?.disconnect();
-      }
-    };
+    if (containerRef.current) ro.observe(containerRef.current);
+    return () => { cancelAnimationFrame(rafId); ro.disconnect(); };
   }, [isOpen]);
 
   // Reset selection when level changes
@@ -118,11 +113,12 @@ function OverlayPreviewModal({ isOpen, onClose, level, templates }: OverlayPrevi
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
-              onClick={() => window.open(`/studio?level=${level}`, '_blank')}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all"
+              onClick={() => window.open(`/preview-studio?level=${level}`, '_blank')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
               style={{ background: level === 2 ? 'linear-gradient(135deg,#a855f7,#7c3aed)' : 'linear-gradient(135deg,#22c55e,#10b981)', color: '#000' }}
             >
-              <ExternalLink className="w-3.5 h-3.5" /> Full Studio
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Full </span>Studio
             </button>
             <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-800 text-gray-400 hover:text-white transition-all">
               <X className="w-5 h-5" />
@@ -165,7 +161,7 @@ function OverlayPreviewModal({ isOpen, onClose, level, templates }: OverlayPrevi
                   <iframe
                     id="membership-preview-frame"
                     key={iframeKey}
-                    src={`${selected.url}?preview=true`}
+                    src={`/overlays/${selected.file}?demo=true`}
                     onLoad={handleIframeLoad}
                     style={{
                       width: '1920px',
