@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   BarChart3, ShieldCheck, Play, ArrowRight,
   Activity, Video, Trophy, Users, Zap,
   Sparkles, ChevronDown, Star,
   Instagram, Youtube,
-  MonitorPlay, ExternalLink, Eye, Globe, Radio
+  MonitorPlay, ExternalLink, Eye, Globe, Radio,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { matchAPI } from '../services/api';
 import Carousel from './Carousel';
@@ -102,72 +103,178 @@ function SocialLink({ icon, href, label }: { icon: React.ReactNode; href: string
   );
 }
 
-function OverlayCard({ name, category, level, url, gradient }: { name: string; category: string; level: 1 | 2; url: string; gradient: string }) {
-  const [loaded, setLoaded] = useState(false);
+// ─── Overlay templates list ────────────────────────────────────────────────
+const OVERLAY_TEMPLATES = [
+  { name: 'Neon Pulse',      category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-neon-pulse.html',      gradient: 'from-green-500 to-cyan-600' },
+  { name: 'Broadcast Pro',   category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-broadcast-pro.html',   gradient: 'from-blue-500 to-indigo-700' },
+  { name: 'Cyber Glitch',    category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-cyber-glitch.html',    gradient: 'from-pink-500 to-purple-700' },
+  { name: 'Water Flow',      category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-water-flow.html',      gradient: 'from-blue-400 to-cyan-600' },
+  { name: 'Modern Bar',      category: 'Premium',    level: 1 as const, url: '/overlays/lvl1-modern-bar.html',      gradient: 'from-emerald-500 to-teal-600' },
+  { name: 'Franchise Gold',  category: 'Premium',    level: 1 as const, url: '/overlays/lvl1-franchise-gold.html',  gradient: 'from-yellow-500 to-orange-600' },
+  { name: 'Hologram',        category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-hologram.html',        gradient: 'from-cyan-500 to-blue-800' },
+  { name: 'Matrix Rain',     category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-matrix-rain.html',     gradient: 'from-green-600 to-black' },
+  { name: 'Flame Thrower',   category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-flame-thrower.html',   gradient: 'from-orange-500 to-red-700' },
+  { name: 'Glass Morphism',  category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-glass-morphism.html',  gradient: 'from-white/10 to-blue-500/20' },
+  { name: 'Particle Storm',  category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-particle-storm.html',  gradient: 'from-violet-600 to-indigo-800' },
+  { name: 'Solid Edge',      category: 'Premium',    level: 1 as const, url: '/overlays/lvl1-solid-edge.html',      gradient: 'from-gray-500 to-gray-800' },
+  { name: 'Minimal Dark',    category: 'Premium',    level: 1 as const, url: '/overlays/lvl1-minimal-dark.html',    gradient: 'from-gray-700 to-black' },
+  { name: 'Yellow Impact',   category: 'Premium',    level: 1 as const, url: '/overlays/lvl1-yellow-impact.html',   gradient: 'from-yellow-400 to-amber-600' },
+  { name: 'Arctic Ice',      category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-arctic-ice.html',      gradient: 'from-cyan-300 to-blue-600' },
+  { name: 'Midnight Gold',   category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-midnight-gold.html',   gradient: 'from-yellow-600 to-black' },
+];
+
+const MOCK_SCORE = {
+  team1Name: 'MI', team2Name: 'CSK',
+  team1Score: 187, team1Wickets: 4, team1Overs: '18.2',
+  teamName: 'MI', teamScore: 187, teamWickets: 4, teamOvers: '18.2',
+  score: 187, wickets: 4, overs: '18.2',
+  strikerName: 'R. Sharma', strikerRuns: 72, strikerBalls: 41,
+  nonStrikerName: 'H. Pandya', nonStrikerRuns: 18, nonStrikerBalls: 9,
+  bowlerName: 'P. Cummins', bowlerRuns: 28, bowlerWickets: 1, bowlerOvers: '3.1',
+  thisOver: [
+    { raw: '1', runs: 1, isWicket: false, isWide: false, isNoBall: false, isFour: false, isSix: false },
+    { raw: '4', runs: 4, isWicket: false, isWide: false, isNoBall: false, isFour: true,  isSix: false },
+    { raw: 'W', runs: 0, isWicket: true,  isWide: false, isNoBall: false, isFour: false, isSix: false },
+    { raw: '6', runs: 6, isWicket: false, isWide: false, isNoBall: false, isFour: false, isSix: true  },
+  ],
+};
+
+// ─── Big single-iframe overlay showcase ───────────────────────────────────
+function OverlayShowcase() {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const backendBase = (import.meta.env.VITE_API_URL || '').replace('/api/v1', '');
-  const previewSrc = backendBase ? `${backendBase}${url}?preview=true` : `${url}?preview=true`;
 
-  const handleLoad = () => {
-    setLoaded(true);
-    setTimeout(() => {
-      if (!iframeRef.current?.contentWindow) return;
-      iframeRef.current.contentWindow.postMessage({
-        type: 'UPDATE_SCORE',
-        data: {
-          team1Name: 'MI', team2Name: 'CSK', team1Score: 187, team1Wickets: 4, team1Overs: '18.2',
-          teamName: 'MI', teamScore: 187, teamWickets: 4, teamOvers: '18.2',
-          score: 187, wickets: 4, overs: '18.2',
-          strikerName: 'R. Sharma', strikerRuns: 72, strikerBalls: 41,
-          nonStrikerName: 'H. Pandya', nonStrikerRuns: 18, nonStrikerBalls: 9,
-          bowlerName: 'P. Cummins', bowlerRuns: 28, bowlerWickets: 1, bowlerOvers: '3.1',
-          thisOver: [
-            { raw: '1', runs: 1, isWicket: false, isWide: false, isNoBall: false, isFour: false, isSix: false },
-            { raw: '4', runs: 4, isWicket: false, isWide: false, isNoBall: false, isFour: true, isSix: false },
-            { raw: 'W', runs: 0, isWicket: true, isWide: false, isNoBall: false, isFour: false, isSix: false },
-            { raw: '6', runs: 6, isWicket: false, isWide: false, isNoBall: false, isFour: false, isSix: true },
-          ],
-        },
-        raw: {},
-      }, '*');
-    }, 800);
-  };
+  const selected = OVERLAY_TEMPLATES[selectedIdx];
+  const previewSrc = backendBase
+    ? `${backendBase}${selected.url}?preview=true`
+    : `${selected.url}?preview=true`;
+
+  // Push mock score data into iframe after it loads
+  const pushScore = useCallback(() => {
+    const iw = iframeRef.current?.contentWindow;
+    if (!iw) return;
+    iw.postMessage({ type: 'UPDATE_SCORE', data: MOCK_SCORE, raw: {} }, '*');
+  }, []);
+
+  const handleLoad = useCallback(() => {
+    setIframeLoaded(true);
+    setTimeout(pushScore, 600);
+  }, [pushScore]);
+
+  // When template changes update src without remounting iframe
+  const prevIdx = useRef(selectedIdx);
+  useEffect(() => {
+    if (prevIdx.current === selectedIdx) return;
+    prevIdx.current = selectedIdx;
+    setIframeLoaded(false);
+    // src change triggers natural reload → onLoad fires → pushScore
+  }, [selectedIdx]);
+
+  const prev = () => setSelectedIdx(i => (i - 1 + OVERLAY_TEMPLATES.length) % OVERLAY_TEMPLATES.length);
+  const next = () => setSelectedIdx(i => (i + 1) % OVERLAY_TEMPLATES.length);
 
   return (
-    <div className="group relative rounded-xl overflow-hidden bg-gray-950 border border-white/5 hover:border-white/18 transition-all duration-300 hover:-translate-y-1">
-      <div className="aspect-video relative bg-black overflow-hidden">
-        {!loaded && (
-          <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-20 flex items-center justify-center`}>
-            <Eye className="w-6 h-6 text-white/50 animate-pulse" />
+    <div className="flex flex-col gap-6 items-center w-full">
+
+      {/* ── Big iframe preview ── */}
+      <div className="w-full max-w-4xl mx-auto">
+        <div
+          className="relative w-full rounded-2xl overflow-hidden border border-white/10 bg-black shadow-2xl"
+          style={{ aspectRatio: '16/9' }}
+        >
+          {/* Loading shimmer */}
+          {!iframeLoaded && (
+            <div className={`absolute inset-0 bg-gradient-to-br ${selected.gradient} opacity-20 flex items-center justify-center z-10`}>
+              <Eye className="w-10 h-10 text-white/40 animate-pulse" />
+            </div>
+          )}
+
+          <iframe
+            ref={iframeRef}
+            src={previewSrc}
+            onLoad={handleLoad}
+            title={selected.name}
+            className="border-none pointer-events-none absolute inset-0"
+            style={{
+              width: '1920px',
+              height: '1080px',
+              transform: 'scale(0.3333)',  // 1/3 — fills a 640px-wide container exactly
+              transformOrigin: 'top left',
+              top: 0,
+              left: 0,
+            }}
+          />
+
+          {/* Prev / Next arrows */}
+          <button
+            onClick={prev}
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/60 border border-white/15 flex items-center justify-center text-white hover:bg-black/90 transition"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/60 border border-white/15 flex items-center justify-center text-white hover:bg-black/90 transition"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+
+          {/* Level badge */}
+          <div className="absolute top-3 left-3 z-20">
+            <span className={`px-2.5 py-1 rounded-full text-[11px] font-black backdrop-blur-sm ${selected.level === 2 ? 'bg-purple-500/80 text-white' : 'bg-emerald-500/80 text-white'}`}>
+              {selected.category}
+            </span>
           </div>
-        )}
-        <iframe
-          ref={iframeRef}
-          src={previewSrc}
-          className="border-none pointer-events-none"
-          style={{ width: '1920px', height: '1080px', transform: 'scale(0.208333)', transformOrigin: 'top left', position: 'absolute', top: 0, left: 0 }}
-          onLoad={handleLoad}
-          title={name}
-        />
-        <div className="absolute top-2 right-2 z-10">
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black backdrop-blur-sm ${level === 2 ? 'bg-purple-500/80 text-white' : 'bg-emerald-500/80 text-white'}`}>
-            {category}
-          </span>
+
+          {/* Open in Studio hover CTA */}
+          <div className="absolute inset-0 z-20 flex items-end justify-center pb-5 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+            <div className="pointer-events-auto">
+              <Link
+                to={`/studio?template=${selected.url}`}
+                className="flex items-center gap-2 px-5 py-2.5 bg-white text-black font-bold rounded-xl text-sm hover:bg-gray-100 transition shadow-xl"
+              >
+                <MonitorPlay className="w-4 h-4" /> Open in Studio
+              </Link>
+            </div>
+          </div>
         </div>
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <Link to={`/studio?template=${url}`}
-            className="flex items-center gap-2 px-4 py-2 bg-white text-black font-bold rounded-xl text-xs hover:bg-gray-100 transition">
-            <MonitorPlay className="w-3.5 h-3.5" /> Open in Studio
-          </Link>
+
+        {/* Name + counter below preview */}
+        <div className="flex items-center justify-between mt-3 px-1">
+          <h4 className="font-black text-white text-base">{selected.name}</h4>
+          <span className="text-xs text-gray-500 font-bold">{selectedIdx + 1} / {OVERLAY_TEMPLATES.length}</span>
         </div>
       </div>
-      <div className="p-3.5 flex items-center justify-between gap-2">
-        <h4 className="font-bold text-white text-xs truncate">{name}</h4>
-        <Link to={`/studio?template=${url}`}
-          className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-600/15 border border-blue-500/25 text-blue-400 hover:bg-blue-600/30 text-[11px] font-bold transition">
-          <MonitorPlay className="w-3 h-3" /> Studio
-        </Link>
+
+      {/* ── Dropdown selector ── */}
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="relative">
+          <select
+            value={selectedIdx}
+            onChange={e => setSelectedIdx(Number(e.target.value))}
+            className="w-full appearance-none bg-white/5 border border-white/10 text-white text-sm font-bold rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-blue-500/50 cursor-pointer hover:bg-white/8 transition"
+          >
+            {OVERLAY_TEMPLATES.map((t, i) => (
+              <option key={t.url} value={i} style={{ background: '#111', color: '#fff' }}>
+                {t.name}  —  {t.category}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        </div>
+      </div>
+
+      {/* ── Dot indicators ── */}
+      <div className="flex gap-1.5 flex-wrap justify-center max-w-xs">
+        {OVERLAY_TEMPLATES.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setSelectedIdx(i)}
+            className={`w-2 h-2 rounded-full transition-all ${i === selectedIdx ? 'bg-blue-400 scale-125' : 'bg-white/20 hover:bg-white/40'}`}
+          />
+        ))}
       </div>
     </div>
   );
@@ -212,17 +319,6 @@ export default function Frontpage() {
       .catch(() => {});
   }, []);
 
-  const overlayShowcase = [
-    { name: 'Neon Pulse',     category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-neon-pulse.html',      gradient: 'from-green-500 to-cyan-600' },
-    { name: 'Broadcast Pro',  category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-broadcast-pro.html',   gradient: 'from-blue-500 to-indigo-700' },
-    { name: 'Cyber Glitch',   category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-cyber-glitch.html',    gradient: 'from-pink-500 to-purple-700' },
-    { name: 'Water Flow',     category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-water-flow.html',      gradient: 'from-blue-400 to-cyan-600' },
-    { name: 'Modern Bar',     category: 'Premium',    level: 1 as const, url: '/overlays/lvl1-modern-bar.html',      gradient: 'from-emerald-500 to-teal-600' },
-    { name: 'Franchise Gold', category: 'Premium',    level: 1 as const, url: '/overlays/lvl1-franchise-gold.html',  gradient: 'from-yellow-500 to-orange-600' },
-    { name: 'Hologram',       category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-hologram.html',        gradient: 'from-cyan-500 to-blue-800' },
-    { name: 'Matrix Rain',    category: 'Enterprise', level: 2 as const, url: '/overlays/lvl2-matrix-rain.html',     gradient: 'from-green-600 to-black' },
-  ];
-
   return (
     <div className="min-h-screen bg-[#030305] text-white flex flex-col font-sans selection:bg-green-500/30 overflow-x-hidden">
 
@@ -230,7 +326,6 @@ export default function Frontpage() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrollY > 50 ? 'bg-black/96 backdrop-blur-xl border-b border-white/6' : 'bg-black/70 backdrop-blur-md'}`}>
         <div className="container mx-auto px-4 lg:px-6">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
             <div className="flex items-center gap-2.5 shrink-0 cursor-pointer group">
               <div className="relative">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg transition-all"
@@ -245,7 +340,6 @@ export default function Frontpage() {
               </div>
             </div>
 
-            {/* Nav links — desktop */}
             <div className="hidden md:flex items-center gap-7 mx-6">
               <NavLink href="#features">Features</NavLink>
               <NavLink href="#live">Live</NavLink>
@@ -253,7 +347,6 @@ export default function Frontpage() {
               <NavLink href="#pricing">Pricing</NavLink>
             </div>
 
-            {/* Right actions */}
             <div className="flex items-center gap-2 shrink-0">
               <Link to="/studio"
                 className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:scale-[1.03]"
@@ -271,7 +364,7 @@ export default function Frontpage() {
         </div>
       </nav>
 
-      {/* ── Ticker bar — sits flush under nav ── */}
+      {/* ── Ticker ── */}
       <div className={`fixed top-16 left-0 right-0 z-40 h-8 transition-all duration-500 ${scrollY > 50 ? 'bg-black/96 backdrop-blur-xl' : 'bg-black/60 backdrop-blur-sm'}`}
         style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
         <div className="container mx-auto h-full px-4 lg:px-6">
@@ -281,21 +374,17 @@ export default function Frontpage() {
 
       {/* ── Hero ── */}
       <div className="relative pt-32 pb-24 px-6 flex flex-col justify-center overflow-hidden min-h-screen">
-        {/* Grid texture */}
         <div className="absolute inset-0 opacity-20"
           style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='48' height='48' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 48V0M48 0H0' fill='none' stroke='rgba(255,255,255,0.04)' stroke-width='1'/%3E%3C/svg%3E\")" }} />
-        {/* Glows */}
         <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] bg-green-600/10 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-cyan-600/8 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute top-2/3 left-2/3 w-64 h-64 bg-purple-600/8 rounded-full blur-[80px] pointer-events-none" />
 
         <div className="container mx-auto text-center relative z-10 max-w-5xl">
-          {/* Pill badge */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/4 border border-white/8 text-green-400 text-xs font-bold uppercase tracking-widest mb-10 hover:bg-white/8 transition cursor-pointer">
             <Radio className="w-3 h-3 animate-pulse" /> Live Cricket Broadcasting Platform <Sparkles className="w-3 h-3 opacity-50" />
           </div>
 
-          {/* Logo mark */}
           <div className="flex justify-center mb-6">
             <div className="relative">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
@@ -307,7 +396,6 @@ export default function Frontpage() {
             </div>
           </div>
 
-          {/* Hero headline */}
           <h1 className="text-5xl sm:text-7xl md:text-9xl font-black mb-6 leading-[0.88] tracking-tight"
             style={{ fontFamily: 'var(--font-orbitron, monospace)' }}>
             <span className="text-white">NEXT</span><br />
@@ -321,7 +409,6 @@ export default function Frontpage() {
             <span className="text-white font-semibold">deep tournament analytics</span> — all in one platform.
           </p>
 
-          {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
             <Link to="/register"
               className="group inline-flex items-center justify-center gap-3 px-8 py-4 font-bold rounded-2xl transition-all text-black"
@@ -337,12 +424,11 @@ export default function Frontpage() {
             </Link>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-            <StatCard number="10K+" label="Tournaments" icon={<Trophy className="w-5 h-5" />} />
+            <StatCard number="10K+" label="Tournaments"    icon={<Trophy className="w-5 h-5" />} />
             <StatCard number="500K+" label="Matches Scored" icon={<Activity className="w-5 h-5" />} />
-            <StatCard number="21" label="Overlay Templates" icon={<Video className="w-5 h-5" />} />
-            <StatCard number="99.9%" label="Uptime" icon={<Globe className="w-5 h-5" />} />
+            <StatCard number="21"    label="Overlay Templates" icon={<Video className="w-5 h-5" />} />
+            <StatCard number="99.9%" label="Uptime"         icon={<Globe className="w-5 h-5" />} />
           </div>
         </div>
 
@@ -386,7 +472,6 @@ export default function Frontpage() {
 
       {/* ── Features ── */}
       <section id="features" className="relative py-28 px-6 bg-black">
-        {/* Section glow */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-px"
             style={{ background: 'linear-gradient(90deg, transparent, rgba(34,197,94,0.2), transparent)' }} />
@@ -418,14 +503,14 @@ export default function Frontpage() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-px"
             style={{ background: 'linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent)' }} />
         </div>
-        <div className="container mx-auto max-w-6xl">
+        <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-12">
             <p className="text-blue-400 text-xs font-black uppercase tracking-widest mb-3">21 Templates</p>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4" style={{ fontFamily: 'var(--font-orbitron, monospace)' }}>
               Broadcast Overlays
             </h2>
             <p className="text-gray-400 max-w-xl mx-auto text-sm">
-              Professional OBS overlays that make any match look like a TV broadcast. Click any card to preview.
+              Professional OBS overlays that make any match look like a TV broadcast. Use the dropdown to browse all templates.
             </p>
           </div>
 
@@ -441,9 +526,8 @@ export default function Frontpage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {overlayShowcase.map(o => <OverlayCard key={o.url} {...o} />)}
-          </div>
+          {/* Single big iframe showcase */}
+          <OverlayShowcase />
         </div>
       </section>
 

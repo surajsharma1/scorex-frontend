@@ -144,7 +144,7 @@ export default function PreviewStudio() {
     levelParam ? (Number(levelParam) as 1 | 2) : 'all'
   );
   const [zoom, setZoom] = useState(1);
-  const [iframeKey, setIframeKey] = useState(0);
+  // iframeKey removed — we change src directly to avoid full remount
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set(['LIVE ACTION']));
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -226,10 +226,15 @@ export default function PreviewStudio() {
  };
 
  const selectTemplate = (t: Template) => {
- setSelectedTemplate(t);
- setIframeKey(k => k + 1);
- setSidebarOpen(false); // close sidebar on mobile after selection
- };
+setSelectedTemplate(t);
+setSidebarOpen(false);
+// Change src directly instead of remounting iframe — prevents the full page refresh bug
+if (iframeRef.current) {
+  const backendBase = (import.meta.env.VITE_API_URL || '').replace('/api/v1', '');
+  const src = backendBase ? `${backendBase}${t.url}?preview=true` : `${t.url}?preview=true`;
+  iframeRef.current.src = src;
+}
+};
 
   return (
     <div className="flex flex-col h-screen" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
@@ -372,7 +377,6 @@ export default function PreviewStudio() {
               <iframe
                 ref={iframeRef}
                 id="preview-frame"
-                key={iframeKey}
                 src={selectedTemplate.url + '?preview=true'}
                 onLoad={handleIframeLoad}
                 style={{
