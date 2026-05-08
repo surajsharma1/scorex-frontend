@@ -27,6 +27,9 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash][extname]',
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom', 'axios', 'socket.io-client'],
           ui: ['lucide-react']
