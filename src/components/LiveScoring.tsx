@@ -98,18 +98,25 @@ function PlayerSelectModal({ match, battingTeamId, inningsNum, context, onDone, 
   const batPlayers: any[] = battingTeam?.players || [];
   const bowlPlayers: any[] = bowlingTeam?.players || [];
 
-  // Build fully-out set from names (still needed to exclude dismissed batters)
+  // Build fully-out set — keyed by playerId when available, else name.
+  // This prevents excluding the WRONG player when two players share a name.
   const fullyOut = new Set<string>(
     (currentInningsData?.batsmen || [])
       .filter((b: any) => b.isOut && b.outType !== 'retired_hurt' && b.outType !== 'retired')
-      .map((b: any) => b.name)
+      .map((b: any) => b.playerId || b.name)
   );
 
-  // Returns players eligible for a role, excluding the player selected in the OTHER role by index
+  // Returns players eligible for a role, excluding the player selected in the OTHER role by index.
+  // Uses playerId to check fullyOut so same-name players in different slots are distinguished.
   const getBatOptions = (excludeIdx: number) =>
     batPlayers
-      .map((p: any, i: number) => ({ ...p, _idx: i, _key: `${i}::${p.name}` }))
-      .filter((p: any) => !fullyOut.has(p.name) && p._idx !== excludeIdx);
+      .map((p: any, i: number) => {
+        const playerNum = p.teamNumbers?.find((tn: any) =>
+          tn.teamId === (battingTeam?._id || battingTeam)
+        )?.playerNumber ?? (i + 1);
+        return { ...p, _idx: i, _key: `${i}::${p._id || p.name}`, _playerNum: playerNum };
+      })
+      .filter((p: any) => !fullyOut.has(p._id || p.name) && p._idx !== excludeIdx);
 
   useEffect(() => { if (context.reason === 'bowler_change' || context.reason === 'over_end') setBowler(''); }, [context]);
 
@@ -131,7 +138,9 @@ function PlayerSelectModal({ match, battingTeamId, inningsNum, context, onDone, 
       >
         <option value="">-- Select --</option>
         {opts.map((p: any) => (
-          <option key={p._key} value={p._idx}>{p.name}</option>
+          <option key={p._key} value={p._idx}>
+            #{p.jerseyNumber ?? p._playerNum} · {p.name}
+          </option>
         ))}
       </select>
     </div>
@@ -141,7 +150,16 @@ function PlayerSelectModal({ match, battingTeamId, inningsNum, context, onDone, 
       <label className="text-sm font-semibold mb-1.5 block" style={{ color: N.textSecondary }}>{label}</label>
       <select value={value} onChange={e => onChange(e.target.value)} className="w-full rounded-xl px-3 py-2.5 text-sm" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textPrimary }}>
         <option value="">-- Select --</option>
-        {opts.map((p: any) => <option key={p._id || p.name} value={p.name}>{p.name}</option>)}
+        {opts.map((p: any, i: number) => {
+          const playerNum = p.teamNumbers?.find((tn: any) =>
+            tn.teamId === (bowlingTeam?._id || bowlingTeam)
+          )?.playerNumber ?? (i + 1);
+          return (
+            <option key={p._id || p.name} value={p._id || p.name}>
+              #{p.jerseyNumber ?? playerNum} · {p.name}
+            </option>
+          );
+        })}
       </select>
     </div>
   );
@@ -156,9 +174,24 @@ function PlayerSelectModal({ match, battingTeamId, inningsNum, context, onDone, 
   const handleConfirm = () => {
     if (!isValid) return;
     const payload: any = {};
-    if (showStriker && strikerIdx >= 0) payload.striker = batPlayers[strikerIdx]?.name;
-    if (showNonStriker && nonStrikerIdx >= 0) payload.nonStriker = batPlayers[nonStrikerIdx]?.name;
-    if (showBowler && bowler) payload.bowler = bowler;
+
+    if (showStriker && strikerIdx >= 0) {
+      const p = batPlayers[strikerIdx];
+      payload.striker   = p?.name;
+      payload.strikerId = p?._id;          // ← ObjectId sent to backend
+    }
+    if (showNonStriker && nonStrikerIdx >= 0) {
+      const p = batPlayers[nonStrikerIdx];
+      payload.nonStriker   = p?.name;
+      payload.nonStrikerId = p?._id;        // ← ObjectId sent to backend
+    }
+    if (showBowler && bowler) {
+      // bowler value is now p._id (from Sel onChange), keep name too
+      const bp = bowlPlayers.find((p: any) => (p._id || p.name) === bowler);
+      payload.bowler   = bp?.name || bowler;
+      payload.bowlerId = bp?._id;           // ← ObjectId sent to backend
+    }
+
     onDone(payload);
   };
   return (

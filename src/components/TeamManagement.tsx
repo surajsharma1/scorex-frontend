@@ -161,10 +161,15 @@ export default function TeamManagement({ tournamentId = '', onTeamsChange }: Pro
                     return (
                       <div key={p._id} className="group relative flex items-center gap-3 p-3 rounded-xl border transition-all hover:border-[var(--accent)]/20"
                         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                        {/* Jersey number badge */}
+                        {/* Player number badge (team-scoped sequential ID) */}
                         <div className="relative flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm"
                           style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--accent)' }}>
-                          {p.jerseyNumber || idx + 1}
+                          {(() => {
+                            // Prefer jersey number; fall back to the per-team sequential playerNumber
+                            if (p.jerseyNumber) return `#${p.jerseyNumber}`;
+                            const tn = p.teamNumbers?.find((t: any) => t.teamId === team._id);
+                            return tn ? `#${tn.playerNumber}` : `#${idx + 1}`;
+                          })()}
                           <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center" style={{ borderColor: 'var(--bg-card)', background: rc.text }}>
                           </span>
                         </div>
