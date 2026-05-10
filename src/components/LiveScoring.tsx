@@ -356,6 +356,8 @@ function NoBallPanel({ onBack, onSubmit, onWicket, disabled }: {
 function WicketModal({ strikerName, nonStrikerName, baseData, onConfirm, onClose }: { strikerName: string; nonStrikerName: string; baseData: BallData; onConfirm: (d: BallData, outRole: 'striker' | 'nonStriker') => void; onClose: () => void; }) {
   const [outType, setOutType] = useState('');
   const [outPerson, setOutPerson] = useState<'striker' | 'nonStriker'>('striker');
+  const [runOutRuns, setRunOutRuns] = useState(0);
+  const isRunOut = outType === 'run_out';
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
       <div className="rounded-2xl p-6 w-full max-w-sm" style={{ background: N.bgCard, border: `1px solid ${N.border}` }}>
@@ -365,15 +367,30 @@ function WicketModal({ strikerName, nonStrikerName, baseData, onConfirm, onClose
         </div>
         <p className="text-xs uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>How out?</p>
         <div className="grid grid-cols-3 gap-1.5 mb-4">
-          {ALL_WICKET_TYPES.map(wt => (<button key={wt.id} onClick={() => setOutType(wt.id)} className="py-2 rounded-lg text-xs font-semibold border transition-all" style={{ background: outType === wt.id ? N.red : N.redDim, borderColor: outType === wt.id ? N.red : N.redBorder, color: outType === wt.id ? '#fff' : '#fca5a5' }}>{wt.label}</button>))}
+          {ALL_WICKET_TYPES.map(wt => (<button key={wt.id} onClick={() => { setOutType(wt.id); setOutPerson('striker'); setRunOutRuns(0); }} className="py-2 rounded-lg text-xs font-semibold border transition-all" style={{ background: outType === wt.id ? N.red : N.redDim, borderColor: outType === wt.id ? N.red : N.redBorder, color: outType === wt.id ? '#fff' : '#fca5a5' }}>{wt.label}</button>))}
         </div>
         {outType && (
           <>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>Who is out?</p>
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              {(['striker', 'nonStriker'] as const).map(role => (<button key={role} onClick={() => setOutPerson(role)} className="py-2.5 rounded-xl text-sm font-bold border transition-all" style={{ background: outPerson === role ? N.redDim : N.bgElevated, borderColor: outPerson === role ? N.red : N.border, color: outPerson === role ? N.red : N.textSecondary }}>{role === 'striker' ? (strikerName || 'Striker') : (nonStrikerName || 'Non-Striker')}</button>))}
-            </div>
-            <button onClick={() => onConfirm({ ...baseData, wicket: true, outType, outBatsmanName: outPerson === 'striker' ? strikerName : nonStrikerName }, outPerson)} className="w-full py-3 rounded-xl font-black text-sm" style={{ background: N.red, color: '#fff' }}>Confirm Wicket ⚡</button>
+            {isRunOut ? (
+              <>
+                <p className="text-xs uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>Who is out?</p>
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {(['striker', 'nonStriker'] as const).map(role => (<button key={role} onClick={() => setOutPerson(role)} className="py-2.5 rounded-xl text-sm font-bold border transition-all" style={{ background: outPerson === role ? N.redDim : N.bgElevated, borderColor: outPerson === role ? N.red : N.border, color: outPerson === role ? N.red : N.textSecondary }}>{role === 'striker' ? (strikerName || 'Striker') : (nonStrikerName || 'Non-Striker')}</button>))}
+                </div>
+                <p className="text-xs uppercase tracking-wider mb-2" style={{ color: N.textMuted }}>Runs scored before dismissal</p>
+                <div className="grid grid-cols-4 gap-2 mb-4">
+                  {[0, 1, 2, 3].map(r => (<button key={r} onClick={() => setRunOutRuns(r)} className="py-2.5 rounded-xl text-sm font-bold border transition-all" style={{ background: runOutRuns === r ? N.accentGlow : N.bgElevated, borderColor: runOutRuns === r ? N.accent : N.border, color: runOutRuns === r ? N.accent : N.textSecondary }}>{r}</button>))}
+                </div>
+                <button onClick={() => onConfirm({ ...baseData, wicket: true, outType, runs: runOutRuns, outBatsmanName: outPerson === 'striker' ? strikerName : nonStrikerName }, outPerson)} className="w-full py-3 rounded-xl font-black text-sm" style={{ background: N.red, color: '#fff' }}>Confirm Wicket ⚡</button>
+              </>
+            ) : (
+              <>
+                <div className="rounded-xl px-4 py-2.5 mb-4 text-sm" style={{ background: N.bgElevated, border: `1px solid ${N.border}`, color: N.textSecondary }}>
+                  Batter out: <span style={{ color: N.textPrimary, fontWeight: 700 }}>{strikerName || 'Striker'}</span>
+                </div>
+                <button onClick={() => onConfirm({ ...baseData, wicket: true, outType, outBatsmanName: strikerName }, 'striker')} className="w-full py-3 rounded-xl font-black text-sm" style={{ background: N.red, color: '#fff' }}>Confirm Wicket ⚡</button>
+              </>
+            )}
           </>
         )}
       </div>
