@@ -66,7 +66,7 @@ function EditTournamentModal({ tournament, onClose, onUpdated }: { tournament: T
               </div>
               <div>
                 <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Format</label>
-                <select value={form.format as any} onChange={e => setForm({...form, format: e.target.value})} className="w-full p-3 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl">
+                <select value={form.format} onChange={e => setForm({...form, format: e.target.value as 'T10' | 'T20' | 'ODI' | 'Test'})} className="w-full p-3 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl">
                   <option value="T10">T10</option><option value="T20">T20</option><option value="ODI">ODI</option>
                 </select>
               </div>
@@ -242,7 +242,7 @@ function MatchCard({ m, isOwner, onOpen, onDelete }: { m: Match; isOwner: boolea
           <p className="text-sm font-black text-[var(--text-primary)]">{m.team2?.shortName || m.team2?.name || 'TBD'}</p>
         </div>
       </div>
-      {m.resultSummary && <p className="text-[10px] text-green-400 font-bold mt-3 truncate">{m.resultSummary}</p>}
+      {(m as any).resultSummary && <p className="text-[10px] text-green-400 font-bold mt-3 truncate">{(m as any).resultSummary}</p>}
       {m.venue && <p className="text-[11px] text-[var(--text-muted)] mt-2 flex items-center gap-1"><MapPin className="w-3 h-3" />{m.venue}</p>}
     </div>
   );
