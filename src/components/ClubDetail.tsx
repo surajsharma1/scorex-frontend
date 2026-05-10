@@ -14,7 +14,7 @@ interface Club {
   members: any[];
   memberCount: number;
   type: 'public' | 'initiation_required';
-  isPublic: boolean;
+  isPublic: boolean;      
   location?: string;
   joinRequests: any[];
 }
