@@ -7,54 +7,32 @@ import { useAuth } from '../App';
 import { useToast } from '../hooks/useToast';
 import {
   Plus, Trash2, Zap, BarChart2, Users, Trophy, LayoutGrid, CheckCircle2,
-  Calendar, MapPin, ChevronRight, X, ArrowLeft, Edit3
+  Calendar, MapPin, ChevronRight, X, ArrowLeft, Edit3, Download, Clock, Wifi
 } from 'lucide-react';
 import TeamManagement from './TeamManagement';
-import PointsTable from './Leaderboard'; 
-import StatusBadge from './StatusBadge';
+import PointsTable from './Leaderboard';
 import type { Tournament, Match, Team } from './types';
 
 interface CreateMatchForm {
-  team1: string;
-  team2: string;
-  date: string;
-  venue: string;
-  format: string;
-  overs: number | '';
-  matchPhase: string; 
-  name: string;
+  team1: string; team2: string; date: string; venue: string;
+  format: string; overs: number | ''; matchPhase: string; name: string;
 }
 
 // ─── EDIT TOURNAMENT MODAL ────────────────────────────────────────────────────
 function EditTournamentModal({ tournament, onClose, onUpdated }: { tournament: Tournament, onClose: () => void, onUpdated: () => void }) {
   const { addToast } = useToast();
   const [form, setForm] = useState({
-    name: tournament.name || '',
-    venue: tournament.venue || '',
+    name: tournament.name || '', venue: tournament.venue || '',
     startDate: tournament.startDate ? new Date(tournament.startDate).toISOString().split('T')[0] : '',
     endDate: tournament.endDate ? new Date(tournament.endDate).toISOString().split('T')[0] : '',
-    format: tournament.format || 'T20',
-    prizePool: tournament.prizePool || 0,
-    rules: tournament.rules || '',
+    format: tournament.format || 'T20', prizePool: tournament.prizePool || 0, rules: tournament.rules || '',
   });
-
   const [sponsors, setSponsors] = useState<string[]>(tournament.sponsors || []);
-
-  const handleAddSponsor = () => setSponsors([...sponsors, '']);
-  const handleSponsorChange = (index: number, value: string) => {
-    const newSponsors = [...sponsors];
-    newSponsors[index] = value;
-    setSponsors(newSponsors);
-  };
-  const handleRemoveSponsor = (index: number) => {
-    setSponsors(sponsors.filter((_, i) => i !== index));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const validSponsors = sponsors.filter(s => s.trim() !== '');
-await tournamentAPI.updateTournament(tournament._id, { ...form, sponsors: validSponsors });
+      await tournamentAPI.updateTournament(tournament._id, { ...form, sponsors: sponsors.filter(s => s.trim()) });
       addToast({ type: 'success', message: 'Tournament updated successfully' });
       onUpdated();
     } catch (error: any) {
@@ -71,10 +49,8 @@ await tournamentAPI.updateTournament(tournament._id, { ...form, sponsors: validS
           </h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-xl transition-colors"><X className="w-5 h-5" /></button>
         </div>
-
         <div className="overflow-y-auto p-6 custom-scrollbar">
           <form id="edit-tournament-form" onSubmit={handleSubmit} className="space-y-6">
-            {/* Core Settings */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Tournament Name</label>
@@ -90,81 +66,38 @@ await tournamentAPI.updateTournament(tournament._id, { ...form, sponsors: validS
               </div>
               <div>
                 <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Format</label>
-                <select value={form.format as 'T10' | 'T20' | 'ODI' | 'Test'} onChange={e => setForm({...form, format: e.target.value as 'T10' | 'T20' | 'ODI' | 'Test'})} className="w-full p-3 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl">
-                  <option value="T10">T10</option>
-                  <option value="T20">T20</option>
-                  <option value="ODI">ODI</option>
+                <select value={form.format as any} onChange={e => setForm({...form, format: e.target.value})} className="w-full p-3 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl">
+                  <option value="T10">T10</option><option value="T20">T20</option><option value="ODI">ODI</option>
                 </select>
               </div>
             </div>
-
-            {/* Sponsor Management */}
             <div className="bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border)]">
               <div className="flex justify-between items-center mb-4">
                 <label className="block text-xs font-bold text-amber-500 uppercase tracking-widest">Broadcast Sponsors</label>
-                <button
-                  type="button"
-                  onClick={handleAddSponsor}
-                  className="text-xs bg-amber-500/10 text-amber-500 px-3 py-1 hover:bg-amber-500 hover:text-white transition-colors"
-                >
-                  + Add Sponsor
-                </button>
+                <button type="button" onClick={() => setSponsors([...sponsors, ''])} className="text-xs bg-amber-500/10 text-amber-500 px-3 py-1 hover:bg-amber-500 hover:text-white transition-colors">+ Add Sponsor</button>
               </div>
-              
               {sponsors.length === 0 ? (
                 <p className="text-sm text-slate-500 italic">No sponsors added. Carousel will be hidden.</p>
               ) : (
                 <div className="space-y-3">
                   {sponsors.map((sponsor, index) => (
                     <div key={index} className="flex gap-2">
-                      <input 
-                        type="text" 
-                        value={sponsor}
-                        onChange={(e) => handleSponsorChange(index, e.target.value)} 
-                        placeholder="e.g., Dream11, Tata Safari" 
-                        className="flex-1 p-2 text-sm bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSponsor(index)}
-                        className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <input type="text" value={sponsor} onChange={e => { const s = [...sponsors]; s[index] = e.target.value; setSponsors(s); }} placeholder="e.g., Dream11" className="flex-1 p-2 text-sm bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg" />
+                      <button type="button" onClick={() => setSponsors(sponsors.filter((_, i) => i !== index))} className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-
             <div>
               <label className="block text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Rules / Notes</label>
-              <textarea 
-                value={form.rules} 
-                onChange={(e) => setForm({...form, rules: e.target.value})} 
-                className="w-full p-3 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl" 
-                rows={3} 
-              />
+              <textarea value={form.rules} onChange={e => setForm({...form, rules: e.target.value})} className="w-full p-3 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl" rows={3} />
             </div>
           </form>
         </div>
-
         <div className="p-4 border-t border-[var(--border)] bg-[var(--bg-card)] flex justify-end gap-3 shrink-0">
-          <button 
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-500/20 hover:bg-gray-500 text-gray-200 rounded-xl font-medium transition-colors flex items-center gap-2"
-          >
-            Cancel
-          </button>
-          <button 
-            type="submit" 
-            form="edit-tournament-form" 
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
-          >
-            Save Changes
-            <CheckCircle2 className="w-4 h-4" />
-          </button>
+          <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-500/20 hover:bg-gray-500 text-gray-200 rounded-xl font-medium transition-colors">Cancel</button>
+          <button type="submit" form="edit-tournament-form" className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold flex items-center gap-2">Save Changes <CheckCircle2 className="w-4 h-4" /></button>
         </div>
       </div>
     </div>
@@ -174,37 +107,27 @@ await tournamentAPI.updateTournament(tournament._id, { ...form, sponsors: validS
 // ─── CREATE MATCH MODAL ───────────────────────────────────────────────────────
 function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournamentId: string, teams: Team[], onClose: () => void, onCreated: () => void }) {
   const { addToast } = useToast();
-  const [form, setForm] = useState<CreateMatchForm>({
-    team1: '',
-    team2: '',
-    date: '',
-    venue: '',
-    format: 'T20',
-    overs: '',
-    matchPhase: 'League',
-    name: ''
-  });
+  const [form, setForm] = useState<CreateMatchForm>({ team1: '', team2: '', date: '', venue: '', format: 'T20', overs: '', matchPhase: 'League', name: '' });
   const [loading, setLoading] = useState(false);
+
+  // Auto-suggest name when teams/phase change, but allow manual override
+  const [nameTouched, setNameTouched] = useState(false);
+  const t1Name = teams.find(t => t._id === form.team1)?.name || '';
+  const t2Name = teams.find(t => t._id === form.team2)?.name || '';
+  const suggestedName = t1Name && t2Name ? `${form.matchPhase}: ${t1Name} vs ${t2Name}` : '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.team1 === form.team2) return addToast({ type: 'error', message: 'Teams must be different' });
     setLoading(true);
     try {
-      // Resolve actual team names from selected IDs so match name is meaningful
-      const team1Doc = teams.find(t => t._id === form.team1);
-      const team2Doc = teams.find(t => t._id === form.team2);
-      const t1Name = team1Doc?.name || 'Team 1';
-      const t2Name = team2Doc?.name || 'Team 2';
-      const matchName = form.name || `${form.matchPhase}: ${t1Name} vs ${t2Name}`;
+      const matchName = (nameTouched && form.name.trim()) ? form.name.trim() : suggestedName;
       await matchAPI.createMatch({ ...form, tournamentId, name: matchName, maxOvers: form.overs });
       addToast({ type: 'success', message: 'Match scheduled' });
       onCreated();
     } catch (err: any) {
       addToast({ type: 'error', message: err.response?.data?.message || 'Error creating match' });
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   return (
@@ -215,6 +138,21 @@ function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournam
           <button onClick={onClose} className="p-2 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-muted)] transition-colors"><X className="w-5 h-5" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Match Name — required, prominent */}
+          <div>
+            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Match Name <span className="text-green-400">*</span></label>
+            <input
+              type="text" required
+              value={nameTouched ? form.name : suggestedName}
+              onChange={e => { setNameTouched(true); setForm({...form, name: e.target.value}); }}
+              placeholder={suggestedName || 'e.g. Final: Team A vs Team B'}
+              className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500"
+            />
+            {!nameTouched && suggestedName && (
+              <p className="text-xs text-[var(--text-muted)] mt-1">Auto-generated — edit to customise</p>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">Team 1</label>
@@ -257,11 +195,55 @@ function CreateMatchModal({ tournamentId, teams, onClose, onCreated }: { tournam
               <input type="text" required value={form.venue} onChange={e => setForm({...form, venue: e.target.value})} placeholder="Match location" className="w-full p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-green-500" />
             </div>
           </div>
-          <button type="submit" disabled={loading} className="w-full py-4 mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold rounded-xl hover:scale-[1.02] transition-transform shadow-lg shadow-green-500/20 disabled:opacity-50">
+          <button type="submit" disabled={loading} className="w-full py-4 mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-bold rounded-xl hover:scale-[1.02] transition-transform shadow-lg disabled:opacity-50">
             {loading ? 'Scheduling...' : 'Create Match'}
           </button>
         </form>
       </div>
+    </div>
+  );
+}
+
+// ─── MATCH CARD ───────────────────────────────────────────────────────────────
+function MatchCard({ m, isOwner, onOpen, onDelete }: { m: Match; isOwner: boolean; onOpen: () => void; onDelete: (e: React.MouseEvent) => void }) {
+  const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
+    live:      { bg: 'rgba(34,197,94,0.12)',  text: '#22c55e', dot: '#22c55e' },
+    upcoming:  { bg: 'rgba(59,130,246,0.12)', text: '#60a5fa', dot: '#60a5fa' },
+    completed: { bg: 'rgba(100,116,139,0.12)', text: '#94a3b8', dot: '#94a3b8' },
+  };
+  const sc = statusColors[m.status] || statusColors.upcoming;
+
+  return (
+    <div onClick={onOpen} className="relative bg-[var(--bg-card)] p-5 rounded-2xl border border-[var(--border)] hover:border-green-500/40 transition-all cursor-pointer group hover:shadow-lg hover:shadow-green-500/5">
+      {isOwner && (
+        <button onClick={onDelete} className="absolute top-3 right-3 p-1.5 bg-red-500/10 text-red-400 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition-all">
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      )}
+      <div className="flex justify-between items-center mb-3 pr-6">
+        <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: sc.bg, color: sc.text }}>
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: sc.dot }} />
+          {m.status.charAt(0).toUpperCase() + m.status.slice(1)}
+        </span>
+        <span className="text-[11px] text-[var(--text-muted)]">{new Date(m.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+      </div>
+      {m.name && <p className="text-[11px] font-bold text-green-400 mb-3 truncate">{m.name}</p>}
+      <div className="space-y-2.5">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center text-[10px] font-black text-[var(--text-muted)]">{(m.team1?.shortName || m.team1?.name || 'TBD')[0]}</div>
+          <p className="text-sm font-black text-[var(--text-primary)]">{m.team1?.shortName || m.team1?.name || 'TBD'}</p>
+        </div>
+        <div className="flex items-center gap-2 pl-1">
+          <span className="text-[10px] font-black text-[var(--text-muted)] w-4">VS</span>
+          <div className="h-px flex-1 bg-[var(--border)]" />
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center text-[10px] font-black text-[var(--text-muted)]">{(m.team2?.shortName || m.team2?.name || 'TBD')[0]}</div>
+          <p className="text-sm font-black text-[var(--text-primary)]">{m.team2?.shortName || m.team2?.name || 'TBD'}</p>
+        </div>
+      </div>
+      {m.resultSummary && <p className="text-[10px] text-green-400 font-bold mt-3 truncate">{m.resultSummary}</p>}
+      {m.venue && <p className="text-[11px] text-[var(--text-muted)] mt-2 flex items-center gap-1"><MapPin className="w-3 h-3" />{m.venue}</p>}
     </div>
   );
 }
@@ -272,13 +254,13 @@ export default function TournamentView() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addToast } = useToast();
-  
+
   const [selected, setSelected] = useState<Tournament | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'matches' | 'teams' | 'points' | 'overlays'>('overview');
-  
+
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
@@ -287,21 +269,16 @@ export default function TournamentView() {
     if (!id) return;
     setLoading(true);
     try {
-      // Load tournament first so header shows immediately
       const tRes = await tournamentAPI.getTournament(id);
       setSelected(tRes.data.data || tRes.data);
       setLoading(false);
-      // Then load matches and teams in parallel (non-blocking)
-      Promise.all([
-        tournamentAPI.getTournamentMatches(id),
-        teamAPI.getTeams(id)
-      ]).then(([mRes, tmRes]) => {
+      Promise.all([tournamentAPI.getTournamentMatches(id), teamAPI.getTeams(id)]).then(([mRes, tmRes]) => {
         setMatches(mRes.data.data || []);
         setTeams(tmRes.data.data || []);
       }).catch(() => {});
-    } catch (e: any) {
+    } catch {
       setLoading(false);
-      addToast({ type: 'error', message: 'Error loading tournament. Please try again.' });
+      addToast({ type: 'error', message: 'Error loading tournament.' });
     }
   }, [id, addToast]);
 
@@ -309,25 +286,12 @@ export default function TournamentView() {
 
   if (loading) return (
     <div className="min-h-screen pb-20 bg-[var(--bg-primary)]">
-      {/* Skeleton header */}
       <div className="relative pt-6 pb-6 px-4 sm:px-8 border-b border-[var(--border)]" style={{ background: 'var(--bg-card)' }}>
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-9 w-40 rounded-xl bg-[var(--bg-elevated)] animate-pulse" />
-          </div>
-          <div className="h-4 w-24 rounded bg-[var(--bg-elevated)] animate-pulse mb-3" />
+          <div className="h-9 w-40 rounded-xl bg-[var(--bg-elevated)] animate-pulse mb-6" />
           <div className="h-12 w-80 rounded-xl bg-[var(--bg-elevated)] animate-pulse mb-2" />
           <div className="h-4 w-48 rounded bg-[var(--bg-elevated)] animate-pulse mb-8" />
-          <div className="flex gap-3">
-            {[1,2,3,4,5].map(i => <div key={i} className="h-10 w-24 rounded-xl bg-[var(--bg-elevated)] animate-pulse" />)}
-          </div>
-        </div>
-      </div>
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 h-64 rounded-3xl bg-[var(--bg-card)] animate-pulse" />
-        <div className="space-y-4">
-          <div className="h-28 rounded-3xl bg-[var(--bg-card)] animate-pulse" />
-          <div className="h-28 rounded-3xl bg-[var(--bg-card)] animate-pulse" />
+          <div className="flex gap-3">{[1,2,3,4,5].map(i => <div key={i} className="h-10 w-24 rounded-xl bg-[var(--bg-elevated)] animate-pulse" />)}</div>
         </div>
       </div>
     </div>
@@ -343,49 +307,44 @@ export default function TournamentView() {
   );
 
   const isOwner = !!user;
+  const activeMatches = matches.filter(m => m.status === 'live' || m.status === 'upcoming');
+  const completedMatches = matches.filter(m => m.status === 'completed');
 
   const handleDeleteTournament = async () => {
-    if (!confirm('WARNING: Are you absolutely sure you want to delete this entire tournament? This action cannot be undone.')) return;
+    if (!confirm('WARNING: Delete this entire tournament? This cannot be undone.')) return;
     try {
       await tournamentAPI.deleteTournament(id!);
-      addToast({ type: 'success', message: 'Tournament deleted successfully' });
+      addToast({ type: 'success', message: 'Tournament deleted' });
       navigate('/tournaments');
-    } catch (e) {
-      addToast({ type: 'error', message: 'Failed to delete tournament' });
-    }
+    } catch { addToast({ type: 'error', message: 'Failed to delete tournament' }); }
   };
 
   const handleDeleteMatch = async (e: React.MouseEvent, matchId: string) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this match?')) return;
+    if (!confirm('Delete this match?')) return;
     try {
       await matchAPI.deleteMatch(matchId);
-      addToast({ type: 'success', message: 'Match deleted successfully' });
+      addToast({ type: 'success', message: 'Match deleted' });
       loadData();
-    } catch (err) {
-      addToast({ type: 'error', message: 'Failed to delete match' });
-    }
+    } catch { addToast({ type: 'error', message: 'Failed to delete match' }); }
   };
 
   return (
     <div className="min-h-screen pb-20 bg-[var(--bg-primary)] relative">
-      {/* Header Hero */}
+      {/* Header Hero — NO tournament StatusBadge, matches have their own status */}
       <div className="relative pt-6 pb-6 px-4 sm:px-8 border-b border-[var(--border)] overflow-hidden" style={{ background: 'var(--bg-card)' }}>
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-green-500/5 rounded-full blur-3xl pointer-events-none translate-x-1/2 -translate-y-1/2" />
-        
         <div className="max-w-6xl mx-auto relative z-10">
-          
-          {/* Action Bar (Back & Delete) */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-            <button onClick={() => navigate('/tournaments')} className="px-4 py-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-white transition-all font-bold text-sm flex items-center gap-2 shadow-sm">
+            <button onClick={() => navigate('/tournaments')} className="px-4 py-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-white transition-all font-bold text-sm flex items-center gap-2">
               <ArrowLeft className="w-4 h-4" /> Back to Tournaments
             </button>
             {isOwner && (
               <div className="flex gap-2">
-                <button onClick={() => setShowEditModal(true)} className="px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white transition-all font-bold text-sm flex items-center gap-2 shadow-sm">
+                <button onClick={() => setShowEditModal(true)} className="px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white transition-all font-bold text-sm flex items-center gap-2">
                   <Edit3 className="w-4 h-4" /> Edit Tournament
                 </button>
-                <button onClick={handleDeleteTournament} className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all font-bold text-sm flex items-center gap-2 shadow-sm">
+                <button onClick={handleDeleteTournament} className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all font-bold text-sm flex items-center gap-2">
                   <Trash2 className="w-4 h-4" /> Delete Tournament
                 </button>
               </div>
@@ -394,9 +353,9 @@ export default function TournamentView() {
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
+              {/* Tournament type pill only — NO status badge */}
               <div className="flex items-center gap-3 mb-3">
-                <StatusBadge status={selected.status} />
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[var(--bg-elevated)] text-[var(--text-secondary)] uppercase border border-[var(--border)]">{selected.type.replace('_', ' ')}</span>
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[var(--bg-elevated)] text-[var(--text-secondary)] uppercase border border-[var(--border)]">{selected.type?.replace('_', ' ')}</span>
               </div>
               <h1 className="text-3xl sm:text-5xl font-black text-[var(--text-primary)] mb-2">{selected.name}</h1>
               <p className="text-sm sm:text-base text-[var(--text-muted)] flex items-center gap-2">
@@ -405,17 +364,16 @@ export default function TournamentView() {
             </div>
           </div>
 
-          {/* Navigation Tabs */}
           <div className="flex overflow-x-auto hide-scrollbar gap-2 sm:gap-4 mt-8">
             {[
               { id: 'overview', icon: LayoutGrid, label: 'Overview' },
-              { id: 'matches', icon: Zap, label: 'Matches' },
-              { id: 'teams', icon: Users, label: 'Teams' },
-              { id: 'points', icon: Trophy, label: 'Points' },
-              { id: 'overlays', icon: BarChart2, label: 'Overlays' }
-            ].map(({ id, icon: Icon, label }) => (
-              <button key={id} onClick={() => setActiveTab(id as any)}
-                className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${activeTab === id ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] border border-transparent'}`}>
+              { id: 'matches',  icon: Zap,       label: 'Matches' },
+              { id: 'teams',    icon: Users,      label: 'Teams' },
+              { id: 'points',   icon: Trophy,     label: 'Points' },
+              { id: 'overlays', icon: BarChart2,  label: 'Overlays' },
+            ].map(({ id: tabId, icon: Icon, label }) => (
+              <button key={tabId} onClick={() => setActiveTab(tabId as any)}
+                className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${activeTab === tabId ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] border border-transparent'}`}>
                 <Icon className="w-4 h-4" /> {label}
               </button>
             ))}
@@ -425,9 +383,9 @@ export default function TournamentView() {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
 
+        {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Description */}
             <div className="lg:col-span-2 space-y-5">
               <div className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)]">
                 <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -435,8 +393,6 @@ export default function TournamentView() {
                 </h3>
                 <p className="text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap text-sm">{selected.description || 'No description provided.'}</p>
               </div>
-
-              {/* Sponsors row if any */}
               {(selected.sponsors || []).filter((s: string) => s).length > 0 && (
                 <div className="bg-[var(--bg-card)] p-6 rounded-2xl border border-[var(--border)]">
                   <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -449,12 +405,10 @@ export default function TournamentView() {
                   </div>
                 </div>
               )}
-
-              {/* Quick stats */}
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { label: 'Matches', value: matches.length, color: 'from-blue-500 to-cyan-500', glow: 'rgba(59,130,246,0.15)' },
-                  { label: 'Teams', value: teams.length, color: 'from-purple-500 to-violet-500', glow: 'rgba(168,85,247,0.15)' },
+                  { label: 'Matches',  value: matches.length,                                 color: 'from-blue-500 to-cyan-500',   glow: 'rgba(59,130,246,0.15)' },
+                  { label: 'Teams',    value: teams.length,                                   color: 'from-purple-500 to-violet-500', glow: 'rgba(168,85,247,0.15)' },
                   { label: 'Live Now', value: matches.filter(m => m.status === 'live').length, color: 'from-green-500 to-emerald-500', glow: 'rgba(34,197,94,0.15)' },
                 ].map(stat => (
                   <div key={stat.label} className="bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border)] text-center" style={{ boxShadow: `0 4px 20px ${stat.glow}` }}>
@@ -464,16 +418,14 @@ export default function TournamentView() {
                 ))}
               </div>
             </div>
-
-            {/* Info sidebar */}
             <div className="space-y-4">
               {[
                 { icon: Calendar, label: 'Start Date', value: new Date(selected.startDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }), color: 'from-blue-500/20 to-cyan-500/20', iconColor: '#60a5fa' },
-                { icon: Trophy, label: 'Format', value: selected.format, color: 'from-purple-500/20 to-violet-500/20', iconColor: '#a78bfa' },
-                { icon: MapPin, label: 'Venue', value: selected.venue || 'TBA', color: 'from-green-500/20 to-emerald-500/20', iconColor: '#34d399' },
+                { icon: Trophy,   label: 'Format',     value: selected.format,         color: 'from-purple-500/20 to-violet-500/20', iconColor: '#a78bfa' },
+                { icon: MapPin,   label: 'Venue',      value: selected.venue || 'TBA', color: 'from-green-500/20 to-emerald-500/20', iconColor: '#34d399' },
                 ...(selected.prizePool ? [{ icon: BarChart2, label: 'Prize Pool', value: `₹${selected.prizePool.toLocaleString()}`, color: 'from-amber-500/20 to-orange-500/20', iconColor: '#fbbf24' }] : []),
               ].map(({ icon: Icon, label, value, color, iconColor }) => (
-                <div key={label} className={`bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border)] flex items-center gap-4`}>
+                <div key={label} className="bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border)] flex items-center gap-4">
                   <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center flex-shrink-0`}>
                     <Icon className="w-5 h-5" style={{ color: iconColor }} />
                   </div>
@@ -483,8 +435,6 @@ export default function TournamentView() {
                   </div>
                 </div>
               ))}
-
-              {/* Rules */}
               {selected.rules && (
                 <div className="bg-[var(--bg-card)] p-5 rounded-2xl border border-[var(--border)]">
                   <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-2">Rules</p>
@@ -495,63 +445,64 @@ export default function TournamentView() {
           </div>
         )}
 
+        {/* MATCHES TAB — split into Active and Completed */}
         {activeTab === 'matches' && (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="font-black text-[var(--text-primary)]">Matches</h3>
-                <p className="text-xs text-[var(--text-muted)] mt-0.5">{matches.length} scheduled</p>
+          <div className="space-y-10">
+            {/* Active: live + upcoming */}
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h3 className="font-black text-[var(--text-primary)] flex items-center gap-2">
+                    <Wifi className="w-4 h-4 text-green-400" /> Active Matches
+                  </h3>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">{activeMatches.length} live / upcoming</p>
+                </div>
+                {isOwner && (
+                  <button onClick={() => setShowMatchModal(true)} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black rounded-xl shadow-lg hover:scale-[1.02] transition-all text-sm">
+                    <Plus className="w-4 h-4" /> Schedule Match
+                  </button>
+                )}
               </div>
-              {isOwner && (
-                <button onClick={() => setShowMatchModal(true)} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-black font-black rounded-xl shadow-lg hover:scale-[1.02] transition-all text-sm">
-                  <Plus className="w-4 h-4" /> Schedule Match
-                </button>
+              {activeMatches.length === 0 ? (
+                <div className="py-12 text-center border border-dashed border-[var(--border)] rounded-2xl">
+                  <Clock className="w-8 h-8 text-[var(--text-muted)] mx-auto mb-2 opacity-30" />
+                  <p className="text-sm text-[var(--text-muted)] font-bold">No active matches</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {activeMatches.map(m => (
+                    <MatchCard key={m._id} m={m} isOwner={isOwner}
+                      onOpen={() => setSelectedMatch(m._id)}
+                      onDelete={(e) => handleDeleteMatch(e, m._id)} />
+                  ))}
+                </div>
               )}
             </div>
-            {matches.length === 0 ? (
+
+            {/* Completed matches section — only shown when at least one exists */}
+            {completedMatches.length > 0 && (
+              <div>
+                <div className="flex items-center gap-3 mb-5">
+                  <CheckCircle2 className="w-4 h-4 text-slate-400" />
+                  <div>
+                    <h3 className="font-black text-[var(--text-primary)]">Completed Matches</h3>
+                    <p className="text-xs text-[var(--text-muted)] mt-0.5">{completedMatches.length} finished</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {completedMatches.map(m => (
+                    <MatchCard key={m._id} m={m} isOwner={isOwner}
+                      onOpen={() => setSelectedMatch(m._id)}
+                      onDelete={(e) => handleDeleteMatch(e, m._id)} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {matches.length === 0 && (
               <div className="py-16 text-center border border-dashed border-[var(--border)] rounded-2xl">
                 <Zap className="w-10 h-10 text-[var(--text-muted)] mx-auto mb-3 opacity-30" />
                 <p className="text-sm text-[var(--text-muted)] font-bold">No matches scheduled yet</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {matches.map(m => (
-                  <div
-                    key={m._id}
-                    onClick={() => setSelectedMatch(m._id)}
-                    className="relative bg-[var(--bg-card)] p-5 rounded-2xl border border-[var(--border)] hover:border-green-500/40 transition-all cursor-pointer group hover:shadow-lg hover:shadow-green-500/5"
-                  >
-                    {isOwner && (
-                      <button
-                        onClick={(e) => handleDeleteMatch(e, m._id)}
-                        className="absolute top-3 right-3 p-1.5 bg-red-500/10 text-red-400 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition-all"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    <div className="flex justify-between items-center mb-4 pr-6">
-                      <StatusBadge status={m.status} />
-                      <span className="text-[11px] text-[var(--text-muted)]">{new Date(m.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                    </div>
-                    {m.name && <p className="text-[11px] font-bold text-green-400 mb-3">{m.name}</p>}
-                    <div className="space-y-2.5">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center text-[10px] font-black text-[var(--text-muted)]">{(m.team1?.shortName || m.team1?.name || 'TBD')[0]}</div>
-                        <p className="text-sm font-black text-[var(--text-primary)]">{m.team1?.shortName || m.team1?.name || 'TBD'}</p>
-                      </div>
-                      <div className="flex items-center gap-2 pl-1">
-                        <span className="text-[10px] font-black text-[var(--text-muted)] w-4">VS</span>
-                        <div className="h-px flex-1 bg-[var(--border)]" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center text-[10px] font-black text-[var(--text-muted)]">{(m.team2?.shortName || m.team2?.name || 'TBD')[0]}</div>
-                        <p className="text-sm font-black text-[var(--text-primary)]">{m.team2?.shortName || m.team2?.name || 'TBD'}</p>
-                      </div>
-                    </div>
-                    {m.venue && <p className="text-[11px] text-[var(--text-muted)] mt-3 flex items-center gap-1"><MapPin className="w-3 h-3" />{m.venue}</p>}
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-b-2xl bg-gradient-to-r from-transparent via-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                ))}
               </div>
             )}
           </div>
@@ -562,7 +513,7 @@ export default function TournamentView() {
         {activeTab === 'overlays' && <OverlayManager tournamentId={id!} />}
       </div>
 
-      {/* Floating Match Modal */}
+      {/* Match Detail modal */}
       {selectedMatch && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="relative w-full max-w-5xl h-[90vh] sm:h-[85vh] bg-[var(--bg-primary)] rounded-2xl sm:rounded-3xl shadow-2xl border border-[var(--border)] overflow-hidden flex flex-col">
@@ -582,4 +533,3 @@ export default function TournamentView() {
     </div>
   );
 }
-
