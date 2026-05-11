@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Shield, Zap, BarChart3, Download, Settings, Save, RefreshCw,
   CheckCircle, AlertCircle, Users, Eye, DollarSign, FileText,
-  Activity, TrendingUp, Crown, Star, UserCheck, Clock, X
+  Activity, TrendingUp, Crown, Star, UserCheck, Clock, X, Tag, Plus, Trash2, Ticket
 } from 'lucide-react';
 import api, { adminAPI } from '../services/api';
 import AdminUserTable from './AdminUserTable';
@@ -77,6 +77,12 @@ export default function AdminPanel() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [activeSection, setActiveSection] = useState<Section>('overview');
 
+  // Promo code state
+  const [promoCodes, setPromoCodes] = useState<any[]>([]);
+  const [loadingPromos, setLoadingPromos] = useState(false);
+  const [promoForm, setPromoForm] = useState({ code: '', discount: '', expiresAt: '', usageLimit: '' });
+  const [creatingPromo, setCreatingPromo] = useState(false);
+
   const addToast = useCallback((message: string, type: 'success' | 'error') => {
     const id = Date.now();
     setToasts(prev => [...prev, { message, type, id }]);
@@ -110,6 +116,7 @@ export default function AdminPanel() {
 
     Promise.all([loadStats, loadPrices]).finally(() => setLoading(false));
     loadSavedNotifs();
+    loadPromoCodes();
   }, []);
 
   const loadSavedNotifs = async () => {
@@ -118,6 +125,41 @@ export default function AdminPanel() {
       const res = await api.get('/admin/notifications/saved');
       setSavedNotifs(res.data.data || []);
     } catch { /* silent */ } finally { setLoadingSaved(false); }
+  };
+
+  const loadPromoCodes = async () => {
+    setLoadingPromos(true);
+    try {
+      const res = await adminAPI.getPromoCodes();
+      setPromoCodes(res.data.data || []);
+    } catch { } finally { setLoadingPromos(false); }
+  };
+
+  const createPromoCode = async () => {
+    if (!promoForm.code || !promoForm.discount || !promoForm.expiresAt)
+      return addToast('Code, discount % and expiry date are required', 'error');
+    setCreatingPromo(true);
+    try {
+      await adminAPI.createPromoCode({
+        code: promoForm.code,
+        discount: Number(promoForm.discount),
+        expiresAt: promoForm.expiresAt,
+        usageLimit: promoForm.usageLimit ? Number(promoForm.usageLimit) : null,
+      });
+      addToast('Promo code created!', 'success');
+      setPromoForm({ code: '', discount: '', expiresAt: '', usageLimit: '' });
+      loadPromoCodes();
+    } catch (err: any) {
+      addToast(err.response?.data?.message || 'Failed to create promo code', 'error');
+    } finally { setCreatingPromo(false); }
+  };
+
+  const deletePromoCode = async (id: string) => {
+    try {
+      await adminAPI.deletePromoCode(id);
+      setPromoCodes(prev => prev.filter(p => p._id !== id));
+      addToast('Promo code deleted', 'success');
+    } catch { addToast('Failed to delete', 'error'); }
   };
 
   const [saveNotif, setSaveNotif]   = useState(false);

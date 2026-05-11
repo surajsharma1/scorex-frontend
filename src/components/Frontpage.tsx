@@ -6,10 +6,10 @@ import {
   Sparkles, ChevronDown, Star,
   Instagram, Youtube,
   MonitorPlay, ExternalLink, Eye, Globe, Radio,
-  ChevronLeft, ChevronRight
-} from 'lucide-react';
+  ChevronLeft, ChevronRight, Download} from 'lucide-react';
 import { matchAPI } from '../services/api';
 import Carousel from './Carousel';
+import DiscountBanner from './DiscountBanner';
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -330,6 +330,32 @@ function LiveMatchCard({ match }: { match: any }) {
 // ─── Main Frontpage ────────────────────────────────────────────────────────
 export default function Frontpage() {
   const [scrollY, setScrollY] = useState(0);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
+
+  // Capture the beforeinstallprompt event
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBtn(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    // On iOS Safari, check if standalone mode is NOT active
+    const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const isStandalone = (window.navigator as any).standalone;
+    if (isIos && !isStandalone) setShowInstallBtn(true);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') setShowInstallBtn(false);
+      setDeferredPrompt(null);
+    }
+  };
   const [liveMatches, setLiveMatches] = useState<any[]>([]);
 
   useEffect(() => {
@@ -396,6 +422,9 @@ export default function Frontpage() {
           <Carousel />
         </div>
       </div>
+
+      {/* ── Discount Banner (appears below ticker when active discounts exist) ── */}
+      <DiscountBanner />
 
       {/* ── Hero ── */}
       <div className="relative pt-32 pb-24 px-6 flex flex-col justify-center overflow-hidden min-h-screen">

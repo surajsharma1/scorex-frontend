@@ -4,11 +4,11 @@ import { tournamentAPI, matchAPI, teamAPI } from '../services/api';
 import { useAuth } from '../App';
 import {
   Trophy, Activity, Users, Zap, Plus, ChevronRight,
-  Radio, Target, Clock, Youtube, Instagram
-} from 'lucide-react';
+  Radio, Target, Clock, Youtube, Instagram, Mail, Phone, MessageCircle} from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [contactOpen, setContactOpen] = useState(false);
   const { user } = useAuth();
   const [stats, setStats] = useState({ tournaments: 0, matches: 0, teams: 0, live: 0 });
   const [liveMatches, setLiveMatches] = useState<any[]>([]);
@@ -174,10 +174,10 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── Social Links ── */}
+      {/* ── Social Links + Contact ── */}
       <div className="mt-6 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
         <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-muted)' }}>Follow ScoreX</p>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2">
           <a href="https://www.youtube.com/@ScoreX-Live" target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all hover:scale-[1.03]"
             style={{ background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,0,0,0.2)', color: '#ff4444' }}>
@@ -194,8 +194,61 @@ export default function Dashboard() {
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
             Facebook
           </a>
+          {/* Contact Us button */}
+          <button onClick={() => setContactOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all hover:scale-[1.03]"
+            style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', color: '#22c55e' }}>
+            <MessageCircle className="w-3.5 h-3.5" /> Contact Us
+          </button>
         </div>
       </div>
+
+      {/* ── Contact Us Modal ── */}
+      {contactOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={() => setContactOpen(false)}>
+          <div className="w-full max-w-sm rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-black text-lg flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                <MessageCircle className="w-5 h-5 text-green-400" /> Contact Us
+              </h3>
+              <button onClick={() => setContactOpen(false)} style={{ color: 'var(--text-muted)' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div className="space-y-3">
+              {/* Email — clicking opens Gmail compose */}
+              <a href="mailto:scorexlive0@gmail.com?subject=ScoreX Support"
+                className="flex items-center gap-4 p-4 rounded-xl transition-all hover:scale-[1.02] group"
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(234,67,53,0.15)' }}>
+                  <Mail className="w-5 h-5" style={{ color: '#ea4335' }} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Email</p>
+                  <p className="font-bold text-sm group-hover:underline" style={{ color: 'var(--text-primary)' }}>scorexlive0@gmail.com</p>
+                  <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Tap to open Gmail</p>
+                </div>
+              </a>
+              {/* Phone */}
+              <a href="tel:+918871474139"
+                className="flex items-center gap-4 p-4 rounded-xl transition-all hover:scale-[1.02] group"
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(34,197,94,0.15)' }}>
+                  <Phone className="w-5 h-5 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Mobile</p>
+                  <p className="font-bold text-sm group-hover:underline" style={{ color: 'var(--text-primary)' }}>+91 88714 74139</p>
+                  <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Tap to call</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -166,5 +166,9 @@ export const adminAPI = {
   downloadLog: (filename: string) => api.get(`/admin/logs/${filename}`, { responseType: 'blob' }),
   exportPayments: () => api.get('/admin/export/payments', { responseType: 'blob' }),
   exportTournaments: () => api.get('/admin/export/tournaments', { responseType: 'blob' }),
+  // Promo codes
+  getPromoCodes: () => api.get('/admin/promo-codes'),
+  createPromoCode: (data: any) => api.post('/admin/promo-codes', data),
+  deletePromoCode: (id: string) => api.delete(`/admin/promo-codes/${id}`),
 };
 
