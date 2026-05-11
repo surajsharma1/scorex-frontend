@@ -129,7 +129,8 @@ export const paymentAPI = {
   createRazorpayOrder: (amount: number, plan: string) => api.post('/payments/razorpay-order', { amount, plan }),
   verifyPayment: (data: any) => api.post('/payments/verify-razorpay', data),
   createSubscription: (planName: string) => api.post('/payments/subscription', { plan: planName }),  
-  verifyRazorpayPayment: (data: any) => api.post('/payments/verify-razorpay-payment', data),         
+  verifyRazorpayPayment: (data: any) => api.post('/payments/verify-razorpay-payment', data),
+  validatePromo: (code: string) => api.post('/payments/validate-promo', { code }),
 };
 
 export default api;
@@ -166,9 +167,5 @@ export const adminAPI = {
   downloadLog: (filename: string) => api.get(`/admin/logs/${filename}`, { responseType: 'blob' }),
   exportPayments: () => api.get('/admin/export/payments', { responseType: 'blob' }),
   exportTournaments: () => api.get('/admin/export/tournaments', { responseType: 'blob' }),
-  // Promo codes
-  getPromoCodes: () => api.get('/admin/promo-codes'),
-  createPromoCode: (data: any) => api.post('/admin/promo-codes', data),
-  deletePromoCode: (id: string) => api.delete(`/admin/promo-codes/${id}`),
 };
 

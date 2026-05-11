@@ -7,7 +7,8 @@ interface Props { tournamentId?: string; }
 // ─── Pure client-side XLSX export using SheetJS (already in vite deps via xlsx) ──
 async function exportTournamentXlsx(tournamentId: string, tournamentName: string, pointsTable: any[], matches: any[]) {
   // Dynamically import xlsx — it's a large lib, lazy load it
-  const XLSX = await import('xlsx');
+  // @ts-ignore — xlsx types installed via package.json, skipLibCheck handles this
+  const XLSX: any = await import('xlsx');
 
   const wb = XLSX.utils.book_new();
 
