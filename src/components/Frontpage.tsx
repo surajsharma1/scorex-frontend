@@ -559,7 +559,7 @@ export default function Frontpage() {
         </div>
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-12">
-            <p className="text-blue-400 text-xs font-black uppercase tracking-widest mb-3">21 Templates</p>
+            <p className="text-blue-400 text-xs font-black uppercase tracking-widest mb-3">24 Templates</p>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4" style={{ fontFamily: 'var(--font-orbitron, monospace)' }}>
               Broadcast Overlays
             </h2>
