@@ -6,7 +6,6 @@ import { adminAPI, tournamentAPI } from '../services/api';
 interface Tournament {
   _id: string;
   name: string;
-  status: string;
   startDate: string;
   endDate: string;
   registrationFee: number;
@@ -100,7 +99,6 @@ export default function AdminTournamentsTable() {
           <thead>
             <tr className="border-b">
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Tournament</th>
-              <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Status</th>
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Start Date</th>
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">End Date</th>
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Fee</th>
@@ -111,13 +109,13 @@ export default function AdminTournamentsTable() {
           <tbody className="divide-y">
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
+                <td colSpan={6} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
                   Loading tournaments...
                 </td>
               </tr>
             ) : filteredTournaments.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
+                <td colSpan={6} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
                   No tournaments found
                 </td>
               </tr>
@@ -126,15 +124,6 @@ export default function AdminTournamentsTable() {
                 <tr key={tournament._id} className="transition-colors" style={{ color: "var(--text-primary)" }}>
                   <td className="px-6 py-4">
                     <div className="font-bold" style={{ color: 'var(--text-primary)' }}>{tournament.name}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${
-                      tournament.status === 'ongoing' ? 'bg-emerald-900/40 text-emerald-300' :
-                      tournament.status === 'completed' ? 'bg-gray-800 text-gray-300' :
-                      'bg-blue-900/40 text-blue-300'
-                    }`}>
-                      {tournament.status}
-                    </span>
                   </td>
                   <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
                     {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'N/A'}
@@ -166,4 +155,3 @@ export default function AdminTournamentsTable() {
     </div>
   );
 }
-
