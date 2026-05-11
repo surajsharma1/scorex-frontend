@@ -669,6 +669,186 @@ export default function AdminPanel() {
                 </table>
               </div>
             </div>
+
+            {/* ── Discount Banner Control ── */}
+            <div className="rounded-2xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+              <div className="flex items-center gap-2 mb-3">
+                <Tag className="w-4 h-4 text-amber-400" />
+                <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Discount Banner</h3>
+              </div>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+                The top discount banner auto-shows when any plan has a discount &gt; 0%. Set discount percentages above to control when it appears. The banner reads prices live from the backend.
+              </p>
+              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)' }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245,158,11,0.2)' }}>
+                  <Tag className="w-4 h-4 text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold" style={{ color: '#f59e0b' }}>Auto-triggered by discounts</p>
+                  <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                    Banner shows automatically when Premium or Enterprise has any active discount. Remove all discounts to hide the banner.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Promo Codes ── */}
+            <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+              <div className="px-6 py-4 flex items-center gap-3" style={{ background: 'rgba(245,158,11,0.07)', borderBottom: '1px solid var(--border)' }}>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black"
+                  style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}>
+                  <Ticket className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-black" style={{ color: 'var(--text-primary)' }}>Promo Codes</h3>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Create discount codes for users · one-time, limited, or permanent</p>
+                </div>
+                <button onClick={loadPromoCodes} className="ml-auto p-1.5 rounded-lg" style={{ color: 'var(--text-muted)' }}>
+                  <RefreshCw className={`w-4 h-4 ${loadingPromos ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+
+              {/* Create promo form */}
+              <div className="p-5 space-y-4" style={{ borderBottom: '1px solid var(--border)' }}>
+                <h4 className="text-xs font-black uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Create New Promo Code</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider mb-1 block" style={{ color: 'var(--text-muted)' }}>Code *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. SAVE20"
+                      value={promoForm.code}
+                      onChange={e => setPromoForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
+                      className="w-full px-3 py-2.5 rounded-xl text-sm font-bold uppercase tracking-wider focus:outline-none"
+                      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider mb-1 block" style={{ color: 'var(--text-muted)' }}>Discount % *</label>
+                    <input
+                      type="number" min="1" max="100"
+                      placeholder="e.g. 20"
+                      value={promoForm.discount}
+                      onChange={e => setPromoForm(f => ({ ...f, discount: e.target.value }))}
+                      className="w-full px-3 py-2.5 rounded-xl text-sm font-bold focus:outline-none"
+                      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider mb-1 block" style={{ color: 'var(--text-muted)' }}>Expiry Date *</label>
+                    <input
+                      type="date"
+                      value={promoForm.expiresAt}
+                      onChange={e => setPromoForm(f => ({ ...f, expiresAt: e.target.value }))}
+                      className="w-full px-3 py-2.5 rounded-xl text-sm font-bold focus:outline-none"
+                      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider mb-1 block" style={{ color: 'var(--text-muted)' }}>
+                      Usage Limit <span className="normal-case font-normal">(blank = unlimited)</span>
+                    </label>
+                    <input
+                      type="number" min="1"
+                      placeholder="e.g. 1 (one-time) or 100"
+                      value={promoForm.usageLimit}
+                      onChange={e => setPromoForm(f => ({ ...f, usageLimit: e.target.value }))}
+                      className="w-full px-3 py-2.5 rounded-xl text-sm font-bold focus:outline-none"
+                      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Usage type helper */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {[
+                    { label: '🔂 One-Time Global', desc: 'Single use across ALL users (limit = 1)', action: () => setPromoForm(f => ({ ...f, usageLimit: '1' })) },
+                    { label: '♾️ Permanent / Unlimited', desc: 'Any user can use unlimited times', action: () => setPromoForm(f => ({ ...f, usageLimit: '' })) },
+                    { label: '🔢 Limited Uses', desc: 'Set a specific total usage cap', action: () => setPromoForm(f => ({ ...f, usageLimit: '' })) },
+                  ].map(opt => (
+                    <button key={opt.label} onClick={opt.action}
+                      className="text-left p-3 rounded-xl text-xs transition-all"
+                      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+                      <p className="font-bold mb-0.5">{opt.label}</p>
+                      <p style={{ color: 'var(--text-muted)' }}>{opt.desc}</p>
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={createPromoCode}
+                  disabled={creatingPromo || !promoForm.code || !promoForm.discount || !promoForm.expiresAt}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:scale-105 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#000' }}
+                >
+                  {creatingPromo ? <><RefreshCw className="w-4 h-4 animate-spin" /> Creating…</> : <><Plus className="w-4 h-4" /> Create Promo Code</>}
+                </button>
+              </div>
+
+              {/* Promo list */}
+              <div className="p-5">
+                <h4 className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: 'var(--text-muted)' }}>
+                  Active Promo Codes ({promoCodes.length})
+                </h4>
+                {loadingPromos ? (
+                  <p className="text-sm text-center py-6" style={{ color: 'var(--text-muted)' }}>Loading…</p>
+                ) : promoCodes.length === 0 ? (
+                  <p className="text-sm text-center py-6" style={{ color: 'var(--text-muted)' }}>No promo codes yet. Create one above.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {promoCodes.map(p => {
+                      const isExpired = new Date(p.expiresAt) < new Date();
+                      const usedCount = p.usedBy?.length ?? 0;
+                      const limitDisplay = p.usageLimit === null || p.usageLimit === undefined ? '∞' : String(p.usageLimit);
+                      return (
+                        <div
+                          key={p._id}
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl"
+                          style={{
+                            background: 'var(--bg-elevated)',
+                            border: `1px solid ${isExpired ? 'rgba(239,68,68,0.3)' : 'var(--border)'}`,
+                            opacity: isExpired ? 0.65 : 1,
+                          }}
+                        >
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                            style={{ background: 'rgba(245,158,11,0.15)' }}>
+                            <Ticket className="w-4 h-4 text-amber-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-black text-sm tracking-wider" style={{ color: 'var(--text-primary)' }}>{p.code}</span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black"
+                                style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>
+                                {p.discount}% OFF
+                              </span>
+                              {isExpired && (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black"
+                                  style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171' }}>EXPIRED</span>
+                              )}
+                              {!isExpired && p.isActive && (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black"
+                                  style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>ACTIVE</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4 mt-0.5 text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                              <span>Expires: {new Date(p.expiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                              <span>Used: {usedCount} / {limitDisplay}</span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => deletePromoCode(p._id)}
+                            className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors flex-shrink-0"
+                            style={{ color: '#f87171' }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

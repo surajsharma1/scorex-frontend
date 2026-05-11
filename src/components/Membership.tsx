@@ -6,7 +6,7 @@ import api from '../services/api';
 import {
   Check, Zap, Crown, Star, Clock, Calendar,
   AlertCircle, Eye, ChevronRight, Shield, Sparkles,
-  X, Monitor, Activity, ExternalLink, ChevronLeft
+  X, Monitor, Activity, ExternalLink, ChevronLeft, Tag, RefreshCw
 } from 'lucide-react';
 
 // ── Inline overlay preview modal ─────────────────────────────────────────────
@@ -345,6 +345,13 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
   const [selectedFloatingOverlay, setSelectedFloatingOverlay] = useState('');
   const [templates, setTemplates] = useState<any[]>([]);
 
+  // Promo code state
+  const [promoCode, setPromoCode] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoId, setPromoId] = useState<string | null>(null);
+  const [promoMsg, setPromoMsg] = useState<{ text: string; ok: boolean } | null>(null);
+
   // Load ALL templates from public static file (no auth filter — used for preview & count display)
   useEffect(() => {
     fetch('/templates.json')
@@ -413,6 +420,31 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
   const currentLevel    = backendIsActive ? backendLevel : 0;
   const isExpired       = backendIsActive ? false : membership !== null;
 
+  const applyPromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    setPromoMsg(null);
+    try {
+      const res = await api.post('/payments/validate-promo', { code: promoCode.trim() });
+      setPromoDiscount(res.data.discount);
+      setPromoId(res.data.promoId);
+      setPromoMsg({ text: `✓ Promo applied! ${res.data.discount}% off`, ok: true });
+    } catch (err: any) {
+      setPromoDiscount(0);
+      setPromoId(null);
+      setPromoMsg({ text: err.response?.data?.message || 'Invalid promo code', ok: false });
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const removePromo = () => {
+    setPromoCode('');
+    setPromoDiscount(0);
+    setPromoId(null);
+    setPromoMsg(null);
+  };
+
   const handleUpgrade = async (plan: typeof PLANS[number]) => {
     if (plan.level === 0) return;
     
@@ -432,7 +464,8 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
       addToast({ type: 'success', message: 'Creating secure payment order...' });
 
       // 2. NOW CREATE THE ORDER
-      const amount = effectivePrice(prices[plan.level][selectedDuration]);
+      const basePrice = effectivePrice(prices[plan.level][selectedDuration]);
+      const amount = promoDiscount > 0 ? Math.round(basePrice * (1 - promoDiscount / 100)) : basePrice;
       const res = await paymentAPI.createRazorpayOrder(amount, plan.name);
       const order = res.data.data;
       
@@ -452,7 +485,8 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
             await paymentAPI.verifyRazorpayPayment({ 
               ...response, 
               plan: plan.name, 
-              duration: selectedDuration 
+              duration: selectedDuration,
+              promoId: promoId || undefined,
             });
             addToast({ type: 'success', message: '🎉 Membership activated! Refreshing...' });
 
@@ -587,6 +621,83 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
           </div>
         </div>
 
+        {/* ── Promo Code Section ── */}
+        <div
+          className="rounded-2xl p-5 mb-8"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Tag className="w-4 h-4 text-amber-400" />
+            <h3 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Promo Code</h3>
+            {promoDiscount > 0 && (
+              <span
+                className="ml-auto text-xs font-black px-2.5 py-1 rounded-full"
+                style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}
+              >
+                {promoDiscount}% OFF applied
+              </span>
+            )}
+          </div>
+          <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+            Have a promo code? Enter it here to get an instant discount on any plan.
+          </p>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Tag className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+              <input
+                type="text"
+                value={promoCode}
+                onChange={e => { setPromoCode(e.target.value.toUpperCase()); setPromoMsg(null); }}
+                onKeyDown={e => e.key === 'Enter' && applyPromo()}
+                placeholder="ENTER CODE"
+                disabled={promoDiscount > 0}
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm font-bold uppercase tracking-wider focus:outline-none transition-colors"
+                style={{
+                  background: promoDiscount > 0 ? 'rgba(34,197,94,0.07)' : 'var(--bg-elevated)',
+                  border: `1px solid ${promoDiscount > 0 ? 'rgba(34,197,94,0.4)' : promoMsg && !promoMsg.ok ? 'rgba(239,68,68,0.4)' : 'var(--border)'}`,
+                  color: 'var(--text-primary)',
+                }}
+              />
+            </div>
+            {promoDiscount > 0 ? (
+              <button
+                onClick={removePromo}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
+                style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}
+              >
+                <X className="w-4 h-4" /> Remove
+              </button>
+            ) : (
+              <button
+                onClick={applyPromo}
+                disabled={promoLoading || !promoCode.trim()}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#000' }}
+              >
+                {promoLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Tag className="w-4 h-4" />}
+                Apply
+              </button>
+            )}
+          </div>
+          {promoMsg && (
+            <p
+              className="text-xs font-semibold mt-2 flex items-center gap-1.5"
+              style={{ color: promoMsg.ok ? '#22c55e' : '#f87171' }}
+            >
+              {promoMsg.ok ? <Check className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
+              {promoMsg.text}
+            </p>
+          )}
+          {promoDiscount > 0 && (
+            <div className="mt-3 p-3 rounded-xl" style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)' }}>
+              <p className="text-xs font-bold" style={{ color: '#22c55e' }}>🎉 Discount active on all plans below!</p>
+              <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                Your {promoDiscount}% promo discount will be applied on top of any existing price discounts at checkout.
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* ── Plan cards ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
           {PLANS.map(plan => {
@@ -595,6 +706,7 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
             const isLower   = plan.level < currentLevel;
             const priceEntry = plan.level > 0 ? prices[plan.level]?.[selectedDuration] : null;
             const price     = priceEntry ? effectivePrice(priceEntry) : 0;
+            const promoFinalPrice = promoDiscount > 0 && plan.level > 0 ? Math.round(price * (1 - promoDiscount / 100)) : price;
 
             return (
               <div
@@ -721,8 +833,11 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
                   })() : (
                     <div className="flex items-end gap-1">
                       <span className="text-3xl sm:text-4xl font-black" style={{ color: 'var(--text-primary)' }}>
-                        {plan.level === 0 ? 'Free' : `₹${price}`}
+                        {plan.level === 0 ? 'Free' : promoDiscount > 0 ? `₹${promoFinalPrice}` : `₹${price}`}
                       </span>
+                      {plan.level > 0 && promoDiscount > 0 && (
+                        <span className="text-sm line-through mb-1.5 ml-1" style={{ color: 'var(--text-muted)' }}>₹{price}</span>
+                      )}
                       {plan.level > 0 && (
                         <span className="text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
                           / {DURATION_LABELS[selectedDuration]}
@@ -831,7 +946,7 @@ const [previewLevel, setPreviewLevel] = useState<number | null>(null);
             {[
               { title: 'Pro Overlays', desc: 'Stream-quality broadcast overlays for live matches', color: '#22c55e' },
               { title: 'Deep Analytics', desc: 'NRR, run-rates, player stats & match insights', color: '#3b82f6' },
-              { title: 'Club Tools', desc: 'Manage clubs, memberships and team hierarchies', color: '#a855f7' },
+              { title: 'Tournament Analytics', desc: 'Advanced tournament stats, leaderboards, and bracket management', color: '#a855f7' },
             ].map(item => (
               <div
                 key={item.title}

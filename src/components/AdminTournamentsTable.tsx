@@ -8,6 +8,7 @@ interface Tournament {
   name: string;
   status: string;
   startDate: string;
+  endDate: string;
   registrationFee: number;
   organizer: { username: string };
 }
@@ -101,6 +102,7 @@ export default function AdminTournamentsTable() {
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Tournament</th>
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Status</th>
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Start Date</th>
+              <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">End Date</th>
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Fee</th>
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Organizer</th>
               <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Actions</th>
@@ -109,13 +111,13 @@ export default function AdminTournamentsTable() {
           <tbody className="divide-y">
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
+                <td colSpan={7} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
                   Loading tournaments...
                 </td>
               </tr>
             ) : filteredTournaments.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
+                <td colSpan={7} className="px-6 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
                   No tournaments found
                 </td>
               </tr>
@@ -136,6 +138,9 @@ export default function AdminTournamentsTable() {
                   </td>
                   <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
                     {tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-muted)' }}>
+                    {tournament.endDate ? new Date(tournament.endDate).toLocaleDateString() : 'N/A'}
                   </td>
                   <td className="px-6 py-4 font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
                     ₹{tournament.registrationFee || 0}
