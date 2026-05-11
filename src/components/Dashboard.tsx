@@ -218,7 +218,7 @@ export default function Dashboard() {
             </div>
             <div className="space-y-3">
               {/* Email — clicking opens Gmail compose */}
-              <a href="mailto:scorexlive0@gmail.com?subject=ScoreX Support"
+              <a href="mailto:scorexsupport@gamil.com?subject=ScoreX Support"
                 className="flex items-center gap-4 p-4 rounded-xl transition-all hover:scale-[1.02] group"
                 style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -232,7 +232,7 @@ export default function Dashboard() {
                 </div>
               </a>
               {/* Phone */}
-              <a href="tel:+918871474139"
+              <a href="tel:+919243666767"
                 className="flex items-center gap-4 p-4 rounded-xl transition-all hover:scale-[1.02] group"
                 style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}>
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
