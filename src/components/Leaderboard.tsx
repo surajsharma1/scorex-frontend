@@ -6,9 +6,15 @@ interface Props { tournamentId?: string; }
 
 // ─── Pure client-side XLSX export using SheetJS (already in vite deps via xlsx) ──
 async function exportTournamentXlsx(tournamentId: string, tournamentName: string, pointsTable: any[], matches: any[]) {
-  // Dynamically import xlsx — it's a large lib, lazy load it
-  // @ts-ignore — xlsx types installed via package.json, skipLibCheck handles this
-  const XLSX: any = await import('xlsx');
+  // Load SheetJS from CDN if not already present — avoids npm dependency
+  const XLSX: any = await new Promise((resolve, reject) => {
+    if ((window as any).XLSX) { resolve((window as any).XLSX); return; }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    script.onload = () => resolve((window as any).XLSX);
+    script.onerror = () => reject(new Error('Failed to load SheetJS'));
+    document.head.appendChild(script);
+  });
 
   const wb = XLSX.utils.book_new();
 
