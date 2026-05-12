@@ -227,7 +227,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Email</p>
-                  <p className="font-bold text-sm group-hover:underline" style={{ color: 'var(--text-primary)' }}>scorexlive0@gmail.com</p>
+                  <p className="font-bold text-sm group-hover:underline" style={{ color: 'var(--text-primary)' }}>scorexsupport@gamil.com</p>
                   <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Tap to open Gmail</p>
                 </div>
               </a>
@@ -241,7 +241,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: 'var(--text-muted)' }}>Mobile</p>
-                  <p className="font-bold text-sm group-hover:underline" style={{ color: 'var(--text-primary)' }}>+91 88714 74139</p>
+                  <p className="font-bold text-sm group-hover:underline" style={{ color: 'var(--text-primary)' }}>+91 92436 66767</p>
                   <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Tap to call</p>
                 </div>
               </a>
