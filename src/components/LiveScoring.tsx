@@ -449,9 +449,20 @@ export default function LiveScoring() {
     const currentReason = selectContext.reason;
     setSubmitting(true);
     try {
-      if (match.status !== 'live') await matchAPI.startMatch(id, { ...tossData, ...players });
-      else await matchAPI.selectPlayers(id, players);
-      await fetchMatch();
+        let freshMatch: any = null;
+      if (match.status !== 'live') {
+        const startRes = await matchAPI.startMatch(id, { ...tossData, ...players });
+        freshMatch = startRes?.data?.data || startRes?.data;
+      } else {
+        const selRes = await matchAPI.selectPlayers(id, players);
+        freshMatch = selRes?.data?.data || selRes?.data;
+      }
+      // Use returned data if available, otherwise re-fetch
+      if (freshMatch && freshMatch._id) {
+        setMatch(freshMatch);
+      } else {
+        await fetchMatch();
+      }
       setStep('scoring'); setPanel('main');
     } catch { setError('Failed to update players'); } finally { setSubmitting(false); }
   };
@@ -475,7 +486,12 @@ export default function LiveScoring() {
     try {
       const res = await matchAPI.addBall(id, data);
       const result = res.data.data;
-      await fetchMatch();
+      // Use match data returned directly from API — no extra round-trip needed
+      if (res.data.match) {
+        setMatch(res.data.match);
+      } else {
+        await fetchMatch();
+      }
       setLastBall(result?.ballDescription || '');
       setPanel('main');
       if (result?.matchEnded) { setStep('done'); }
@@ -488,7 +504,25 @@ export default function LiveScoring() {
 
   const handleWicketConfirm = (ballData: BallData, outRole: 'striker' | 'nonStriker') => { setWicketModal({ open: false, baseData: {} }); const outName = ballData.outBatsmanName || ''; setSelectContext({ reason: 'wicket', outRole, outName }); submitBall(ballData); };
 
-  const handleUndo = async () => { if (!id || submitting || !confirm('Undo last ball?')) return; setSubmitting(true); try { await matchAPI.undoBall(id); await fetchMatch(); setLastBall('↩ Undone'); setPanel('main'); if (step === 'playerSelect' || step === 'overEnd') setStep('scoring'); } catch { setError('Cannot undo'); } finally { setSubmitting(false); } };
+  const handleUndo = async () => { 
+    if (!id || submitting || !confirm('Undo last ball?')) return; 
+    setSubmitting(true); 
+    setError('');
+    try { 
+      const undoRes = await matchAPI.undoBall(id); 
+      const freshMatch = undoRes?.data?.data || undoRes?.data;
+      if (freshMatch && freshMatch._id) {
+        setMatch(freshMatch);
+      } else {
+        await fetchMatch();
+      }
+      setLastBall('↩ Undone'); 
+      setPanel('main'); 
+      // Always go back to scoring after undo — this unblocks any stuck playerSelect/overEnd states
+      setStep('scoring'); 
+      setError('');
+    } catch { setError('Cannot undo'); } finally { setSubmitting(false); } 
+  };
 
   const handleStrikeChange = async () => { if (!id || submitting) return; setSubmitting(true); try { await matchAPI.selectPlayers(id, { striker: match?.nonStrikerName, nonStriker: match?.strikerName, bowler: match?.currentBowlerName }); await fetchMatch(); setLastBall('⇄ Strike changed'); } catch { setError('Strike change failed'); } finally { setSubmitting(false); } };
 
@@ -501,9 +535,11 @@ export default function LiveScoring() {
     try {
       const res = await matchAPI.addBall(id!, { retired: true, outBatsmanName: retiredName });
       const result = res.data.data;
-      await fetchMatch();
+      if (res.data.match) { setMatch(res.data.match); } else { await fetchMatch(); }
       setLastBall(result?.ballDescription || `Retired Hurt (${retiredName})`);
       setPanel('main');
+      // Fire retired hurt animation
+      fireBroadcast('BATSMAN_CHANGE', 8, { outName: retiredName, howOut: 'Retired Hurt', outRuns: retiredStats?.runs || 0, outBalls: retiredStats?.balls || 0, inName: '', isSub: true });
       setSelectContext({ reason: 'retired', retiredRole: role, retiredName });
       setStep('playerSelect');
     } catch { setError('Failed to record retirement'); } finally { setSubmitting(false); }
@@ -519,9 +555,11 @@ export default function LiveScoring() {
     try {
       const res = await matchAPI.addBall(id!, { retiredOut: true, wicket: true, outType: 'retired_out', outBatsmanName: retiredName });
       const result = res.data.data;
-      await fetchMatch();
+      if (res.data.match) { setMatch(res.data.match); } else { await fetchMatch(); }
       setLastBall(result?.ballDescription || `Retired Out (${retiredName})`);
       setPanel('main');
+      // Fire wicket animation for retired out
+      fireBroadcast('WICKET_SWITCH', 8, { outName: retiredName, howOut: 'RETIRED OUT', outRuns: retiredStats?.runs || 0, outBalls: retiredStats?.balls || 0, inName: '', isSub: false });
       setSelectContext({ reason: 'wicket', outRole: role, outName: retiredName });
       setStep('playerSelect');
     } catch { setError('Failed to record retired out'); } finally { setSubmitting(false); }
