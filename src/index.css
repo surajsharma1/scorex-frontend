@@ -304,3 +304,79 @@ html.light input[type="date"]::-webkit-calendar-picker-indicator {
   filter: none;
   opacity: 0.7;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   ScoreX Refinements — Performance, Polish & UX
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Smooth font rendering ──────────────────────────────── */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Prevent mobile overscroll bounce (more app-like) ───── */
+html {
+  overscroll-behavior: none;
+}
+
+/* ── Remove tap highlight flash on mobile ───────────────── */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── On-brand focus ring ────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── GPU-promote animated elements ─────────────────────── */
+.animate-spin,
+.animate-pulse,
+.animate-float,
+.animate-float-delayed,
+.animate-float-slow,
+.animate-marquee,
+.live-pulse {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* ── Card hover — prevent layout recalc cascade ─────────── */
+.group {
+  contain: layout style;
+}
+
+/* ── Input autofill — kill the browser yellow/blue flash ── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-card) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--accent);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ── Selection color ────────────────────────────────────── */
+::selection {
+  background: rgba(34,197,94,0.25);
+  color: var(--text-primary);
+}
+
+/* ── Toast: light-mode card tint ────────────────────────── */
+html.light .scorex-toast-card {
+  background: rgba(255,255,255,0.97) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,1) !important;
+}
+
+/* ── Tournament create button: full-width on mobile ─────── */
+@media (max-width: 639px) {
+  a[href="/tournaments/create"].w-full {
+    width: 100% !important;
+  }
+}

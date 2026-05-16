@@ -21,7 +21,6 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const id = Math.random().toString(36).substr(2, 9);
     const displayMessage = title ? `${title}: ${message}` : message;
     setToasts(prev => [...prev, { id, message: displayMessage, type }]);
-    
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 4000);
@@ -31,26 +30,46 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  const toastContainer = toasts.map((toast) => (
-    React.createElement(Toast, {
-      key: toast.id,
-      msg: toast.message,
-      type: toast.type as 'success' | 'error',
-      onClose: () => removeToast(toast.id)
-    })
-  ));
+  // Fixed stacking container — bottom-right, newest on top (column-reverse)
+  const toastContainer = React.createElement(
+    'div',
+    {
+      style: {
+        position: 'fixed',
+        bottom: '1.25rem',
+        right: '1rem',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column-reverse' as const,
+        alignItems: 'flex-end',
+        pointerEvents: 'none',
+        maxHeight: 'calc(100vh - 2rem)',
+        overflow: 'hidden',
+      }
+    },
+    toasts.map((toast, i) =>
+      React.createElement(Toast, {
+        key: toast.id,
+        msg: toast.message,
+        type: toast.type as 'success' | 'error',
+        onClose: () => removeToast(toast.id),
+        index: i,
+      })
+    )
+  );
 
-  return React.createElement(ToastContext.Provider, { value: { addToast } },
+  return React.createElement(
+    ToastContext.Provider,
+    { value: { addToast } },
     children,
-    typeof document !== 'undefined' ? createPortal(toastContainer, document.body) : toastContainer
+    typeof document !== 'undefined'
+      ? createPortal(toastContainer, document.body)
+      : toastContainer
   );
 };
 
 export const useToast = () => {
   const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
-  }
+  if (!context) throw new Error('useToast must be used within ToastProvider');
   return context;
 };
-
