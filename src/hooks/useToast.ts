@@ -47,13 +47,12 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         overflow: 'hidden',
       }
     },
-    toasts.map((toast, i) =>
+    toasts.map((toast) =>
       React.createElement(Toast, {
         key: toast.id,
         msg: toast.message,
         type: toast.type as 'success' | 'error',
         onClose: () => removeToast(toast.id),
-        index: i,
       })
     )
   );
