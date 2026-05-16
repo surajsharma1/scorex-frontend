@@ -1,3 +1,4 @@
+import PageLoader from './PageLoader';
 import { useState, useEffect } from 'react';
 import { useToast } from '../hooks/useToast';
 import { Trash2 } from 'lucide-react';
@@ -80,11 +81,7 @@ await tournamentAPI.updateTournament(id!, editForm);
 
   const isAuthorized = currentUser && (currentUser._id === tournament?.createdBy?._id || currentUser.role === 'admin');
 
-  if (loading) return (
-    <div className="flex h-screen items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-      <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
-    </div>
-  );
+  if (loading) return <PageLoader />;
   
   if (!tournament) return (
     <div className="p-8 text-center" style={{ color: 'var(--text-muted)', background: 'var(--bg-primary)' }}>

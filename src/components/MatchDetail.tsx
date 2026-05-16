@@ -1,3 +1,4 @@
+import PageLoader from './PageLoader';
 import { useState, useEffect, useRef } from 'react';
 import { socket } from '../services/socket';
 import { useNavigate } from 'react-router-dom';
@@ -135,12 +136,7 @@ export default function MatchDetail({ matchId, onBack, openScoreboard }: Props) 
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [tab]);
 
-  if (loading) return (
-    <div className="flex items-center justify-center py-24" style={{ background: 'var(--bg-primary)' }}>
-      <div className="w-12 h-12 border-4 border-t-transparent rounded-2xl animate-spin"
-        style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }} />
-    </div>
-  );
+  if (loading) return <PageLoader />;
 
   if (!match) return (
     <div className="p-8 text-center text-lg" style={{ color: 'var(--text-muted)' }}>Match not found</div>

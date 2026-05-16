@@ -1,3 +1,4 @@
+import PageLoader from './PageLoader';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
@@ -28,11 +29,7 @@ export default function LiveMatchPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-      <div className="w-10 h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
+  if (loading) return <PageLoader fullScreen />;
 
   if (!match) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>

@@ -1,3 +1,4 @@
+import PageLoader from './PageLoader';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { matchAPI } from '../services/api';
@@ -589,7 +590,7 @@ export default function LiveScoring() {
   })();
   const locked = submitting;
 
-  if (loading) return (<div className="min-h-screen flex items-center justify-center bg-black"><div className="w-12 h-12 border-4 border-t-transparent border-green-500 rounded-full animate-spin" /></div>);
+  if (loading) return <PageLoader fullScreen />;
   if (!match) return (<div className="min-h-screen flex items-center justify-center bg-black"><p className="text-red-500 text-xl">Match not found</p></div>);
   if (step === 'done') return (<div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: N.bg }}><div className="text-5xl">🏆</div><h2 className="text-2xl font-black" style={{ color: N.accent }}>Match Completed</h2>{match.resultSummary && <p className="text-sm" style={{ color: N.textSecondary }}>{match.resultSummary}</p>}<button onClick={() => navigate(-1)} className="mt-4 px-6 py-3 rounded-xl font-bold text-sm" style={{ background: N.bgCard, border: `1px solid ${N.border}`, color: N.textPrimary }}>← Back</button></div>);
 
